@@ -19,10 +19,10 @@ const normalizeSearchTerm = (value: string): string =>
 
 export const InboxFrontComponent = () => {
   const [query, setQuery] = useState('');
-  const [filter, setFilter] =
-    useState<InboxConversationFilter>('ACTIVE');
+  const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
   const {
     conversations,
+    savedReplies,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -33,6 +33,7 @@ export const InboxFrontComponent = () => {
     triageResult,
     loadConversations,
     selectConversation,
+    applySavedReply,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,
@@ -100,11 +101,13 @@ export const InboxFrontComponent = () => {
         <ConversationThread
           conversation={selectedConversation}
           messages={messages}
+          savedReplies={savedReplies}
           isLoading={isLoadingMessages}
           busyAction={busyAction}
           triageResult={triageResult}
           onStatusChange={setConversationStatus}
           onSaveInternalNote={saveInternalNote}
+          onUseSavedReply={applySavedReply}
           onPreviewEvolutionText={previewEvolutionText}
           onConfirmEvolutionText={confirmEvolutionText}
           onRunAiTriage={triageConversation}

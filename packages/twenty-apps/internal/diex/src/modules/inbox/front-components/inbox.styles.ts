@@ -449,6 +449,81 @@ export const inboxStyles: Record<string, CSSProperties> = {
     background: themeCssVariables.background.tertiary,
     color: themeCssVariables.font.color.primary,
   },
+  externalComposer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: themeCssVariables.spacing[2],
+  },
+  savedReplyToolbar: {
+    alignItems: 'center',
+    display: 'flex',
+    gap: themeCssVariables.spacing[2],
+  },
+  savedReplyToolbarLabel: {
+    alignItems: 'center',
+    color: themeCssVariables.font.color.secondary,
+    display: 'inline-flex',
+    flexShrink: 0,
+    fontSize: themeCssVariables.font.size.xs,
+    fontWeight: themeCssVariables.font.weight.medium,
+    gap: themeCssVariables.spacing[1],
+  },
+  savedReplySelect: {
+    background: themeCssVariables.background.secondary,
+    border,
+    borderRadius: themeCssVariables.border.radius.sm,
+    color: themeCssVariables.font.color.secondary,
+    flex: 1,
+    fontFamily: themeCssVariables.font.family,
+    fontSize: themeCssVariables.font.size.xs,
+    height: themeCssVariables.spacing[8],
+    minWidth: 0,
+    outline: 'none',
+    padding: `0 ${themeCssVariables.spacing[2]}`,
+  },
+  savedReplyMatches: {
+    background: themeCssVariables.background.primary,
+    border,
+    borderRadius: themeCssVariables.border.radius.sm,
+    boxShadow: themeCssVariables.boxShadow.light,
+    display: 'flex',
+    flexDirection: 'column',
+    maxHeight: 180,
+    overflowY: 'auto',
+  },
+  savedReplyOption: {
+    alignItems: 'center',
+    background: 'transparent',
+    border: 0,
+    borderBottom: border,
+    color: themeCssVariables.font.color.primary,
+    cursor: 'pointer',
+    display: 'flex',
+    fontFamily: themeCssVariables.font.family,
+    gap: themeCssVariables.spacing[2],
+    minHeight: themeCssVariables.spacing[8],
+    padding: `0 ${themeCssVariables.spacing[3]}`,
+    textAlign: 'left',
+    width: '100%',
+  },
+  savedReplyShortcut: {
+    color: themeCssVariables.accent.primary,
+    fontSize: themeCssVariables.font.size.xs,
+    fontWeight: themeCssVariables.font.weight.semiBold,
+  },
+  savedReplyName: {
+    color: themeCssVariables.font.color.primary,
+    flex: 1,
+    fontSize: themeCssVariables.font.size.xs,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  savedReplyCategory: {
+    color: themeCssVariables.font.color.tertiary,
+    fontSize: themeCssVariables.font.size.xxs,
+    whiteSpace: 'nowrap',
+  },
   composerRow: {
     alignItems: 'flex-end',
     display: 'flex',
@@ -626,28 +701,27 @@ export const inboxStyles: Record<string, CSSProperties> = {
 };
 
 export const getStatusChipStyle = (status: string): CSSProperties => {
-  const palette =
-    {
-      OPEN: {
-        background: themeCssVariables.tag.background.green,
-        color: themeCssVariables.tag.text.green,
-      },
-      PENDING: {
-        background: themeCssVariables.tag.background.orange,
-        color: themeCssVariables.tag.text.orange,
-      },
-      SNOOZED: {
-        background: themeCssVariables.tag.background.blue,
-        color: themeCssVariables.tag.text.blue,
-      },
-      RESOLVED: {
-        background: themeCssVariables.tag.background.gray,
-        color: themeCssVariables.tag.text.gray,
-      },
-    }[status] ?? {
+  const palette = {
+    OPEN: {
+      background: themeCssVariables.tag.background.green,
+      color: themeCssVariables.tag.text.green,
+    },
+    PENDING: {
+      background: themeCssVariables.tag.background.orange,
+      color: themeCssVariables.tag.text.orange,
+    },
+    SNOOZED: {
+      background: themeCssVariables.tag.background.blue,
+      color: themeCssVariables.tag.text.blue,
+    },
+    RESOLVED: {
       background: themeCssVariables.tag.background.gray,
       color: themeCssVariables.tag.text.gray,
-    };
+    },
+  }[status] ?? {
+    background: themeCssVariables.tag.background.gray,
+    color: themeCssVariables.tag.text.gray,
+  };
 
   return {
     ...inboxStyles.statusChip,
@@ -656,20 +730,19 @@ export const getStatusChipStyle = (status: string): CSSProperties => {
 };
 
 export const getPriorityChipStyle = (priority: string): CSSProperties => {
-  const palette =
-    {
-      HIGH: {
-        background: themeCssVariables.tag.background.orange,
-        color: themeCssVariables.tag.text.orange,
-      },
-      URGENT: {
-        background: themeCssVariables.tag.background.red,
-        color: themeCssVariables.tag.text.red,
-      },
-    }[priority] ?? {
-      background: themeCssVariables.tag.background.gray,
-      color: themeCssVariables.tag.text.gray,
-    };
+  const palette = {
+    HIGH: {
+      background: themeCssVariables.tag.background.orange,
+      color: themeCssVariables.tag.text.orange,
+    },
+    URGENT: {
+      background: themeCssVariables.tag.background.red,
+      color: themeCssVariables.tag.text.red,
+    },
+  }[priority] ?? {
+    background: themeCssVariables.tag.background.gray,
+    color: themeCssVariables.tag.text.gray,
+  };
 
   return {
     ...inboxStyles.statusChip,

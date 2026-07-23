@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CoreApiClient } from 'twenty-client-sdk/core';
 import { RestApiClient } from 'twenty-client-sdk/rest';
 import { enqueueSnackbar } from 'twenty-sdk/front-component';
@@ -20,9 +14,15 @@ import {
   type EvolutionTextReceipt,
   type InboxConversation,
   type InboxMessage,
+  type InboxSavedReply,
   type InboxTask,
   type InboxTriageResult,
+  type SavedReplyRenderResult,
 } from 'src/modules/inbox/front-components/types/inbox.types';
+import {
+  getUnresolvedSavedReplyVariables,
+  renderSavedReplyTemplate,
+} from 'src/modules/inbox/front-components/utils/saved-reply-template';
 
 type ConversationNode = Omit<InboxConversation, 'tasks'> & {
   tasks?: {
@@ -48,6 +48,14 @@ type MessageQueryResult = {
   };
 };
 
+type SavedReplyQueryResult = {
+  inboxSavedReplies?: {
+    edges?: Array<{
+      node: InboxSavedReply;
+    }>;
+  };
+};
+
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
 
@@ -66,12 +74,14 @@ export const useInboxData = () => {
     string | null
   >(null);
   const [messages, setMessages] = useState<InboxMessage[]>([]);
+  const [savedReplies, setSavedReplies] = useState<InboxSavedReply[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [triageResult, setTriageResult] =
-    useState<InboxTriageResult | null>(null);
+  const [triageResult, setTriageResult] = useState<InboxTriageResult | null>(
+    null,
+  );
   const messageRequestVersionRef = useRef(0);
 
   const loadConversations = useCallback(async () => {
@@ -224,9 +234,61 @@ export const useInboxData = () => {
     }
   }, []);
 
+  const loadSavedReplies = useCallback(async () => {
+    try {
+      const client = new CoreApiClient();
+      const queryResult = (await client.query({
+        inboxSavedReplies: {
+          __args: {
+            filter: {
+              status: {
+                eq: 'ACTIVE',
+              },
+            },
+            first: 100,
+            orderBy: [
+              { usageCount: 'DescNullsLast' },
+              { name: 'AscNullsLast' },
+            ],
+          },
+          edges: {
+            node: {
+              id: true,
+              name: true,
+              shortcut: true,
+              body: true,
+              status: true,
+              channel: true,
+              category: true,
+              usageCount: true,
+              lastUsedAt: true,
+            },
+          },
+        },
+      } as never)) as unknown as SavedReplyQueryResult;
+
+      setSavedReplies(
+        queryResult.inboxSavedReplies?.edges?.map(({ node }) => ({
+          ...node,
+          usageCount: node.usageCount ?? 0,
+        })) ?? [],
+      );
+    } catch {
+      setSavedReplies([]);
+      await enqueueSnackbar({
+        message: 'Não foi possível carregar as respostas prontas.',
+        variant: 'error',
+      });
+    }
+  }, []);
+
   useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
+
+  useEffect(() => {
+    void loadSavedReplies();
+  }, [loadSavedReplies]);
 
   useEffect(() => {
     setTriageResult(null);
@@ -258,8 +320,13 @@ export const useInboxData = () => {
         },
       );
 
-      if (!response?.summary || response.conversationId !== selectedConversationId) {
-        throw new Error('A IA não retornou uma análise válida para esta conversa.');
+      if (
+        !response?.summary ||
+        response.conversationId !== selectedConversationId
+      ) {
+        throw new Error(
+          'A IA não retornou uma análise válida para esta conversa.',
+        );
       }
 
       setTriageResult(response);
@@ -279,9 +346,69 @@ export const useInboxData = () => {
   }, [selectedConversationId]);
 
   const selectedConversation = useMemo(
-    () =>
-      conversations.find(({ id }) => id === selectedConversationId) ?? null,
+    () => conversations.find(({ id }) => id === selectedConversationId) ?? null,
     [conversations, selectedConversationId],
+  );
+
+  const applySavedReply = useCallback(
+    async (
+      savedReply: InboxSavedReply,
+    ): Promise<SavedReplyRenderResult | null> => {
+      if (selectedConversation === null) {
+        return null;
+      }
+
+      const renderResult = renderSavedReplyTemplate(
+        savedReply.body,
+        selectedConversation,
+      );
+      const usedAt = new Date().toISOString();
+      const nextUsageCount = (savedReply.usageCount ?? 0) + 1;
+
+      setSavedReplies((current) =>
+        current.map((item) =>
+          item.id === savedReply.id
+            ? {
+                ...item,
+                usageCount: nextUsageCount,
+                lastUsedAt: usedAt,
+              }
+            : item,
+        ),
+      );
+
+      try {
+        await new CoreApiClient().mutation({
+          updateInboxSavedReply: {
+            __args: {
+              id: savedReply.id,
+              data: {
+                usageCount: nextUsageCount,
+                lastUsedAt: usedAt,
+              },
+            },
+            id: true,
+          },
+        } as never);
+      } catch {
+        await enqueueSnackbar({
+          message: 'Resposta inserida, mas o uso não pôde ser contabilizado.',
+          variant: 'warning',
+        });
+      }
+
+      if (renderResult.unresolvedVariables.length > 0) {
+        await enqueueSnackbar({
+          message: `Complete antes de enviar: ${renderResult.unresolvedVariables
+            .map((variable) => `{{${variable}}}`)
+            .join(', ')}.`,
+          variant: 'warning',
+        });
+      }
+
+      return renderResult;
+    },
+    [selectedConversation],
   );
 
   const selectConversation = useCallback(
@@ -446,18 +573,30 @@ export const useInboxData = () => {
         return null;
       }
 
+      const unresolvedVariables = getUnresolvedSavedReplyVariables(trimmedText);
+
+      if (unresolvedVariables.length > 0) {
+        await enqueueSnackbar({
+          message: `Resolva os placeholders antes do envio: ${unresolvedVariables
+            .map((variable) => `{{${variable}}}`)
+            .join(', ')}.`,
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
       setBusyAction('send-preview');
 
       try {
-        const response =
-          await new RestApiClient().post<EvolutionTextPreview>(
-            `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
-            {
-              conversationId: selectedConversationId,
-              text: trimmedText,
-              previewOnly: true,
-            },
-          );
+        const response = await new RestApiClient().post<EvolutionTextPreview>(
+          `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
+          {
+            conversationId: selectedConversationId,
+            text: trimmedText,
+            previewOnly: true,
+          },
+        );
 
         if (
           !response ||
@@ -503,17 +642,16 @@ export const useInboxData = () => {
       setBusyAction('send-confirm');
 
       try {
-        const response =
-          await new RestApiClient().post<EvolutionTextReceipt>(
-            `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
-            {
-              conversationId: selectedConversationId,
-              text: trimmedText,
-              previewOnly: false,
-              confirmSend: true,
-              confirmationToken,
-            },
-          );
+        const response = await new RestApiClient().post<EvolutionTextReceipt>(
+          `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
+          {
+            conversationId: selectedConversationId,
+            text: trimmedText,
+            previewOnly: false,
+            confirmSend: true,
+            confirmationToken,
+          },
+        );
 
         if (!response?.sent) {
           throw new Error(
@@ -576,6 +714,7 @@ export const useInboxData = () => {
 
   return {
     conversations,
+    savedReplies,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -586,6 +725,7 @@ export const useInboxData = () => {
     triageResult,
     loadConversations,
     selectConversation,
+    applySavedReply,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,

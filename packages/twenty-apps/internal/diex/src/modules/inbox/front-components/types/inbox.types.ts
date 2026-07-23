@@ -63,6 +63,23 @@ export type InboxMessage = {
   isInternalNote: boolean;
 };
 
+export type InboxSavedReply = {
+  id: string;
+  name: string;
+  shortcut: string;
+  body: string;
+  status: string;
+  channel: string;
+  category?: string | null;
+  usageCount: number;
+  lastUsedAt?: string | null;
+};
+
+export type SavedReplyRenderResult = {
+  text: string;
+  unresolvedVariables: string[];
+};
+
 export type EvolutionTextPreview = {
   previewOnly: true;
   conversationId: string;
@@ -109,8 +126,4 @@ export type InboxTriageResult = {
 };
 
 export type InboxConversationFilter =
-  | 'ACTIVE'
-  | 'OPEN'
-  | 'PENDING'
-  | 'SNOOZED'
-  | 'RESOLVED';
+  'ACTIVE' | 'OPEN' | 'PENDING' | 'SNOOZED' | 'RESOLVED';

@@ -8,6 +8,7 @@ import {
   INBOX_CONVERSATION_UNIVERSAL_IDENTIFIER,
   INBOX_MESSAGE_UNIVERSAL_IDENTIFIER,
 } from 'src/modules/inbox/constants/inbox-universal-identifiers';
+import { INBOX_SAVED_REPLY_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/objects/inbox-saved-reply.object';
 import { AI_ACTION_UNIVERSAL_IDENTIFIER } from 'src/objects/ai-action.object';
 import { COMMERCIAL_SIGNAL_UNIVERSAL_IDENTIFIER } from 'src/objects/commercial-signal.object';
 import { OFFER_UNIVERSAL_IDENTIFIER } from 'src/objects/offer.object';
@@ -94,6 +95,10 @@ export default defineApplicationRole({
     },
     {
       objectUniversalIdentifier: INBOX_MESSAGE_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: INBOX_SAVED_REPLY_UNIVERSAL_IDENTIFIER,
       ...readWrite,
     },
     {

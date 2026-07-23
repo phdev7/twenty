@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  IconBolt,
   IconCheck,
   IconClock,
   IconInbox,
@@ -17,7 +18,9 @@ import {
   type EvolutionTextPreview,
   type InboxConversation,
   type InboxMessage,
+  type InboxSavedReply,
   type InboxTriageResult,
+  type SavedReplyRenderResult,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
   formatDateTime,
@@ -34,12 +37,16 @@ import {
 type ConversationThreadProps = {
   conversation: InboxConversation | null;
   messages: InboxMessage[];
+  savedReplies: InboxSavedReply[];
   triageResult: InboxTriageResult | null;
   isLoading: boolean;
   busyAction: string | null;
   onRunAiTriage: () => Promise<void>;
   onStatusChange: (status: string) => Promise<void>;
   onSaveInternalNote: (body: string) => Promise<boolean>;
+  onUseSavedReply: (
+    savedReply: InboxSavedReply,
+  ) => Promise<SavedReplyRenderResult | null>;
   onPreviewEvolutionText: (
     text: string,
   ) => Promise<EvolutionTextPreview | null>;
@@ -62,12 +69,14 @@ const getDeliveryStatusLabel = (status: string): string =>
 export const ConversationThread = ({
   conversation,
   messages,
+  savedReplies,
   triageResult,
   isLoading,
   busyAction,
   onRunAiTriage,
   onStatusChange,
   onSaveInternalNote,
+  onUseSavedReply,
   onPreviewEvolutionText,
   onConfirmEvolutionText,
 }: ConversationThreadProps) => {
@@ -125,6 +134,31 @@ export const ConversationThread = ({
     conversation.provider === 'EVOLUTION';
   const activeTriageResult =
     triageResult?.conversationId === conversation.id ? triageResult : null;
+  const availableSavedReplies = savedReplies.filter(
+    (savedReply) =>
+      savedReply.channel === 'ALL' ||
+      savedReply.channel === conversation.channel,
+  );
+  const shortcutQuery = externalText
+    .match(/^\/([^\s]*)$/)?.[1]
+    ?.toLocaleLowerCase('pt-BR');
+  const matchingSavedReplies =
+    shortcutQuery === undefined
+      ? []
+      : availableSavedReplies
+          .filter((savedReply) => {
+            const searchableValue = [
+              savedReply.shortcut,
+              savedReply.name,
+              savedReply.category,
+            ]
+              .filter(Boolean)
+              .join(' ')
+              .toLocaleLowerCase('pt-BR');
+
+            return searchableValue.includes(shortcutQuery);
+          })
+          .slice(0, 6);
 
   const handleSaveNote = async () => {
     const saved = await onSaveInternalNote(internalNote);
@@ -169,6 +203,18 @@ export const ConversationThread = ({
 
     setComposerMode('EXTERNAL');
     setExternalText(activeTriageResult.suggestedReply);
+    setSendPreview(null);
+  };
+
+  const handleUseSavedReply = async (savedReply: InboxSavedReply) => {
+    const renderResult = await onUseSavedReply(savedReply);
+
+    if (renderResult === null) {
+      return;
+    }
+
+    setComposerMode('EXTERNAL');
+    setExternalText(renderResult.text);
     setSendPreview(null);
   };
 
@@ -481,32 +527,98 @@ export const ConversationThread = ({
               </div>
             </div>
           ) : (
-            <div style={inboxStyles.composerRow}>
-              <textarea
-                aria-label="Responder pelo WhatsApp"
-                placeholder="Escreva a mensagem que será enviada ao cliente..."
-                value={externalText}
-                maxLength={4096}
-                onChange={(event) => setExternalText(event.target.value)}
-                style={inboxStyles.textarea}
-              />
-              <button
-                type="button"
-                style={{
-                  ...inboxStyles.primaryButton,
-                  ...(externalText.trim().length === 0 || isBusy
-                    ? inboxStyles.disabledButton
-                    : {}),
-                }}
-                disabled={externalText.trim().length === 0 || isBusy}
-                onClick={() => void handleRequestSendPreview()}
-              >
-                <IconCheck
-                  size={themeCssVariables.icon.size.sm}
-                  stroke={themeCssVariables.icon.stroke.md}
+            <div style={inboxStyles.externalComposer}>
+              <div style={inboxStyles.savedReplyToolbar}>
+                <span style={inboxStyles.savedReplyToolbarLabel}>
+                  <IconBolt
+                    size={themeCssVariables.icon.size.sm}
+                    stroke={themeCssVariables.icon.stroke.md}
+                  />
+                  Resposta pronta
+                </span>
+                <select
+                  aria-label="Selecionar resposta pronta"
+                  disabled={availableSavedReplies.length === 0 || isBusy}
+                  value=""
+                  style={inboxStyles.savedReplySelect}
+                  onChange={(event) => {
+                    const savedReply = availableSavedReplies.find(
+                      ({ id }) => id === event.target.value,
+                    );
+
+                    if (savedReply) {
+                      void handleUseSavedReply(savedReply);
+                    }
+                  }}
+                >
+                  <option value="">
+                    {availableSavedReplies.length === 0
+                      ? 'Nenhuma resposta cadastrada'
+                      : 'Selecionar ou digitar /atalho'}
+                  </option>
+                  {availableSavedReplies.map((savedReply) => (
+                    <option key={savedReply.id} value={savedReply.id}>
+                      /{savedReply.shortcut} · {savedReply.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {matchingSavedReplies.length > 0 ? (
+                <div style={inboxStyles.savedReplyMatches}>
+                  {matchingSavedReplies.map((savedReply) => (
+                    <button
+                      key={savedReply.id}
+                      type="button"
+                      disabled={isBusy}
+                      style={inboxStyles.savedReplyOption}
+                      onClick={() => void handleUseSavedReply(savedReply)}
+                    >
+                      <span style={inboxStyles.savedReplyShortcut}>
+                        /{savedReply.shortcut}
+                      </span>
+                      <span style={inboxStyles.savedReplyName}>
+                        {savedReply.name}
+                      </span>
+                      {savedReply.category ? (
+                        <span style={inboxStyles.savedReplyCategory}>
+                          {savedReply.category}
+                        </span>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              <div style={inboxStyles.composerRow}>
+                <textarea
+                  aria-label="Responder pelo WhatsApp"
+                  placeholder="Escreva a mensagem ou digite / para usar uma resposta pronta..."
+                  value={externalText}
+                  maxLength={4096}
+                  onChange={(event) => setExternalText(event.target.value)}
+                  style={inboxStyles.textarea}
                 />
-                {busyAction === 'send-preview' ? 'Validando' : 'Revisar envio'}
-              </button>
+                <button
+                  type="button"
+                  style={{
+                    ...inboxStyles.primaryButton,
+                    ...(externalText.trim().length === 0 || isBusy
+                      ? inboxStyles.disabledButton
+                      : {}),
+                  }}
+                  disabled={externalText.trim().length === 0 || isBusy}
+                  onClick={() => void handleRequestSendPreview()}
+                >
+                  <IconCheck
+                    size={themeCssVariables.icon.size.sm}
+                    stroke={themeCssVariables.icon.stroke.md}
+                  />
+                  {busyAction === 'send-preview'
+                    ? 'Validando'
+                    : 'Revisar envio'}
+                </button>
+              </div>
             </div>
           )
         ) : (

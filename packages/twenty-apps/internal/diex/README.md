@@ -12,7 +12,26 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - saúde de carteira e pressão de renovação;
 - fila de ações propostas pela IA com aprovação e recibo;
 - agentes e skills especializados em vendas e CS;
-- inbox comercial ligado aos registros nativos do CRM.
+- inbox comercial ligado aos registros nativos do CRM;
+- respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso.
+
+### Respostas prontas
+
+Cadastre em `Diex > Respostas prontas`. No composer da Inbox, selecione o
+modelo ou digite `/atalho`. O texto entra como rascunho editável e continua
+passando pela prévia e confirmação antes do envio.
+
+Variáveis disponíveis:
+
+- `{{contact.name}}`, `{{contact.first_name}}`,
+  `{{contact.last_name}}` e `{{contact.phone}}`;
+- `{{company.name}}`;
+- `{{opportunity.name}}` e `{{opportunity.stage}}`;
+- `{{conversation.id}}` e `{{conversation.contact_handle}}`.
+
+Use fallback quando o dado puder faltar:
+`{{contact.first_name || 'Olá'}}`. A Inbox bloqueia a prévia enquanto houver
+placeholder não resolvido.
 
 ## Instalação
 
