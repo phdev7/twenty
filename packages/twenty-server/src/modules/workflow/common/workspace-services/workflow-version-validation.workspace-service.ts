@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { msg } from '@lingui/core/macro';
+import { isNonEmptyString } from 'twenty-shared/utils';
 import { IsNull, Not } from 'typeorm';
 
 import {
@@ -84,31 +85,26 @@ export class WorkflowVersionValidationWorkspaceService {
     workspaceId: string;
     payload: UpdateOneResolverArgs<WorkflowVersionWorkspaceEntity>;
   }) {
-    const workflowVersion =
-      await this.workflowCommonWorkspaceService.getWorkflowVersionOrFail({
-        workspaceId,
-        workflowVersionId: payload.id,
-      });
+    await this.workflowCommonWorkspaceService.getWorkflowVersionOrFail({
+      workspaceId,
+      workflowVersionId: payload.id,
+    });
 
-    if (!(Object.keys(payload.data).length === 1 && payload.data.name)) {
-      assertWorkflowVersionIsDraft(workflowVersion);
-    }
+    const updatedFields = Object.keys(payload.data);
+    const isNameOnlyUpdate =
+      updatedFields.length === 1 &&
+      updatedFields[0] === 'name' &&
+      isNonEmptyString(payload.data.name);
 
-    if (payload.data.status && payload.data.status !== workflowVersion.status) {
+    if (!isNameOnlyUpdate) {
       throw new WorkflowQueryValidationException(
-        'Cannot update workflow version status manually',
+        'Updating workflowVersion through generic mutation is only allowed for the name. ' +
+          'Use the dedicated workflowVersion mutations (createWorkflowVersionStep, updateWorkflowVersionStep, ' +
+          'deleteWorkflowVersionStep, updateWorkflowVersionTrigger, activateWorkflowVersion, ...) instead.',
         WorkflowQueryValidationExceptionCode.FORBIDDEN,
         {
-          userFriendlyMessage: msg`Cannot update workflow version status manually`,
+          userFriendlyMessage: msg`Only the workflow version name can be updated directly`,
         },
-      );
-    }
-
-    if (payload.data.steps) {
-      throw new WorkflowQueryValidationException(
-        'Updating workflowVersion steps directly is forbidden. ' +
-          'Use createWorkflowVersionStep, updateWorkflowVersionStep or deleteWorkflowVersionStep endpoint instead.',
-        WorkflowQueryValidationExceptionCode.FORBIDDEN,
       );
     }
   }
