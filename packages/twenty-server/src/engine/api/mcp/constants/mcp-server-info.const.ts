@@ -1,4 +1,4 @@
 export const MCP_SERVER_INFO = {
-  name: 'Twenty MCP Server',
-  version: '0.1.0',
+  name: 'Diex CRM MCP Server',
+  version: '1.0.0',
 };

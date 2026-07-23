@@ -1,0 +1,90 @@
+import { defineApplication, FieldType } from 'twenty-sdk/define';
+
+export const APPLICATION_UNIVERSAL_IDENTIFIER =
+  'd1e00000-0000-4000-8000-000000000001';
+
+export default defineApplication({
+  universalIdentifier: APPLICATION_UNIVERSAL_IDENTIFIER,
+  displayName: 'Diex CRM',
+  description:
+    'Inbox comercial, inteligência de receita, IA governada e Customer Success conectados aos dados nativos do CRM.',
+  logo: 'public/logomark.svg',
+  author: 'Diex',
+  category: 'Productivity',
+  applicationVariables: {
+    EVOLUTION_BASE_URL: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000001',
+      description:
+        'URL HTTPS da Evolution API usada por este workspace. Configure somente pelo painel autenticado.',
+      type: FieldType.TEXT,
+      isSecret: false,
+    },
+    EVOLUTION_INSTANCE_NAME: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000002',
+      description:
+        'Nome da instância Evolution dedicada a este workspace.',
+      type: FieldType.TEXT,
+      isSecret: false,
+    },
+    EVOLUTION_PHONE: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000003',
+      description:
+        'Número conectado em formato E.164 para identificação operacional.',
+      type: FieldType.TEXT,
+      isSecret: false,
+    },
+    EVOLUTION_API_KEY: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000004',
+      description:
+        'Credencial da Evolution API. Nunca é disponibilizada aos componentes front-end.',
+      type: FieldType.TEXT,
+      isSecret: true,
+    },
+    EVOLUTION_WEBHOOK_SECRET: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000005',
+      description:
+        'Segredo exclusivo para validar e rotear webhooks deste workspace.',
+      type: FieldType.TEXT,
+      isSecret: true,
+    },
+    AUTO_CREATE_WHATSAPP_CONTACTS: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000006',
+      description:
+        'Cria uma pessoa quando uma mensagem recebida não encontra telefone correspondente.',
+      type: FieldType.BOOLEAN,
+      value: false,
+      isSecret: false,
+    },
+    DEFAULT_RESPONSE_SLA_MINUTES: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000007',
+      description:
+        'Prazo padrão, em minutos, para a primeira resposta de uma conversa.',
+      type: FieldType.NUMBER,
+      value: 60,
+      isSecret: false,
+    },
+  },
+  serverVariables: {
+    DIEX_EVOLUTION_ALLOWED_ORIGINS: {
+      description:
+        'Lista de origins Evolution autorizadas pelo operador da infraestrutura, separadas por vírgula. Exemplo: https://evolution.exemplo.com. Nenhum workspace pode acessar uma origin fora desta lista.',
+      type: FieldType.TEXT,
+      isSecret: false,
+      isRequired: true,
+    },
+    DIEX_EVOLUTION_ALLOW_PRIVATE_NETWORK: {
+      description:
+        'Permite Evolution em IP privado apenas quando a origin também está na allowlist. Mantenha desativado quando a Evolution possuir endpoint HTTPS público.',
+      type: FieldType.BOOLEAN,
+      isSecret: false,
+      isRequired: false,
+    },
+    DIEX_MIGRATION_API_ENABLED: {
+      description:
+        'Habilita temporariamente importação autenticada por API key. Mantenha desativado fora da janela controlada de migração.',
+      type: FieldType.BOOLEAN,
+      isSecret: false,
+      isRequired: false,
+    },
+  },
+});

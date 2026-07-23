@@ -49,7 +49,29 @@ export const computeStandardOpportunityViewGroups = (
         viewGroupName: 'proposal',
         isVisible: true,
         fieldValue: 'PROPOSAL',
+        position: 4,
+      },
+    }),
+    byStageDiagnosisComplete: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'diagnosisComplete',
+        isVisible: true,
+        fieldValue: 'DIAGNOSIS_COMPLETE',
         position: 3,
+      },
+    }),
+    byStageNegotiation: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'negotiation',
+        isVisible: true,
+        fieldValue: 'NEGOTIATION',
+        position: 5,
       },
     }),
     byStageCustomer: createStandardViewGroupFlatMetadata({
@@ -60,7 +82,18 @@ export const computeStandardOpportunityViewGroups = (
         viewGroupName: 'customer',
         isVisible: true,
         fieldValue: 'CUSTOMER',
-        position: 4,
+        position: 6,
+      },
+    }),
+    byStageLost: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'lost',
+        isVisible: true,
+        fieldValue: 'LOST',
+        position: 7,
       },
     }),
   };

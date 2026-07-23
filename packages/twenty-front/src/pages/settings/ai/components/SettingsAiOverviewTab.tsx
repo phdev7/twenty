@@ -116,8 +116,8 @@ export const SettingsAiOverviewTab = () => {
 
       <Section>
         <H2Title
-          title={t`MCP Server`}
-          description={t`Connect AI assistants like Claude or Cursor to your workspace via the Model Context Protocol`}
+          title={t`Diex CRM MCP Server`}
+          description={t`Connect Claude, Codex, Cursor and other assistants to this workspace with a scoped API key`}
         />
         <UndecoratedLink to={MCP_DEEP_LINK}>
           <SettingsCard

@@ -1,0 +1,58 @@
+# Diex CRM
+
+Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
+
+## Capacidades
+
+- catálogo de ofertas e playbooks;
+- aderência ao ICP, papel de compra e intenção;
+- score comercial explicável e próxima ação;
+- sinais de intenção, objeção, risco, expansão e churn;
+- planos e marcos de Customer Success;
+- saúde de carteira e pressão de renovação;
+- fila de ações propostas pela IA com aprovação e recibo;
+- agentes e skills especializados em vendas e CS;
+- inbox comercial ligado aos registros nativos do CRM.
+
+## Instalação
+
+No diretório deste aplicativo:
+
+```bash
+yarn install
+yarn twenty app dev
+```
+
+O aplicativo usa o workspace do Twenty como fronteira de tenant. Objetos,
+relações, views, agentes, variáveis e permissões são instalados separadamente em
+cada workspace.
+
+## Evolution
+
+Configure pelo painel autenticado do aplicativo:
+
+- `EVOLUTION_BASE_URL`
+- `EVOLUTION_INSTANCE_NAME`
+- `EVOLUTION_PHONE`
+- `EVOLUTION_API_KEY`
+- `EVOLUTION_WEBHOOK_SECRET`
+- `AUTO_CREATE_WHATSAPP_CONTACTS`
+- `DEFAULT_RESPONSE_SLA_MINUTES`
+
+API key e webhook secret são variáveis secretas e não ficam disponíveis para
+componentes front-end. Nunca grave token, senha, QR Code ou pairing code em
+objetos do CRM, mensagens, logs, skills ou contexto MCP.
+
+## Governança da IA
+
+Scores e diagnósticos são apoio à decisão. Comunicação externa, mudança de
+pipeline e intervenções consequenciais devem ser registradas como Ação de IA e
+permanecer em `Aguardando aprovação` até confirmação humana explícita.
+
+## Migração
+
+O fluxo em `tools/diex-migration` importa um tenant legado por workspace com
+prévia, checksum, ordem de dependências e upsert idempotente. A importação por
+API key só funciona quando o operador habilita temporariamente
+`DIEX_MIGRATION_API_ENABLED=true`; nenhuma credencial ou payload bruto entra no
+pacote.

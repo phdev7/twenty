@@ -5,6 +5,7 @@ import { getImageAbsoluteURI, isDefined } from 'twenty-shared/utils';
 import { Avatar } from 'twenty-ui/data-display';
 import { UndecoratedLink } from 'twenty-ui/navigation';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { BRAND_MARK_PATH } from '@/constants/Brand';
 import { REACT_APP_SERVER_BASE_URL } from '~/config';
 import { useRedirectToDefaultDomain } from '~/modules/domain-manager/hooks/useRedirectToDefaultDomain';
 
@@ -46,7 +47,9 @@ const StyledSecondaryLogoContainer = styled.div`
 `;
 
 const StyledPrimaryLogo = styled.div`
-  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
   height: 100%;
   width: 100%;
 `;
@@ -59,7 +62,7 @@ export const Logo = ({
   to = AppPath.SignInUp,
 }: LogoProps) => {
   const { redirectToDefaultDomain } = useRedirectToDefaultDomain();
-  const defaultPrimaryLogoUrl = `${window.location.origin}/images/icons/android/android-launchericon-192-192.png`;
+  const defaultPrimaryLogoUrl = `${window.location.origin}${BRAND_MARK_PATH}`;
 
   const primaryLogoUrl = getImageAbsoluteURI({
     imageUrl: primaryLogo ?? defaultPrimaryLogoUrl,

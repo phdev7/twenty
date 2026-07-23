@@ -41,14 +41,14 @@ export const useHandleCheckoutSession = ({
       });
       if (!data?.checkoutSession.url) {
         enqueueErrorSnackBar({
-          message: t`Checkout session error. Please retry or contact Twenty team`,
+          message: t`Checkout session error. Please retry or contact Diex team`,
         });
         return;
       }
       redirect(data.checkoutSession.url);
     } catch {
       enqueueErrorSnackBar({
-        message: t`Checkout session error. Please retry or contact Twenty team`,
+        message: t`Checkout session error. Please retry or contact Diex team`,
       });
     } finally {
       setIsSubmitting(false);

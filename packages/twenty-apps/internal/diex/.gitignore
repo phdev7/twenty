@@ -1,0 +1,12 @@
+/node_modules
+/.pnp
+.pnp.*
+.yarn
+/generated
+/dist
+/.twenty
+/build
+/.DS_Store
+*.pem
+.env*
+*.tsbuildinfo

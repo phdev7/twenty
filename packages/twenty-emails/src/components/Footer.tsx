@@ -18,45 +18,45 @@ export const Footer = ({ i18n }: FooterProps) => {
         <Column>
           <ShadowText>
             <Link
-              href="https://twenty.com/"
+              href="https://bydiex.com/"
               value={i18n._('Website')}
-              aria-label={i18n._("Visit Twenty's website")}
+              aria-label={i18n._("Visit Diex's website")}
             />
           </ShadowText>
         </Column>
         <Column>
           <ShadowText>
             <Link
-              href="https://github.com/twentyhq/twenty"
-              value={i18n._('Github')}
-              aria-label={i18n._("Visit Twenty's GitHub repository")}
+              href="mailto:contato@bydiex.com"
+              value={i18n._('Support')}
+              aria-label={i18n._('Contact Diex support')}
             />
           </ShadowText>
         </Column>
         <Column>
           <ShadowText>
             <Link
-              href="https://docs.twenty.com/getting-started/introduction"
-              value={i18n._('User guide')}
-              aria-label={i18n._("Read Twenty's user guide")}
+              href="https://crm.bydiex.com/privacy-policy"
+              value={i18n._('Privacy')}
+              aria-label={i18n._("Read Diex's privacy policy")}
             />
           </ShadowText>
         </Column>
         <Column>
           <ShadowText>
             <Link
-              href="https://docs.twenty.com/"
-              value={i18n._('Developers')}
-              aria-label={i18n._("Visit Twenty's developer documentation")}
+              href="https://crm.bydiex.com/terms-of-service"
+              value={i18n._('Terms')}
+              aria-label={i18n._("Read Diex's terms of service")}
             />
           </ShadowText>
         </Column>
       </Row>
       <ShadowText>
         <>
-          {i18n._('Twenty.com, Public Benefit Corporation')}
+          {i18n._('Diex CRM')}
           <br />
-          {i18n._('San Francisco / Paris')}
+          {i18n._('contato@bydiex.com')}
         </>
       </ShadowText>
     </Container>

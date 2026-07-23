@@ -58,7 +58,7 @@ const StyledRightSide = styled(StyledSide)`
 `;
 
 const StyledLogo = styled.div`
-  background-image: url('/images/integrations/twenty-logo.svg');
+  background-image: url('/images/brand/favicon.svg');
   background-size: cover;
   height: ${themeCssVariables.spacing[6]};
   opacity: 0.4;

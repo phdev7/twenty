@@ -74,7 +74,7 @@ export const SettingsMcpSetup = () => {
             <Section>
               <H2Title
                 title={t`Manual configuration`}
-                description={t`Access your workspace data from your favorite MCP client like Claude, Codex or Cursor.`}
+                description={t`Copy one Diex CRM configuration into Claude, Codex, Cursor or another MCP client. The API key remains scoped to this workspace.`}
               />
               <CoreEditorHeader
                 leftNodes={[

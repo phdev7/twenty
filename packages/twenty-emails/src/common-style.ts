@@ -23,13 +23,13 @@ const grayScale = {
 };
 
 const colors = {
-  blue40: '#5e90f2',
+  blue40: '#5F7DFF',
 };
 
 export const emailTheme = {
   font: {
     colors: {
-      highlighted: grayScale.gray60,
+      highlighted: '#0E0929',
       primary: grayScale.gray50,
       tertiary: grayScale.gray35,
       inverted: grayScale.gray0,
@@ -50,11 +50,11 @@ export const emailTheme = {
   },
   border: {
     radius: { sm: '4px', md: '8px' },
-    color: { highlighted: grayScale.gray20 },
+    color: { highlighted: '#D4DEFE' },
   },
   background: {
-    colors: { highlight: grayScale.gray15 },
-    button: grayScale.gray60,
+    colors: { highlight: '#F4F7FF' },
+    button: '#0E0929',
     transparent: {
       medium: 'rgba(0, 0, 0, 0.08)',
       light: 'rgba(0, 0, 0, 0.04)',

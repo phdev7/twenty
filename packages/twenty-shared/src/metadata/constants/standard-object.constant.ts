@@ -1708,11 +1708,20 @@ export const STANDARD_OBJECTS = {
           meeting: {
             universalIdentifier: '20202020-af14-4a04-8a04-0aa0b2ca2bf3',
           },
+          diagnosisComplete: {
+            universalIdentifier: '20202020-af14-4a04-8a04-0aa0b2ca2bf6',
+          },
           proposal: {
             universalIdentifier: '20202020-af14-4a04-8a04-0aa0b2ca2bf4',
           },
+          negotiation: {
+            universalIdentifier: '20202020-af14-4a04-8a04-0aa0b2ca2bf7',
+          },
           customer: {
             universalIdentifier: '20202020-af14-4a04-8a04-0aa0b2ca2bf5',
+          },
+          lost: {
+            universalIdentifier: '20202020-af14-4a04-8a04-0aa0b2ca2bf8',
           },
         },
       },
