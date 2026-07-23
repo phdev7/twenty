@@ -75,6 +75,21 @@ ou API key entre ambientes.
 
 O arquivo de exemplo contém placeholders, nunca credenciais reais.
 
+### Proteção da homologação e APIs autenticadas
+
+O Basic Auth protege a interface inteira, mas não pode disputar o cabeçalho
+`Authorization` com a API key do Twenty. Por isso, os routers de maior
+prioridade deixam passar somente:
+
+- `POST /metadata`, usado para publicar e instalar o app privado;
+- `/webhooks/server/*`, autenticado pelo segredo exclusivo do provedor;
+- `/s/diex/migration/import`, bloqueado por API key, flag temporária e vínculo
+  imutável entre `team_id` e workspace.
+
+Essas rotas continuam protegidas pelo próprio Twenty ou pela validação do app e
+recebem `noindex`. Não abra `/graphql`, `/rest` ou `/s/*` genericamente para
+contornar o Basic Auth.
+
 ## Migração do CRM anterior
 
 O fluxo operacional está em `tools/diex-migration`. A rota de importação exige
