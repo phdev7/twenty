@@ -19,6 +19,7 @@ import {
   type InboxSavedReply,
   type InboxTask,
   type InboxTriageResult,
+  type InboxWorkspaceMember,
   type SavedReplyRenderResult,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
@@ -76,6 +77,14 @@ type LabelQueryResult = {
   };
 };
 
+type WorkspaceMemberQueryResult = {
+  workspaceMembers?: {
+    edges?: Array<{
+      node: InboxWorkspaceMember;
+    }>;
+  };
+};
+
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
 
@@ -96,6 +105,9 @@ export const useInboxData = () => {
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [savedReplies, setSavedReplies] = useState<InboxSavedReply[]>([]);
   const [labels, setLabels] = useState<InboxLabel[]>([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState<
+    InboxWorkspaceMember[]
+  >([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -388,6 +400,38 @@ export const useInboxData = () => {
     }
   }, []);
 
+  const loadWorkspaceMembers = useCallback(async () => {
+    try {
+      const queryResult = (await new CoreApiClient().query({
+        workspaceMembers: {
+          __args: {
+            first: 100,
+          },
+          edges: {
+            node: {
+              id: true,
+              name: {
+                firstName: true,
+                lastName: true,
+              },
+              avatarUrl: true,
+            },
+          },
+        },
+      } as never)) as unknown as WorkspaceMemberQueryResult;
+
+      setWorkspaceMembers(
+        queryResult.workspaceMembers?.edges?.map(({ node }) => node) ?? [],
+      );
+    } catch {
+      setWorkspaceMembers([]);
+      await enqueueSnackbar({
+        message: 'Não foi possível carregar os responsáveis da Inbox.',
+        variant: 'error',
+      });
+    }
+  }, []);
+
   useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
@@ -399,6 +443,10 @@ export const useInboxData = () => {
   useEffect(() => {
     void loadLabels();
   }, [loadLabels]);
+
+  useEffect(() => {
+    void loadWorkspaceMembers();
+  }, [loadWorkspaceMembers]);
 
   useEffect(() => {
     setTriageResult(null);
@@ -653,6 +701,65 @@ export const useInboxData = () => {
       }
     },
     [selectedConversation],
+  );
+
+  const setConversationAssignee = useCallback(
+    async (workspaceMemberId: string | null): Promise<void> => {
+      if (selectedConversation === null) {
+        return;
+      }
+
+      const nextAssignee =
+        workspaceMemberId === null
+          ? null
+          : (workspaceMembers.find(
+              (workspaceMember) => workspaceMember.id === workspaceMemberId,
+            ) ?? null);
+
+      if (workspaceMemberId !== null && nextAssignee === null) {
+        await enqueueSnackbar({
+          message: 'O responsável selecionado não está mais disponível.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
+      setBusyAction('assign-conversation');
+
+      try {
+        await new CoreApiClient().mutation({
+          updateInboxConversation: {
+            __args: {
+              id: selectedConversation.id,
+              data: {
+                assigneeId: workspaceMemberId,
+              },
+            },
+            id: true,
+          },
+        } as never);
+
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === selectedConversation.id
+              ? {
+                  ...conversation,
+                  assignee: nextAssignee,
+                }
+              : conversation,
+          ),
+        );
+      } catch {
+        await enqueueSnackbar({
+          message: 'Não foi possível alterar o responsável da conversa.',
+          variant: 'error',
+        });
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [selectedConversation, workspaceMembers],
   );
 
   const selectConversation = useCallback(
@@ -960,6 +1067,7 @@ export const useInboxData = () => {
     conversations,
     savedReplies,
     labels,
+    workspaceMembers,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -972,6 +1080,7 @@ export const useInboxData = () => {
     selectConversation,
     applySavedReply,
     toggleConversationLabel,
+    setConversationAssignee,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,

@@ -25,6 +25,7 @@ import {
   type InboxConversation,
   type InboxLabel,
   type InboxRecordReference,
+  type InboxWorkspaceMember,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
   formatDateTime,
@@ -40,8 +41,10 @@ import {
 type CrmContextProps = {
   conversation: InboxConversation | null;
   labels: InboxLabel[];
+  workspaceMembers: InboxWorkspaceMember[];
   busyAction: string | null;
   onToggleLabel: (label: InboxLabel) => Promise<void>;
+  onAssign: (workspaceMemberId: string | null) => Promise<void>;
   onConfigureEvolution: () => Promise<void>;
 };
 
@@ -171,8 +174,10 @@ const DeadlineCard = ({
 export const CrmContext = ({
   conversation,
   labels,
+  workspaceMembers,
   busyAction,
   onToggleLabel,
+  onAssign,
   onConfigureEvolution,
 }: CrmContextProps) => {
   if (conversation === null) {
@@ -367,17 +372,31 @@ export const CrmContext = ({
                 : undefined
             }
           />
-          <RecordCard
-            icon={
+          <div style={inboxStyles.contextCard}>
+            <span style={inboxStyles.contextCardIcon}>
               <IconUserPin
                 size={themeCssVariables.icon.size.sm}
                 stroke={themeCssVariables.icon.stroke.md}
               />
-            }
-            label="Responsável"
-            objectNameSingular="workspaceMember"
-            record={conversation.assignee}
-          />
+            </span>
+            <span style={inboxStyles.contextCardBody}>
+              <span style={inboxStyles.contextCardLabel}>Responsável</span>
+              <select
+                aria-label="Responsável pela conversa"
+                disabled={busyAction !== null || workspaceMembers.length === 0}
+                value={conversation.assignee?.id ?? ''}
+                style={inboxStyles.contextSelect}
+                onChange={(event) => void onAssign(event.target.value || null)}
+              >
+                <option value="">Sem responsável</option>
+                {workspaceMembers.map((workspaceMember) => (
+                  <option key={workspaceMember.id} value={workspaceMember.id}>
+                    {getRecordName(workspaceMember) || 'Usuário sem nome'}
+                  </option>
+                ))}
+              </select>
+            </span>
+          </div>
         </section>
 
         <section style={inboxStyles.contextSection}>

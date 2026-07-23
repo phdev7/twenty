@@ -15,7 +15,9 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - inbox comercial ligado aos registros nativos do CRM;
 - respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso;
 - etiquetas comerciais configuráveis, filtráveis e ligadas ao histórico da
-  conversa.
+  conversa;
+- distribuição de conversas por responsável com edição e filtro direto na
+  Inbox.
 
 ### Respostas prontas
 
@@ -45,6 +47,12 @@ etiqueta.
 
 Use etiquetas para criar filas operacionais como `Lead quente`, `Proposta`,
 `Objeção de preço`, `Aguardando cliente`, `Risco de churn` e `Expansão`.
+
+### Distribuição de conversas
+
+O responsável pode ser alterado no painel de contexto sem abrir outro módulo.
+A lista da Inbox pode ser filtrada por membro do workspace ou por conversas
+sem responsável, permitindo operar filas individuais e de triagem.
 
 ## Instalação
 

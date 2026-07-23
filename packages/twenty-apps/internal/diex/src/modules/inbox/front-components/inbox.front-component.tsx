@@ -21,10 +21,12 @@ export const InboxFrontComponent = () => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
   const [labelFilterId, setLabelFilterId] = useState('ALL');
+  const [assigneeFilterId, setAssigneeFilterId] = useState('ALL');
   const {
     conversations,
     savedReplies,
     labels,
+    workspaceMembers,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -37,6 +39,7 @@ export const InboxFrontComponent = () => {
     selectConversation,
     applySavedReply,
     toggleConversationLabel,
+    setConversationAssignee,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,
@@ -69,6 +72,16 @@ export const InboxFrontComponent = () => {
         return false;
       }
 
+      const matchesAssignee =
+        assigneeFilterId === 'ALL' ||
+        (assigneeFilterId === 'UNASSIGNED'
+          ? !conversation.assignee?.id
+          : conversation.assignee?.id === assigneeFilterId);
+
+      if (!matchesAssignee) {
+        return false;
+      }
+
       if (normalizedQuery.length === 0) {
         return true;
       }
@@ -90,7 +103,7 @@ export const InboxFrontComponent = () => {
 
       return normalizeSearchTerm(searchableContent).includes(normalizedQuery);
     });
-  }, [conversations, filter, labelFilterId, query]);
+  }, [assigneeFilterId, conversations, filter, labelFilterId, query]);
 
   return (
     <div
@@ -110,11 +123,14 @@ export const InboxFrontComponent = () => {
           filter={filter}
           labels={labels}
           labelFilterId={labelFilterId}
+          workspaceMembers={workspaceMembers}
+          assigneeFilterId={assigneeFilterId}
           isLoading={isLoadingConversations}
           errorMessage={errorMessage}
           onQueryChange={setQuery}
           onFilterChange={setFilter}
           onLabelFilterChange={setLabelFilterId}
+          onAssigneeFilterChange={setAssigneeFilterId}
           onSelect={selectConversation}
           onRefresh={loadConversations}
         />
@@ -135,8 +151,10 @@ export const InboxFrontComponent = () => {
         <CrmContext
           conversation={selectedConversation}
           labels={labels}
+          workspaceMembers={workspaceMembers}
           busyAction={busyAction}
           onToggleLabel={toggleConversationLabel}
+          onAssign={setConversationAssignee}
           onConfigureEvolution={configureEvolution}
         />
       </div>

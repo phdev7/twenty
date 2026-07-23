@@ -13,12 +13,14 @@ import {
   type InboxConversation,
   type InboxConversationFilter,
   type InboxLabel,
+  type InboxWorkspaceMember,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
   formatRelativeTime,
   getConversationStatusLabel,
   getInitials,
   getPriorityLabel,
+  getRecordName,
 } from 'src/modules/inbox/front-components/utils/inbox-formatters';
 import {
   getLabelChipStyle,
@@ -34,11 +36,14 @@ type ConversationListProps = {
   filter: InboxConversationFilter;
   labels: InboxLabel[];
   labelFilterId: string;
+  workspaceMembers: InboxWorkspaceMember[];
+  assigneeFilterId: string;
   isLoading: boolean;
   errorMessage: string | null;
   onQueryChange: (query: string) => void;
   onFilterChange: (filter: InboxConversationFilter) => void;
   onLabelFilterChange: (labelId: string) => void;
+  onAssigneeFilterChange: (workspaceMemberId: string) => void;
   onSelect: (conversationId: string) => Promise<void>;
   onRefresh: () => Promise<void>;
 };
@@ -50,11 +55,14 @@ export const ConversationList = ({
   filter,
   labels,
   labelFilterId,
+  workspaceMembers,
+  assigneeFilterId,
   isLoading,
   errorMessage,
   onQueryChange,
   onFilterChange,
   onLabelFilterChange,
+  onAssigneeFilterChange,
   onSelect,
   onRefresh,
 }: ConversationListProps) => (
@@ -134,6 +142,23 @@ export const ConversationList = ({
           ))}
         </select>
       </div>
+      <select
+        aria-label="Filtrar conversas por responsável"
+        value={assigneeFilterId}
+        onChange={(event) => onAssigneeFilterChange(event.target.value)}
+        style={{
+          ...inboxStyles.filterSelect,
+          marginTop: themeCssVariables.spacing[2],
+        }}
+      >
+        <option value="ALL">Todos os responsáveis</option>
+        <option value="UNASSIGNED">Sem responsável</option>
+        {workspaceMembers.map((workspaceMember) => (
+          <option key={workspaceMember.id} value={workspaceMember.id}>
+            {getRecordName(workspaceMember) || 'Usuário sem nome'}
+          </option>
+        ))}
+      </select>
     </header>
 
     {errorMessage ? (
