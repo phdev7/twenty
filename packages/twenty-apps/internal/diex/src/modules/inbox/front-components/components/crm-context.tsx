@@ -15,6 +15,7 @@ import {
   IconInbox,
   IconListCheck,
   IconPlug,
+  IconTags,
   IconUser,
   IconUserPin,
 } from 'twenty-ui/icon';
@@ -22,6 +23,7 @@ import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import {
   type InboxConversation,
+  type InboxLabel,
   type InboxRecordReference,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
@@ -30,11 +32,16 @@ import {
   getRecordName,
   getTaskStatusLabel,
 } from 'src/modules/inbox/front-components/utils/inbox-formatters';
-import { inboxStyles } from 'src/modules/inbox/front-components/inbox.styles';
+import {
+  getLabelChipStyle,
+  inboxStyles,
+} from 'src/modules/inbox/front-components/inbox.styles';
 
 type CrmContextProps = {
   conversation: InboxConversation | null;
+  labels: InboxLabel[];
   busyAction: string | null;
+  onToggleLabel: (label: InboxLabel) => Promise<void>;
   onConfigureEvolution: () => Promise<void>;
 };
 
@@ -46,10 +53,7 @@ type RecordCardProps = {
   value?: string;
 };
 
-const openRecord = async (
-  recordId: string,
-  objectNameSingular: string,
-) => {
+const openRecord = async (recordId: string, objectNameSingular: string) => {
   try {
     await openSidePanelPage({
       page: SidePanelPages.ViewRecord,
@@ -166,7 +170,9 @@ const DeadlineCard = ({
 
 export const CrmContext = ({
   conversation,
+  labels,
   busyAction,
+  onToggleLabel,
   onConfigureEvolution,
 }: CrmContextProps) => {
   if (conversation === null) {
@@ -215,6 +221,11 @@ export const CrmContext = ({
   const openTasks = conversation.tasks.filter(
     ({ status }) => status !== 'DONE',
   );
+  const activeLabelIds = new Set(
+    conversation.labelAssignments
+      .filter(({ isActive }) => isActive)
+      .map(({ label }) => label.id),
+  );
 
   return (
     <aside
@@ -227,9 +238,7 @@ export const CrmContext = ({
         <div style={inboxStyles.titleRow}>
           <div>
             <h2 style={inboxStyles.title}>Contexto comercial</h2>
-            <p style={inboxStyles.subtitle}>
-              Dados do CRM ligados à conversa
-            </p>
+            <p style={inboxStyles.subtitle}>Dados do CRM ligados à conversa</p>
           </div>
           <div style={inboxStyles.headerActions}>
             <button
@@ -267,6 +276,53 @@ export const CrmContext = ({
       </header>
 
       <div style={inboxStyles.contextScroll}>
+        <section style={inboxStyles.contextSection}>
+          <h3 style={inboxStyles.contextSectionTitle}>
+            Etiquetas ({activeLabelIds.size})
+          </h3>
+          {labels.length === 0 ? (
+            <div style={inboxStyles.contextCard}>
+              <span style={inboxStyles.contextCardIcon}>
+                <IconTags
+                  size={themeCssVariables.icon.size.sm}
+                  stroke={themeCssVariables.icon.stroke.md}
+                />
+              </span>
+              <span style={inboxStyles.contextCardBody}>
+                <span style={inboxStyles.contextCardValue}>
+                  Cadastre etiquetas em Diex &gt; Etiquetas da inbox
+                </span>
+              </span>
+            </div>
+          ) : (
+            <div style={inboxStyles.labelPicker}>
+              {labels.map((label) => {
+                const isActive = activeLabelIds.has(label.id);
+
+                return (
+                  <button
+                    key={label.id}
+                    type="button"
+                    title={label.description ?? label.name}
+                    disabled={busyAction !== null}
+                    style={{
+                      ...inboxStyles.labelToggle,
+                      ...getLabelChipStyle(label.color, isActive),
+                      ...(busyAction === `label:${label.id}`
+                        ? inboxStyles.disabledButton
+                        : {}),
+                    }}
+                    onClick={() => void onToggleLabel(label)}
+                  >
+                    {isActive ? '✓ ' : '+ '}
+                    {label.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         <section style={inboxStyles.contextSection}>
           <h3 style={inboxStyles.contextSectionTitle}>Relacionamentos</h3>
           <RecordCard

@@ -23,6 +23,24 @@ export type InboxTask = {
   dueAt?: string | null;
 };
 
+export type InboxLabel = {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  description?: string | null;
+  status: string;
+  usageCount: number;
+};
+
+export type InboxConversationLabelAssignment = {
+  id: string;
+  isActive: boolean;
+  assignedAt?: string | null;
+  removedAt?: string | null;
+  label: InboxLabel;
+};
+
 export type InboxConversation = {
   id: string;
   name: string;
@@ -46,6 +64,7 @@ export type InboxConversation = {
   opportunity?: InboxOpportunity | null;
   assignee?: InboxWorkspaceMember | null;
   tasks: InboxTask[];
+  labelAssignments: InboxConversationLabelAssignment[];
 };
 
 export type InboxMessage = {

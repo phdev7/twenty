@@ -13,6 +13,8 @@ import {
   type EvolutionTextPreview,
   type EvolutionTextReceipt,
   type InboxConversation,
+  type InboxConversationLabelAssignment,
+  type InboxLabel,
   type InboxMessage,
   type InboxSavedReply,
   type InboxTask,
@@ -24,10 +26,20 @@ import {
   renderSavedReplyTemplate,
 } from 'src/modules/inbox/front-components/utils/saved-reply-template';
 
-type ConversationNode = Omit<InboxConversation, 'tasks'> & {
+type ConversationNode = Omit<
+  InboxConversation,
+  'tasks' | 'labelAssignments'
+> & {
   tasks?: {
     edges?: Array<{
       node: InboxTask;
+    }>;
+  } | null;
+  labelAssignments?: {
+    edges?: Array<{
+      node: Omit<InboxConversationLabelAssignment, 'label'> & {
+        inboxLabel?: InboxLabel | null;
+      };
     }>;
   } | null;
 };
@@ -56,6 +68,14 @@ type SavedReplyQueryResult = {
   };
 };
 
+type LabelQueryResult = {
+  inboxLabels?: {
+    edges?: Array<{
+      node: InboxLabel;
+    }>;
+  };
+};
+
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
 
@@ -75,6 +95,7 @@ export const useInboxData = () => {
   >(null);
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [savedReplies, setSavedReplies] = useState<InboxSavedReply[]>([]);
+  const [labels, setLabels] = useState<InboxLabel[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -149,17 +170,57 @@ export const useInboxData = () => {
                   },
                 },
               },
+              labelAssignments: {
+                edges: {
+                  node: {
+                    id: true,
+                    isActive: true,
+                    assignedAt: true,
+                    removedAt: true,
+                    inboxLabel: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                      color: true,
+                      description: true,
+                      status: true,
+                      usageCount: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
       } as never)) as unknown as ConversationQueryResult;
 
       const nextConversations =
-        queryResult.inboxConversations?.edges?.map(({ node }) => ({
-          ...node,
-          unreadCount: node.unreadCount ?? 0,
-          tasks: node.tasks?.edges?.map(({ node: task }) => task) ?? [],
-        })) ?? [];
+        queryResult.inboxConversations?.edges?.map(({ node }) => {
+          const { tasks, labelAssignments, ...conversation } = node;
+
+          return {
+            ...conversation,
+            unreadCount: conversation.unreadCount ?? 0,
+            tasks: tasks?.edges?.map(({ node: task }) => task) ?? [],
+            labelAssignments:
+              labelAssignments?.edges?.flatMap(({ node: assignment }) =>
+                assignment.inboxLabel
+                  ? [
+                      {
+                        id: assignment.id,
+                        isActive: assignment.isActive,
+                        assignedAt: assignment.assignedAt,
+                        removedAt: assignment.removedAt,
+                        label: {
+                          ...assignment.inboxLabel,
+                          usageCount: assignment.inboxLabel.usageCount ?? 0,
+                        },
+                      },
+                    ]
+                  : [],
+              ) ?? [],
+          };
+        }) ?? [];
 
       setConversations(nextConversations);
       setSelectedConversationId((currentId) => {
@@ -282,6 +343,51 @@ export const useInboxData = () => {
     }
   }, []);
 
+  const loadLabels = useCallback(async () => {
+    try {
+      const queryResult = (await new CoreApiClient().query({
+        inboxLabels: {
+          __args: {
+            filter: {
+              status: {
+                eq: 'ACTIVE',
+              },
+            },
+            first: 100,
+            orderBy: [
+              { usageCount: 'DescNullsLast' },
+              { name: 'AscNullsLast' },
+            ],
+          },
+          edges: {
+            node: {
+              id: true,
+              name: true,
+              slug: true,
+              color: true,
+              description: true,
+              status: true,
+              usageCount: true,
+            },
+          },
+        },
+      } as never)) as unknown as LabelQueryResult;
+
+      setLabels(
+        queryResult.inboxLabels?.edges?.map(({ node }) => ({
+          ...node,
+          usageCount: node.usageCount ?? 0,
+        })) ?? [],
+      );
+    } catch {
+      setLabels([]);
+      await enqueueSnackbar({
+        message: 'Não foi possível carregar as etiquetas da inbox.',
+        variant: 'error',
+      });
+    }
+  }, []);
+
   useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
@@ -289,6 +395,10 @@ export const useInboxData = () => {
   useEffect(() => {
     void loadSavedReplies();
   }, [loadSavedReplies]);
+
+  useEffect(() => {
+    void loadLabels();
+  }, [loadLabels]);
 
   useEffect(() => {
     setTriageResult(null);
@@ -407,6 +517,140 @@ export const useInboxData = () => {
       }
 
       return renderResult;
+    },
+    [selectedConversation],
+  );
+
+  const toggleConversationLabel = useCallback(
+    async (label: InboxLabel): Promise<void> => {
+      if (selectedConversation === null) {
+        return;
+      }
+
+      const existingAssignment = selectedConversation.labelAssignments.find(
+        (assignment) => assignment.label.id === label.id,
+      );
+      const shouldActivate = !existingAssignment?.isActive;
+      const changedAt = new Date().toISOString();
+
+      setBusyAction(`label:${label.id}`);
+
+      try {
+        const client = new CoreApiClient();
+        let assignmentId = existingAssignment?.id;
+
+        if (existingAssignment) {
+          await client.mutation({
+            updateInboxConversationLabel: {
+              __args: {
+                id: existingAssignment.id,
+                data: {
+                  isActive: shouldActivate,
+                  assignedAt: shouldActivate
+                    ? changedAt
+                    : existingAssignment.assignedAt,
+                  removedAt: shouldActivate ? null : changedAt,
+                },
+              },
+              id: true,
+            },
+          } as never);
+        } else {
+          const result = (await client.mutation({
+            createInboxConversationLabel: {
+              __args: {
+                data: {
+                  name: `${selectedConversation.id}:${label.id}`,
+                  isActive: true,
+                  assignedAt: changedAt,
+                  removedAt: null,
+                  inboxConversationId: selectedConversation.id,
+                  inboxLabelId: label.id,
+                },
+              },
+              id: true,
+            },
+          } as never)) as unknown as {
+            createInboxConversationLabel?: {
+              id?: string | null;
+            } | null;
+          };
+
+          assignmentId = result.createInboxConversationLabel?.id ?? undefined;
+
+          if (!assignmentId) {
+            throw new Error('Etiqueta não vinculada.');
+          }
+        }
+
+        const nextAssignment: InboxConversationLabelAssignment = {
+          id: assignmentId ?? existingAssignment?.id ?? '',
+          isActive: shouldActivate,
+          assignedAt: shouldActivate
+            ? changedAt
+            : existingAssignment?.assignedAt,
+          removedAt: shouldActivate ? null : changedAt,
+          label,
+        };
+
+        setConversations((current) =>
+          current.map((conversation) => {
+            if (conversation.id !== selectedConversation.id) {
+              return conversation;
+            }
+
+            return {
+              ...conversation,
+              labelAssignments: existingAssignment
+                ? conversation.labelAssignments.map((assignment) =>
+                    assignment.id === existingAssignment.id
+                      ? nextAssignment
+                      : assignment,
+                  )
+                : [...conversation.labelAssignments, nextAssignment],
+            };
+          }),
+        );
+
+        if (shouldActivate) {
+          const nextUsageCount = (label.usageCount ?? 0) + 1;
+
+          setLabels((current) =>
+            current.map((item) =>
+              item.id === label.id
+                ? { ...item, usageCount: nextUsageCount }
+                : item,
+            ),
+          );
+
+          try {
+            await client.mutation({
+              updateInboxLabel: {
+                __args: {
+                  id: label.id,
+                  data: {
+                    usageCount: nextUsageCount,
+                  },
+                },
+                id: true,
+              },
+            } as never);
+          } catch {
+            await enqueueSnackbar({
+              message:
+                'Etiqueta aplicada, mas a contagem de uso não foi atualizada.',
+              variant: 'warning',
+            });
+          }
+        }
+      } catch {
+        await enqueueSnackbar({
+          message: 'Não foi possível atualizar as etiquetas da conversa.',
+          variant: 'error',
+        });
+      } finally {
+        setBusyAction(null);
+      }
     },
     [selectedConversation],
   );
@@ -715,6 +959,7 @@ export const useInboxData = () => {
   return {
     conversations,
     savedReplies,
+    labels,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -726,6 +971,7 @@ export const useInboxData = () => {
     loadConversations,
     selectConversation,
     applySavedReply,
+    toggleConversationLabel,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,

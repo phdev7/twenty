@@ -13,7 +13,9 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - fila de ações propostas pela IA com aprovação e recibo;
 - agentes e skills especializados em vendas e CS;
 - inbox comercial ligado aos registros nativos do CRM;
-- respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso.
+- respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso;
+- etiquetas comerciais configuráveis, filtráveis e ligadas ao histórico da
+  conversa.
 
 ### Respostas prontas
 
@@ -32,6 +34,17 @@ Variáveis disponíveis:
 Use fallback quando o dado puder faltar:
 `{{contact.first_name || 'Olá'}}`. A Inbox bloqueia a prévia enquanto houver
 placeholder não resolvido.
+
+### Etiquetas da inbox
+
+Cadastre em `Diex > Etiquetas da inbox`. Cada etiqueta possui chave única,
+cor, descrição de uso, status e contagem de aplicações. Na lateral de contexto
+da conversa, clique para aplicar ou remover. A Inbox preserva o vínculo e as
+datas da última aplicação ou remoção, além de permitir filtrar a fila por
+etiqueta.
+
+Use etiquetas para criar filas operacionais como `Lead quente`, `Proposta`,
+`Objeção de preço`, `Aguardando cliente`, `Risco de churn` e `Expansão`.
 
 ## Instalação
 

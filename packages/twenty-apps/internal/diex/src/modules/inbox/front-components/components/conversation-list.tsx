@@ -12,6 +12,7 @@ import { themeCssVariables } from 'twenty-ui/theme-constants';
 import {
   type InboxConversation,
   type InboxConversationFilter,
+  type InboxLabel,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
   formatRelativeTime,
@@ -20,6 +21,7 @@ import {
   getPriorityLabel,
 } from 'src/modules/inbox/front-components/utils/inbox-formatters';
 import {
+  getLabelChipStyle,
   getPriorityChipStyle,
   getStatusChipStyle,
   inboxStyles,
@@ -30,10 +32,13 @@ type ConversationListProps = {
   selectedConversationId: string | null;
   query: string;
   filter: InboxConversationFilter;
+  labels: InboxLabel[];
+  labelFilterId: string;
   isLoading: boolean;
   errorMessage: string | null;
   onQueryChange: (query: string) => void;
   onFilterChange: (filter: InboxConversationFilter) => void;
+  onLabelFilterChange: (labelId: string) => void;
   onSelect: (conversationId: string) => Promise<void>;
   onRefresh: () => Promise<void>;
 };
@@ -43,10 +48,13 @@ export const ConversationList = ({
   selectedConversationId,
   query,
   filter,
+  labels,
+  labelFilterId,
   isLoading,
   errorMessage,
   onQueryChange,
   onFilterChange,
+  onLabelFilterChange,
   onSelect,
   onRefresh,
 }: ConversationListProps) => (
@@ -97,20 +105,35 @@ export const ConversationList = ({
         />
       </label>
 
-      <select
-        aria-label="Filtrar conversas por status"
-        value={filter}
-        onChange={(event) =>
-          onFilterChange(event.target.value as InboxConversationFilter)
-        }
-        style={inboxStyles.filterSelect}
-      >
-        <option value="ACTIVE">Ativas</option>
-        <option value="OPEN">Abertas</option>
-        <option value="PENDING">Pendentes</option>
-        <option value="SNOOZED">Adiadas</option>
-        <option value="RESOLVED">Resolvidas</option>
-      </select>
+      <div style={inboxStyles.filterRow}>
+        <select
+          aria-label="Filtrar conversas por status"
+          value={filter}
+          onChange={(event) =>
+            onFilterChange(event.target.value as InboxConversationFilter)
+          }
+          style={inboxStyles.filterSelect}
+        >
+          <option value="ACTIVE">Ativas</option>
+          <option value="OPEN">Abertas</option>
+          <option value="PENDING">Pendentes</option>
+          <option value="SNOOZED">Adiadas</option>
+          <option value="RESOLVED">Resolvidas</option>
+        </select>
+        <select
+          aria-label="Filtrar conversas por etiqueta"
+          value={labelFilterId}
+          onChange={(event) => onLabelFilterChange(event.target.value)}
+          style={inboxStyles.filterSelect}
+        >
+          <option value="ALL">Todas as etiquetas</option>
+          {labels.map((label) => (
+            <option key={label.id} value={label.id}>
+              {label.name}
+            </option>
+          ))}
+        </select>
+      </div>
     </header>
 
     {errorMessage ? (
@@ -207,6 +230,14 @@ export const ConversationList = ({
                       {getPriorityLabel(conversation.priority)}
                     </span>
                   ) : null}
+                  {conversation.labelAssignments
+                    .filter(({ isActive }) => isActive)
+                    .slice(0, 2)
+                    .map(({ id, label }) => (
+                      <span key={id} style={getLabelChipStyle(label.color)}>
+                        {label.name}
+                      </span>
+                    ))}
                 </div>
               </div>
             </button>

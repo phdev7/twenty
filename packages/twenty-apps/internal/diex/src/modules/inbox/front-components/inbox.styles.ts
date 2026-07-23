@@ -102,15 +102,21 @@ export const inboxStyles: Record<string, CSSProperties> = {
     outline: 'none',
     width: '100%',
   },
+  filterRow: {
+    display: 'flex',
+    gap: themeCssVariables.spacing[2],
+    marginTop: themeCssVariables.spacing[2],
+  },
   filterSelect: {
     background: themeCssVariables.background.secondary,
     border,
     borderRadius: themeCssVariables.border.radius.sm,
     color: themeCssVariables.font.color.secondary,
+    flex: 1,
     fontFamily: themeCssVariables.font.family,
     fontSize: themeCssVariables.font.size.xs,
     height: themeCssVariables.spacing[8],
-    marginTop: themeCssVariables.spacing[2],
+    minWidth: 0,
     outline: 'none',
     padding: `0 ${themeCssVariables.spacing[2]}`,
     width: '100%',
@@ -210,6 +216,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   metadataRow: {
     alignItems: 'center',
     display: 'flex',
+    flexWrap: 'wrap',
     gap: themeCssVariables.spacing[1],
     marginTop: themeCssVariables.spacing[2],
   },
@@ -600,6 +607,17 @@ export const inboxStyles: Record<string, CSSProperties> = {
     margin: `0 0 ${themeCssVariables.spacing[2]}`,
     textTransform: 'uppercase',
   },
+  labelPicker: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: themeCssVariables.spacing[1],
+  },
+  labelToggle: {
+    alignItems: 'center',
+    cursor: 'pointer',
+    fontFamily: themeCssVariables.font.family,
+    maxWidth: '100%',
+  },
   contextCard: {
     alignItems: 'center',
     background: themeCssVariables.background.primary,
@@ -747,5 +765,63 @@ export const getPriorityChipStyle = (priority: string): CSSProperties => {
   return {
     ...inboxStyles.statusChip,
     ...palette,
+  };
+};
+
+export const getLabelChipStyle = (
+  color: string,
+  isActive = true,
+): CSSProperties => {
+  const palette = {
+    BLUE: {
+      background: themeCssVariables.tag.background.blue,
+      color: themeCssVariables.tag.text.blue,
+    },
+    GREEN: {
+      background: themeCssVariables.tag.background.green,
+      color: themeCssVariables.tag.text.green,
+    },
+    ORANGE: {
+      background: themeCssVariables.tag.background.orange,
+      color: themeCssVariables.tag.text.orange,
+    },
+    RED: {
+      background: themeCssVariables.tag.background.red,
+      color: themeCssVariables.tag.text.red,
+    },
+    TURQUOISE: {
+      background: themeCssVariables.tag.background.turquoise,
+      color: themeCssVariables.tag.text.turquoise,
+    },
+    YELLOW: {
+      background: themeCssVariables.tag.background.yellow,
+      color: themeCssVariables.tag.text.yellow,
+    },
+    GRAY: {
+      background: themeCssVariables.tag.background.gray,
+      color: themeCssVariables.tag.text.gray,
+    },
+  }[color.toUpperCase()] ?? {
+    background: themeCssVariables.tag.background.gray,
+    color: themeCssVariables.tag.text.gray,
+  };
+
+  return {
+    ...inboxStyles.statusChip,
+    ...(isActive
+      ? {
+          ...palette,
+          border: '1px solid transparent',
+        }
+      : {
+          background: themeCssVariables.background.primary,
+          border: `1px solid ${palette.color}`,
+          color: palette.color,
+          opacity: 0.76,
+        }),
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   };
 };

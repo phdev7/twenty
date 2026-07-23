@@ -20,9 +20,11 @@ const normalizeSearchTerm = (value: string): string =>
 export const InboxFrontComponent = () => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
+  const [labelFilterId, setLabelFilterId] = useState('ALL');
   const {
     conversations,
     savedReplies,
+    labels,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -34,6 +36,7 @@ export const InboxFrontComponent = () => {
     loadConversations,
     selectConversation,
     applySavedReply,
+    toggleConversationLabel,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,
@@ -55,6 +58,17 @@ export const InboxFrontComponent = () => {
         return false;
       }
 
+      const matchesLabel =
+        labelFilterId === 'ALL' ||
+        conversation.labelAssignments.some(
+          (assignment) =>
+            assignment.isActive && assignment.label.id === labelFilterId,
+        );
+
+      if (!matchesLabel) {
+        return false;
+      }
+
       if (normalizedQuery.length === 0) {
         return true;
       }
@@ -67,13 +81,16 @@ export const InboxFrontComponent = () => {
         getRecordName(conversation.company),
         getRecordName(conversation.opportunity),
         getRecordName(conversation.assignee),
+        ...conversation.labelAssignments
+          .filter(({ isActive }) => isActive)
+          .map(({ label }) => label.name),
       ]
         .filter((value): value is string => Boolean(value))
         .join(' ');
 
       return normalizeSearchTerm(searchableContent).includes(normalizedQuery);
     });
-  }, [conversations, filter, query]);
+  }, [conversations, filter, labelFilterId, query]);
 
   return (
     <div
@@ -91,10 +108,13 @@ export const InboxFrontComponent = () => {
           selectedConversationId={selectedConversationId}
           query={query}
           filter={filter}
+          labels={labels}
+          labelFilterId={labelFilterId}
           isLoading={isLoadingConversations}
           errorMessage={errorMessage}
           onQueryChange={setQuery}
           onFilterChange={setFilter}
+          onLabelFilterChange={setLabelFilterId}
           onSelect={selectConversation}
           onRefresh={loadConversations}
         />
@@ -114,7 +134,9 @@ export const InboxFrontComponent = () => {
         />
         <CrmContext
           conversation={selectedConversation}
+          labels={labels}
           busyAction={busyAction}
+          onToggleLabel={toggleConversationLabel}
           onConfigureEvolution={configureEvolution}
         />
       </div>

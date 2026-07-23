@@ -1,9 +1,4 @@
-import {
-  defineView,
-  ViewFilterOperand,
-  ViewSortDirection,
-  ViewType,
-} from 'twenty-sdk/define';
+import { defineView, ViewSortDirection, ViewType } from 'twenty-sdk/define';
 
 import {
   INBOX_SAVED_REPLY_BODY_FIELD_UNIVERSAL_IDENTIFIER,
@@ -15,7 +10,6 @@ import {
   INBOX_SAVED_REPLY_STATUS_FIELD_UNIVERSAL_IDENTIFIER,
   INBOX_SAVED_REPLY_UNIVERSAL_IDENTIFIER,
   INBOX_SAVED_REPLY_USAGE_COUNT_FIELD_UNIVERSAL_IDENTIFIER,
-  InboxSavedReplyStatus,
 } from 'src/modules/inbox/objects/inbox-saved-reply.object';
 
 export const INBOX_SAVED_REPLIES_VIEW_UNIVERSAL_IDENTIFIER =
@@ -92,15 +86,6 @@ export default defineView({
       position: 7,
       isVisible: true,
       size: 110,
-    },
-  ],
-  filters: [
-    {
-      universalIdentifier: 'd1e0d220-0000-4000-8000-000000000001',
-      fieldMetadataUniversalIdentifier:
-        INBOX_SAVED_REPLY_STATUS_FIELD_UNIVERSAL_IDENTIFIER,
-      operand: ViewFilterOperand.IS,
-      value: [InboxSavedReplyStatus.ACTIVE],
     },
   ],
   sorts: [
