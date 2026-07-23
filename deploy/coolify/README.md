@@ -67,7 +67,7 @@ ou API key entre ambientes.
    Compose; produção continua obrigada a usar S3.
 5. Expor apenas o serviço `server` na porta 3000.
    O Compose cria os routers Traefik a partir de `SERVER_HOST` e
-   `DIEX_PROXY_ROUTER`; na homologação, manter Basic Auth e `noindex`.
+   `DIEX_PROXY_ROUTER`; na homologação, manter `noindex`.
 6. Habilitar health check em `/healthz`.
 7. Criar backup do banco a cada seis horas com cópia S3.
 8. Publicar e instalar o app privado `packages/twenty-apps/internal/diex`
@@ -75,20 +75,15 @@ ou API key entre ambientes.
 
 O arquivo de exemplo contém placeholders, nunca credenciais reais.
 
-### Proteção da homologação e APIs autenticadas
+### Proteção da homologação
 
-O Basic Auth protege a interface inteira, mas não pode disputar o cabeçalho
-`Authorization` com a API key do Twenty. Por isso, os routers de maior
-prioridade deixam passar somente:
+A homologação não usa Basic Auth no proxy. O controle de acesso fica no próprio
+Twenty, evitando disputa pelo cabeçalho `Authorization` usado por API keys,
+publicação do app e MCP. O Traefik mantém HTTPS e `noindex`.
 
-- `POST /metadata`, usado para publicar e instalar o app privado;
-- `/webhooks/server/*`, autenticado pelo segredo exclusivo do provedor;
-- `/s/diex/migration/import`, bloqueado por API key, flag temporária e vínculo
-  imutável entre `team_id` e workspace.
-
-Essas rotas continuam protegidas pelo próprio Twenty ou pela validação do app e
-recebem `noindex`. Não abra `/graphql`, `/rest` ou `/s/*` genericamente para
-contornar o Basic Auth.
+Webhooks do provedor validam segredo exclusivo; a rota de migração exige API
+key, flag temporária e vínculo imutável entre `team_id` e workspace. Não
+desabilite essas validações para facilitar integrações.
 
 ## Migração do CRM anterior
 
