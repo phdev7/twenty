@@ -63,6 +63,8 @@ ou API key entre ambientes.
 3. Criar um serviço Docker Compose usando
    `deploy/coolify/docker-compose.yml`.
 4. Cadastrar as variáveis de `.env.example` diretamente no Coolify.
+   Homologação pode iniciar com o volume local persistente declarado no
+   Compose; produção continua obrigada a usar S3.
 5. Expor apenas o serviço `server` na porta 3000.
 6. Habilitar health check em `/healthz`.
 7. Criar backup do banco a cada seis horas com cópia S3.
