@@ -66,6 +66,8 @@ ou API key entre ambientes.
    Homologação pode iniciar com o volume local persistente declarado no
    Compose; produção continua obrigada a usar S3.
 5. Expor apenas o serviço `server` na porta 3000.
+   O Compose cria os routers Traefik a partir de `SERVER_HOST` e
+   `DIEX_PROXY_ROUTER`; na homologação, manter Basic Auth e `noindex`.
 6. Habilitar health check em `/healthz`.
 7. Criar backup do banco a cada seis horas com cópia S3.
 8. Publicar e instalar o app privado `packages/twenty-apps/internal/diex`

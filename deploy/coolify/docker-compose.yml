@@ -55,6 +55,24 @@ services:
       DISABLE_CRON_JOBS_REGISTRATION: "false"
     expose:
       - "3000"
+    labels:
+      - "coolify.managed=true"
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.${DIEX_PROXY_ROUTER}-auth.basicauth.removeheader=true"
+      - "traefik.http.middlewares.${DIEX_PROXY_ROUTER}-auth.basicauth.users=${DIEX_BASIC_AUTH_USERS:-}"
+      - "traefik.http.middlewares.${DIEX_PROXY_ROUTER}-noindex.headers.customresponseheaders.X-Robots-Tag=${DIEX_ROBOTS_POLICY:-noindex,nofollow,noarchive}"
+      - "traefik.http.middlewares.${DIEX_PROXY_ROUTER}-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.entrypoints=http"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.middlewares=${DIEX_PROXY_ROUTER}-redirect"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.rule=Host(`${SERVER_HOST}`)"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.service=${DIEX_PROXY_ROUTER}-service"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.entrypoints=https"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.middlewares=${DIEX_PROXY_MIDDLEWARES}"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.rule=Host(`${SERVER_HOST}`)"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.service=${DIEX_PROXY_ROUTER}-service"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls=true"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${DIEX_PROXY_ROUTER}-service.loadbalancer.server.port=3000"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/healthz"]
       interval: 10s
