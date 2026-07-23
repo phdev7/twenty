@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import {
   SidePanelPages,
   enqueueSnackbar,
@@ -45,6 +45,7 @@ type CrmContextProps = {
   busyAction: string | null;
   onToggleLabel: (label: InboxLabel) => Promise<void>;
   onAssign: (workspaceMemberId: string | null) => Promise<void>;
+  onSnooze: (snoozedUntil: string) => Promise<void>;
   onConfigureEvolution: () => Promise<void>;
 };
 
@@ -171,6 +172,40 @@ const DeadlineCard = ({
   </div>
 );
 
+const toLocalDateTimeInputValue = (value: string): string => {
+  const date = new Date(value);
+
+  if (!Number.isFinite(date.getTime())) {
+    return '';
+  }
+
+  const timezoneOffset = date.getTimezoneOffset() * 60_000;
+
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+};
+
+type SnoozePreset = 'ONE_HOUR' | 'FOUR_HOURS' | 'TOMORROW' | 'NEXT_MONDAY';
+
+const getSnoozedUntil = (preset: SnoozePreset): string => {
+  const target = new Date();
+
+  if (preset === 'ONE_HOUR') {
+    target.setHours(target.getHours() + 1);
+  } else if (preset === 'FOUR_HOURS') {
+    target.setHours(target.getHours() + 4);
+  } else if (preset === 'TOMORROW') {
+    target.setDate(target.getDate() + 1);
+    target.setHours(9, 0, 0, 0);
+  } else {
+    const daysUntilNextMonday = (8 - target.getDay()) % 7 || 7;
+
+    target.setDate(target.getDate() + daysUntilNextMonday);
+    target.setHours(9, 0, 0, 0);
+  }
+
+  return target.toISOString();
+};
+
 export const CrmContext = ({
   conversation,
   labels,
@@ -178,8 +213,19 @@ export const CrmContext = ({
   busyAction,
   onToggleLabel,
   onAssign,
+  onSnooze,
   onConfigureEvolution,
 }: CrmContextProps) => {
+  const [customSnoozeUntil, setCustomSnoozeUntil] = useState('');
+
+  useEffect(() => {
+    const defaultTarget =
+      conversation?.snoozedUntil ??
+      new Date(Date.now() + 24 * 60 * 60_000).toISOString();
+
+    setCustomSnoozeUntil(toLocalDateTimeInputValue(defaultTarget));
+  }, [conversation?.id, conversation?.snoozedUntil]);
+
   if (conversation === null) {
     return (
       <aside
@@ -401,6 +447,71 @@ export const CrmContext = ({
 
         <section style={inboxStyles.contextSection}>
           <h3 style={inboxStyles.contextSectionTitle}>Operação</h3>
+          <div style={inboxStyles.contextCard}>
+            <span style={inboxStyles.contextCardIcon}>
+              <IconClock
+                size={themeCssVariables.icon.size.sm}
+                stroke={themeCssVariables.icon.stroke.md}
+              />
+            </span>
+            <span style={inboxStyles.contextCardBody}>
+              <span style={inboxStyles.contextCardLabel}>
+                Adiar conversa até
+              </span>
+              <select
+                aria-label="Prazo rápido para adiar a conversa"
+                disabled={busyAction !== null}
+                value=""
+                style={inboxStyles.contextPresetSelect}
+                onChange={(event) => {
+                  const preset = event.target.value as SnoozePreset;
+
+                  if (preset) {
+                    void onSnooze(getSnoozedUntil(preset));
+                  }
+                }}
+              >
+                <option value="">Escolher prazo rápido...</option>
+                <option value="ONE_HOUR">Por 1 hora</option>
+                <option value="FOUR_HOURS">Por 4 horas</option>
+                <option value="TOMORROW">Até amanhã, 9h</option>
+                <option value="NEXT_MONDAY">Até segunda, 9h</option>
+              </select>
+              <span style={inboxStyles.contextActionRow}>
+                <input
+                  aria-label="Data e hora para reabrir a conversa"
+                  type="datetime-local"
+                  min={toLocalDateTimeInputValue(
+                    new Date(Date.now() + 60_000).toISOString(),
+                  )}
+                  value={customSnoozeUntil}
+                  style={inboxStyles.contextDateInput}
+                  onChange={(event) => setCustomSnoozeUntil(event.target.value)}
+                />
+                <button
+                  type="button"
+                  disabled={
+                    busyAction !== null || customSnoozeUntil.length === 0
+                  }
+                  style={{
+                    ...inboxStyles.primaryButton,
+                    ...(busyAction !== null || customSnoozeUntil.length === 0
+                      ? inboxStyles.disabledButton
+                      : {}),
+                  }}
+                  onClick={() => {
+                    const target = new Date(customSnoozeUntil);
+
+                    if (Number.isFinite(target.getTime())) {
+                      void onSnooze(target.toISOString());
+                    }
+                  }}
+                >
+                  Adiar
+                </button>
+              </span>
+            </span>
+          </div>
           <div style={inboxStyles.contextCard}>
             <span style={inboxStyles.contextCardIcon}>
               <IconAlertTriangle

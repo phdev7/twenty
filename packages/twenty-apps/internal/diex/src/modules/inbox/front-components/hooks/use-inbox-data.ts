@@ -206,7 +206,7 @@ export const useInboxData = () => {
         },
       } as never)) as unknown as ConversationQueryResult;
 
-      const nextConversations =
+      const loadedConversations =
         queryResult.inboxConversations?.edges?.map(({ node }) => {
           const { tasks, labelAssignments, ...conversation } = node;
 
@@ -233,6 +233,47 @@ export const useInboxData = () => {
               ) ?? [],
           };
         }) ?? [];
+      const expiredSnoozes = loadedConversations.filter(
+        (conversation) =>
+          conversation.status === 'SNOOZED' &&
+          typeof conversation.snoozedUntil === 'string' &&
+          new Date(conversation.snoozedUntil).getTime() <= Date.now(),
+      );
+      const reopenedConversationIds = new Set(
+        (
+          await Promise.all(
+            expiredSnoozes.map(async (conversation) => {
+              try {
+                await client.mutation({
+                  updateInboxConversation: {
+                    __args: {
+                      id: conversation.id,
+                      data: {
+                        status: 'OPEN',
+                        snoozedUntil: null,
+                      },
+                    },
+                    id: true,
+                  },
+                } as never);
+
+                return conversation.id;
+              } catch {
+                return null;
+              }
+            }),
+          )
+        ).filter((id): id is string => typeof id === 'string'),
+      );
+      const nextConversations = loadedConversations.map((conversation) =>
+        reopenedConversationIds.has(conversation.id)
+          ? {
+              ...conversation,
+              status: 'OPEN',
+              snoozedUntil: null,
+            }
+          : conversation,
+      );
 
       setConversations(nextConversations);
       setSelectedConversationId((currentId) => {
@@ -803,6 +844,78 @@ export const useInboxData = () => {
     [conversations],
   );
 
+  const snoozeConversation = useCallback(
+    async (snoozedUntil: string): Promise<void> => {
+      if (selectedConversationId === null) {
+        return;
+      }
+
+      const targetTime = new Date(snoozedUntil).getTime();
+      const minimumTime = Date.now() + 60_000;
+      const maximumTime = Date.now() + 365 * 24 * 60 * 60_000;
+
+      if (
+        !Number.isFinite(targetTime) ||
+        targetTime < minimumTime ||
+        targetTime > maximumTime
+      ) {
+        await enqueueSnackbar({
+          message:
+            'Escolha um prazo futuro entre um minuto e um ano para adiar.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
+      const normalizedSnoozedUntil = new Date(targetTime).toISOString();
+
+      setBusyAction('snooze');
+
+      try {
+        await new CoreApiClient().mutation({
+          updateInboxConversation: {
+            __args: {
+              id: selectedConversationId,
+              data: {
+                status: 'SNOOZED',
+                snoozedUntil: normalizedSnoozedUntil,
+              },
+            },
+            id: true,
+          },
+        } as never);
+
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === selectedConversationId
+              ? {
+                  ...conversation,
+                  status: 'SNOOZED',
+                  snoozedUntil: normalizedSnoozedUntil,
+                }
+              : conversation,
+          ),
+        );
+
+        await enqueueSnackbar({
+          message: `Conversa adiada até ${new Date(
+            normalizedSnoozedUntil,
+          ).toLocaleString('pt-BR')}.`,
+          variant: 'success',
+        });
+      } catch {
+        await enqueueSnackbar({
+          message: 'Não foi possível adiar a conversa.',
+          variant: 'error',
+        });
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [selectedConversationId],
+  );
+
   const setConversationStatus = useCallback(
     async (status: string) => {
       if (selectedConversationId === null) {
@@ -819,6 +932,7 @@ export const useInboxData = () => {
               id: selectedConversationId,
               data: {
                 status,
+                ...(status !== 'SNOOZED' ? { snoozedUntil: null } : {}),
                 ...(status === 'RESOLVED' ? { unreadCount: 0 } : {}),
               },
             },
@@ -833,6 +947,8 @@ export const useInboxData = () => {
               ? {
                   ...conversation,
                   status,
+                  snoozedUntil:
+                    status === 'SNOOZED' ? conversation.snoozedUntil : null,
                   unreadCount:
                     status === 'RESOLVED' ? 0 : conversation.unreadCount,
                 }
@@ -1078,6 +1194,7 @@ export const useInboxData = () => {
     triageResult,
     loadConversations,
     selectConversation,
+    snoozeConversation,
     applySavedReply,
     toggleConversationLabel,
     setConversationAssignee,

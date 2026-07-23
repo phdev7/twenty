@@ -59,8 +59,7 @@ export default defineView({
       size: 180,
     },
     {
-      universalIdentifier:
-        INBOX_VIEW_IDS.activeConversationsFields.opportunity,
+      universalIdentifier: INBOX_VIEW_IDS.activeConversationsFields.opportunity,
       fieldMetadataUniversalIdentifier:
         INBOX_RELATION_FIELD_IDS.opportunityOnConversation,
       position: 5,
@@ -76,8 +75,7 @@ export default defineView({
       size: 170,
     },
     {
-      universalIdentifier:
-        INBOX_VIEW_IDS.activeConversationsFields.unreadCount,
+      universalIdentifier: INBOX_VIEW_IDS.activeConversationsFields.unreadCount,
       fieldMetadataUniversalIdentifier:
         INBOX_CONVERSATION_FIELD_IDS.unreadCount,
       position: 7,
@@ -115,10 +113,12 @@ export default defineView({
   filters: [
     {
       universalIdentifier: INBOX_VIEW_IDS.activeConversationsFilter,
-      fieldMetadataUniversalIdentifier:
-        INBOX_CONVERSATION_FIELD_IDS.status,
+      fieldMetadataUniversalIdentifier: INBOX_CONVERSATION_FIELD_IDS.status,
       operand: ViewFilterOperand.IS_NOT,
-      value: [InboxConversationStatus.RESOLVED],
+      value: [
+        InboxConversationStatus.RESOLVED,
+        InboxConversationStatus.SNOOZED,
+      ],
     },
   ],
   sorts: [

@@ -41,6 +41,7 @@ export const InboxFrontComponent = () => {
     toggleConversationLabel,
     setConversationAssignee,
     setConversationStatus,
+    snoozeConversation,
     saveInternalNote,
     previewEvolutionText,
     confirmEvolutionText,
@@ -54,7 +55,7 @@ export const InboxFrontComponent = () => {
     return conversations.filter((conversation) => {
       const matchesStatus =
         filter === 'ACTIVE'
-          ? conversation.status !== 'RESOLVED'
+          ? conversation.status === 'OPEN' || conversation.status === 'PENDING'
           : conversation.status === filter;
 
       if (!matchesStatus) {
@@ -155,6 +156,7 @@ export const InboxFrontComponent = () => {
           busyAction={busyAction}
           onToggleLabel={toggleConversationLabel}
           onAssign={setConversationAssignee}
+          onSnooze={snoozeConversation}
           onConfigureEvolution={configureEvolution}
         />
       </div>

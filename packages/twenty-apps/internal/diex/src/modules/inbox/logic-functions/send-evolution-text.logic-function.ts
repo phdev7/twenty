@@ -15,8 +15,9 @@ import {
 } from 'src/modules/inbox/constants/evolution.constants';
 import {
   InboxConversationChannel,
-  InboxMessageDirection,
   InboxConversationProvider,
+  InboxConversationStatus,
+  InboxMessageDirection,
 } from 'src/modules/inbox/objects/inbox-conversation.object';
 import {
   InboxMessageDeliveryStatus,
@@ -199,7 +200,9 @@ const assertConversationCanSend = (
     conversation.provider !== InboxConversationProvider.EVOLUTION ||
     conversation.channel !== InboxConversationChannel.WHATSAPP
   ) {
-    throw new Error('This conversation is not connected to Evolution WhatsApp.');
+    throw new Error(
+      'This conversation is not connected to Evolution WhatsApp.',
+    );
   }
 
   if (!conversation.person) {
@@ -213,8 +216,7 @@ const assertConversationCanSend = (
   }
 
   if (
-    conversation.person.whatsappConsentStatus !==
-    WhatsAppConsentStatus.OPTED_IN
+    conversation.person.whatsappConsentStatus !== WhatsAppConsentStatus.OPTED_IN
   ) {
     throw new Error(
       'WhatsApp consent must be explicitly marked as authorized before sending.',
@@ -273,11 +275,7 @@ const readExternalMessageId = (payload: unknown): string | null => {
   }
 
   const root = payload as Record<string, unknown>;
-  const candidates = [
-    root.key,
-    root.message,
-    root.data,
-  ];
+  const candidates = [root.key, root.message, root.data];
 
   for (const candidate of candidates) {
     if (typeof candidate !== 'object' || candidate === null) {
@@ -299,9 +297,7 @@ const readExternalMessageId = (payload: unknown): string | null => {
     }
   }
 
-  return typeof root.id === 'string' && root.id.trim()
-    ? root.id.trim()
-    : null;
+  return typeof root.id === 'string' && root.id.trim() ? root.id.trim() : null;
 };
 
 const createQueuedInboxMessage = async ({
@@ -510,6 +506,8 @@ const executeConfirmedSend = async ({
       __args: {
         id: conversation.id,
         data: {
+          status: InboxConversationStatus.OPEN,
+          snoozedUntil: null,
           unreadCount: 0,
           lastMessagePreview: text.slice(0, 250),
           lastMessageDirection: InboxMessageDirection.OUTBOUND,
@@ -623,8 +621,7 @@ export const sendEvolutionTextHandler = async (
 };
 
 export default defineLogicFunction({
-  universalIdentifier:
-    SEND_EVOLUTION_TEXT_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
+  universalIdentifier: SEND_EVOLUTION_TEXT_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
   name: 'send-diex-evolution-text',
   description:
     'Previews and sends one consent-checked Evolution WhatsApp message after explicit confirmation, with an idempotent CRM receipt.',

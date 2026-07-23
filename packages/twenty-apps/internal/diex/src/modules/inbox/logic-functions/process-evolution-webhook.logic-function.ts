@@ -2,9 +2,7 @@ import { CoreApiClient } from 'twenty-client-sdk/core';
 import { defineLogicFunction } from 'twenty-sdk/define';
 
 import { WhatsAppConsentStatus } from 'src/fields/person-whatsapp-consent-status.field';
-import {
-  PROCESS_EVOLUTION_WEBHOOK_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
-} from 'src/modules/inbox/constants/evolution.constants';
+import { PROCESS_EVOLUTION_WEBHOOK_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/evolution.constants';
 import {
   InboxConversationChannel,
   InboxConversationPriority,
@@ -240,9 +238,7 @@ const resolvePerson = async (
     return existingPerson;
   }
 
-  if (
-    !readBooleanEnvironmentValue('AUTO_CREATE_WHATSAPP_CONTACTS', false)
-  ) {
+  if (!readBooleanEnvironmentValue('AUTO_CREATE_WHATSAPP_CONTACTS', false)) {
     return null;
   }
 
@@ -385,7 +381,9 @@ const createInboxConversation = async (
     });
 
   if (!createdConversation?.id) {
-    throw new Error('Evolution message could not create an inbox conversation.');
+    throw new Error(
+      'Evolution message could not create an inbox conversation.',
+    );
   }
 
   return {
@@ -515,15 +513,14 @@ const updateConversationAfterMessage = async (
         id: conversation.id,
         data: {
           status: isInbound ? InboxConversationStatus.OPEN : undefined,
+          snoozedUntil: isInbound ? null : undefined,
           unreadCount: isInbound
             ? Math.max(0, conversation.unreadCount ?? 0) + 1
-            : conversation.unreadCount ?? 0,
+            : (conversation.unreadCount ?? 0),
           lastMessagePreview: buildMessagePreview(message),
           lastMessageDirection: message.direction,
           lastMessageAt: message.sentAt,
-          firstRespondedAt: isFirstOutboundReply
-            ? message.sentAt
-            : undefined,
+          firstRespondedAt: isFirstOutboundReply ? message.sentAt : undefined,
           personId: conversation.personId ?? undefined,
           companyId: conversation.companyId ?? undefined,
           opportunityId: conversation.opportunityId ?? undefined,
@@ -603,7 +600,9 @@ export const processEvolutionWebhookHandler = async (
     normalizeEvolutionInstanceName(payloadInstanceName) !==
       normalizeEvolutionInstanceName(configuration.instanceName)
   ) {
-    throw new Error('Evolution payload does not match this workspace instance.');
+    throw new Error(
+      'Evolution payload does not match this workspace instance.',
+    );
   }
 
   const client = new CoreApiClient();

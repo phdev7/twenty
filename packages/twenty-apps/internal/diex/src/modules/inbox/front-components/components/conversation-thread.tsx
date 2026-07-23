@@ -249,7 +249,23 @@ export const ConversationThread = ({
             />
             {busyAction === 'ai-triage' ? 'Analisando' : 'Analisar IA'}
           </button>
-          {!isResolved && conversation.status !== 'PENDING' ? (
+          {conversation.status === 'SNOOZED' ? (
+            <button
+              type="button"
+              style={{
+                ...inboxStyles.secondaryButton,
+                ...(isBusy ? inboxStyles.disabledButton : {}),
+              }}
+              disabled={isBusy}
+              onClick={() => void onStatusChange('OPEN')}
+            >
+              <IconRefresh
+                size={themeCssVariables.icon.size.sm}
+                stroke={themeCssVariables.icon.stroke.md}
+              />
+              Reabrir
+            </button>
+          ) : !isResolved && conversation.status !== 'PENDING' ? (
             <button
               type="button"
               style={{

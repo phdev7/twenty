@@ -17,7 +17,9 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - etiquetas comerciais configuráveis, filtráveis e ligadas ao histórico da
   conversa;
 - distribuição de conversas por responsável com edição e filtro direto na
-  Inbox.
+  Inbox;
+- adiamento com prazo, reabertura por vencimento e reativação por nova
+  mensagem.
 
 ### Respostas prontas
 
@@ -53,6 +55,13 @@ Use etiquetas para criar filas operacionais como `Lead quente`, `Proposta`,
 O responsável pode ser alterado no painel de contexto sem abrir outro módulo.
 A lista da Inbox pode ser filtrada por membro do workspace ou por conversas
 sem responsável, permitindo operar filas individuais e de triagem.
+
+### Adiamento
+
+A conversa pode ser adiada por uma ou quatro horas, até amanhã às 9h ou até
+segunda-feira, além de aceitar data e hora personalizadas. A Inbox reabre
+adiamentos vencidos ao carregar a fila; uma nova mensagem recebida ou um envio
+manual também reabre imediatamente e limpa o prazo anterior.
 
 ## Instalação
 
