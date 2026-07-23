@@ -1,5 +1,5 @@
 import { type TimelineActivity } from '@/activities/timeline-activities/types/TimelineActivity';
-import { BRAND_NAME } from '@/constants/Brand';
+import { BRAND_NAME } from '~/constants/Brand';
 import { type CurrentWorkspaceMember } from '@/auth/states/currentWorkspaceMemberState';
 import { isDefined } from 'twenty-shared/utils';
 

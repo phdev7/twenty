@@ -1,6 +1,6 @@
 import { t } from '@lingui/core/macro';
 import { AppBasePath, AppPath, SettingsPath } from 'twenty-shared/types';
-import { PRODUCT_NAME } from '@/constants/Brand';
+import { PRODUCT_NAME } from '~/constants/Brand';
 
 enum SettingsPathPrefixes {
   Accounts = `${AppBasePath.Settings}/${SettingsPath.Accounts}`,
