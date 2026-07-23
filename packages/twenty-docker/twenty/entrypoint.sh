@@ -48,5 +48,17 @@ register_background_jobs() {
 setup_and_migrate_db
 register_background_jobs
 
+case "${TWENTY_PROCESS_TYPE:-server}" in
+    server)
+        ;;
+    worker)
+        set -- yarn worker:prod
+        ;;
+    *)
+        echo "Invalid TWENTY_PROCESS_TYPE: ${TWENTY_PROCESS_TYPE}. Expected server or worker." >&2
+        exit 1
+        ;;
+esac
+
 # Continue with the original Docker command
 exec "$@"
