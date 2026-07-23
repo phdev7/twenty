@@ -1,7 +1,6 @@
 import { CoreApiClient } from 'twenty-client-sdk/core';
 import { MetadataApiClient } from 'twenty-client-sdk/metadata';
 import { defineLogicFunction, type RoutePayload } from 'twenty-sdk/define';
-import { kv } from 'twenty-sdk/logic-function';
 
 import { WhatsAppConsentStatus } from 'src/fields/person-whatsapp-consent-status.field';
 import {
@@ -23,19 +22,13 @@ import {
   InboxMessageDeliveryStatus,
   InboxMessageType,
 } from 'src/modules/inbox/objects/inbox-message.object';
-import {
-  AiActionStatus,
-  AiActionType,
-} from 'src/objects/ai-action.object';
+import { AiActionStatus, AiActionType } from 'src/objects/ai-action.object';
 import {
   CommercialSignalSource,
   CommercialSignalStatus,
   CommercialSignalType,
 } from 'src/objects/commercial-signal.object';
-import {
-  OfferPricingModel,
-  OfferStatus,
-} from 'src/objects/offer.object';
+import { OfferPricingModel, OfferStatus } from 'src/objects/offer.object';
 import {
   SuccessMilestoneCategory,
   SuccessMilestoneStatus,
@@ -44,6 +37,7 @@ import {
   SuccessHealth,
   SuccessLifecycle,
 } from 'src/objects/success-plan.object';
+import { appKeyValue } from 'src/utils/app-key-value';
 
 type MigrationRequest = {
   sourceTeamId?: unknown;
@@ -130,10 +124,7 @@ const readNumber = (
   return Math.min(maximum, Math.max(minimum, parsed));
 };
 
-const readBoolean = (
-  record: JsonRecord,
-  key: string,
-): boolean | undefined => {
+const readBoolean = (record: JsonRecord, key: string): boolean | undefined => {
   const value = record[key];
 
   if (typeof value === 'boolean') {
@@ -183,12 +174,12 @@ const readOptionalLegacyId = (
 ): string | undefined => {
   const value = readString(record, key, 120);
 
-  return value && /^[a-zA-Z0-9:_-]{6,120}$/.test(value)
-    ? value
-    : undefined;
+  return value && /^[a-zA-Z0-9:_-]{6,120}$/.test(value) ? value : undefined;
 };
 
-const splitName = (fullName: string): { firstName: string; lastName: string } => {
+const splitName = (
+  fullName: string,
+): { firstName: string; lastName: string } => {
   const normalized = fullName.trim() || 'Contato legado';
   const [firstName, ...lastNameParts] = normalized.split(/\s+/);
 
@@ -213,10 +204,7 @@ const buildPhoneValue = (normalizedPhone: string) => ({
   additionalPhones: null,
 });
 
-const buildAddress = (
-  city: string | undefined,
-  state: string | undefined,
-) =>
+const buildAddress = (city: string | undefined, state: string | undefined) =>
   city || state
     ? {
         addressStreet1: '',
@@ -236,7 +224,9 @@ const normalizeDomain = (value: string | undefined): string | undefined => {
   }
 
   try {
-    const url = value.includes('://') ? new URL(value) : new URL(`https://${value}`);
+    const url = value.includes('://')
+      ? new URL(value)
+      : new URL(`https://${value}`);
 
     return url.hostname.replace(/^www\./, '').toLowerCase();
   } catch {
@@ -252,10 +242,10 @@ const richText = (value: string | undefined) =>
       }
     : undefined;
 
-const combineText = (
-  parts: Array<string | undefined>,
-): string | undefined => {
-  const value = parts.filter((part): part is string => Boolean(part)).join('\n\n');
+const combineText = (parts: Array<string | undefined>): string | undefined => {
+  const value = parts
+    .filter((part): part is string => Boolean(part))
+    .join('\n\n');
 
   return value || undefined;
 };
@@ -972,9 +962,7 @@ const upsertOffer = async (
           : undefined,
       ]),
     ),
-    idealCustomerProfile: richText(
-      readString(record, 'idealCustomerProfile'),
-    ),
+    idealCustomerProfile: richText(readString(record, 'idealCustomerProfile')),
     differentiators: richText(
       combineText([
         readString(record, 'includedItems'),
@@ -1039,11 +1027,9 @@ const upsertOpportunity = async (
     'person',
   );
   const amount = readNumber(record, 'amount', 0, 9_000_000_000);
-  const currency =
-    readString(record, 'currency', 3)?.toUpperCase() ?? 'BRL';
+  const currency = readString(record, 'currency', 3)?.toUpperCase() ?? 'BRL';
   const data = {
-    name:
-      readString(record, 'name', 255) ?? `Oportunidade legada ${legacyId}`,
+    name: readString(record, 'name', 255) ?? `Oportunidade legada ${legacyId}`,
     legacyDiexId: legacyId,
     stage: mapOpportunityStage(readString(record, 'stageName', 255)),
     amount:
@@ -1142,7 +1128,9 @@ const resolveTaskTarget = async (
     return id ? { targetOpportunityId: id } : null;
   }
 
-  unresolvedRelations.push(`task-unsupported-target:${targetType}:${targetLegacyId}`);
+  unresolvedRelations.push(
+    `task-unsupported-target:${targetType}:${targetLegacyId}`,
+  );
 
   return null;
 };
@@ -1251,7 +1239,11 @@ const upsertTask = async (
       continue;
     }
 
-    const target = await resolveTaskTarget(client, rawTarget, unresolvedRelations);
+    const target = await resolveTaskTarget(
+      client,
+      rawTarget,
+      unresolvedRelations,
+    );
 
     if (!previewOnly && taskId && target) {
       await createMissingTaskTarget(client, taskId, target);
@@ -1362,7 +1354,11 @@ const upsertNote = async (
       continue;
     }
 
-    const target = await resolveTaskTarget(client, rawTarget, unresolvedRelations);
+    const target = await resolveTaskTarget(
+      client,
+      rawTarget,
+      unresolvedRelations,
+    );
 
     if (!previewOnly && noteId && target) {
       await createMissingNoteTarget(client, noteId, target);
@@ -1477,16 +1473,12 @@ const upsertSuccessMilestone = async (
     name: readString(record, 'name', 255) ?? `Marco legado ${legacyId}`,
     legacyDiexId: legacyId,
     successPlanId,
-    category: mapMilestoneCategory(
-      readString(record, 'objectiveType', 80),
-    ),
+    category: mapMilestoneCategory(readString(record, 'objectiveType', 80)),
     status,
-    dueAt:
-      readDate(record, 'targetAt') ?? readDate(record, 'nextReviewAt'),
+    dueAt: readDate(record, 'targetAt') ?? readDate(record, 'nextReviewAt'),
     completedAt:
       status === SuccessMilestoneStatus.COMPLETED
-        ? readDate(record, 'lastReviewedAt') ??
-          readDate(record, 'updatedAt')
+        ? (readDate(record, 'lastReviewedAt') ?? readDate(record, 'updatedAt'))
         : undefined,
     outcome: richText(readString(record, 'description')),
     evidence: richText(readString(record, 'causalJustification')),
@@ -1553,8 +1545,7 @@ const upsertCommercialSignal = async (
           : undefined,
       ]),
     ),
-    capturedAt:
-      readDate(record, 'occurredAt') ?? readDate(record, 'createdAt'),
+    capturedAt: readDate(record, 'occurredAt') ?? readDate(record, 'createdAt'),
     validUntil: readDate(record, 'expiresAt'),
     confidence: weight,
     sourceReference: `legacy-signal:${legacyId}`,
@@ -1708,8 +1699,7 @@ const upsertInboxMessage = async (
       readString(record, 'status', 40),
       direction,
     ),
-    sentAt:
-      readDate(record, 'sentAt') ?? readDate(record, 'createdAt'),
+    sentAt: readDate(record, 'sentAt') ?? readDate(record, 'createdAt'),
     senderHandle: readString(record, 'senderHandle', 320),
     senderDisplayName: readString(record, 'senderDisplayName', 255),
     isInternalNote: false,
@@ -1786,11 +1776,9 @@ const upsertAiAction = async (
         'Sugestão migrada do Diex CRM anterior.',
     ),
     proposedAction: richText(content),
-    requestedAt:
-      readDate(record, 'createdAt') ?? new Date().toISOString(),
+    requestedAt: readDate(record, 'createdAt') ?? new Date().toISOString(),
     approvedAt:
-      status === AiActionStatus.APPROVED ||
-      status === AiActionStatus.EXECUTED
+      status === AiActionStatus.APPROVED || status === AiActionStatus.EXECUTED
         ? readDate(record, 'reviewedAt')
         : undefined,
     executedAt:
@@ -1881,9 +1869,7 @@ export const importLegacyDiexBatch = async (
     throw new Error('A valid source Diex team ULID is required.');
   }
 
-  if (
-    !DIEX_MIGRATION_ENTITIES.includes(entity as DiexMigrationEntity)
-  ) {
+  if (!DIEX_MIGRATION_ENTITIES.includes(entity as DiexMigrationEntity)) {
     throw new Error('Unsupported migration entity.');
   }
 
@@ -1901,7 +1887,7 @@ export const importLegacyDiexBatch = async (
     throw new Error('Every migration record must be a JSON object.');
   }
 
-  const existingSourceTeamId = await kv.get<string>(
+  const existingSourceTeamId = await appKeyValue.get<string>(
     DIEX_MIGRATION_SOURCE_TEAM_CLAIM_KEY,
   );
 
@@ -1912,7 +1898,7 @@ export const importLegacyDiexBatch = async (
   }
 
   if (!previewOnly && !existingSourceTeamId) {
-    await kv.set(DIEX_MIGRATION_SOURCE_TEAM_CLAIM_KEY, sourceTeamId);
+    await appKeyValue.set(DIEX_MIGRATION_SOURCE_TEAM_CLAIM_KEY, sourceTeamId);
   }
 
   const client = new CoreApiClient();
@@ -1945,8 +1931,7 @@ export const importLegacyDiexBatch = async (
       if (outcome.action === 'update') result.updates += 1;
       if (outcome.action === 'skip') result.skipped += 1;
 
-      result.unresolvedRelations +=
-        outcome.unresolvedRelations?.length ?? 0;
+      result.unresolvedRelations += outcome.unresolvedRelations?.length ?? 0;
     } catch (error) {
       result.skipped += 1;
       result.errors.push({

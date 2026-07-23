@@ -1,5 +1,4 @@
 import { defineLogicFunction, type RoutePayload } from 'twenty-sdk/define';
-import { kv } from 'twenty-sdk/logic-function';
 
 import {
   EVOLUTION_WEBHOOK_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
@@ -11,6 +10,7 @@ import {
   buildEvolutionSecretClaimKey,
 } from 'src/modules/inbox/utils/evolution-environment';
 import { extractEvolutionInstanceName } from 'src/modules/inbox/utils/evolution-payload';
+import { appKeyValue } from 'src/utils/app-key-value';
 
 type EvolutionWebhookResolution = {
   workspaceId: string;
@@ -63,7 +63,7 @@ export const evolutionWebhookRouteHandler = async (
     throw new Error('Evolution webhook authorization was rejected.');
   }
 
-  const workspaceId = await kv.get<string>(
+  const workspaceId = await appKeyValue.get<string>(
     buildEvolutionSecretClaimKey(webhookSecret),
     { scope: 'SERVER' },
   );
@@ -73,8 +73,8 @@ export const evolutionWebhookRouteHandler = async (
     throw new Error('Evolution webhook routing was rejected.');
   }
 
-  const instanceWorkspaceId = await kv.get<string>(
-    buildEvolutionInstanceClaimKey(instanceName, webhookSecret),
+  const instanceWorkspaceId = await appKeyValue.get<string>(
+    buildEvolutionInstanceClaimKey(instanceName),
     { scope: 'SERVER' },
   );
 
@@ -91,8 +91,7 @@ export const evolutionWebhookRouteHandler = async (
 };
 
 export default defineLogicFunction({
-  universalIdentifier:
-    EVOLUTION_WEBHOOK_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
+  universalIdentifier: EVOLUTION_WEBHOOK_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
   name: 'diex-evolution-webhook',
   description:
     'Authenticates a shared Evolution webhook and routes it to the workspace that exclusively claimed the instance.',

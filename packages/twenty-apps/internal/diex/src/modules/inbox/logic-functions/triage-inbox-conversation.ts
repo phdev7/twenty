@@ -83,7 +83,10 @@ type MessageContext = {
 const loadConversationContext = async (
   client: CoreApiClient,
   conversationId: string,
-): Promise<{ conversation: ConversationContext; messages: MessageContext[] }> => {
+): Promise<{
+  conversation: ConversationContext;
+  messages: MessageContext[];
+}> => {
   const [conversationResult, messageResult] = await Promise.all([
     client.query({
       inboxConversation: {
@@ -189,12 +192,8 @@ const buildAgentPrompt = ({
   ].join('\n\n');
 };
 
-const asCommercialSignalType = (
-  value: string,
-): CommercialSignalType | null =>
-  Object.values(CommercialSignalType).includes(
-    value as CommercialSignalType,
-  )
+const asCommercialSignalType = (value: string): CommercialSignalType | null =>
+  Object.values(CommercialSignalType).includes(value as CommercialSignalType)
     ? (value as CommercialSignalType)
     : null;
 
@@ -313,7 +312,7 @@ export const triageInboxConversation = async (
   const evidence = readRequiredString(record, 'evidence');
   const recommendedAction = readRequiredString(record, 'recommended_action');
   const suggestedReply = readRequiredString(record, 'suggested_reply');
-  const latestMessageId = context.messages.at(-1)?.id;
+  const latestMessageId = context.messages[context.messages.length - 1]?.id;
   let commercialSignalId: string | undefined;
   let aiActionId: string | undefined;
 

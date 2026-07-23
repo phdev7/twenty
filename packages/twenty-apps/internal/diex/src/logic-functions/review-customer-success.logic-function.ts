@@ -1,6 +1,6 @@
 import { CoreApiClient } from 'twenty-client-sdk/core';
 import { defineLogicFunction } from 'twenty-sdk/define';
-import { runAgent } from 'twenty-sdk/logic-function';
+import { jsonSchemaToInputSchema, runAgent } from 'twenty-sdk/logic-function';
 
 import { CUSTOMER_SUCCESS_REVIEW_AGENT_UNIVERSAL_IDENTIFIER } from 'src/agents/customer-success-review.agent';
 import {
@@ -363,9 +363,7 @@ export const reviewCustomerSuccess = async (
   const health = assessCustomerHealth({
     onboardingCompleted,
     activeUseRating: ratingToNumber(successPlan.activeUseRating),
-    valueEvidenceRating: ratingToNumber(
-      successPlan.valueEvidenceRating,
-    ),
+    valueEvidenceRating: ratingToNumber(successPlan.valueEvidenceRating),
     daysSinceLastMeaningfulContact,
     daysUntilRenewal,
     openBlockedMilestones,
@@ -395,9 +393,7 @@ export const reviewCustomerSuccess = async (
   });
   const record = readAgentRecord(agentResult);
   const summary = readRequiredString(record, 'summary');
-  const riskLevel = getRiskLevel(
-    readRequiredString(record, 'risk_level'),
-  );
+  const riskLevel = getRiskLevel(readRequiredString(record, 'risk_level'));
   const confidence = readNumber(record, 'confidence', 0, 100);
   const facts = readRequiredString(record, 'facts');
   const gaps = readRequiredString(record, 'gaps');
@@ -441,9 +437,7 @@ export const reviewCustomerSuccess = async (
     successPlanUpdated = result.updateSuccessPlan?.id === successPlanId;
   }
 
-  const actionType = getActionType(
-    readRequiredString(record, 'action_type'),
-  );
+  const actionType = getActionType(readRequiredString(record, 'action_type'));
 
   if (
     input.proposeAction === true &&
@@ -494,13 +488,11 @@ const inputSchema = {
     },
     updateSuccessPlan: {
       type: 'boolean' as const,
-      description:
-        'Atualiza score, saúde, resumo executivo e próxima revisão.',
+      description: 'Atualiza score, saúde, resumo executivo e próxima revisão.',
     },
     proposeAction: {
       type: 'boolean' as const,
-      description:
-        'Cria uma proposta idempotente aguardando aprovação humana.',
+      description: 'Cria uma proposta idempotente aguardando aprovação humana.',
     },
   },
   required: ['successPlanId'],
@@ -516,7 +508,7 @@ export default defineLogicFunction({
   toolTriggerSettings: { inputSchema },
   workflowActionTriggerSettings: {
     label: 'Revisar Customer Success com IA Diex',
-    inputSchema: [{ ...inputSchema }],
+    inputSchema: jsonSchemaToInputSchema(inputSchema),
     outputSchema: [
       {
         type: 'object',

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  IconBrandWhatsapp,
   IconCheck,
   IconClock,
   IconInbox,
@@ -72,13 +71,14 @@ export const ConversationThread = ({
   onPreviewEvolutionText,
   onConfirmEvolutionText,
 }: ConversationThreadProps) => {
-  const [composerMode, setComposerMode] = useState<
-    'EXTERNAL' | 'INTERNAL'
-  >('EXTERNAL');
+  const [composerMode, setComposerMode] = useState<'EXTERNAL' | 'INTERNAL'>(
+    'EXTERNAL',
+  );
   const [externalText, setExternalText] = useState('');
   const [internalNote, setInternalNote] = useState('');
-  const [sendPreview, setSendPreview] =
-    useState<EvolutionTextPreview | null>(null);
+  const [sendPreview, setSendPreview] = useState<EvolutionTextPreview | null>(
+    null,
+  );
   const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
   const activeConversationIdRef = useRef<string | null>(
     conversation?.id ?? null,
@@ -137,10 +137,7 @@ export const ConversationThread = ({
   const handleRequestSendPreview = async () => {
     const preview = await onPreviewEvolutionText(externalText);
 
-    if (
-      preview &&
-      preview.conversationId === activeConversationIdRef.current
-    ) {
+    if (preview && preview.conversationId === activeConversationIdRef.current) {
       setSendPreview(preview);
     }
   };
@@ -178,9 +175,7 @@ export const ConversationThread = ({
   return (
     <main style={inboxStyles.panel}>
       <header style={inboxStyles.threadHeader}>
-        <div style={inboxStyles.avatar}>
-          {getInitials(conversation.name)}
-        </div>
+        <div style={inboxStyles.avatar}>{getInitials(conversation.name)}</div>
         <div style={inboxStyles.threadIdentity}>
           <h2 style={inboxStyles.threadName}>{conversation.name}</h2>
           <div style={inboxStyles.threadHandle}>
@@ -293,7 +288,7 @@ export const ConversationThread = ({
                         stroke={themeCssVariables.icon.stroke.sm}
                       />
                     ) : isOutgoing ? (
-                      <IconBrandWhatsapp
+                      <IconMessage
                         size={themeCssVariables.icon.size.sm}
                         stroke={themeCssVariables.icon.stroke.sm}
                       />
@@ -403,7 +398,7 @@ export const ConversationThread = ({
             }}
             onClick={() => setComposerMode('EXTERNAL')}
           >
-            <IconBrandWhatsapp
+            <IconMessage
               size={themeCssVariables.icon.size.sm}
               stroke={themeCssVariables.icon.stroke.md}
             />
@@ -437,7 +432,7 @@ export const ConversationThread = ({
             <div style={inboxStyles.sendReview}>
               <div style={inboxStyles.sendReviewMeta}>
                 <span>
-                  <IconBrandWhatsapp
+                  <IconMessage
                     size={themeCssVariables.icon.size.sm}
                     stroke={themeCssVariables.icon.stroke.md}
                   />{' '}
@@ -510,9 +505,7 @@ export const ConversationThread = ({
                   size={themeCssVariables.icon.size.sm}
                   stroke={themeCssVariables.icon.stroke.md}
                 />
-                {busyAction === 'send-preview'
-                  ? 'Validando'
-                  : 'Revisar envio'}
+                {busyAction === 'send-preview' ? 'Validando' : 'Revisar envio'}
               </button>
             </div>
           )
@@ -552,9 +545,7 @@ export const ConversationThread = ({
               confirme explicitamente o texto exato.
             </>
           ) : (
-            <>
-              A nota fica apenas no CRM e não é enviada ao cliente.
-            </>
+            <>A nota fica apenas no CRM e não é enviada ao cliente.</>
           )}
         </p>
         {!isEvolutionConversation ? (

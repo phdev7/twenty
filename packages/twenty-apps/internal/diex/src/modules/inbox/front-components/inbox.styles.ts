@@ -1,13 +1,25 @@
 import { type CSSProperties } from 'react';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables as importedThemeCssVariables } from 'twenty-ui/theme-constants';
 
+type ThemeFallback = Record<PropertyKey, unknown>;
+
+let themeFallback: ThemeFallback;
+
+themeFallback = new Proxy({} as ThemeFallback, {
+  get: (_target, property) =>
+    property === Symbol.toPrimitive ? () => '' : themeFallback,
+});
+
+const themeCssVariables =
+  importedThemeCssVariables ??
+  (themeFallback as unknown as typeof importedThemeCssVariables);
 const border = `1px solid ${themeCssVariables.border.color.light}`;
 
 export const inboxStyles: Record<string, CSSProperties> = {
   root: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.lg,
+    borderRadius: themeCssVariables.border.radius.md,
     boxShadow: themeCssVariables.boxShadow.light,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,

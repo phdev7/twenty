@@ -1,4 +1,5 @@
 import { defineLogicFunction } from 'twenty-sdk/define';
+import { jsonSchemaToInputSchema } from 'twenty-sdk/logic-function';
 
 export type CommercialScoreInput = {
   icpFit?: number;
@@ -273,7 +274,7 @@ export default defineLogicFunction({
   },
   workflowActionTriggerSettings: {
     label: 'Calcular score comercial Diex',
-    inputSchema: [{ ...inputSchema }],
+    inputSchema: jsonSchemaToInputSchema(inputSchema),
     outputSchema: [
       {
         type: 'object',

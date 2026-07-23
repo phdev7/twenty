@@ -1,6 +1,5 @@
 import { MetadataApiClient } from 'twenty-client-sdk/metadata';
 import { defineLogicFunction, type RoutePayload } from 'twenty-sdk/define';
-import { kv } from 'twenty-sdk/logic-function';
 
 import {
   EVOLUTION_CONFIGURE_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
@@ -16,6 +15,7 @@ import {
   getEvolutionConfiguration,
 } from 'src/modules/inbox/utils/evolution-environment';
 import { safeEvolutionFetch } from 'src/modules/inbox/utils/safe-evolution-fetch';
+import { appKeyValue } from 'src/utils/app-key-value';
 
 type ConfigureEvolutionResult = {
   configured: boolean;
@@ -130,7 +130,6 @@ export const configureEvolutionInboxHandler = async (
   );
   const instanceClaimKey = buildEvolutionInstanceClaimKey(
     configuration.instanceName,
-    configuration.webhookSecret,
   );
   const [
     previousSecretOwner,
@@ -138,17 +137,29 @@ export const configureEvolutionInboxHandler = async (
     previousActiveSecretClaim,
     previousActiveInstanceClaim,
   ] = await Promise.all([
-    kv.get<string>(secretClaimKey, { scope: 'SERVER' }),
-    kv.get<string>(instanceClaimKey, { scope: 'SERVER' }),
-    kv.get<string>(ACTIVE_SECRET_CLAIM_KEY),
-    kv.get<string>(ACTIVE_INSTANCE_CLAIM_KEY),
+    appKeyValue.get<string>(secretClaimKey, { scope: 'SERVER' }),
+    appKeyValue.get<string>(instanceClaimKey, { scope: 'SERVER' }),
+    appKeyValue.get<string>(ACTIVE_SECRET_CLAIM_KEY),
+    appKeyValue.get<string>(ACTIVE_INSTANCE_CLAIM_KEY),
   ]);
   const claimedSecretDuringThisAttempt = previousSecretOwner === null;
   const claimedInstanceDuringThisAttempt = previousInstanceOwner === null;
 
+  if (previousSecretOwner && previousSecretOwner !== workspaceId) {
+    throw new Error(
+      'This Evolution webhook secret is already assigned to another workspace.',
+    );
+  }
+
+  if (previousInstanceOwner && previousInstanceOwner !== workspaceId) {
+    throw new Error(
+      'This Evolution instance is already assigned to another workspace.',
+    );
+  }
+
   try {
-    await kv.set(secretClaimKey, workspaceId, { scope: 'SERVER' });
-    await kv.set(instanceClaimKey, workspaceId, { scope: 'SERVER' });
+    await appKeyValue.set(secretClaimKey, workspaceId, { scope: 'SERVER' });
+    await appKeyValue.set(instanceClaimKey, workspaceId, { scope: 'SERVER' });
 
     const response = await postEvolutionWebhookConfiguration({
       ...configuration,
@@ -161,14 +172,14 @@ export const configureEvolutionInboxHandler = async (
       );
     }
 
-    await kv.set(ACTIVE_SECRET_CLAIM_KEY, secretClaimKey);
-    await kv.set(ACTIVE_INSTANCE_CLAIM_KEY, instanceClaimKey);
+    await appKeyValue.set(ACTIVE_SECRET_CLAIM_KEY, secretClaimKey);
+    await appKeyValue.set(ACTIVE_INSTANCE_CLAIM_KEY, instanceClaimKey);
 
     if (
       previousActiveSecretClaim &&
       previousActiveSecretClaim !== secretClaimKey
     ) {
-      await kv
+      await appKeyValue
         .delete(previousActiveSecretClaim, { scope: 'SERVER' })
         .catch(() => false);
     }
@@ -177,7 +188,7 @@ export const configureEvolutionInboxHandler = async (
       previousActiveInstanceClaim &&
       previousActiveInstanceClaim !== instanceClaimKey
     ) {
-      await kv
+      await appKeyValue
         .delete(previousActiveInstanceClaim, { scope: 'SERVER' })
         .catch(() => false);
     }
@@ -191,13 +202,15 @@ export const configureEvolutionInboxHandler = async (
     };
   } catch (error) {
     if (claimedInstanceDuringThisAttempt) {
-      await kv
+      await appKeyValue
         .delete(instanceClaimKey, { scope: 'SERVER' })
         .catch(() => false);
     }
 
     if (claimedSecretDuringThisAttempt) {
-      await kv.delete(secretClaimKey, { scope: 'SERVER' }).catch(() => false);
+      await appKeyValue
+        .delete(secretClaimKey, { scope: 'SERVER' })
+        .catch(() => false);
     }
 
     throw error;
@@ -205,8 +218,7 @@ export const configureEvolutionInboxHandler = async (
 };
 
 export default defineLogicFunction({
-  universalIdentifier:
-    EVOLUTION_CONFIGURE_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
+  universalIdentifier: EVOLUTION_CONFIGURE_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
   name: 'configure-diex-evolution-inbox',
   description:
     'Claims the isolated Evolution instance for the current workspace and configures its signed webhook without accepting or returning secrets.',

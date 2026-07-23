@@ -1,5 +1,6 @@
 import { CoreApiClient } from 'twenty-client-sdk/core';
 import { defineLogicFunction } from 'twenty-sdk/define';
+import { jsonSchemaToInputSchema } from 'twenty-sdk/logic-function';
 
 import { AiActionStatus, AiActionType } from 'src/objects/ai-action.object';
 
@@ -183,7 +184,7 @@ export default defineLogicFunction({
   },
   workflowActionTriggerSettings: {
     label: 'Propor ação governada pela IA',
-    inputSchema: [{ ...inputSchema }],
+    inputSchema: jsonSchemaToInputSchema(inputSchema),
     outputSchema: [
       {
         type: 'object',

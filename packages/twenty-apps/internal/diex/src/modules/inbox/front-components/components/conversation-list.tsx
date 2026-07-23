@@ -1,9 +1,9 @@
 import {
   IconArrowDown,
   IconArrowUpRight,
-  IconBrandWhatsapp,
   IconInbox,
   IconMail,
+  IconMessage,
   IconRefresh,
   IconSearch,
 } from 'twenty-ui/icon';
@@ -136,8 +136,7 @@ export const ConversationList = ({
       ) : (
         conversations.map((conversation) => {
           const isSelected = conversation.id === selectedConversationId;
-          const isOutbound =
-            conversation.lastMessageDirection === 'OUTBOUND';
+          const isOutbound = conversation.lastMessageDirection === 'OUTBOUND';
 
           return (
             <button
@@ -145,9 +144,7 @@ export const ConversationList = ({
               type="button"
               style={{
                 ...inboxStyles.conversationButton,
-                ...(isSelected
-                  ? inboxStyles.conversationButtonSelected
-                  : {}),
+                ...(isSelected ? inboxStyles.conversationButtonSelected : {}),
               }}
               onClick={() => void onSelect(conversation.id)}
             >
@@ -196,7 +193,7 @@ export const ConversationList = ({
                       stroke={themeCssVariables.icon.stroke.sm}
                     />
                   ) : (
-                    <IconBrandWhatsapp
+                    <IconMessage
                       size={themeCssVariables.icon.size.sm}
                       stroke={themeCssVariables.icon.stroke.sm}
                     />

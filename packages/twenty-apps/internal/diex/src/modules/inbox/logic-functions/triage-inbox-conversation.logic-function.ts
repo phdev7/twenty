@@ -1,4 +1,5 @@
 import { defineLogicFunction } from 'twenty-sdk/define';
+import { jsonSchemaToInputSchema } from 'twenty-sdk/logic-function';
 
 import { INBOX_TRIAGE_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-ai.constants';
 import { triageInboxConversation } from 'src/modules/inbox/logic-functions/triage-inbox-conversation';
@@ -34,7 +35,7 @@ export default defineLogicFunction({
   toolTriggerSettings: { inputSchema },
   workflowActionTriggerSettings: {
     label: 'Analisar conversa da Inbox Diex',
-    inputSchema: [{ ...inputSchema }],
+    inputSchema: jsonSchemaToInputSchema(inputSchema),
     outputSchema: [
       {
         type: 'object',

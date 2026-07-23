@@ -23,9 +23,7 @@ export const getEvolutionConfiguration = () => {
     /\/+$/,
     '',
   );
-  const instanceName = readRequiredEnvironmentValue(
-    'EVOLUTION_INSTANCE_NAME',
-  );
+  const instanceName = readRequiredEnvironmentValue('EVOLUTION_INSTANCE_NAME');
   const apiKey = readRequiredEnvironmentValue('EVOLUTION_API_KEY');
   const webhookSecret = readRequiredEnvironmentValue(
     'EVOLUTION_WEBHOOK_SECRET',
@@ -87,11 +85,8 @@ export const hashSecret = (secret: string): string =>
 export const buildEvolutionSecretClaimKey = (secret: string): string =>
   `${EVOLUTION_SERVER_SECRET_CLAIM_PREFIX}${hashSecret(secret)}`;
 
-export const buildEvolutionInstanceClaimKey = (
-  instanceName: string,
-  webhookSecret: string,
-): string =>
-  `${EVOLUTION_SERVER_INSTANCE_CLAIM_PREFIX}${hashSecret(webhookSecret)}:${normalizeEvolutionInstanceName(instanceName)}`;
+export const buildEvolutionInstanceClaimKey = (instanceName: string): string =>
+  `${EVOLUTION_SERVER_INSTANCE_CLAIM_PREFIX}${normalizeEvolutionInstanceName(instanceName)}`;
 
 type ApplicationAccessTokenClaims = {
   userId?: string;
@@ -110,7 +105,9 @@ export const getAuthenticatedRequestIdentity = (
   const encodedPayload = token?.split('.')[1];
 
   if (!encodedPayload) {
-    throw new Error('The authenticated request identity could not be resolved.');
+    throw new Error(
+      'The authenticated request identity could not be resolved.',
+    );
   }
 
   try {
@@ -139,7 +136,9 @@ export const getAuthenticatedRequestIdentity = (
       throw error;
     }
 
-    throw new Error('The authenticated request identity could not be resolved.');
+    throw new Error(
+      'The authenticated request identity could not be resolved.',
+    );
   }
 };
 
@@ -176,7 +175,9 @@ export const buildEvolutionWebhookUrl = (): string => {
   const apiUrl = process.env.TWENTY_API_URL?.replace(/\/+$/, '');
 
   if (!apiUrl) {
-    throw new Error('TWENTY_API_URL is not available to build the webhook URL.');
+    throw new Error(
+      'TWENTY_API_URL is not available to build the webhook URL.',
+    );
   }
 
   return `${apiUrl}/webhooks/server/${EVOLUTION_WEBHOOK_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER}`;

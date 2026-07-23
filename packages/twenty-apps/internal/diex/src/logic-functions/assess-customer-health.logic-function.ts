@@ -1,4 +1,5 @@
 import { defineLogicFunction } from 'twenty-sdk/define';
+import { jsonSchemaToInputSchema } from 'twenty-sdk/logic-function';
 
 export type CustomerHealthInput = {
   onboardingCompleted?: boolean;
@@ -76,8 +77,7 @@ export const assessCustomerHealth = (
   if (input.valueEvidenceRating === undefined) {
     gaps.push('evidência de valor');
   } else {
-    const valueEvidence =
-      (clamp(input.valueEvidenceRating, 0, 5) / 5) * 25;
+    const valueEvidence = (clamp(input.valueEvidenceRating, 0, 5) / 5) * 25;
 
     factors.push({
       key: 'valueEvidence',
@@ -277,7 +277,7 @@ export default defineLogicFunction({
   },
   workflowActionTriggerSettings: {
     label: 'Avaliar saúde do cliente Diex',
-    inputSchema: [{ ...inputSchema }],
+    inputSchema: jsonSchemaToInputSchema(inputSchema),
     outputSchema: [
       {
         type: 'object',

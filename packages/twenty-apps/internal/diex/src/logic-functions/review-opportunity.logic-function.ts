@@ -1,6 +1,6 @@
 import { CoreApiClient } from 'twenty-client-sdk/core';
 import { defineLogicFunction } from 'twenty-sdk/define';
-import { runAgent } from 'twenty-sdk/logic-function';
+import { jsonSchemaToInputSchema, runAgent } from 'twenty-sdk/logic-function';
 
 import { DEAL_REVIEW_AGENT_UNIVERSAL_IDENTIFIER } from 'src/agents/deal-review.agent';
 import {
@@ -110,9 +110,7 @@ const daysSince = (value: string | null | undefined): number | undefined => {
     : undefined;
 };
 
-const getRisk = (
-  value: string,
-): ReviewOpportunityResult['risk'] =>
+const getRisk = (value: string): ReviewOpportunityResult['risk'] =>
   ['LOW', 'MEDIUM', 'HIGH', 'UNKNOWN'].includes(value)
     ? (value as ReviewOpportunityResult['risk'])
     : 'UNKNOWN';
@@ -298,14 +296,13 @@ export const reviewOpportunity = async (
       context.opportunity.pointOfContact?.buyingIntent,
     ),
     engagement: buildEngagement(context.conversations),
-    decisionAccess:
-      context.opportunity.decisionAccessConfirmed ?? undefined,
+    decisionAccess: context.opportunity.decisionAccessConfirmed ?? undefined,
     budgetConfirmed: context.opportunity.budgetConfirmed ?? undefined,
     needConfirmed: context.opportunity.needConfirmed ?? undefined,
     timingConfirmed: context.opportunity.timingConfirmed ?? undefined,
     nextActionScheduled: Boolean(
       context.opportunity.nextCommercialAction?.trim() &&
-        context.opportunity.nextCommercialActionAt,
+      context.opportunity.nextCommercialActionAt,
     ),
     inactivityDays,
     openHighRiskSignals,
@@ -350,13 +347,10 @@ export const reviewOpportunity = async (
       updateOpportunity?: { id?: string | null } | null;
     };
 
-    opportunityUpdated =
-      mutationResult.updateOpportunity?.id === opportunityId;
+    opportunityUpdated = mutationResult.updateOpportunity?.id === opportunityId;
   }
 
-  const actionType = getActionType(
-    readRequiredString(record, 'action_type'),
-  );
+  const actionType = getActionType(readRequiredString(record, 'action_type'));
 
   if (
     input.proposeAction === true &&
@@ -411,8 +405,7 @@ const inputSchema = {
     },
     proposeAction: {
       type: 'boolean' as const,
-      description:
-        'Cria uma proposta idempotente aguardando aprovação humana.',
+      description: 'Cria uma proposta idempotente aguardando aprovação humana.',
     },
   },
   required: ['opportunityId'],
@@ -428,7 +421,7 @@ export default defineLogicFunction({
   toolTriggerSettings: { inputSchema },
   workflowActionTriggerSettings: {
     label: 'Revisar oportunidade com IA Diex',
-    inputSchema: [{ ...inputSchema }],
+    inputSchema: jsonSchemaToInputSchema(inputSchema),
     outputSchema: [
       {
         type: 'object',
