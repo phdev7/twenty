@@ -26,6 +26,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   resolução e trilha auditável por conversa e usuário;
 - macros comerciais configuráveis com prévia, status, prioridade, equipe,
   responsável, etiqueta, nota interna e resposta pronta como rascunho;
+- linha do tempo operacional com eventos estruturados de status, prioridade,
+  roteamento, etiquetas, tarefas, macros, menções e triagem de IA;
 - adiamento com prazo, reabertura por vencimento e reativação por nova
   mensagem;
 - cockpit de inteligência comercial com radar de sinais, ranking de
@@ -106,6 +108,16 @@ Na conversa, selecione a macro e abra a prévia. A aplicação consolida as
 mudanças internas e prepara a resposta como rascunho; nunca envia comunicação
 externa automaticamente. Variáveis sem valor bloqueiam a nota interna e
 continuam visíveis no rascunho para revisão antes da prévia de envio.
+
+### Histórico operacional
+
+A conversa intercala mensagens e eventos em ordem cronológica. Mudanças de
+status, prioridade, equipe, responsável, etiqueta, adiamento, tarefas, macros,
+menções e triagens de IA registram autor, data, resumo e detalhes.
+
+A visão `Diex > Histórico da inbox` permite auditoria transversal por conversa
+sem depender de texto solto em notas internas. Falha ao registrar o evento não
+é ocultada: a ação concluída retorna aviso para revisão operacional.
 
 ### Páginas operacionais
 

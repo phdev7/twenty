@@ -35,6 +35,7 @@ import {
   renderSavedReplyTemplate,
 } from 'src/modules/inbox/front-components/utils/saved-reply-template';
 import { getRecordName } from 'src/modules/inbox/front-components/utils/inbox-formatters';
+import { useInboxConversationActivity } from 'src/modules/inbox/front-components/hooks/use-inbox-conversation-activity';
 
 type ConversationNode = Omit<
   InboxConversation,
@@ -165,6 +166,7 @@ const mentionNodeSelection = {
 const macroConversationStatusLabels: Record<string, string> = {
   OPEN: 'Aberta',
   PENDING: 'Pendente',
+  SNOOZED: 'Adiada',
   RESOLVED: 'Resolvida',
 };
 
@@ -280,6 +282,11 @@ export const useInboxData = () => {
   );
   const messageRequestVersionRef = useRef(0);
   const mentionRequestVersionRef = useRef(0);
+  const { conversationEvents, recordConversationEvent } =
+    useInboxConversationActivity({
+      selectedConversationId,
+      currentWorkspaceMemberId,
+    });
 
   const loadConversations = useCallback(async () => {
     setIsLoadingConversations(true);
@@ -1029,10 +1036,23 @@ export const useInboxData = () => {
       }
 
       setTriageResult(response);
+      const eventRecorded = await recordConversationEvent({
+        conversationId: selectedConversationId,
+        eventType: 'AI_TRIAGED',
+        summary: 'Conversa analisada pela IA comercial',
+        details: [
+          `Intenção: ${response.intent}`,
+          `Sentimento: ${response.sentiment}`,
+          `Urgência: ${response.urgency}`,
+          `Confiança: ${Math.round(response.confidence * 100)}%`,
+          `Próxima ação: ${response.recommendedAction}`,
+        ].join('\n'),
+      });
       await enqueueSnackbar({
-        message:
-          'Conversa analisada. O rascunho não foi enviado e exige sua revisão.',
-        variant: 'success',
+        message: eventRecorded
+          ? 'Conversa analisada. O rascunho não foi enviado e exige sua revisão.'
+          : 'Conversa analisada, mas o evento não entrou no histórico.',
+        variant: eventRecorded ? 'success' : 'warning',
       });
     } catch (error) {
       await enqueueSnackbar({
@@ -1042,7 +1062,7 @@ export const useInboxData = () => {
     } finally {
       setBusyAction(null);
     }
-  }, [selectedConversationId]);
+  }, [recordConversationEvent, selectedConversationId]);
 
   const selectedConversation = useMemo(
     () => conversations.find(({ id }) => id === selectedConversationId) ?? null,
@@ -1716,6 +1736,20 @@ export const useInboxData = () => {
           );
         }
 
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversation.id,
+          eventType: 'MACRO_APPLIED',
+          summary: `Macro aplicada: ${macro.name}`,
+          details: [
+            ...appliedActions,
+            ...warnings.map((warning) => `Aviso: ${warning}`),
+          ].join('\n'),
+        });
+
+        if (!eventRecorded) {
+          warnings.push('O evento da macro não entrou no histórico.');
+        }
+
         await enqueueSnackbar({
           message:
             warnings.length > 0
@@ -1752,6 +1786,7 @@ export const useInboxData = () => {
       loadMessages,
       macros,
       previewInboxMacro,
+      recordConversationEvent,
       savedReplies,
       selectedConversation,
       teams,
@@ -1881,6 +1916,22 @@ export const useInboxData = () => {
             });
           }
         }
+
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversation.id,
+          eventType: 'LABEL_CHANGED',
+          summary: shouldActivate
+            ? `Etiqueta aplicada: ${label.name}`
+            : `Etiqueta removida: ${label.name}`,
+        });
+
+        if (!eventRecorded) {
+          await enqueueSnackbar({
+            message:
+              'Etiqueta atualizada, mas o evento não entrou no histórico.',
+            variant: 'warning',
+          });
+        }
       } catch {
         await enqueueSnackbar({
           message: 'Não foi possível atualizar as etiquetas da conversa.',
@@ -1890,7 +1941,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversation],
+    [recordConversationEvent, selectedConversation],
   );
 
   const setConversationAssignee = useCallback(
@@ -1972,6 +2023,27 @@ export const useInboxData = () => {
               : conversation,
           ),
         );
+
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversation.id,
+          eventType: 'ASSIGNEE_CHANGED',
+          summary: nextAssignee
+            ? `Responsável definido: ${
+                getRecordName(nextAssignee) || 'Usuário sem nome'
+              }`
+            : 'Responsável removido',
+          details: `Anterior: ${
+            getRecordName(selectedConversation.assignee) || 'Sem responsável'
+          }`,
+        });
+
+        if (!eventRecorded) {
+          await enqueueSnackbar({
+            message:
+              'Responsável atualizado, mas o evento não entrou no histórico.',
+            variant: 'warning',
+          });
+        }
       } catch {
         await enqueueSnackbar({
           message: 'Não foi possível alterar o responsável da conversa.',
@@ -1981,7 +2053,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversation, teams, workspaceMembers],
+    [recordConversationEvent, selectedConversation, teams, workspaceMembers],
   );
 
   const setConversationTeam = useCallback(
@@ -2073,13 +2145,27 @@ export const useInboxData = () => {
           ),
         );
 
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversation.id,
+          eventType: 'TEAM_CHANGED',
+          summary: nextTeam
+            ? `Equipe definida: ${nextTeam.name}`
+            : 'Equipe removida',
+          details: [
+            `Anterior: ${selectedConversation.inboxTeam?.name ?? 'Sem equipe'}`,
+            `Responsável: ${getRecordName(nextAssignee) || 'Sem responsável'}`,
+          ].join('\n'),
+        });
+
         await enqueueSnackbar({
-          message: nextTeam
-            ? nextAssignee
-              ? `Conversa enviada para ${nextTeam.name} e distribuída.`
-              : `Conversa enviada para ${nextTeam.name}, aguardando responsável.`
-            : 'Conversa removida da fila de equipe.',
-          variant: 'success',
+          message: eventRecorded
+            ? nextTeam
+              ? nextAssignee
+                ? `Conversa enviada para ${nextTeam.name} e distribuída.`
+                : `Conversa enviada para ${nextTeam.name}, aguardando responsável.`
+              : 'Conversa removida da fila de equipe.'
+            : 'Equipe atualizada, mas o evento não entrou no histórico.',
+          variant: eventRecorded ? 'success' : 'warning',
         });
       } catch (error) {
         await enqueueSnackbar({
@@ -2090,7 +2176,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [conversations, selectedConversation, teams],
+    [conversations, recordConversationEvent, selectedConversation, teams],
   );
 
   const setConversationPriority = useCallback(
@@ -2107,6 +2193,10 @@ export const useInboxData = () => {
 
         return;
       }
+
+      const previousPriority =
+        conversations.find(({ id }) => id === selectedConversationId)
+          ?.priority ?? 'NORMAL';
 
       setBusyAction('priority');
 
@@ -2134,9 +2224,22 @@ export const useInboxData = () => {
           ),
         );
 
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversationId,
+          eventType: 'PRIORITY_CHANGED',
+          summary: `Prioridade definida: ${
+            macroPriorityLabels[priority] ?? priority
+          }`,
+          details: `Anterior: ${
+            macroPriorityLabels[previousPriority] ?? previousPriority
+          }`,
+        });
+
         await enqueueSnackbar({
-          message: 'Prioridade da conversa atualizada.',
-          variant: 'success',
+          message: eventRecorded
+            ? 'Prioridade da conversa atualizada.'
+            : 'Prioridade atualizada, mas o evento não entrou no histórico.',
+          variant: eventRecorded ? 'success' : 'warning',
         });
       } catch {
         await enqueueSnackbar({
@@ -2147,7 +2250,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversationId],
+    [conversations, recordConversationEvent, selectedConversationId],
   );
 
   const createConversationTask = useCallback(
@@ -2346,14 +2449,23 @@ export const useInboxData = () => {
         const failedTargetCount = targetResults.filter(
           ({ status }) => status === 'rejected',
         ).length;
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversation.id,
+          eventType: 'TASK_CREATED',
+          summary: `Próxima ação criada: ${normalizedTitle}`,
+          details: [
+            `Prazo: ${new Date(normalizedDueAt).toLocaleString('pt-BR')}`,
+            `Responsável: ${getRecordName(assignee) || 'Sem responsável'}`,
+          ].join('\n'),
+        });
+        const hasWarnings =
+          failedTargetCount > 0 || !followUpWasSynced || !eventRecorded;
 
         await enqueueSnackbar({
-          message:
-            failedTargetCount > 0 || !followUpWasSynced
-              ? 'Tarefa criada. Alguns vínculos do CRM precisam ser revisados.'
-              : 'Próxima ação criada e vinculada ao contexto comercial.',
-          variant:
-            failedTargetCount > 0 || !followUpWasSynced ? 'warning' : 'success',
+          message: hasWarnings
+            ? 'Tarefa criada. Alguns vínculos ou o histórico precisam ser revisados.'
+            : 'Próxima ação criada e vinculada ao contexto comercial.',
+          variant: hasWarnings ? 'warning' : 'success',
         });
 
         return true;
@@ -2368,7 +2480,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversation, teams, workspaceMembers],
+    [recordConversationEvent, selectedConversation, teams, workspaceMembers],
   );
 
   const completeConversationTask = useCallback(
@@ -2441,11 +2553,23 @@ export const useInboxData = () => {
           ),
         );
 
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversation.id,
+          eventType: 'TASK_COMPLETED',
+          summary: `Próxima ação concluída: ${task.title ?? task.id}`,
+          details: task.assignee
+            ? `Responsável: ${
+                getRecordName(task.assignee) || 'Usuário sem nome'
+              }`
+            : null,
+        });
+
         await enqueueSnackbar({
-          message: followUpWasSynced
-            ? 'Próxima ação concluída.'
-            : 'Tarefa concluída. Revise a data do próximo follow-up.',
-          variant: followUpWasSynced ? 'success' : 'warning',
+          message:
+            followUpWasSynced && eventRecorded
+              ? 'Próxima ação concluída.'
+              : 'Tarefa concluída. Revise o follow-up ou o histórico.',
+          variant: followUpWasSynced && eventRecorded ? 'success' : 'warning',
         });
       } catch (error) {
         await enqueueSnackbar({
@@ -2456,7 +2580,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversation],
+    [recordConversationEvent, selectedConversation],
   );
 
   const selectConversation = useCallback(
@@ -2615,11 +2739,21 @@ export const useInboxData = () => {
           ),
         );
 
-        await enqueueSnackbar({
-          message: `Conversa adiada até ${new Date(
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversationId,
+          eventType: 'SNOOZED',
+          summary: `Conversa adiada até ${new Date(
             normalizedSnoozedUntil,
-          ).toLocaleString('pt-BR')}.`,
-          variant: 'success',
+          ).toLocaleString('pt-BR')}`,
+        });
+
+        await enqueueSnackbar({
+          message: eventRecorded
+            ? `Conversa adiada até ${new Date(
+                normalizedSnoozedUntil,
+              ).toLocaleString('pt-BR')}.`
+            : 'Conversa adiada, mas o evento não entrou no histórico.',
+          variant: eventRecorded ? 'success' : 'warning',
         });
       } catch {
         await enqueueSnackbar({
@@ -2630,7 +2764,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversationId],
+    [recordConversationEvent, selectedConversationId],
   );
 
   const setConversationStatus = useCallback(
@@ -2638,6 +2772,10 @@ export const useInboxData = () => {
       if (selectedConversationId === null) {
         return;
       }
+
+      const previousStatus =
+        conversations.find(({ id }) => id === selectedConversationId)?.status ??
+        'OPEN';
 
       setBusyAction('status');
 
@@ -2673,14 +2811,26 @@ export const useInboxData = () => {
           ),
         );
 
+        const eventRecorded = await recordConversationEvent({
+          conversationId: selectedConversationId,
+          eventType: 'STATUS_CHANGED',
+          summary: `Status definido: ${
+            macroConversationStatusLabels[status] ?? status
+          }`,
+          details: `Anterior: ${
+            macroConversationStatusLabels[previousStatus] ?? previousStatus
+          }`,
+        });
+
         await enqueueSnackbar({
-          message:
-            status === 'RESOLVED'
+          message: eventRecorded
+            ? status === 'RESOLVED'
               ? 'Conversa resolvida.'
               : status === 'PENDING'
                 ? 'Conversa marcada como pendente.'
-                : 'Conversa reaberta.',
-          variant: 'success',
+                : 'Conversa reaberta.'
+            : 'Status atualizado, mas o evento não entrou no histórico.',
+          variant: eventRecorded ? 'success' : 'warning',
         });
       } catch (error) {
         await enqueueSnackbar({
@@ -2691,7 +2841,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversationId],
+    [conversations, recordConversationEvent, selectedConversationId],
   );
 
   const saveInternalNote = useCallback(
@@ -2867,9 +3017,20 @@ export const useInboxData = () => {
               : item,
           ),
         );
+        const eventRecorded = mention.inboxConversation?.id
+          ? await recordConversationEvent({
+              conversationId: mention.inboxConversation.id,
+              eventType: 'MENTION_RESOLVED',
+              summary: 'Menção interna resolvida',
+              details: mention.excerpt ?? null,
+            })
+          : false;
+
         await enqueueSnackbar({
-          message: 'Menção resolvida.',
-          variant: 'success',
+          message: eventRecorded
+            ? 'Menção resolvida.'
+            : 'Menção resolvida, mas o evento não entrou no histórico.',
+          variant: eventRecorded ? 'success' : 'warning',
         });
       } catch (error) {
         await enqueueSnackbar({
@@ -2880,7 +3041,12 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [conversationMentions, currentWorkspaceMemberId, pendingMentions],
+    [
+      conversationMentions,
+      currentWorkspaceMemberId,
+      pendingMentions,
+      recordConversationEvent,
+    ],
   );
 
   const previewEvolutionText = useCallback(
@@ -3040,6 +3206,7 @@ export const useInboxData = () => {
     selectedConversation,
     selectedConversationId,
     messages,
+    conversationEvents,
     conversationMentions,
     pendingMentions,
     currentWorkspaceMemberId,

@@ -110,6 +110,17 @@ export type InboxMessage = {
   isInternalNote: boolean;
 };
 
+export type InboxConversationEvent = {
+  id: string;
+  name: string;
+  eventType: string;
+  summary: string;
+  details?: string | null;
+  occurredAt?: string | null;
+  inboxConversation?: InboxRecordReference | null;
+  actor?: InboxWorkspaceMember | null;
+};
+
 export type InboxMention = {
   id: string;
   name: string;

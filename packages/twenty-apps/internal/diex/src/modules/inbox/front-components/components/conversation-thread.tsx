@@ -12,6 +12,7 @@ import {
   IconRefresh,
   IconSend,
   IconSparkles,
+  IconTimelineEvent,
   IconWand,
 } from 'twenty-ui/icon';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
@@ -19,6 +20,7 @@ import { themeCssVariables } from 'twenty-ui/theme-constants';
 import {
   type EvolutionTextPreview,
   type InboxConversation,
+  type InboxConversationEvent,
   type InboxMacro,
   type InboxMacroApplyResult,
   type InboxMacroPreview,
@@ -45,6 +47,7 @@ import {
 type ConversationThreadProps = {
   conversation: InboxConversation | null;
   messages: InboxMessage[];
+  events: InboxConversationEvent[];
   mentions: InboxMention[];
   workspaceMembers: InboxWorkspaceMember[];
   currentWorkspaceMemberId: string | null;
@@ -74,6 +77,18 @@ type ConversationThreadProps = {
   }) => Promise<boolean>;
 };
 
+type ConversationTimelineEntry =
+  | {
+      kind: 'MESSAGE';
+      occurredAt?: string | null;
+      message: InboxMessage;
+    }
+  | {
+      kind: 'EVENT';
+      occurredAt?: string | null;
+      event: InboxConversationEvent;
+    };
+
 const getDeliveryStatusLabel = (status: string): string =>
   ({
     RECEIVED: 'recebida',
@@ -87,6 +102,7 @@ const getDeliveryStatusLabel = (status: string): string =>
 export const ConversationThread = ({
   conversation,
   messages,
+  events,
   mentions,
   workspaceMembers,
   currentWorkspaceMemberId,
@@ -148,7 +164,7 @@ export const ConversationThread = ({
       block: 'end',
       behavior: 'smooth',
     });
-  }, [messages]);
+  }, [events, messages]);
 
   if (conversation === null) {
     return (
@@ -180,6 +196,28 @@ export const ConversationThread = ({
     (macro) =>
       macro.channel === 'ALL' || macro.channel === conversation.channel,
   );
+  const timelineEntries: ConversationTimelineEntry[] = [
+    ...messages.map((message): ConversationTimelineEntry => ({
+      kind: 'MESSAGE',
+      occurredAt: message.sentAt,
+      message,
+    })),
+    ...events.map((event): ConversationTimelineEntry => ({
+      kind: 'EVENT',
+      occurredAt: event.occurredAt,
+      event,
+    })),
+  ].sort((left, right) => {
+    const timeDifference =
+      new Date(left.occurredAt ?? 0).getTime() -
+      new Date(right.occurredAt ?? 0).getTime();
+
+    if (timeDifference !== 0) {
+      return timeDifference;
+    }
+
+    return left.kind.localeCompare(right.kind);
+  });
   const shortcutQuery = externalText
     .match(/^\/([^\s]*)$/)?.[1]
     ?.toLocaleLowerCase('pt-BR');
@@ -434,16 +472,51 @@ export const ConversationThread = ({
       <div style={inboxStyles.messageList}>
         {isLoading ? (
           <div style={inboxStyles.emptyState}>Carregando mensagens...</div>
-        ) : messages.length === 0 ? (
+        ) : timelineEntries.length === 0 ? (
           <div style={inboxStyles.emptyState}>
             <IconMessage
               size={themeCssVariables.icon.size.xl}
               stroke={themeCssVariables.icon.stroke.sm}
             />
-            Esta conversa ainda não possui mensagens.
+            Esta conversa ainda não possui mensagens ou eventos.
           </div>
         ) : (
-          messages.map((message) => {
+          timelineEntries.map((entry) => {
+            if (entry.kind === 'EVENT') {
+              const event = entry.event;
+
+              return (
+                <div
+                  key={`event:${event.id}`}
+                  style={inboxStyles.activityEventRow}
+                >
+                  <article style={inboxStyles.activityEvent}>
+                    <div style={inboxStyles.activityEventIcon}>
+                      <IconTimelineEvent
+                        size={themeCssVariables.icon.size.sm}
+                        stroke={themeCssVariables.icon.stroke.md}
+                      />
+                    </div>
+                    <div style={inboxStyles.activityEventBody}>
+                      <strong style={inboxStyles.activityEventSummary}>
+                        {event.summary}
+                      </strong>
+                      {event.details ? (
+                        <p style={inboxStyles.activityEventDetails}>
+                          {event.details}
+                        </p>
+                      ) : null}
+                      <div style={inboxStyles.activityEventMeta}>
+                        {getRecordName(event.actor) || 'Automação Diex'} ·{' '}
+                        {formatMessageTime(event.occurredAt)}
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              );
+            }
+
+            const message = entry.message;
             const isOutgoing = message.direction === 'OUTBOUND';
             const isInternal = message.isInternalNote;
             const senderName = isInternal
@@ -455,7 +528,7 @@ export const ConversationThread = ({
             );
 
             return (
-              <div key={message.id} style={inboxStyles.messageRow}>
+              <div key={`message:${message.id}`} style={inboxStyles.messageRow}>
                 <article
                   style={{
                     ...inboxStyles.messageBubble,

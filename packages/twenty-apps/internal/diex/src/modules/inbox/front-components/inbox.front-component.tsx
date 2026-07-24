@@ -38,6 +38,7 @@ export const InboxFrontComponent = () => {
     selectedConversation,
     selectedConversationId,
     messages,
+    conversationEvents,
     conversationMentions,
     pendingMentions,
     currentWorkspaceMemberId,
@@ -215,6 +216,7 @@ export const InboxFrontComponent = () => {
         <ConversationThread
           conversation={selectedConversation}
           messages={messages}
+          events={conversationEvents}
           mentions={conversationMentions}
           workspaceMembers={workspaceMembers}
           currentWorkspaceMemberId={currentWorkspaceMemberId}
