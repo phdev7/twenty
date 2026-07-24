@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  IconAt,
   IconBolt,
   IconCheck,
   IconClock,
@@ -17,9 +18,11 @@ import { themeCssVariables } from 'twenty-ui/theme-constants';
 import {
   type EvolutionTextPreview,
   type InboxConversation,
+  type InboxMention,
   type InboxMessage,
   type InboxSavedReply,
   type InboxTriageResult,
+  type InboxWorkspaceMember,
   type SavedReplyRenderResult,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
@@ -28,6 +31,7 @@ import {
   getConversationStatusLabel,
   getInitials,
   getMessageTypeLabel,
+  getRecordName,
 } from 'src/modules/inbox/front-components/utils/inbox-formatters';
 import {
   getStatusChipStyle,
@@ -37,13 +41,20 @@ import {
 type ConversationThreadProps = {
   conversation: InboxConversation | null;
   messages: InboxMessage[];
+  mentions: InboxMention[];
+  workspaceMembers: InboxWorkspaceMember[];
+  currentWorkspaceMemberId: string | null;
   savedReplies: InboxSavedReply[];
   triageResult: InboxTriageResult | null;
   isLoading: boolean;
   busyAction: string | null;
   onRunAiTriage: () => Promise<void>;
   onStatusChange: (status: string) => Promise<void>;
-  onSaveInternalNote: (body: string) => Promise<boolean>;
+  onSaveInternalNote: (
+    body: string,
+    mentionedWorkspaceMemberIds?: string[],
+  ) => Promise<boolean>;
+  onResolveMention: (mentionId: string) => Promise<void>;
   onUseSavedReply: (
     savedReply: InboxSavedReply,
   ) => Promise<SavedReplyRenderResult | null>;
@@ -69,6 +80,9 @@ const getDeliveryStatusLabel = (status: string): string =>
 export const ConversationThread = ({
   conversation,
   messages,
+  mentions,
+  workspaceMembers,
+  currentWorkspaceMemberId,
   savedReplies,
   triageResult,
   isLoading,
@@ -76,6 +90,7 @@ export const ConversationThread = ({
   onRunAiTriage,
   onStatusChange,
   onSaveInternalNote,
+  onResolveMention,
   onUseSavedReply,
   onPreviewEvolutionText,
   onConfirmEvolutionText,
@@ -85,6 +100,8 @@ export const ConversationThread = ({
   );
   const [externalText, setExternalText] = useState('');
   const [internalNote, setInternalNote] = useState('');
+  const [mentionedWorkspaceMemberIds, setMentionedWorkspaceMemberIds] =
+    useState<string[]>([]);
   const [sendPreview, setSendPreview] = useState<EvolutionTextPreview | null>(
     null,
   );
@@ -103,6 +120,7 @@ export const ConversationThread = ({
     setComposerMode(canSendThroughEvolution ? 'EXTERNAL' : 'INTERNAL');
     setExternalText('');
     setInternalNote('');
+    setMentionedWorkspaceMemberIds([]);
     setSendPreview(null);
   }, [conversation?.channel, conversation?.id, conversation?.provider]);
 
@@ -159,13 +177,58 @@ export const ConversationThread = ({
             return searchableValue.includes(shortcutQuery);
           })
           .slice(0, 6);
+  const mentionQuery = internalNote
+    .match(/(?:^|\s)@([^@\s]*)$/)?.[1]
+    ?.toLocaleLowerCase('pt-BR');
+  const matchingWorkspaceMembers =
+    mentionQuery === undefined
+      ? []
+      : workspaceMembers
+          .filter(
+            (workspaceMember) =>
+              workspaceMember.id !== currentWorkspaceMemberId &&
+              !mentionedWorkspaceMemberIds.includes(workspaceMember.id) &&
+              getRecordName(workspaceMember)
+                .toLocaleLowerCase('pt-BR')
+                .includes(mentionQuery),
+          )
+          .slice(0, 6);
+  const mentionedWorkspaceMembers = mentionedWorkspaceMemberIds.flatMap(
+    (workspaceMemberId) => {
+      const workspaceMember = workspaceMembers.find(
+        ({ id }) => id === workspaceMemberId,
+      );
+
+      return workspaceMember ? [workspaceMember] : [];
+    },
+  );
 
   const handleSaveNote = async () => {
-    const saved = await onSaveInternalNote(internalNote);
+    const saved = await onSaveInternalNote(
+      internalNote,
+      mentionedWorkspaceMemberIds,
+    );
 
     if (saved) {
       setInternalNote('');
+      setMentionedWorkspaceMemberIds([]);
     }
+  };
+
+  const handleAddMention = (workspaceMember: InboxWorkspaceMember) => {
+    const workspaceMemberName =
+      getRecordName(workspaceMember) || 'Usuário sem nome';
+
+    setInternalNote((current) =>
+      current.replace(
+        /(^|\s)@([^@\s]*)$/,
+        (_match, prefix: string) => `${prefix}@${workspaceMemberName} `,
+      ),
+    );
+    setMentionedWorkspaceMemberIds((current) => [
+      ...current,
+      workspaceMember.id,
+    ]);
   };
 
   const handleRequestSendPreview = async () => {
@@ -330,6 +393,9 @@ export const ConversationThread = ({
               ? 'Nota interna'
               : message.senderDisplayName ||
                 (isOutgoing ? 'Equipe comercial' : conversation.name);
+            const messageMentions = mentions.filter(
+              (mention) => mention.inboxMessage?.id === message.id,
+            );
 
             return (
               <div key={message.id} style={inboxStyles.messageRow}>
@@ -360,6 +426,56 @@ export const ConversationThread = ({
                   <p style={inboxStyles.messageText}>
                     {message.body || getMessageTypeLabel(message.type)}
                   </p>
+                  {messageMentions.length > 0 ? (
+                    <div style={inboxStyles.mentionChips}>
+                      {messageMentions.map((mention) => {
+                        const isCurrentMemberMention =
+                          mention.mentionedWorkspaceMember?.id ===
+                          currentWorkspaceMemberId;
+                        const isPending =
+                          isCurrentMemberMention &&
+                          mention.status !== 'RESOLVED';
+
+                        return (
+                          <span
+                            key={mention.id}
+                            style={{
+                              ...inboxStyles.mentionChip,
+                              ...(isPending
+                                ? inboxStyles.mentionChipPending
+                                : {}),
+                            }}
+                          >
+                            <IconAt
+                              size={themeCssVariables.icon.size.sm}
+                              stroke={themeCssVariables.icon.stroke.md}
+                            />
+                            {getRecordName(mention.mentionedWorkspaceMember) ||
+                              'Usuário removido'}
+                            {isPending ? (
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                style={{
+                                  ...inboxStyles.mentionResolveButton,
+                                  ...(isBusy ? inboxStyles.disabledButton : {}),
+                                }}
+                                onClick={() =>
+                                  void onResolveMention(mention.id)
+                                }
+                              >
+                                <IconCheck
+                                  size={themeCssVariables.icon.size.sm}
+                                  stroke={themeCssVariables.icon.stroke.md}
+                                />
+                                Resolver
+                              </button>
+                            ) : null}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                   {message.mediaUrl ? (
                     <a
                       href={message.mediaUrl}
@@ -638,31 +754,84 @@ export const ConversationThread = ({
             </div>
           )
         ) : (
-          <div style={inboxStyles.composerRow}>
-            <textarea
-              aria-label="Adicionar nota interna"
-              placeholder="Registre contexto, objeção ou próximo passo para a equipe..."
-              value={internalNote}
-              onChange={(event) => setInternalNote(event.target.value)}
-              style={inboxStyles.textarea}
-            />
-            <button
-              type="button"
-              style={{
-                ...inboxStyles.primaryButton,
-                ...(internalNote.trim().length === 0 || isBusy
-                  ? inboxStyles.disabledButton
-                  : {}),
-              }}
-              disabled={internalNote.trim().length === 0 || isBusy}
-              onClick={() => void handleSaveNote()}
-            >
-              <IconNotes
-                size={themeCssVariables.icon.size.sm}
-                stroke={themeCssVariables.icon.stroke.md}
+          <div style={inboxStyles.externalComposer}>
+            <div style={inboxStyles.composerRow}>
+              <textarea
+                aria-label="Adicionar nota interna"
+                placeholder="Registre o contexto e use @ para mencionar alguém..."
+                value={internalNote}
+                onChange={(event) => setInternalNote(event.target.value)}
+                style={inboxStyles.textarea}
               />
-              {busyAction === 'note' ? 'Salvando' : 'Salvar nota'}
-            </button>
+              <button
+                type="button"
+                style={{
+                  ...inboxStyles.primaryButton,
+                  ...(internalNote.trim().length === 0 || isBusy
+                    ? inboxStyles.disabledButton
+                    : {}),
+                }}
+                disabled={internalNote.trim().length === 0 || isBusy}
+                onClick={() => void handleSaveNote()}
+              >
+                <IconNotes
+                  size={themeCssVariables.icon.size.sm}
+                  stroke={themeCssVariables.icon.stroke.md}
+                />
+                {busyAction === 'note' ? 'Salvando' : 'Salvar nota'}
+              </button>
+            </div>
+
+            {matchingWorkspaceMembers.length > 0 ? (
+              <div style={inboxStyles.mentionSuggestions}>
+                {matchingWorkspaceMembers.map((workspaceMember) => (
+                  <button
+                    key={workspaceMember.id}
+                    type="button"
+                    disabled={isBusy}
+                    style={inboxStyles.mentionOption}
+                    onClick={() => handleAddMention(workspaceMember)}
+                  >
+                    <IconAt
+                      size={themeCssVariables.icon.size.sm}
+                      stroke={themeCssVariables.icon.stroke.md}
+                    />
+                    {getRecordName(workspaceMember) || 'Usuário sem nome'}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {mentionedWorkspaceMembers.length > 0 ? (
+              <div style={inboxStyles.mentionChips}>
+                {mentionedWorkspaceMembers.map((workspaceMember) => (
+                  <span
+                    key={workspaceMember.id}
+                    style={inboxStyles.mentionChip}
+                  >
+                    <IconAt
+                      size={themeCssVariables.icon.size.sm}
+                      stroke={themeCssVariables.icon.stroke.md}
+                    />
+                    {getRecordName(workspaceMember) || 'Usuário sem nome'}
+                    <button
+                      type="button"
+                      aria-label={`Remover menção a ${
+                        getRecordName(workspaceMember) || 'usuário'
+                      }`}
+                      style={inboxStyles.mentionRemoveButton}
+                      onClick={() =>
+                        setMentionedWorkspaceMemberIds((current) =>
+                          current.filter((id) => id !== workspaceMember.id),
+                        )
+                      }
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </div>
         )}
 
@@ -673,7 +842,10 @@ export const ConversationThread = ({
               confirme explicitamente o texto exato.
             </>
           ) : (
-            <>A nota fica apenas no CRM e não é enviada ao cliente.</>
+            <>
+              A nota fica apenas no CRM. Usuários selecionados recebem uma
+              pendência pessoal até resolverem a menção.
+            </>
           )}
         </p>
         {!isEvolutionConversation ? (

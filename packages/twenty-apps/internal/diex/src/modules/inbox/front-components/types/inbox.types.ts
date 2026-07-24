@@ -110,6 +110,20 @@ export type InboxMessage = {
   isInternalNote: boolean;
 };
 
+export type InboxMention = {
+  id: string;
+  name: string;
+  excerpt?: string | null;
+  status: string;
+  mentionedAt?: string | null;
+  readAt?: string | null;
+  resolvedAt?: string | null;
+  inboxConversation?: InboxRecordReference | null;
+  inboxMessage?: InboxRecordReference | null;
+  mentionedWorkspaceMember?: InboxWorkspaceMember | null;
+  authorWorkspaceMember?: InboxWorkspaceMember | null;
+};
+
 export type InboxSavedReply = {
   id: string;
   name: string;
@@ -176,4 +190,4 @@ export type InboxConversationFilter =
   'ACTIVE' | 'OPEN' | 'PENDING' | 'SNOOZED' | 'RESOLVED';
 
 export type InboxAttentionFilter =
-  'ALL' | 'UNREAD' | 'SLA_BREACHED' | 'URGENT' | 'FOLLOW_UP_DUE';
+  'ALL' | 'UNREAD' | 'MENTIONED' | 'SLA_BREACHED' | 'URGENT' | 'FOLLOW_UP_DUE';

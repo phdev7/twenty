@@ -37,6 +37,9 @@ export const InboxFrontComponent = () => {
     selectedConversation,
     selectedConversationId,
     messages,
+    conversationMentions,
+    pendingMentions,
+    currentWorkspaceMemberId,
     isLoadingConversations,
     isLoadingMessages,
     busyAction,
@@ -54,11 +57,26 @@ export const InboxFrontComponent = () => {
     setConversationStatus,
     snoozeConversation,
     saveInternalNote,
+    resolveMention,
     previewEvolutionText,
     confirmEvolutionText,
     configureEvolution,
     triageConversation,
   } = useInboxData();
+
+  const pendingMentionCounts = useMemo(
+    () =>
+      pendingMentions.reduce<Record<string, number>>((counts, mention) => {
+        const conversationId = mention.inboxConversation?.id;
+
+        if (conversationId) {
+          counts[conversationId] = (counts[conversationId] ?? 0) + 1;
+        }
+
+        return counts;
+      }, {}),
+    [pendingMentions],
+  );
 
   const visibleConversations = useMemo(() => {
     const normalizedQuery = normalizeSearchTerm(query);
@@ -108,6 +126,8 @@ export const InboxFrontComponent = () => {
       const matchesAttention =
         attentionFilter === 'ALL' ||
         (attentionFilter === 'UNREAD' && conversation.unreadCount > 0) ||
+        (attentionFilter === 'MENTIONED' &&
+          (pendingMentionCounts[conversation.id] ?? 0) > 0) ||
         (attentionFilter === 'SLA_BREACHED' &&
           Boolean(conversation.slaBreachedAt)) ||
         (attentionFilter === 'URGENT' &&
@@ -149,6 +169,7 @@ export const InboxFrontComponent = () => {
     conversations,
     filter,
     labelFilterId,
+    pendingMentionCounts,
     query,
     teamFilterId,
   ]);
@@ -176,6 +197,7 @@ export const InboxFrontComponent = () => {
           teams={teams}
           teamFilterId={teamFilterId}
           attentionFilter={attentionFilter}
+          pendingMentionCounts={pendingMentionCounts}
           isLoading={isLoadingConversations}
           errorMessage={errorMessage}
           onQueryChange={setQuery}
@@ -190,12 +212,16 @@ export const InboxFrontComponent = () => {
         <ConversationThread
           conversation={selectedConversation}
           messages={messages}
+          mentions={conversationMentions}
+          workspaceMembers={workspaceMembers}
+          currentWorkspaceMemberId={currentWorkspaceMemberId}
           savedReplies={savedReplies}
           isLoading={isLoadingMessages}
           busyAction={busyAction}
           triageResult={triageResult}
           onStatusChange={setConversationStatus}
           onSaveInternalNote={saveInternalNote}
+          onResolveMention={resolveMention}
           onUseSavedReply={applySavedReply}
           onPreviewEvolutionText={previewEvolutionText}
           onConfirmEvolutionText={confirmEvolutionText}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CoreApiClient } from 'twenty-client-sdk/core';
+import { MetadataApiClient } from 'twenty-client-sdk/metadata';
 import { RestApiClient } from 'twenty-client-sdk/rest';
 import { enqueueSnackbar } from 'twenty-sdk/front-component';
 
@@ -15,6 +16,7 @@ import {
   type InboxConversation,
   type InboxConversationLabelAssignment,
   type InboxLabel,
+  type InboxMention,
   type InboxMessage,
   type InboxSavedReply,
   type InboxTask,
@@ -64,6 +66,14 @@ type MessageQueryResult = {
   };
 };
 
+type MentionQueryResult = {
+  inboxMentions?: {
+    edges?: Array<{
+      node: InboxMention;
+    }>;
+  };
+};
+
 type SavedReplyQueryResult = {
   inboxSavedReplies?: {
     edges?: Array<{
@@ -103,6 +113,40 @@ type TeamQueryResult = {
     }>;
   };
 };
+
+const mentionNodeSelection = {
+  id: true,
+  name: true,
+  excerpt: true,
+  status: true,
+  mentionedAt: true,
+  readAt: true,
+  resolvedAt: true,
+  inboxConversation: {
+    id: true,
+    name: true,
+  },
+  inboxMessage: {
+    id: true,
+    name: true,
+  },
+  mentionedWorkspaceMember: {
+    id: true,
+    name: {
+      firstName: true,
+      lastName: true,
+    },
+    avatarUrl: true,
+  },
+  authorWorkspaceMember: {
+    id: true,
+    name: {
+      firstName: true,
+      lastName: true,
+    },
+    avatarUrl: true,
+  },
+} as const;
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
@@ -186,6 +230,13 @@ export const useInboxData = () => {
     string | null
   >(null);
   const [messages, setMessages] = useState<InboxMessage[]>([]);
+  const [conversationMentions, setConversationMentions] = useState<
+    InboxMention[]
+  >([]);
+  const [pendingMentions, setPendingMentions] = useState<InboxMention[]>([]);
+  const [currentWorkspaceMemberId, setCurrentWorkspaceMemberId] = useState<
+    string | null
+  >(null);
   const [savedReplies, setSavedReplies] = useState<InboxSavedReply[]>([]);
   const [labels, setLabels] = useState<InboxLabel[]>([]);
   const [workspaceMembers, setWorkspaceMembers] = useState<
@@ -200,6 +251,7 @@ export const useInboxData = () => {
     null,
   );
   const messageRequestVersionRef = useRef(0);
+  const mentionRequestVersionRef = useRef(0);
 
   const loadConversations = useCallback(async () => {
     setIsLoadingConversations(true);
@@ -450,6 +502,103 @@ export const useInboxData = () => {
     }
   }, []);
 
+  const loadCurrentWorkspaceMember = useCallback(async () => {
+    try {
+      const { currentUser } = await new MetadataApiClient().query({
+        currentUser: {
+          id: true,
+          workspaceMember: {
+            id: true,
+          },
+        },
+      });
+
+      setCurrentWorkspaceMemberId(currentUser.workspaceMember?.id ?? null);
+    } catch {
+      setCurrentWorkspaceMemberId(null);
+      await enqueueSnackbar({
+        message:
+          'Não foi possível identificar seu usuário para carregar as menções.',
+        variant: 'warning',
+      });
+    }
+  }, []);
+
+  const loadMentions = useCallback(
+    async (conversationId: string | null, workspaceMemberId: string | null) => {
+      const requestVersion = mentionRequestVersionRef.current + 1;
+
+      mentionRequestVersionRef.current = requestVersion;
+
+      try {
+        const client = new CoreApiClient();
+        const [conversationResult, memberResult] = await Promise.all([
+          conversationId
+            ? client.query({
+                inboxMentions: {
+                  __args: {
+                    filter: {
+                      inboxConversationId: {
+                        eq: conversationId,
+                      },
+                    },
+                    first: 200,
+                    orderBy: [{ mentionedAt: 'DescNullsLast' }],
+                  },
+                  edges: {
+                    node: mentionNodeSelection,
+                  },
+                },
+              } as never)
+            : Promise.resolve({}),
+          workspaceMemberId
+            ? client.query({
+                inboxMentions: {
+                  __args: {
+                    filter: {
+                      mentionedWorkspaceMemberId: {
+                        eq: workspaceMemberId,
+                      },
+                    },
+                    first: 500,
+                    orderBy: [{ mentionedAt: 'DescNullsLast' }],
+                  },
+                  edges: {
+                    node: mentionNodeSelection,
+                  },
+                },
+              } as never)
+            : Promise.resolve({}),
+        ]);
+        const conversationQuery =
+          conversationResult as unknown as MentionQueryResult;
+        const memberQuery = memberResult as unknown as MentionQueryResult;
+
+        if (requestVersion === mentionRequestVersionRef.current) {
+          setConversationMentions(
+            conversationQuery.inboxMentions?.edges?.map(({ node }) => node) ??
+              [],
+          );
+          setPendingMentions(
+            memberQuery.inboxMentions?.edges
+              ?.map(({ node }) => node)
+              .filter(({ status }) => status !== 'RESOLVED') ?? [],
+          );
+        }
+      } catch {
+        if (requestVersion === mentionRequestVersionRef.current) {
+          setConversationMentions([]);
+          setPendingMentions([]);
+          await enqueueSnackbar({
+            message: 'Não foi possível carregar as menções da Inbox.',
+            variant: 'warning',
+          });
+        }
+      }
+    },
+    [],
+  );
+
   const loadSavedReplies = useCallback(async () => {
     try {
       const client = new CoreApiClient();
@@ -663,8 +812,16 @@ export const useInboxData = () => {
   }, [loadWorkspaceMembers]);
 
   useEffect(() => {
+    void loadCurrentWorkspaceMember();
+  }, [loadCurrentWorkspaceMember]);
+
+  useEffect(() => {
     void loadTeams();
   }, [loadTeams]);
+
+  useEffect(() => {
+    void loadMentions(selectedConversationId, currentWorkspaceMemberId);
+  }, [currentWorkspaceMemberId, loadMentions, selectedConversationId]);
 
   useEffect(() => {
     setTriageResult(null);
@@ -1241,9 +1398,7 @@ export const useInboxData = () => {
       if (
         assigneeId !== null &&
         selectedTeam &&
-        !getActiveTeamMembers(selectedTeam).some(
-          ({ id }) => id === assigneeId,
-        )
+        !getActiveTeamMembers(selectedTeam).some(({ id }) => id === assigneeId)
       ) {
         await enqueueSnackbar({
           message:
@@ -1496,39 +1651,100 @@ export const useInboxData = () => {
       const conversation = conversations.find(
         ({ id }) => id === conversationId,
       );
+      const unreadMentions = pendingMentions.filter(
+        (mention) =>
+          mention.inboxConversation?.id === conversationId &&
+          mention.mentionedWorkspaceMember?.id === currentWorkspaceMemberId &&
+          mention.status === 'UNREAD',
+      );
 
-      if (!conversation || conversation.unreadCount <= 0) {
+      if (
+        (!conversation || conversation.unreadCount <= 0) &&
+        unreadMentions.length === 0
+      ) {
         return;
       }
 
-      setConversations((current) =>
-        current.map((item) =>
-          item.id === conversationId ? { ...item, unreadCount: 0 } : item,
-        ),
-      );
+      const readAt = new Date().toISOString();
+      const markMentionRead = (mention: InboxMention): InboxMention =>
+        unreadMentions.some(({ id }) => id === mention.id)
+          ? {
+              ...mention,
+              status: 'READ',
+              readAt,
+            }
+          : mention;
+
+      if (unreadMentions.length > 0) {
+        mentionRequestVersionRef.current += 1;
+      }
+
+      if (conversation && conversation.unreadCount > 0) {
+        setConversations((current) =>
+          current.map((item) =>
+            item.id === conversationId ? { ...item, unreadCount: 0 } : item,
+          ),
+        );
+      }
+
+      setPendingMentions((current) => current.map(markMentionRead));
+      setConversationMentions((current) => current.map(markMentionRead));
 
       try {
         const client = new CoreApiClient();
-        await client.mutation({
-          updateInboxConversation: {
-            __args: {
-              id: conversationId,
-              data: {
-                unreadCount: 0,
+        const results = await Promise.allSettled([
+          ...(conversation && conversation.unreadCount > 0
+            ? [
+                client.mutation({
+                  updateInboxConversation: {
+                    __args: {
+                      id: conversationId,
+                      data: {
+                        unreadCount: 0,
+                      },
+                    },
+                    id: true,
+                  },
+                } as never),
+              ]
+            : []),
+          ...unreadMentions.map((mention) =>
+            client.mutation({
+              updateInboxMention: {
+                __args: {
+                  id: mention.id,
+                  data: {
+                    status: 'READ',
+                    readAt,
+                  },
+                },
+                id: true,
               },
-            },
-            id: true,
-          },
-        } as never);
-      } catch (error) {
+            } as never),
+          ),
+        ]);
+
+        if (results.some(({ status }) => status === 'rejected')) {
+          throw new Error(
+            'A conversa foi aberta, mas parte dos indicadores não pôde ser sincronizada.',
+          );
+        }
+      } catch {
         await enqueueSnackbar({
-          message: getErrorMessage(error),
-          variant: 'error',
+          message:
+            'A conversa foi aberta, mas parte dos indicadores não pôde ser sincronizada.',
+          variant: 'warning',
         });
       }
     },
-    [conversations],
+    [conversations, currentWorkspaceMemberId, pendingMentions],
   );
+
+  useEffect(() => {
+    if (selectedConversationId !== null) {
+      void selectConversation(selectedConversationId);
+    }
+  }, [selectConversation, selectedConversationId]);
 
   const snoozeConversation = useCallback(
     async (snoozedUntil: string): Promise<void> => {
@@ -1664,18 +1880,32 @@ export const useInboxData = () => {
   );
 
   const saveInternalNote = useCallback(
-    async (body: string) => {
+    async (body: string, mentionedWorkspaceMemberIds: string[] = []) => {
       const trimmedBody = body.trim();
 
       if (selectedConversationId === null || trimmedBody.length === 0) {
         return false;
       }
 
+      const allowedWorkspaceMemberIds = new Set(
+        workspaceMembers.map(({ id }) => id),
+      );
+      const normalizedMentionedWorkspaceMemberIds = [
+        ...new Set(mentionedWorkspaceMemberIds),
+      ]
+        .filter(
+          (workspaceMemberId) =>
+            workspaceMemberId !== currentWorkspaceMemberId &&
+            allowedWorkspaceMemberIds.has(workspaceMemberId),
+        )
+        .slice(0, 20);
+
       setBusyAction('note');
 
       try {
         const client = new CoreApiClient();
-        await client.mutation({
+        const mentionedAt = new Date().toISOString();
+        const result = (await client.mutation({
           createInboxMessage: {
             __args: {
               data: {
@@ -1688,19 +1918,63 @@ export const useInboxData = () => {
                 type: 'TEXT',
                 body: trimmedBody,
                 deliveryStatus: 'SENT',
-                sentAt: new Date().toISOString(),
+                sentAt: mentionedAt,
                 isInternalNote: true,
                 inboxConversationId: selectedConversationId,
               },
             },
             id: true,
           },
-        } as never);
+        } as never)) as unknown as {
+          createInboxMessage?: {
+            id?: string | null;
+          } | null;
+        };
+        const messageId = result.createInboxMessage?.id;
 
-        await loadMessages(selectedConversationId);
+        if (!messageId) {
+          throw new Error('A nota não retornou um identificador.');
+        }
+
+        const mentionResults = await Promise.allSettled(
+          normalizedMentionedWorkspaceMemberIds.map((workspaceMemberId) =>
+            client.mutation({
+              createInboxMention: {
+                __args: {
+                  data: {
+                    name: `${messageId}:${workspaceMemberId}`,
+                    excerpt: trimmedBody.slice(0, 500),
+                    status: 'UNREAD',
+                    mentionedAt,
+                    readAt: null,
+                    resolvedAt: null,
+                    inboxConversationId: selectedConversationId,
+                    inboxMessageId: messageId,
+                    mentionedWorkspaceMemberId: workspaceMemberId,
+                    authorWorkspaceMemberId: currentWorkspaceMemberId,
+                  },
+                },
+                id: true,
+              },
+            } as never),
+          ),
+        );
+        const failedMentionCount = mentionResults.filter(
+          ({ status }) => status === 'rejected',
+        ).length;
+
+        await Promise.all([
+          loadMessages(selectedConversationId),
+          loadMentions(selectedConversationId, currentWorkspaceMemberId),
+        ]);
         await enqueueSnackbar({
-          message: 'Nota interna adicionada.',
-          variant: 'success',
+          message:
+            failedMentionCount > 0
+              ? `Nota salva. ${failedMentionCount} menção não pôde ser criada.`
+              : normalizedMentionedWorkspaceMemberIds.length > 0
+                ? 'Nota interna salva e equipe mencionada.'
+                : 'Nota interna adicionada.',
+          variant: failedMentionCount > 0 ? 'warning' : 'success',
         });
 
         return true;
@@ -1715,7 +1989,83 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [loadMessages, selectedConversationId],
+    [
+      currentWorkspaceMemberId,
+      loadMentions,
+      loadMessages,
+      selectedConversationId,
+      workspaceMembers,
+    ],
+  );
+
+  const resolveMention = useCallback(
+    async (mentionId: string): Promise<void> => {
+      const mention =
+        pendingMentions.find(({ id }) => id === mentionId) ??
+        conversationMentions.find(({ id }) => id === mentionId);
+
+      if (
+        !mention ||
+        mention.mentionedWorkspaceMember?.id !== currentWorkspaceMemberId ||
+        mention.status === 'RESOLVED'
+      ) {
+        await enqueueSnackbar({
+          message: 'Esta menção não está disponível para resolução.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
+      setBusyAction(`resolve-mention:${mentionId}`);
+
+      try {
+        const resolvedAt = new Date().toISOString();
+
+        await new CoreApiClient().mutation({
+          updateInboxMention: {
+            __args: {
+              id: mentionId,
+              data: {
+                status: 'RESOLVED',
+                readAt: mention.readAt ?? resolvedAt,
+                resolvedAt,
+              },
+            },
+            id: true,
+          },
+        } as never);
+
+        mentionRequestVersionRef.current += 1;
+        setPendingMentions((current) =>
+          current.filter(({ id }) => id !== mentionId),
+        );
+        setConversationMentions((current) =>
+          current.map((item) =>
+            item.id === mentionId
+              ? {
+                  ...item,
+                  status: 'RESOLVED',
+                  readAt: item.readAt ?? resolvedAt,
+                  resolvedAt,
+                }
+              : item,
+          ),
+        );
+        await enqueueSnackbar({
+          message: 'Menção resolvida.',
+          variant: 'success',
+        });
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [conversationMentions, currentWorkspaceMemberId, pendingMentions],
   );
 
   const previewEvolutionText = useCallback(
@@ -1874,6 +2224,9 @@ export const useInboxData = () => {
     selectedConversation,
     selectedConversationId,
     messages,
+    conversationMentions,
+    pendingMentions,
+    currentWorkspaceMemberId,
     isLoadingConversations,
     isLoadingMessages,
     busyAction,
@@ -1891,6 +2244,7 @@ export const useInboxData = () => {
     completeConversationTask,
     setConversationStatus,
     saveInternalNote,
+    resolveMention,
     previewEvolutionText,
     confirmEvolutionText,
     configureEvolution,

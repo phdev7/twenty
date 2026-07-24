@@ -22,6 +22,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   follow-up vencido, com prioridade editável no contexto;
 - criação e conclusão de próxima ação dentro da conversa, com prazo,
   responsável e vínculo nativo à pessoa, empresa e oportunidade;
+- menções estruturadas em notas internas, com alerta pessoal, leitura,
+  resolução e trilha auditável por conversa e usuário;
 - adiamento com prazo, reabertura por vencimento e reativação por nova
   mensagem;
 - cockpit de inteligência comercial com radar de sinais, ranking de
@@ -78,6 +80,18 @@ A conversa pode ser adiada por uma ou quatro horas, até amanhã às 9h ou até
 segunda-feira, além de aceitar data e hora personalizadas. A Inbox reabre
 adiamentos vencidos ao carregar a fila; uma nova mensagem recebida ou um envio
 manual também reabre imediatamente e limpa o prazo anterior.
+
+### Menções internas
+
+No modo `Nota interna`, digite `@` e selecione os usuários responsáveis. A
+nota permanece privada no CRM e cada pessoa selecionada recebe uma pendência
+individual em `Minhas menções`. Abrir a conversa registra a leitura; o botão
+`Resolver` encerra somente a pendência daquele usuário sem remover a nota ou o
+histórico.
+
+Cada menção mantém vínculo com a conversa, a nota, o autor, o usuário
+mencionado e as datas de criação, leitura e resolução. A visão
+`Diex > Menções da inbox` fornece a trilha operacional completa.
 
 ### Páginas operacionais
 

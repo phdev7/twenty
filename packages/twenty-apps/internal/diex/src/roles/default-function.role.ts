@@ -12,6 +12,11 @@ import {
   INBOX_CONVERSATION_LABEL_UNIVERSAL_IDENTIFIER,
   INBOX_LABEL_UNIVERSAL_IDENTIFIER,
 } from 'src/modules/inbox/constants/inbox-label.constants';
+import { INBOX_MENTION_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-mention.constants';
+import {
+  INBOX_TEAM_MEMBER_UNIVERSAL_IDENTIFIER,
+  INBOX_TEAM_UNIVERSAL_IDENTIFIER,
+} from 'src/modules/inbox/constants/inbox-team.constants';
 import { INBOX_SAVED_REPLY_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/objects/inbox-saved-reply.object';
 import { AI_ACTION_UNIVERSAL_IDENTIFIER } from 'src/objects/ai-action.object';
 import { COMMERCIAL_SIGNAL_UNIVERSAL_IDENTIFIER } from 'src/objects/commercial-signal.object';
@@ -111,6 +116,18 @@ export default defineApplicationRole({
     },
     {
       objectUniversalIdentifier: INBOX_CONVERSATION_LABEL_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: INBOX_TEAM_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: INBOX_TEAM_MEMBER_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: INBOX_MENTION_UNIVERSAL_IDENTIFIER,
       ...readWrite,
     },
     {

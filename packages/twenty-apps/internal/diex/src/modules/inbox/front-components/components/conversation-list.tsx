@@ -1,6 +1,7 @@
 import {
   IconArrowDown,
   IconArrowUpRight,
+  IconAt,
   IconInbox,
   IconMail,
   IconMessage,
@@ -43,6 +44,7 @@ type ConversationListProps = {
   teams: InboxTeam[];
   teamFilterId: string;
   attentionFilter: InboxAttentionFilter;
+  pendingMentionCounts: Record<string, number>;
   isLoading: boolean;
   errorMessage: string | null;
   onQueryChange: (query: string) => void;
@@ -67,6 +69,7 @@ export const ConversationList = ({
   teams,
   teamFilterId,
   attentionFilter,
+  pendingMentionCounts,
   isLoading,
   errorMessage,
   onQueryChange,
@@ -193,6 +196,7 @@ export const ConversationList = ({
         >
           <option value="ALL">Toda atenção</option>
           <option value="UNREAD">Não lidas</option>
+          <option value="MENTIONED">Minhas menções</option>
           <option value="SLA_BREACHED">SLA estourado</option>
           <option value="URGENT">Alta ou urgente</option>
           <option value="FOLLOW_UP_DUE">Follow-up vencido</option>
@@ -224,6 +228,8 @@ export const ConversationList = ({
         conversations.map((conversation) => {
           const isSelected = conversation.id === selectedConversationId;
           const isOutbound = conversation.lastMessageDirection === 'OUTBOUND';
+          const pendingMentionCount =
+            pendingMentionCounts[conversation.id] ?? 0;
 
           return (
             <button
@@ -288,6 +294,20 @@ export const ConversationList = ({
                   <span style={getStatusChipStyle(conversation.status)}>
                     {getConversationStatusLabel(conversation.status)}
                   </span>
+                  {pendingMentionCount > 0 ? (
+                    <span
+                      style={inboxStyles.mentionBadge}
+                      title={`${pendingMentionCount} menção ${
+                        pendingMentionCount === 1 ? 'pendente' : 'pendentes'
+                      }`}
+                    >
+                      <IconAt
+                        size={themeCssVariables.icon.size.sm}
+                        stroke={themeCssVariables.icon.stroke.md}
+                      />
+                      {pendingMentionCount > 99 ? '99+' : pendingMentionCount}
+                    </span>
+                  ) : null}
                   {conversation.priority === 'HIGH' ||
                   conversation.priority === 'URGENT' ? (
                     <span style={getPriorityChipStyle(conversation.priority)}>
