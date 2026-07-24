@@ -8,7 +8,11 @@ x-diex-environment: &diex-environment
   ENCRYPTION_KEY: ${ENCRYPTION_KEY}
   FALLBACK_ENCRYPTION_KEY: ${FALLBACK_ENCRYPTION_KEY:-}
   APP_SECRET: ${APP_SECRET:-}
-  IS_MULTIWORKSPACE_ENABLED: "true"
+  # Multiworkspace resolves each tenant by subdomain. Only enable it once
+  # *.${SERVER_HOST} resolves in DNS and the wildcard certificate is issued —
+  # otherwise every login redirects to a hostname the proxy cannot serve.
+  IS_MULTIWORKSPACE_ENABLED: ${IS_MULTIWORKSPACE_ENABLED:-false}
+  DEFAULT_SUBDOMAIN: ${DEFAULT_SUBDOMAIN:-app}
   IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS: "true"
   IS_BILLING_ENABLED: "false"
   SIGN_IN_PREFILLED: "false"
@@ -62,14 +66,21 @@ services:
       - "traefik.http.middlewares.${DIEX_PROXY_ROUTER}-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.entrypoints=http"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.middlewares=${DIEX_PROXY_ROUTER}-redirect"
-      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.rule=Host(`${SERVER_HOST}`)"
+      # Apex serves the landing/default subdomain; the regex serves one router
+      # for every tenant workspace, since Twenty addresses them as
+      # {workspace-subdomain}.${SERVER_HOST} once multiworkspace is on.
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.rule=Host(`${SERVER_HOST}`) || HostRegexp(`^[a-z0-9][a-z0-9-]*\\.${SERVER_HOST_REGEX}$$`)"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.service=${DIEX_PROXY_ROUTER}-service"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.entrypoints=https"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.middlewares=${DIEX_PROXY_ROUTER}-noindex"
-      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.rule=Host(`${SERVER_HOST}`)"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.rule=Host(`${SERVER_HOST}`) || HostRegexp(`^[a-z0-9][a-z0-9-]*\\.${SERVER_HOST_REGEX}$$`)"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.service=${DIEX_PROXY_ROUTER}-service"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls=true"
-      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.certresolver=letsencrypt"
+      # A wildcard SAN can only be issued through a DNS-01 resolver. Point this
+      # at a resolver configured with the DNS provider, not the HTTP challenge.
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.certresolver=${DIEX_CERT_RESOLVER:-letsencrypt}"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.domains[0].main=${SERVER_HOST}"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.domains[0].sans=*.${SERVER_HOST}"
       - "traefik.http.services.${DIEX_PROXY_ROUTER}-service.loadbalancer.server.port=3000"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/healthz"]

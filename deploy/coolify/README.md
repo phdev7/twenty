@@ -56,6 +56,33 @@ O novo stack corrige os dois riscos operacionais principais:
 Nunca reutilizar banco, Redis, bucket, `ENCRYPTION_KEY`, instância Evolution
 ou API key entre ambientes.
 
+## Endereçamento multi-tenant
+
+Com `IS_MULTIWORKSPACE_ENABLED=true`, o Twenty resolve o tenant pelo
+subdomínio. Não existe modo multiworkspace em host único: cada workspace passa
+a responder em `{subdomain}.${SERVER_HOST}` e o padrão da instância em
+`${DEFAULT_SUBDOMAIN}.${SERVER_HOST}`.
+
+Isso impõe três pré-requisitos, nesta ordem:
+
+1. **DNS**: registro wildcard `*.${SERVER_HOST}` apontando para o host do
+   Coolify, além do registro do próprio `${SERVER_HOST}`.
+2. **Certificado**: SAN wildcard `*.${SERVER_HOST}`, que só pode ser emitido
+   pelo desafio DNS-01. O resolver do Traefik precisa estar configurado com
+   credencial do provedor de DNS e ser informado em `DIEX_CERT_RESOLVER`. O
+   desafio HTTP-01 padrão do Coolify não emite wildcard.
+3. **Subdomínio do workspace existente**: antes de ligar a flag, confirmar em
+   qual `subdomain` o workspace atual está gravado — é por ele que o acesso
+   passará a acontecer.
+
+Ligar a flag antes de 1 e 2 deixa a instância inacessível: o login redireciona
+para `${DEFAULT_SUBDOMAIN}.${SERVER_HOST}`, que não resolve. Por isso o Compose
+mantém `false` como padrão quando a variável não é declarada.
+
+`SERVER_HOST_REGEX` repete `SERVER_HOST` com os pontos escapados e alimenta o
+`HostRegexp` do Traefik. Sem o escape, o ponto casaria qualquer caractere e o
+router aceitaria hostnames de terceiros.
+
 ## Implantação no Coolify
 
 1. Publicar uma imagem imutável pelo workflow `Diex CRM image`.
@@ -66,8 +93,9 @@ ou API key entre ambientes.
    Homologação pode iniciar com o volume local persistente declarado no
    Compose; produção continua obrigada a usar S3.
 5. Expor apenas o serviço `server` na porta 3000.
-   O Compose cria os routers Traefik a partir de `SERVER_HOST` e
-   `DIEX_PROXY_ROUTER`; na homologação, manter `noindex`.
+   O Compose cria os routers Traefik a partir de `SERVER_HOST`,
+   `SERVER_HOST_REGEX` e `DIEX_PROXY_ROUTER`, cobrindo o host raiz e os
+   subdomínios de tenant; na homologação, manter `noindex`.
 6. Habilitar health check em `/healthz`.
 7. Criar backup do banco a cada seis horas com cópia S3.
 8. Confirmar nos logs a sincronização automática de `Diex CRM Core`; nenhuma
@@ -108,6 +136,15 @@ migração. Depois do aceite, a chave deve ser revogada e a variável removida.
 ## Regra de release
 
 - Imagem: usar tag de release ou SHA, nunca `latest`.
+- **Publicar a imagem não implanta nada.** O workflow `Diex CRM image` só envia
+  a tag para o GHCR; enquanto `DIEX_IMAGE_TAG` no Coolify não for atualizado
+  para essa tag, o redeploy reinstala a imagem anterior e o ambiente segue
+  idêntico. Toda entrega termina com o passo de verificação abaixo.
+- Verificação obrigatória após cada deploy:
+  `curl -s https://${SERVER_HOST}/client-config | grep -o '"appVersion":"[^"]*"'`
+  O valor precisa ser igual à tag publicada, sem o prefixo `diex-v`. Se
+  divergir, a implantação não aconteceu — não investigar o código antes de
+  fechar essa diferença.
 - Diex CRM Core: aumentar o `version` antes de cada imagem que altere metadados.
 - Banco: apenas o `server` executa migrações.
 - Worker: inicia somente depois do health check do `server`.
