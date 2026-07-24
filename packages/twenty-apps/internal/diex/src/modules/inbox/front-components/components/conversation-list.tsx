@@ -10,6 +10,7 @@ import {
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import {
+  type InboxAttentionFilter,
   type InboxConversation,
   type InboxConversationFilter,
   type InboxLabel,
@@ -38,12 +39,14 @@ type ConversationListProps = {
   labelFilterId: string;
   workspaceMembers: InboxWorkspaceMember[];
   assigneeFilterId: string;
+  attentionFilter: InboxAttentionFilter;
   isLoading: boolean;
   errorMessage: string | null;
   onQueryChange: (query: string) => void;
   onFilterChange: (filter: InboxConversationFilter) => void;
   onLabelFilterChange: (labelId: string) => void;
   onAssigneeFilterChange: (workspaceMemberId: string) => void;
+  onAttentionFilterChange: (filter: InboxAttentionFilter) => void;
   onSelect: (conversationId: string) => Promise<void>;
   onRefresh: () => Promise<void>;
 };
@@ -57,12 +60,14 @@ export const ConversationList = ({
   labelFilterId,
   workspaceMembers,
   assigneeFilterId,
+  attentionFilter,
   isLoading,
   errorMessage,
   onQueryChange,
   onFilterChange,
   onLabelFilterChange,
   onAssigneeFilterChange,
+  onAttentionFilterChange,
   onSelect,
   onRefresh,
 }: ConversationListProps) => (
@@ -142,23 +147,36 @@ export const ConversationList = ({
           ))}
         </select>
       </div>
-      <select
-        aria-label="Filtrar conversas por responsável"
-        value={assigneeFilterId}
-        onChange={(event) => onAssigneeFilterChange(event.target.value)}
-        style={{
-          ...inboxStyles.filterSelect,
-          marginTop: themeCssVariables.spacing[2],
-        }}
-      >
-        <option value="ALL">Todos os responsáveis</option>
-        <option value="UNASSIGNED">Sem responsável</option>
-        {workspaceMembers.map((workspaceMember) => (
-          <option key={workspaceMember.id} value={workspaceMember.id}>
-            {getRecordName(workspaceMember) || 'Usuário sem nome'}
-          </option>
-        ))}
-      </select>
+      <div style={inboxStyles.filterRow}>
+        <select
+          aria-label="Filtrar conversas por responsável"
+          value={assigneeFilterId}
+          onChange={(event) => onAssigneeFilterChange(event.target.value)}
+          style={inboxStyles.filterSelect}
+        >
+          <option value="ALL">Todos os responsáveis</option>
+          <option value="UNASSIGNED">Sem responsável</option>
+          {workspaceMembers.map((workspaceMember) => (
+            <option key={workspaceMember.id} value={workspaceMember.id}>
+              {getRecordName(workspaceMember) || 'Usuário sem nome'}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Filtrar conversas que exigem atenção"
+          value={attentionFilter}
+          onChange={(event) =>
+            onAttentionFilterChange(event.target.value as InboxAttentionFilter)
+          }
+          style={inboxStyles.filterSelect}
+        >
+          <option value="ALL">Toda atenção</option>
+          <option value="UNREAD">Não lidas</option>
+          <option value="SLA_BREACHED">SLA estourado</option>
+          <option value="URGENT">Alta ou urgente</option>
+          <option value="FOLLOW_UP_DUE">Follow-up vencido</option>
+        </select>
+      </div>
     </header>
 
     {errorMessage ? (

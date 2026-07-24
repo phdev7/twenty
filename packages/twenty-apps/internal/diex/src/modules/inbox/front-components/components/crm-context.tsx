@@ -45,6 +45,7 @@ type CrmContextProps = {
   busyAction: string | null;
   onToggleLabel: (label: InboxLabel) => Promise<void>;
   onAssign: (workspaceMemberId: string | null) => Promise<void>;
+  onPriorityChange: (priority: string) => Promise<void>;
   onSnooze: (snoozedUntil: string) => Promise<void>;
   onConfigureEvolution: () => Promise<void>;
 };
@@ -213,6 +214,7 @@ export const CrmContext = ({
   busyAction,
   onToggleLabel,
   onAssign,
+  onPriorityChange,
   onSnooze,
   onConfigureEvolution,
 }: CrmContextProps) => {
@@ -521,14 +523,18 @@ export const CrmContext = ({
             </span>
             <span style={inboxStyles.contextCardBody}>
               <span style={inboxStyles.contextCardLabel}>Prioridade</span>
-              <span
-                style={{
-                  ...inboxStyles.contextCardValue,
-                  display: 'block',
-                }}
+              <select
+                aria-label="Prioridade da conversa"
+                disabled={busyAction !== null}
+                value={conversation.priority}
+                style={inboxStyles.contextSelect}
+                onChange={(event) => void onPriorityChange(event.target.value)}
               >
-                {getPriorityLabel(conversation.priority)}
-              </span>
+                <option value="LOW">{getPriorityLabel('LOW')}</option>
+                <option value="NORMAL">{getPriorityLabel('NORMAL')}</option>
+                <option value="HIGH">{getPriorityLabel('HIGH')}</option>
+                <option value="URGENT">{getPriorityLabel('URGENT')}</option>
+              </select>
             </span>
           </div>
           <DeadlineCard

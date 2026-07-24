@@ -146,3 +146,6 @@ export type InboxTriageResult = {
 
 export type InboxConversationFilter =
   'ACTIVE' | 'OPEN' | 'PENDING' | 'SNOOZED' | 'RESOLVED';
+
+export type InboxAttentionFilter =
+  'ALL' | 'UNREAD' | 'SLA_BREACHED' | 'URGENT' | 'FOLLOW_UP_DUE';

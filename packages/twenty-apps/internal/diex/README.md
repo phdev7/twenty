@@ -18,6 +18,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   conversa;
 - distribuição de conversas por responsável com edição e filtro direto na
   Inbox;
+- filas de atenção para não lidas, SLA estourado, prioridade alta ou urgente e
+  follow-up vencido, com prioridade editável no contexto;
 - adiamento com prazo, reabertura por vencimento e reativação por nova
   mensagem;
 - cockpit de inteligência comercial com radar de sinais, ranking de

@@ -803,6 +803,63 @@ export const useInboxData = () => {
     [selectedConversation, workspaceMembers],
   );
 
+  const setConversationPriority = useCallback(
+    async (priority: string): Promise<void> => {
+      if (selectedConversationId === null) {
+        return;
+      }
+
+      if (!['LOW', 'NORMAL', 'HIGH', 'URGENT'].includes(priority)) {
+        await enqueueSnackbar({
+          message: 'A prioridade selecionada não é válida.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
+      setBusyAction('priority');
+
+      try {
+        await new CoreApiClient().mutation({
+          updateInboxConversation: {
+            __args: {
+              id: selectedConversationId,
+              data: {
+                priority,
+              },
+            },
+            id: true,
+          },
+        } as never);
+
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === selectedConversationId
+              ? {
+                  ...conversation,
+                  priority,
+                }
+              : conversation,
+          ),
+        );
+
+        await enqueueSnackbar({
+          message: 'Prioridade da conversa atualizada.',
+          variant: 'success',
+        });
+      } catch {
+        await enqueueSnackbar({
+          message: 'Não foi possível atualizar a prioridade da conversa.',
+          variant: 'error',
+        });
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [selectedConversationId],
+  );
+
   const selectConversation = useCallback(
     async (conversationId: string) => {
       setSelectedConversationId(conversationId);
@@ -1198,6 +1255,7 @@ export const useInboxData = () => {
     applySavedReply,
     toggleConversationLabel,
     setConversationAssignee,
+    setConversationPriority,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,

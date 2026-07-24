@@ -6,7 +6,10 @@ import { ConversationThread } from 'src/modules/inbox/front-components/component
 import { CrmContext } from 'src/modules/inbox/front-components/components/crm-context';
 import { useInboxData } from 'src/modules/inbox/front-components/hooks/use-inbox-data';
 import { inboxStyles } from 'src/modules/inbox/front-components/inbox.styles';
-import { type InboxConversationFilter } from 'src/modules/inbox/front-components/types/inbox.types';
+import {
+  type InboxAttentionFilter,
+  type InboxConversationFilter,
+} from 'src/modules/inbox/front-components/types/inbox.types';
 import { getRecordName } from 'src/modules/inbox/front-components/utils/inbox-formatters';
 import { INBOX_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-universal-identifiers';
 
@@ -22,6 +25,8 @@ export const InboxFrontComponent = () => {
   const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
   const [labelFilterId, setLabelFilterId] = useState('ALL');
   const [assigneeFilterId, setAssigneeFilterId] = useState('ALL');
+  const [attentionFilter, setAttentionFilter] =
+    useState<InboxAttentionFilter>('ALL');
   const {
     conversations,
     savedReplies,
@@ -40,6 +45,7 @@ export const InboxFrontComponent = () => {
     applySavedReply,
     toggleConversationLabel,
     setConversationAssignee,
+    setConversationPriority,
     setConversationStatus,
     snoozeConversation,
     saveInternalNote,
@@ -83,6 +89,23 @@ export const InboxFrontComponent = () => {
         return false;
       }
 
+      const now = Date.now();
+      const matchesAttention =
+        attentionFilter === 'ALL' ||
+        (attentionFilter === 'UNREAD' && conversation.unreadCount > 0) ||
+        (attentionFilter === 'SLA_BREACHED' &&
+          Boolean(conversation.slaBreachedAt)) ||
+        (attentionFilter === 'URGENT' &&
+          (conversation.priority === 'HIGH' ||
+            conversation.priority === 'URGENT')) ||
+        (attentionFilter === 'FOLLOW_UP_DUE' &&
+          Boolean(conversation.followUpDueAt) &&
+          new Date(conversation.followUpDueAt as string).getTime() <= now);
+
+      if (!matchesAttention) {
+        return false;
+      }
+
       if (normalizedQuery.length === 0) {
         return true;
       }
@@ -104,7 +127,14 @@ export const InboxFrontComponent = () => {
 
       return normalizeSearchTerm(searchableContent).includes(normalizedQuery);
     });
-  }, [assigneeFilterId, conversations, filter, labelFilterId, query]);
+  }, [
+    assigneeFilterId,
+    attentionFilter,
+    conversations,
+    filter,
+    labelFilterId,
+    query,
+  ]);
 
   return (
     <div
@@ -126,12 +156,14 @@ export const InboxFrontComponent = () => {
           labelFilterId={labelFilterId}
           workspaceMembers={workspaceMembers}
           assigneeFilterId={assigneeFilterId}
+          attentionFilter={attentionFilter}
           isLoading={isLoadingConversations}
           errorMessage={errorMessage}
           onQueryChange={setQuery}
           onFilterChange={setFilter}
           onLabelFilterChange={setLabelFilterId}
           onAssigneeFilterChange={setAssigneeFilterId}
+          onAttentionFilterChange={setAttentionFilter}
           onSelect={selectConversation}
           onRefresh={loadConversations}
         />
@@ -156,6 +188,7 @@ export const InboxFrontComponent = () => {
           busyAction={busyAction}
           onToggleLabel={toggleConversationLabel}
           onAssign={setConversationAssignee}
+          onPriorityChange={setConversationPriority}
           onSnooze={snoozeConversation}
           onConfigureEvolution={configureEvolution}
         />
