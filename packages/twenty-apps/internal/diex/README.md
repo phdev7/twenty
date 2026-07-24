@@ -14,6 +14,9 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   recibo;
 - agentes e skills especializados em vendas e CS;
 - inbox comercial ligado aos registros nativos do CRM;
+- e-mail Gmail, Microsoft ou IMAP/SMTP nativo do Twenty espelhado na Inbox,
+  com vínculo automático a pessoa, empresa e oportunidade e resposta por
+  prévia confirmada;
 - respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso;
 - etiquetas comerciais configuráveis, filtráveis e ligadas ao histórico da
   conversa;
@@ -137,6 +140,24 @@ Respostas externas continuam obrigatoriamente no fluxo de prévia e confirmaçã
 da Inbox. Mudanças de pipeline permanecem bloqueadas enquanto não houver origem
 e destino estruturados; texto livre aprovado nunca altera etapa
 automaticamente.
+
+### E-mail nativo na Inbox
+
+Conecte Gmail, Microsoft ou IMAP/SMTP pelas contas nativas do Twenty, habilite
+a sincronização e defina a visibilidade do canal como `Compartilhar tudo`.
+Depois, use `Sincronizar e-mail` no cabeçalho da Inbox. Somente canais
+explicitamente compartilhados são espelhados.
+
+Cada thread vira uma conversa `EMAIL / TWENTY_EMAIL` de forma idempotente. A
+Inbox reaproveita participantes e vínculos nativos para conectar pessoa,
+empresa e oportunidade, preserva direção, assunto, corpo, datas e
+identificadores do provedor e reabre a conversa quando chega uma nova
+mensagem.
+
+O envio exige uma prévia com destinatário, assunto e corpo. A confirmação usa
+a conta nativa disponível ao usuário atual e volta a sincronizar o histórico.
+Credenciais, tokens e segredos permanecem no núcleo autenticado do Twenty e
+não entram nos registros da aplicação nem no MCP.
 
 ### Páginas operacionais
 

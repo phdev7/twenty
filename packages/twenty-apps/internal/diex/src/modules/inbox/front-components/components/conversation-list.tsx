@@ -46,6 +46,7 @@ type ConversationListProps = {
   attentionFilter: InboxAttentionFilter;
   pendingMentionCounts: Record<string, number>;
   isLoading: boolean;
+  isEmailSyncing: boolean;
   errorMessage: string | null;
   onQueryChange: (query: string) => void;
   onFilterChange: (filter: InboxConversationFilter) => void;
@@ -55,6 +56,7 @@ type ConversationListProps = {
   onAttentionFilterChange: (filter: InboxAttentionFilter) => void;
   onSelect: (conversationId: string) => Promise<void>;
   onRefresh: () => Promise<void>;
+  onSyncEmail: () => Promise<void>;
 };
 
 export const ConversationList = ({
@@ -71,6 +73,7 @@ export const ConversationList = ({
   attentionFilter,
   pendingMentionCounts,
   isLoading,
+  isEmailSyncing,
   errorMessage,
   onQueryChange,
   onFilterChange,
@@ -80,6 +83,7 @@ export const ConversationList = ({
   onAttentionFilterChange,
   onSelect,
   onRefresh,
+  onSyncEmail,
 }: ConversationListProps) => (
   <aside
     style={{
@@ -96,22 +100,40 @@ export const ConversationList = ({
             {conversations.length === 1 ? '' : 's'} no filtro atual
           </p>
         </div>
-        <button
-          type="button"
-          aria-label="Atualizar inbox"
-          title="Atualizar inbox"
-          style={{
-            ...inboxStyles.iconButton,
-            ...(isLoading ? inboxStyles.disabledButton : {}),
-          }}
-          disabled={isLoading}
-          onClick={() => void onRefresh()}
-        >
-          <IconRefresh
-            size={themeCssVariables.icon.size.md}
-            stroke={themeCssVariables.icon.stroke.md}
-          />
-        </button>
+        <div style={inboxStyles.headerActions}>
+          <button
+            type="button"
+            aria-label="Sincronizar e-mail"
+            title="Sincronizar e-mail nativo do Twenty"
+            style={{
+              ...inboxStyles.iconButton,
+              ...(isEmailSyncing ? inboxStyles.disabledButton : {}),
+            }}
+            disabled={isEmailSyncing}
+            onClick={() => void onSyncEmail()}
+          >
+            <IconMail
+              size={themeCssVariables.icon.size.md}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          </button>
+          <button
+            type="button"
+            aria-label="Atualizar inbox"
+            title="Atualizar inbox"
+            style={{
+              ...inboxStyles.iconButton,
+              ...(isLoading ? inboxStyles.disabledButton : {}),
+            }}
+            disabled={isLoading}
+            onClick={() => void onRefresh()}
+          >
+            <IconRefresh
+              size={themeCssVariables.icon.size.md}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          </button>
+        </div>
       </div>
 
       <label style={inboxStyles.searchWrap}>

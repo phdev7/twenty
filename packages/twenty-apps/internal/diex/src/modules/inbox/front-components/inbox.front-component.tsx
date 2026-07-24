@@ -62,8 +62,9 @@ export const InboxFrontComponent = () => {
     snoozeConversation,
     saveInternalNote,
     resolveMention,
-    previewEvolutionText,
-    confirmEvolutionText,
+    previewExternalMessage,
+    confirmExternalMessage,
+    syncTwentyEmail,
     configureEvolution,
     triageConversation,
   } = useInboxData();
@@ -203,6 +204,7 @@ export const InboxFrontComponent = () => {
           attentionFilter={attentionFilter}
           pendingMentionCounts={pendingMentionCounts}
           isLoading={isLoadingConversations}
+          isEmailSyncing={busyAction === 'email-sync'}
           errorMessage={errorMessage}
           onQueryChange={setQuery}
           onFilterChange={setFilter}
@@ -212,6 +214,7 @@ export const InboxFrontComponent = () => {
           onAttentionFilterChange={setAttentionFilter}
           onSelect={selectConversation}
           onRefresh={loadConversations}
+          onSyncEmail={syncTwentyEmail}
         />
         <ConversationThread
           conversation={selectedConversation}
@@ -231,8 +234,8 @@ export const InboxFrontComponent = () => {
           onUseSavedReply={applySavedReply}
           onPreviewMacro={previewInboxMacro}
           onApplyMacro={applyInboxMacro}
-          onPreviewEvolutionText={previewEvolutionText}
-          onConfirmEvolutionText={confirmEvolutionText}
+          onPreviewExternalMessage={previewExternalMessage}
+          onConfirmExternalMessage={confirmExternalMessage}
           onRunAiTriage={triageConversation}
         />
         <CrmContext

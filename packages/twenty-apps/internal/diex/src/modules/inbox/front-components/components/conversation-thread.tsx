@@ -5,6 +5,7 @@ import {
   IconCheck,
   IconClock,
   IconInbox,
+  IconMail,
   IconMessage,
   IconNotes,
   IconPaperclip,
@@ -18,9 +19,9 @@ import {
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import {
-  type EvolutionTextPreview,
   type InboxConversation,
   type InboxConversationEvent,
+  type InboxExternalMessagePreview,
   type InboxMacro,
   type InboxMacroApplyResult,
   type InboxMacroPreview,
@@ -31,6 +32,7 @@ import {
   type InboxWorkspaceMember,
   type SavedReplyRenderResult,
 } from 'src/modules/inbox/front-components/types/inbox.types';
+import { readTwentyEmailConversationMetadata } from 'src/modules/inbox/front-components/utils/twenty-email';
 import {
   formatDateTime,
   formatMessageTime,
@@ -68,13 +70,13 @@ type ConversationThreadProps = {
   ) => Promise<SavedReplyRenderResult | null>;
   onPreviewMacro: (macroId: string) => Promise<InboxMacroPreview | null>;
   onApplyMacro: (macroId: string) => Promise<InboxMacroApplyResult | null>;
-  onPreviewEvolutionText: (
-    text: string,
-  ) => Promise<EvolutionTextPreview | null>;
-  onConfirmEvolutionText: (input: {
+  onPreviewExternalMessage: (input: {
     text: string;
-    confirmationToken: string;
-  }) => Promise<boolean>;
+    subject?: string;
+  }) => Promise<InboxExternalMessagePreview | null>;
+  onConfirmExternalMessage: (
+    preview: InboxExternalMessagePreview,
+  ) => Promise<boolean>;
 };
 
 type ConversationTimelineEntry =
@@ -118,13 +120,14 @@ export const ConversationThread = ({
   onUseSavedReply,
   onPreviewMacro,
   onApplyMacro,
-  onPreviewEvolutionText,
-  onConfirmEvolutionText,
+  onPreviewExternalMessage,
+  onConfirmExternalMessage,
 }: ConversationThreadProps) => {
   const [composerMode, setComposerMode] = useState<'EXTERNAL' | 'INTERNAL'>(
     'EXTERNAL',
   );
   const [externalText, setExternalText] = useState('');
+  const [externalSubject, setExternalSubject] = useState('');
   const [internalNote, setInternalNote] = useState('');
   const [mentionedWorkspaceMemberIds, setMentionedWorkspaceMemberIds] =
     useState<string[]>([]);
@@ -134,9 +137,8 @@ export const ConversationThread = ({
   );
   const [macroReceipt, setMacroReceipt] =
     useState<InboxMacroApplyResult | null>(null);
-  const [sendPreview, setSendPreview] = useState<EvolutionTextPreview | null>(
-    null,
-  );
+  const [sendPreview, setSendPreview] =
+    useState<InboxExternalMessagePreview | null>(null);
   const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
   const activeConversationIdRef = useRef<string | null>(
     conversation?.id ?? null,
@@ -145,12 +147,26 @@ export const ConversationThread = ({
   activeConversationIdRef.current = conversation?.id ?? null;
 
   useEffect(() => {
-    const canSendThroughEvolution =
+    const isEvolution =
       conversation?.channel === 'WHATSAPP' &&
       conversation.provider === 'EVOLUTION';
+    const isTwentyEmail =
+      conversation?.channel === 'EMAIL' &&
+      conversation.provider === 'TWENTY_EMAIL';
+    const emailMetadata = readTwentyEmailConversationMetadata(
+      conversation?.metadata,
+    );
+    const sourceSubject = emailMetadata?.subject?.trim() ?? '';
 
-    setComposerMode(canSendThroughEvolution ? 'EXTERNAL' : 'INTERNAL');
+    setComposerMode(isEvolution || isTwentyEmail ? 'EXTERNAL' : 'INTERNAL');
     setExternalText('');
+    setExternalSubject(
+      isTwentyEmail && sourceSubject
+        ? /^re:/i.test(sourceSubject)
+          ? sourceSubject
+          : `Re: ${sourceSubject}`
+        : '',
+    );
     setInternalNote('');
     setMentionedWorkspaceMemberIds([]);
     setSelectedMacroId('');
@@ -185,6 +201,10 @@ export const ConversationThread = ({
   const isEvolutionConversation =
     conversation.channel === 'WHATSAPP' &&
     conversation.provider === 'EVOLUTION';
+  const isEmailConversation =
+    conversation.channel === 'EMAIL' &&
+    conversation.provider === 'TWENTY_EMAIL';
+  const canSendExternal = isEvolutionConversation || isEmailConversation;
   const activeTriageResult =
     triageResult?.conversationId === conversation.id ? triageResult : null;
   const availableSavedReplies = savedReplies.filter(
@@ -319,7 +339,7 @@ export const ConversationThread = ({
     setMacroReceipt(receipt);
     setMacroPreview(null);
 
-    if (receipt.replyDraft && isEvolutionConversation) {
+    if (receipt.replyDraft && canSendExternal) {
       setComposerMode('EXTERNAL');
       setExternalText(receipt.replyDraft);
       setSendPreview(null);
@@ -327,7 +347,10 @@ export const ConversationThread = ({
   };
 
   const handleRequestSendPreview = async () => {
-    const preview = await onPreviewEvolutionText(externalText);
+    const preview = await onPreviewExternalMessage({
+      text: externalText,
+      subject: isEmailConversation ? externalSubject : undefined,
+    });
 
     if (preview && preview.conversationId === activeConversationIdRef.current) {
       setSendPreview(preview);
@@ -343,10 +366,7 @@ export const ConversationThread = ({
       return;
     }
 
-    const sent = await onConfirmEvolutionText({
-      text: sendPreview.textPreview,
-      confirmationToken: sendPreview.confirmationToken,
-    });
+    const sent = await onConfirmExternalMessage(sendPreview);
 
     if (sent) {
       setExternalText('');
@@ -355,7 +375,7 @@ export const ConversationThread = ({
   };
 
   const handleUseAiDraft = () => {
-    if (!activeTriageResult || !isEvolutionConversation) {
+    if (!activeTriageResult || !canSendExternal) {
       return;
     }
 
@@ -770,7 +790,7 @@ export const ConversationThread = ({
                   {macroReceipt.warnings.join(' ')}
                 </span>
               ) : null}
-              {macroReceipt.replyDraft && !isEvolutionConversation ? (
+              {macroReceipt.replyDraft && !canSendExternal ? (
                 <p style={inboxStyles.macroDraftPreview}>
                   Rascunho preparado: {macroReceipt.replyDraft}
                 </p>
@@ -806,10 +826,10 @@ export const ConversationThread = ({
                 </p>
                 <button
                   type="button"
-                  disabled={!isEvolutionConversation || isBusy}
+                  disabled={!canSendExternal || isBusy}
                   style={{
                     ...inboxStyles.secondaryButton,
-                    ...(!isEvolutionConversation || isBusy
+                    ...(!canSendExternal || isBusy
                       ? inboxStyles.disabledButton
                       : {}),
                   }}
@@ -829,23 +849,28 @@ export const ConversationThread = ({
         <div style={inboxStyles.composerModeRow}>
           <button
             type="button"
-            disabled={!isEvolutionConversation || isBusy}
+            disabled={!canSendExternal || isBusy}
             style={{
               ...inboxStyles.composerModeButton,
               ...(composerMode === 'EXTERNAL'
                 ? inboxStyles.composerModeButtonActive
                 : {}),
-              ...(!isEvolutionConversation || isBusy
-                ? inboxStyles.disabledButton
-                : {}),
+              ...(!canSendExternal || isBusy ? inboxStyles.disabledButton : {}),
             }}
             onClick={() => setComposerMode('EXTERNAL')}
           >
-            <IconMessage
-              size={themeCssVariables.icon.size.sm}
-              stroke={themeCssVariables.icon.stroke.md}
-            />
-            WhatsApp
+            {isEmailConversation ? (
+              <IconMail
+                size={themeCssVariables.icon.size.sm}
+                stroke={themeCssVariables.icon.stroke.md}
+              />
+            ) : (
+              <IconMessage
+                size={themeCssVariables.icon.size.sm}
+                stroke={themeCssVariables.icon.stroke.md}
+              />
+            )}
+            {isEmailConversation ? 'E-mail' : 'WhatsApp'}
           </button>
           <button
             type="button"
@@ -875,10 +900,17 @@ export const ConversationThread = ({
             <div style={inboxStyles.sendReview}>
               <div style={inboxStyles.sendReviewMeta}>
                 <span>
-                  <IconMessage
-                    size={themeCssVariables.icon.size.sm}
-                    stroke={themeCssVariables.icon.stroke.md}
-                  />{' '}
+                  {sendPreview.channel === 'EMAIL' ? (
+                    <IconMail
+                      size={themeCssVariables.icon.size.sm}
+                      stroke={themeCssVariables.icon.stroke.md}
+                    />
+                  ) : (
+                    <IconMessage
+                      size={themeCssVariables.icon.size.sm}
+                      stroke={themeCssVariables.icon.stroke.md}
+                    />
+                  )}{' '}
                   Destino {sendPreview.destination}
                 </span>
                 <span>
@@ -889,6 +921,11 @@ export const ConversationThread = ({
                   válida até {formatDateTime(sendPreview.expiresAt)}
                 </span>
               </div>
+              {sendPreview.channel === 'EMAIL' ? (
+                <p style={inboxStyles.sendReviewSubject}>
+                  Assunto: {sendPreview.subjectPreview}
+                </p>
+              ) : null}
               <p style={inboxStyles.sendReviewText}>
                 {sendPreview.textPreview}
               </p>
@@ -987,12 +1024,32 @@ export const ConversationThread = ({
                 </div>
               ) : null}
 
+              {isEmailConversation ? (
+                <input
+                  aria-label="Assunto do e-mail"
+                  placeholder="Assunto do e-mail"
+                  value={externalSubject}
+                  maxLength={998}
+                  disabled={isBusy}
+                  onChange={(event) => setExternalSubject(event.target.value)}
+                  style={inboxStyles.emailSubjectInput}
+                />
+              ) : null}
+
               <div style={inboxStyles.composerRow}>
                 <textarea
-                  aria-label="Responder pelo WhatsApp"
-                  placeholder="Escreva a mensagem ou digite / para usar uma resposta pronta..."
+                  aria-label={
+                    isEmailConversation
+                      ? 'Responder por e-mail'
+                      : 'Responder pelo WhatsApp'
+                  }
+                  placeholder={
+                    isEmailConversation
+                      ? 'Escreva o e-mail ou digite / para usar uma resposta pronta...'
+                      : 'Escreva a mensagem ou digite / para usar uma resposta pronta...'
+                  }
                   value={externalText}
-                  maxLength={4096}
+                  maxLength={isEmailConversation ? 100_000 : 4096}
                   onChange={(event) => setExternalText(event.target.value)}
                   style={inboxStyles.textarea}
                 />
@@ -1102,10 +1159,17 @@ export const ConversationThread = ({
 
         <p style={inboxStyles.composerHint}>
           {composerMode === 'EXTERNAL' ? (
-            <>
-              O envio exige opt-in válido. Primeiro gere a prévia; depois
-              confirme explicitamente o texto exato.
-            </>
+            isEmailConversation ? (
+              <>
+                O envio usa a conta nativa do Twenty disponível ao seu usuário.
+                Revise destinatário, assunto e corpo antes de confirmar.
+              </>
+            ) : (
+              <>
+                O envio exige opt-in válido. Primeiro gere a prévia; depois
+                confirme explicitamente o texto exato.
+              </>
+            )
           ) : (
             <>
               A nota fica apenas no CRM. Usuários selecionados recebem uma
@@ -1113,13 +1177,13 @@ export const ConversationThread = ({
             </>
           )}
         </p>
-        {!isEvolutionConversation ? (
+        {!canSendExternal ? (
           <p style={inboxStyles.composerHint}>
             <IconNotes
               size={themeCssVariables.icon.size.sm}
               stroke={themeCssVariables.icon.stroke.md}
             />{' '}
-            Esta conversa não está vinculada ao canal Evolution WhatsApp.
+            Esta conversa não está vinculada a um canal externo compatível.
           </p>
         ) : null}
       </footer>

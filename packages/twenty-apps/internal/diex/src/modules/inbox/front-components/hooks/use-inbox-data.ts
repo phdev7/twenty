@@ -11,6 +11,7 @@ import {
 import { INBOX_TRIAGE_ROUTE } from 'src/modules/inbox/constants/inbox-ai.constants';
 import {
   type EvolutionConfigureReceipt,
+  type InboxExternalMessagePreview,
   type EvolutionTextPreview,
   type EvolutionTextReceipt,
   type InboxConversation,
@@ -36,6 +37,11 @@ import {
 } from 'src/modules/inbox/front-components/utils/saved-reply-template';
 import { getRecordName } from 'src/modules/inbox/front-components/utils/inbox-formatters';
 import { useInboxConversationActivity } from 'src/modules/inbox/front-components/hooks/use-inbox-conversation-activity';
+import {
+  loadEligibleTwentyEmailChannels,
+  readTwentyEmailConversationMetadata,
+  syncTwentyEmailToInbox,
+} from 'src/modules/inbox/front-components/utils/twenty-email';
 
 type ConversationNode = Omit<
   InboxConversation,
@@ -282,6 +288,7 @@ export const useInboxData = () => {
   );
   const messageRequestVersionRef = useRef(0);
   const mentionRequestVersionRef = useRef(0);
+  const consumedEmailConfirmationTokensRef = useRef(new Set<string>());
   const { conversationEvents, recordConversationEvent } =
     useInboxConversationActivity({
       selectedConversationId,
@@ -319,6 +326,7 @@ export const useInboxData = () => {
               followUpDueAt: true,
               snoozedUntil: true,
               slaBreachedAt: true,
+              metadata: true,
               person: {
                 id: true,
                 name: {
@@ -515,6 +523,7 @@ export const useInboxData = () => {
               senderDisplayName: true,
               mediaUrl: true,
               isInternalNote: true,
+              metadata: true,
             },
           },
         },
@@ -3049,11 +3058,76 @@ export const useInboxData = () => {
     ],
   );
 
-  const previewEvolutionText = useCallback(
-    async (text: string): Promise<EvolutionTextPreview | null> => {
+  const getEmailSyncRouting = useCallback(() => {
+    const defaultTeam =
+      teams.find(
+        (team) =>
+          team.status === 'ACTIVE' &&
+          team.isDefault &&
+          currentWorkspaceMemberId !== null &&
+          getActiveTeamMembers(team).some(
+            ({ id }) => id === currentWorkspaceMemberId,
+          ),
+      ) ?? null;
+
+    return {
+      assigneeId: currentWorkspaceMemberId,
+      inboxTeamId: defaultTeam?.id ?? null,
+      responseSlaMinutes: defaultTeam?.defaultResponseSlaMinutes ?? 60,
+    };
+  }, [currentWorkspaceMemberId, teams]);
+
+  const syncTwentyEmail = useCallback(async (): Promise<void> => {
+    setBusyAction('email-sync');
+
+    try {
+      const result = await syncTwentyEmailToInbox({
+        routing: getEmailSyncRouting(),
+      });
+
+      if (result.eligibleChannels === 0) {
+        await enqueueSnackbar({
+          message:
+            'Nenhum canal de e-mail compartilhado está disponível. No Twenty, habilite a sincronização e a visibilidade “Compartilhar tudo” na conta que alimentará a Inbox.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
+      await loadConversations();
+      await enqueueSnackbar({
+        message:
+          result.createdMessages > 0
+            ? `${result.createdMessages} e-mail(s) sincronizado(s) em ${result.importedThreads} conversa(s).`
+            : `Canais verificados. Nenhum e-mail novo em ${result.importedThreads} conversa(s).`,
+        variant: 'success',
+      });
+    } catch (error) {
+      await enqueueSnackbar({
+        message: getErrorMessage(error),
+        variant: 'error',
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  }, [getEmailSyncRouting, loadConversations]);
+
+  const previewExternalMessage = useCallback(
+    async ({
+      text,
+      subject,
+    }: {
+      text: string;
+      subject?: string;
+    }): Promise<InboxExternalMessagePreview | null> => {
       const trimmedText = text.trim();
 
-      if (selectedConversationId === null || trimmedText.length === 0) {
+      if (
+        selectedConversationId === null ||
+        selectedConversation === null ||
+        trimmedText.length === 0
+      ) {
         return null;
       }
 
@@ -3073,24 +3147,107 @@ export const useInboxData = () => {
       setBusyAction('send-preview');
 
       try {
-        const response = await new RestApiClient().post<EvolutionTextPreview>(
-          `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
-          {
-            conversationId: selectedConversationId,
-            text: trimmedText,
-            previewOnly: true,
-          },
-        );
-
         if (
-          !response ||
-          response.previewOnly !== true ||
-          !response.confirmationToken
+          selectedConversation.channel === 'WHATSAPP' &&
+          selectedConversation.provider === 'EVOLUTION'
         ) {
-          throw new Error('O provedor não retornou uma prévia válida.');
+          const response = await new RestApiClient().post<EvolutionTextPreview>(
+            `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
+            {
+              conversationId: selectedConversationId,
+              text: trimmedText,
+              previewOnly: true,
+            },
+          );
+
+          if (
+            !response ||
+            response.previewOnly !== true ||
+            !response.confirmationToken
+          ) {
+            throw new Error('O provedor não retornou uma prévia válida.');
+          }
+
+          return {
+            ...response,
+            channel: 'WHATSAPP',
+            subjectPreview: null,
+          };
         }
 
-        return response;
+        if (
+          selectedConversation.channel !== 'EMAIL' ||
+          selectedConversation.provider !== 'TWENTY_EMAIL'
+        ) {
+          throw new Error(
+            'Esta conversa não possui um canal externo compatível.',
+          );
+        }
+
+        if (trimmedText.length > 100_000) {
+          throw new Error('O corpo do e-mail excede 100 mil caracteres.');
+        }
+
+        const metadata = readTwentyEmailConversationMetadata(
+          selectedConversation.metadata,
+        );
+
+        if (!metadata) {
+          throw new Error(
+            'A conversa não possui metadados nativos suficientes para responder.',
+          );
+        }
+
+        const channels = await loadEligibleTwentyEmailChannels();
+        const channel = channels.find(
+          ({ id, connectedAccountId }) =>
+            id === metadata.messageChannelId &&
+            connectedAccountId === metadata.connectedAccountId,
+        );
+
+        if (!channel) {
+          throw new Error(
+            'A conta que originou esta conversa não está disponível para seu usuário ou deixou de compartilhar as mensagens.',
+          );
+        }
+
+        const destination = selectedConversation.contactHandle
+          ?.trim()
+          .toLowerCase();
+
+        if (
+          !destination ||
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destination) ||
+          destination === channel.handle.trim().toLowerCase()
+        ) {
+          throw new Error('O destinatário do e-mail não é válido.');
+        }
+
+        const normalizedSubject = (
+          subject?.trim() ||
+          metadata.subject?.trim() ||
+          'Contato comercial'
+        ).slice(0, 998);
+        const confirmationToken =
+          typeof globalThis.crypto?.randomUUID === 'function'
+            ? globalThis.crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+        return {
+          previewOnly: true,
+          channel: 'EMAIL',
+          conversationId: selectedConversationId,
+          destination,
+          subjectPreview: normalizedSubject,
+          textPreview: trimmedText,
+          connectedAccountId: channel.connectedAccountId,
+          messageChannelId: channel.id,
+          inReplyTo: metadata.lastMessageExternalId ?? null,
+          expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+          confirmationToken: `twenty-email:${confirmationToken}`,
+          message:
+            'Revise destinatário, assunto e corpo antes de confirmar o envio nativo do Twenty.',
+        };
       } catch (error) {
         await enqueueSnackbar({
           message: getErrorMessage(error),
@@ -3102,45 +3259,150 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversationId],
+    [selectedConversation, selectedConversationId],
   );
 
-  const confirmEvolutionText = useCallback(
-    async ({
-      text,
-      confirmationToken,
-    }: {
-      text: string;
-      confirmationToken: string;
-    }): Promise<boolean> => {
-      const trimmedText = text.trim();
+  const confirmExternalMessage = useCallback(
+    async (preview: InboxExternalMessagePreview): Promise<boolean> => {
+      const previewExpiry = Date.parse(preview.expiresAt);
 
       if (
         selectedConversationId === null ||
-        trimmedText.length === 0 ||
-        confirmationToken.length === 0
+        selectedConversation === null ||
+        preview.conversationId !== selectedConversationId ||
+        preview.textPreview.trim().length === 0 ||
+        preview.confirmationToken.length === 0 ||
+        !Number.isFinite(previewExpiry) ||
+        previewExpiry <= Date.now()
       ) {
+        await enqueueSnackbar({
+          message: 'A prévia expirou ou não pertence à conversa atual.',
+          variant: 'warning',
+        });
+
         return false;
+      }
+
+      if (preview.channel === 'EMAIL') {
+        const expectedDestination = selectedConversation.contactHandle
+          ?.trim()
+          .toLowerCase();
+        const isInvalidEmailPreview =
+          !preview.confirmationToken.startsWith('twenty-email:') ||
+          !expectedDestination ||
+          preview.destination !== expectedDestination ||
+          preview.subjectPreview.trim().length === 0 ||
+          preview.subjectPreview.length > 998 ||
+          preview.textPreview.length > 100_000;
+
+        if (
+          isInvalidEmailPreview ||
+          consumedEmailConfirmationTokensRef.current.has(
+            preview.confirmationToken,
+          )
+        ) {
+          await enqueueSnackbar({
+            message:
+              'A prévia do e-mail é inválida ou já foi consumida. Gere uma nova prévia.',
+            variant: 'warning',
+          });
+
+          return false;
+        }
+
+        consumedEmailConfirmationTokensRef.current.add(
+          preview.confirmationToken,
+        );
       }
 
       setBusyAction('send-confirm');
 
       try {
-        const response = await new RestApiClient().post<EvolutionTextReceipt>(
-          `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
-          {
-            conversationId: selectedConversationId,
-            text: trimmedText,
-            previewOnly: false,
-            confirmSend: true,
-            confirmationToken,
-          },
+        if (preview.channel === 'WHATSAPP') {
+          const response = await new RestApiClient().post<EvolutionTextReceipt>(
+            `/s${EVOLUTION_SEND_TEXT_ROUTE}`,
+            {
+              conversationId: selectedConversationId,
+              text: preview.textPreview.trim(),
+              previewOnly: false,
+              confirmSend: true,
+              confirmationToken: preview.confirmationToken,
+            },
+          );
+
+          if (!response?.sent) {
+            throw new Error(
+              'A tentativa já foi processada e não foi aceita pelo provedor.',
+            );
+          }
+
+          await Promise.all([
+            loadMessages(selectedConversationId),
+            loadConversations(),
+          ]);
+          await enqueueSnackbar({
+            message: 'Mensagem aceita pelo WhatsApp e registrada na inbox.',
+            variant: 'success',
+          });
+
+          return true;
+        }
+
+        const metadata = readTwentyEmailConversationMetadata(
+          selectedConversation.metadata,
+        );
+        const channels = await loadEligibleTwentyEmailChannels();
+        const channel = channels.find(
+          ({ id, connectedAccountId }) =>
+            id === preview.messageChannelId &&
+            connectedAccountId === preview.connectedAccountId &&
+            id === metadata?.messageChannelId,
         );
 
-        if (!response?.sent) {
+        if (!metadata || !channel) {
           throw new Error(
-            'A tentativa já foi processada e não foi aceita pelo provedor.',
+            'A conta nativa de e-mail não está mais disponível para este envio.',
           );
+        }
+
+        const result = (await new MetadataApiClient().mutation({
+          sendEmail: {
+            __args: {
+              input: {
+                connectedAccountId: preview.connectedAccountId,
+                to: preview.destination,
+                subject: preview.subjectPreview,
+                body: preview.textPreview,
+                inReplyTo: preview.inReplyTo ?? undefined,
+              },
+            },
+            success: true,
+            error: true,
+            messageThreadId: true,
+          },
+        } as never)) as unknown as {
+          sendEmail?: {
+            success?: boolean | null;
+            error?: string | null;
+            messageThreadId?: string | null;
+          } | null;
+        };
+
+        if (result.sendEmail?.success !== true) {
+          throw new Error(
+            result.sendEmail?.error ||
+              'O Twenty não aceitou o envio do e-mail.',
+          );
+        }
+
+        let syncSucceeded = true;
+
+        try {
+          await syncTwentyEmailToInbox({
+            routing: getEmailSyncRouting(),
+          });
+        } catch {
+          syncSucceeded = false;
         }
 
         await Promise.all([
@@ -3148,8 +3410,10 @@ export const useInboxData = () => {
           loadConversations(),
         ]);
         await enqueueSnackbar({
-          message: 'Mensagem aceita pelo WhatsApp e registrada na inbox.',
-          variant: 'success',
+          message: syncSucceeded
+            ? 'E-mail enviado pela conta nativa do Twenty e sincronizado na Inbox.'
+            : 'E-mail enviado, mas a cópia da Inbox ainda precisa ser sincronizada.',
+          variant: syncSucceeded ? 'success' : 'warning',
         });
 
         return true;
@@ -3164,7 +3428,13 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [loadConversations, loadMessages, selectedConversationId],
+    [
+      getEmailSyncRouting,
+      loadConversations,
+      loadMessages,
+      selectedConversation,
+      selectedConversationId,
+    ],
   );
 
   const configureEvolution = useCallback(async (): Promise<void> => {
@@ -3230,8 +3500,9 @@ export const useInboxData = () => {
     setConversationStatus,
     saveInternalNote,
     resolveMention,
-    previewEvolutionText,
-    confirmEvolutionText,
+    previewExternalMessage,
+    confirmExternalMessage,
+    syncTwentyEmail,
     configureEvolution,
     triageConversation,
   };

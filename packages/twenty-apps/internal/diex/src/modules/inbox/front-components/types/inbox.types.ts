@@ -86,6 +86,7 @@ export type InboxConversation = {
   followUpDueAt?: string | null;
   snoozedUntil?: string | null;
   slaBreachedAt?: string | null;
+  metadata?: unknown;
   person?: InboxRecordReference | null;
   company?: InboxRecordReference | null;
   opportunity?: InboxOpportunity | null;
@@ -108,6 +109,7 @@ export type InboxMessage = {
   senderDisplayName?: string | null;
   mediaUrl?: string | null;
   isInternalNote: boolean;
+  metadata?: unknown;
 };
 
 export type InboxConversationEvent = {
@@ -206,6 +208,26 @@ export type EvolutionTextReceipt = {
   sentAt?: string;
   message: string;
 };
+
+export type InboxExternalMessagePreview =
+  | (EvolutionTextPreview & {
+      channel: 'WHATSAPP';
+      subjectPreview?: null;
+    })
+  | {
+      previewOnly: true;
+      channel: 'EMAIL';
+      conversationId: string;
+      destination: string;
+      subjectPreview: string;
+      textPreview: string;
+      connectedAccountId: string;
+      messageChannelId: string;
+      inReplyTo?: string | null;
+      expiresAt: string;
+      confirmationToken: string;
+      message: string;
+    };
 
 export type EvolutionConfigureReceipt = {
   configured: boolean;

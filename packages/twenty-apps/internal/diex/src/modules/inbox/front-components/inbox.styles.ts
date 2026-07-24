@@ -735,6 +735,19 @@ export const inboxStyles: Record<string, CSSProperties> = {
     display: 'flex',
     gap: themeCssVariables.spacing[2],
   },
+  emailSubjectInput: {
+    background: themeCssVariables.background.secondary,
+    border,
+    borderRadius: themeCssVariables.border.radius.sm,
+    boxSizing: 'border-box',
+    color: themeCssVariables.font.color.primary,
+    fontFamily: themeCssVariables.font.family,
+    fontSize: themeCssVariables.font.size.sm,
+    minHeight: themeCssVariables.spacing[8],
+    outline: 'none',
+    padding: `0 ${themeCssVariables.spacing[3]}`,
+    width: '100%',
+  },
   textarea: {
     background: themeCssVariables.background.secondary,
     border,
@@ -776,6 +789,12 @@ export const inboxStyles: Record<string, CSSProperties> = {
     overflowY: 'auto',
     padding: themeCssVariables.spacing[2],
     whiteSpace: 'pre-wrap',
+  },
+  sendReviewSubject: {
+    color: themeCssVariables.font.color.primary,
+    fontSize: themeCssVariables.font.size.xs,
+    fontWeight: themeCssVariables.font.weight.medium,
+    margin: `${themeCssVariables.spacing[2]} 0 0`,
   },
   sendReviewActions: {
     alignItems: 'center',
