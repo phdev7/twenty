@@ -121,12 +121,41 @@ desabilitados.
 ## Migração
 
 1. Consolidar identidade, domínio comercial, CS, IA e MCP.
-2. Entregar inbox funcional primeiro por e-mail.
-3. Adicionar WhatsApp por adaptador e painel seguro.
+2. Entregar inbox comercial conectado à Evolution, com painel seguro,
+   consentimento, prévia e confirmação de envio.
+3. Expandir canais aproveitando e-mail e calendário nativos do Twenty.
 4. Importar cada `team_id` para um workspace isolado usando
    `tools/diex-migration`, com prévia, checksums e upsert idempotente.
 5. Operar uma validação assistida por cliente.
 6. Desativar as infraestruturas antigas somente após paridade de dados e fluxos.
+
+## Estado operacional
+
+O app privado `diex` chegou à versão `0.8.0` com:
+
+- Inbox em três painéis, contexto de pessoa, empresa e oportunidade, SLA,
+  prioridade, responsável, tarefas, notas internas e triagem por IA;
+- Evolution isolada por workspace, webhooks idempotentes, consentimento,
+  prévia e confirmação de envio;
+- respostas prontas com variáveis do CRM, etiquetas, filtros, adiamento e
+  reabertura automática;
+- cockpit de inteligência comercial, fila de sinais e ranking acionável;
+- Centro de IA com evidência, aprovação humana e trilha de execução;
+- Customer Success com carteira, receita sob risco, renovação, marcos e revisão
+  inteligente;
+- MCP identificado como Diex CRM e instruído para operar vendas, retenção,
+  aprovação e segurança;
+- migração por tenant com prévia, checksum e upsert idempotente.
+
+Isso ainda não autoriza o cutover. Os gates restantes são:
+
+1. criar o primeiro workspace de homologação e instalar o app;
+2. configurar IA, Evolution e armazenamento pelos painéis e secrets corretos;
+3. executar prévia e aplicação da migração com reconciliação;
+4. validar os fluxos reais de venda, atendimento e CS em homologação;
+5. gerar backup final, importar o delta e obter aceite operacional;
+6. só então trocar `crm.bydiex.com` e manter o Laravel recuperável durante a
+   janela de rollback.
 
 ## Regra de evolução
 
