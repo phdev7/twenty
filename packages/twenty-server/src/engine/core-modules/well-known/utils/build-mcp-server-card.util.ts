@@ -11,14 +11,14 @@ export const buildMcpServerCard = ({
 }: BuildMcpServerCardArgs) => ({
   $schema:
     'https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json',
-  name: 'com.twenty/twenty',
+  name: 'com.bydiex/diex-crm',
   version,
-  title: 'Twenty CRM',
+  title: 'Diex CRM',
   description:
-    'Read and write your Twenty CRM data - companies, people, opportunities, tasks, notes and any custom objects - from AI assistants. Tools are discovered at runtime and scoped to the authenticated workspace.',
-  websiteUrl: 'https://twenty.com',
+    'Operate sales, Inbox, Customer Success, renewals, tasks, notes and custom CRM objects from AI assistants. Tools are discovered at runtime and isolated by the authenticated Diex workspace.',
+  websiteUrl: 'https://bydiex.com',
   repository: {
-    url: 'https://github.com/twentyhq/twenty',
+    url: 'https://github.com/phdev7/twenty',
     source: 'github',
   },
   remotes: [

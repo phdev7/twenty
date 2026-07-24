@@ -2,14 +2,20 @@ import { styled } from '@linaria/react';
 import { isNonEmptyString } from '@sniptt/guards';
 import { useStore } from 'jotai';
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
+import { LightCopyIconButton } from '@/object-record/record-field/ui/components/LightCopyIconButton';
 import { SettingsPageContainer } from '@/settings/components/SettingsPageContainer';
 import { SettingsSkeletonLoader } from '@/settings/components/SettingsSkeletonLoader';
 import { ApiKeyInput } from '@/settings/developers/components/ApiKeyInput';
 import { ApiKeyNameInput } from '@/settings/developers/components/ApiKeyNameInput';
 import { SettingsDevelopersRoleSelector } from '@/settings/developers/components/SettingsDevelopersRoleSelector';
 import { apiKeyTokenFamilyState } from '@/settings/developers/states/apiKeyTokenFamilyState';
+import ModelContextProtocolLogo from '@/settings/mcp-and-apis/assets/model-context-protocol-logo.svg?react';
+import {
+  buildMcpConfig,
+  buildMcpServerUrl,
+} from '@/settings/mcp-and-apis/utils/mcpSetup';
 import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';
 import { computeNewExpirationDate } from '@/settings/developers/utils/computeNewExpirationDate';
 import { formatExpiration } from '@/settings/developers/utils/formatExpiration';
@@ -23,7 +29,7 @@ import { SettingsPath } from 'twenty-shared/types';
 import { getSettingsPath, isDefined } from 'twenty-shared/utils';
 import { IconRepeat, IconTrash } from 'twenty-ui/icon';
 import { H2Title } from 'twenty-ui/typography';
-import { Button } from 'twenty-ui/input';
+import { Button, CodeEditor, CoreEditorHeader } from 'twenty-ui/input';
 import { Section } from 'twenty-ui/layout';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { useMutation, useQuery } from '@apollo/client/react';
@@ -37,6 +43,7 @@ import {
 } from '~/generated-metadata/graphql';
 import { useNavigateSettings } from '~/hooks/useNavigateSettings';
 import { SETTINGS_API_WEBHOOKS_TABS } from '~/pages/settings/api-webhooks/constants/SettingsApiWebhooksTabs';
+import { REACT_APP_SERVER_BASE_URL } from '~/config';
 
 const StyledInfo = styled.span`
   color: ${themeCssVariables.font.color.light};
@@ -52,6 +59,19 @@ const StyledInputContainer = styled.div`
   width: 100%;
 `;
 
+const StyledMcpEditorHeaderTitle = styled.div`
+  align-items: center;
+  display: flex;
+  gap: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledMcpIcon = styled(ModelContextProtocolLogo)`
+  color: inherit;
+  flex-shrink: 0;
+  height: calc(${themeCssVariables.icon.size.md} * 1px);
+  width: calc(${themeCssVariables.icon.size.md} * 1px);
+`;
+
 const DELETE_API_KEY_MODAL_ID = 'delete-api-key-modal';
 const REGENERATE_API_KEY_MODAL_ID = 'regenerate-api-key-modal';
 
@@ -63,6 +83,8 @@ export const SettingsDevelopersApiKeyDetail = () => {
 
   const navigate = useNavigateSettings();
   const { apiKeyId = '' } = useParams();
+  const [searchParams] = useSearchParams();
+  const isMcpSetup = searchParams.get('purpose') === 'mcp';
 
   const jotaiStore = useStore();
 
@@ -153,7 +175,9 @@ export const SettingsDevelopersApiKeyDetail = () => {
           undefined,
           undefined,
           undefined,
-          SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
+          isMcpSetup
+            ? SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.MCP
+            : SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
         );
       }
     } catch {
@@ -227,9 +251,13 @@ export const SettingsDevelopersApiKeyDetail = () => {
 
         if (isNonEmptyString(newApiKey?.token)) {
           setApiKeyTokenCallback(newApiKey.id, newApiKey.token);
-          navigate(SettingsPath.ApiKeyDetail, {
-            apiKeyId: newApiKey.id,
-          });
+          navigate(
+            SettingsPath.ApiKeyDetail,
+            {
+              apiKeyId: newApiKey.id,
+            },
+            isMcpSetup ? { purpose: 'mcp' } : undefined,
+          );
         }
       }
     } catch {
@@ -263,7 +291,9 @@ export const SettingsDevelopersApiKeyDetail = () => {
                 SettingsPath.ApiWebhooks,
                 undefined,
                 undefined,
-                SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
+                isMcpSetup
+                  ? SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.MCP
+                  : SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
               ),
             },
             { children: apiKey.name || t`Unnamed API Key` },
@@ -298,6 +328,52 @@ export const SettingsDevelopersApiKeyDetail = () => {
                 </>
               )}
             </Section>
+            {apiKeyToken && isMcpSetup ? (
+              <Section>
+                <H2Title
+                  title={t`MCP client configuration`}
+                  description={t`Copy this configuration now. The API key remains only in this authenticated browser session and will not be shown again.`}
+                />
+                <CoreEditorHeader
+                  leftNodes={[
+                    <StyledMcpEditorHeaderTitle key="mcp-key-editor-title">
+                      <StyledMcpIcon aria-hidden />
+                      <span>{t`Diex CRM MCP with scoped key`}</span>
+                    </StyledMcpEditorHeaderTitle>,
+                  ]}
+                  rightNodes={[
+                    <LightCopyIconButton
+                      key="mcp-key-config-copy-button"
+                      copyText={buildMcpConfig(
+                        buildMcpServerUrl(REACT_APP_SERVER_BASE_URL),
+                        apiKeyToken,
+                      )}
+                    />,
+                  ]}
+                />
+                <CodeEditor
+                  value={buildMcpConfig(
+                    buildMcpServerUrl(REACT_APP_SERVER_BASE_URL),
+                    apiKeyToken,
+                  )}
+                  language="json"
+                  variant="with-header"
+                  contentPadding="comfortable"
+                  autoHeight
+                  options={{
+                    readOnly: true,
+                    domReadOnly: true,
+                    lineNumbers: 'off',
+                    lineNumbersMinChars: 0,
+                    folding: false,
+                    glyphMargin: false,
+                    scrollBeyondLastLine: false,
+                    renderLineHighlight: 'none',
+                    wordWrap: 'on',
+                  }}
+                />
+              </Section>
+            ) : null}
             <Section>
               <H2Title title={t`Name`} description={t`Name of your API key`} />
               <ApiKeyNameInput

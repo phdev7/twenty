@@ -58,7 +58,7 @@ export default defineApplicationRole({
   canAccessAllTools: false,
   canBeAssignedToAgents: false,
   canBeAssignedToUsers: false,
-  canBeAssignedToApiKeys: false,
+  canBeAssignedToApiKeys: true,
   permissionFlagUniversalIdentifiers: [SystemPermissionFlag.AI],
   objectPermissions: [
     {

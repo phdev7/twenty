@@ -1,4 +1,9 @@
 export const MCP_SETUP = {
+  apiKey: {
+    defaultName: 'Diex CRM MCP',
+    roleLabel: 'Diex CRM function role',
+  },
+  protocolVersion: '2025-06-18',
   tooltipIds: {
     claudeInstallDisabled: 'mcp-claude-install-disabled',
     replitInstallDisabled: 'mcp-replit-install-disabled',

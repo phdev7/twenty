@@ -7,12 +7,14 @@ import { SettingsSkeletonLoader } from '@/settings/components/SettingsSkeletonLo
 import { SettingsDevelopersRoleSelector } from '@/settings/developers/components/SettingsDevelopersRoleSelector';
 import { EXPIRATION_DATES } from '@/settings/developers/constants/ExpirationDates';
 import { apiKeyTokenFamilyState } from '@/settings/developers/states/apiKeyTokenFamilyState';
+import { MCP_SETUP } from '@/settings/mcp-and-apis/constants/McpSetup';
 import { Select } from '@/ui/input/components/Select';
 import { SettingsTextInput } from '@/ui/input/components/SettingsTextInput';
 import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLayout';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useLingui } from '@lingui/react/macro';
 import { useStore } from 'jotai';
+import { useSearchParams } from 'react-router-dom';
 import { Key } from 'ts-key-enum';
 import { SettingsPath } from 'twenty-shared/types';
 import { getSettingsPath, isDefined } from 'twenty-shared/utils';
@@ -29,6 +31,8 @@ import { SETTINGS_API_WEBHOOKS_TABS } from '~/pages/settings/api-webhooks/consta
 
 export const SettingsDevelopersApiKeysNew = () => {
   const { t } = useLingui();
+  const [searchParams] = useSearchParams();
+  const isMcpSetup = searchParams.get('purpose') === 'mcp';
   const [generateOneApiKeyToken] = useMutation(GenerateApiKeyTokenDocument);
   const navigateSettings = useNavigateSettings();
   const { data: rolesData, loading: rolesLoading } = useQuery(
@@ -41,8 +45,10 @@ export const SettingsDevelopersApiKeysNew = () => {
     expirationDate: number | null;
     roleId: string;
   }>({
-    expirationDate: EXPIRATION_DATES[5].value,
-    name: '',
+    expirationDate: isMcpSetup
+      ? EXPIRATION_DATES[3].value
+      : EXPIRATION_DATES[5].value,
+    name: isMcpSetup ? MCP_SETUP.apiKey.defaultName : '',
     roleId: '',
   });
 
@@ -52,15 +58,21 @@ export const SettingsDevelopersApiKeysNew = () => {
         (role) => role.canBeAssignedToApiKeys,
       );
       if (apiKeyAssignableRoles.length > 0) {
+        const preferredRole = isMcpSetup
+          ? (apiKeyAssignableRoles.find(
+              (role) => role.label === MCP_SETUP.apiKey.roleLabel,
+            ) ?? apiKeyAssignableRoles[0])
+          : apiKeyAssignableRoles[0];
+
         setFormValues((prev) => {
           if (!prev.roleId) {
-            return { ...prev, roleId: apiKeyAssignableRoles[0].id };
+            return { ...prev, roleId: preferredRole.id };
           }
           return prev;
         });
       }
     }
-  }, [rolesData]);
+  }, [isMcpSetup, rolesData]);
 
   const [createApiKey] = useMutation(CreateApiKeyDocument, {
     refetchQueries: [GetApiKeysDocument],
@@ -118,9 +130,13 @@ export const SettingsDevelopersApiKeysNew = () => {
         newApiKey.id,
         tokenData.data.generateApiKeyToken.token,
       );
-      navigateSettings(SettingsPath.ApiKeyDetail, {
-        apiKeyId: newApiKey.id,
-      });
+      navigateSettings(
+        SettingsPath.ApiKeyDetail,
+        {
+          apiKeyId: newApiKey.id,
+        },
+        isMcpSetup ? { purpose: 'mcp' } : undefined,
+      );
     }
   };
 
@@ -132,7 +148,7 @@ export const SettingsDevelopersApiKeysNew = () => {
 
   return (
     <SettingsPageLayout
-      title={t`New key`}
+      title={isMcpSetup ? t`New MCP key` : t`New key`}
       links={[
         {
           children: t`Workspace`,
@@ -144,10 +160,12 @@ export const SettingsDevelopersApiKeysNew = () => {
             SettingsPath.ApiWebhooks,
             undefined,
             undefined,
-            SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
+            isMcpSetup
+              ? SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.MCP
+              : SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
           ),
         },
-        { children: t`New Key` },
+        { children: isMcpSetup ? t`New MCP key` : t`New Key` },
       ]}
       actionButton={
         <SaveAndCancelButtons
@@ -158,7 +176,9 @@ export const SettingsDevelopersApiKeysNew = () => {
               undefined,
               undefined,
               undefined,
-              SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
+              isMcpSetup
+                ? SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.MCP
+                : SETTINGS_API_WEBHOOKS_TABS.TABS_IDS.API,
             );
           }}
           onSave={handleSave}
@@ -167,10 +187,21 @@ export const SettingsDevelopersApiKeysNew = () => {
     >
       <SettingsPageContainer>
         <Section>
-          <H2Title title={t`Name`} description={t`Name of your API key`} />
+          <H2Title
+            title={t`Name`}
+            description={
+              isMcpSetup
+                ? t`Use a clear name so this credential can be audited and revoked independently.`
+                : t`Name of your API key`
+            }
+          />
           <SettingsTextInput
             instanceId="api-key-new-name"
-            placeholder={t`E.g. backoffice integration`}
+            placeholder={
+              isMcpSetup
+                ? MCP_SETUP.apiKey.defaultName
+                : t`E.g. backoffice integration`
+            }
             value={formValues.name}
             onKeyDown={(e) => {
               if (e.nativeEvent.isComposing || e.keyCode === 229) {
@@ -192,7 +223,11 @@ export const SettingsDevelopersApiKeysNew = () => {
         <Section>
           <H2Title
             title={t`Role`}
-            description={t`What this API can do: Select a user role to define its permissions.`}
+            description={
+              isMcpSetup
+                ? t`The Diex CRM role limits this key to commercial, Inbox, AI and Customer Success operations without settings or deletion access.`
+                : t`What this API can do: Select a user role to define its permissions.`
+            }
           />
           <SettingsDevelopersRoleSelector
             value={formValues.roleId}

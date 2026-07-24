@@ -11,20 +11,41 @@ export const isHttpsUrl = (url: string) => {
   }
 };
 
-export const buildMcpAuthorizationHeaders = () => ({
-  [MCP_SETUP.authorizationHeader.key]: MCP_SETUP.authorizationHeader.value,
+export const buildMcpAuthorizationHeaders = (apiKey?: string) => ({
+  [MCP_SETUP.authorizationHeader.key]: apiKey
+    ? `Bearer ${apiKey}`
+    : MCP_SETUP.authorizationHeader.value,
 });
 
-export const buildRemoteMcpServerConfig = (mcpServerUrl: string) => ({
+export const buildRemoteMcpServerConfig = (
+  mcpServerUrl: string,
+  apiKey?: string,
+) => ({
   url: mcpServerUrl,
-  headers: buildMcpAuthorizationHeaders(),
+  headers: buildMcpAuthorizationHeaders(apiKey),
 });
 
-export const buildMcpConfig = (mcpServerUrl: string) =>
+export const buildMcpConfig = (mcpServerUrl: string, apiKey?: string) =>
   JSON.stringify(
     {
       mcpServers: {
-        [MCP_SETUP.server.name]: buildRemoteMcpServerConfig(mcpServerUrl),
+        [MCP_SETUP.server.name]: buildRemoteMcpServerConfig(
+          mcpServerUrl,
+          apiKey,
+        ),
+      },
+    },
+    null,
+    2,
+  );
+
+export const buildMcpOAuthConfig = (mcpServerUrl: string) =>
+  JSON.stringify(
+    {
+      mcpServers: {
+        [MCP_SETUP.server.name]: {
+          url: mcpServerUrl,
+        },
       },
     },
     null,

@@ -4,10 +4,12 @@ import { Fragment } from 'react';
 
 import { LightCopyIconButton } from '@/object-record/record-field/ui/components/LightCopyIconButton';
 import ModelContextProtocolLogo from '@/settings/mcp-and-apis/assets/model-context-protocol-logo.svg?react';
+import { SettingsMcpReadiness } from '@/settings/mcp-and-apis/components/SettingsMcpReadiness';
 import { SettingsMcpSetupCard } from '@/settings/mcp-and-apis/components/SettingsMcpSetupCard';
 import { buildMcpSetupCategories } from '@/settings/mcp-and-apis/utils/buildMcpSetupCategories';
 import {
   buildMcpConfig,
+  buildMcpOAuthConfig,
   buildMcpServerUrl,
   isHttpsUrl,
 } from '@/settings/mcp-and-apis/utils/mcpSetup';
@@ -49,6 +51,7 @@ const StyledCardsGrid = styled.div`
 export const SettingsMcpSetup = () => {
   const mcpServerUrl = buildMcpServerUrl(REACT_APP_SERVER_BASE_URL);
   const mcpConfig = buildMcpConfig(mcpServerUrl);
+  const mcpOAuthConfig = buildMcpOAuthConfig(mcpServerUrl);
   const categories = buildMcpSetupCategories({
     isHttpsInstallLinkEnabled: isHttpsUrl(mcpServerUrl),
     mcpServerUrl,
@@ -56,6 +59,10 @@ export const SettingsMcpSetup = () => {
 
   return (
     <StyledMcpSetupContainer>
+      <Section>
+        <SettingsMcpReadiness mcpServerUrl={mcpServerUrl} />
+      </Section>
+
       {categories.map((category) => (
         <Fragment key={category.title}>
           <Section>
@@ -71,44 +78,85 @@ export const SettingsMcpSetup = () => {
           </Section>
 
           {category.showManualConfigurationAfter && (
-            <Section>
-              <H2Title
-                title={t`Manual configuration`}
-                description={t`Copy one Diex CRM configuration into Claude, Codex, Cursor or another MCP client. The API key remains scoped to this workspace.`}
-              />
-              <CoreEditorHeader
-                leftNodes={[
-                  <StyledMcpEditorHeaderTitle key="mcp-editor-header-title">
-                    <StyledMcpIcon aria-hidden />
-                    <span>{t`MCP client configuration`}</span>
-                  </StyledMcpEditorHeaderTitle>,
-                ]}
-                rightNodes={[
-                  <LightCopyIconButton
-                    key="mcp-config-copy-button"
-                    copyText={mcpConfig}
-                  />,
-                ]}
-              />
-              <CodeEditor
-                value={mcpConfig}
-                language="json"
-                variant="with-header"
-                contentPadding="comfortable"
-                autoHeight
-                options={{
-                  readOnly: true,
-                  domReadOnly: true,
-                  lineNumbers: 'off',
-                  lineNumbersMinChars: 0,
-                  folding: false,
-                  glyphMargin: false,
-                  scrollBeyondLastLine: false,
-                  renderLineHighlight: 'none',
-                  wordWrap: 'on',
-                }}
-              />
-            </Section>
+            <>
+              <Section>
+                <H2Title
+                  title={t`OAuth configuration`}
+                  description={t`Preferred for Claude, Codex and clients that support browser sign-in. No secret is stored in the configuration file.`}
+                />
+                <CoreEditorHeader
+                  leftNodes={[
+                    <StyledMcpEditorHeaderTitle key="mcp-oauth-editor-title">
+                      <StyledMcpIcon aria-hidden />
+                      <span>{t`Diex CRM with OAuth`}</span>
+                    </StyledMcpEditorHeaderTitle>,
+                  ]}
+                  rightNodes={[
+                    <LightCopyIconButton
+                      key="mcp-oauth-config-copy-button"
+                      copyText={mcpOAuthConfig}
+                    />,
+                  ]}
+                />
+                <CodeEditor
+                  value={mcpOAuthConfig}
+                  language="json"
+                  variant="with-header"
+                  contentPadding="comfortable"
+                  autoHeight
+                  options={{
+                    readOnly: true,
+                    domReadOnly: true,
+                    lineNumbers: 'off',
+                    lineNumbersMinChars: 0,
+                    folding: false,
+                    glyphMargin: false,
+                    scrollBeyondLastLine: false,
+                    renderLineHighlight: 'none',
+                    wordWrap: 'on',
+                  }}
+                />
+              </Section>
+
+              <Section>
+                <H2Title
+                  title={t`API key configuration`}
+                  description={t`Use this mode only for clients without OAuth. Create a scoped MCP key above to receive a ready-to-copy configuration; this template shows the required shape.`}
+                />
+                <CoreEditorHeader
+                  leftNodes={[
+                    <StyledMcpEditorHeaderTitle key="mcp-key-editor-title">
+                      <StyledMcpIcon aria-hidden />
+                      <span>{t`Diex CRM with API key`}</span>
+                    </StyledMcpEditorHeaderTitle>,
+                  ]}
+                  rightNodes={[
+                    <LightCopyIconButton
+                      key="mcp-key-config-copy-button"
+                      copyText={mcpConfig}
+                    />,
+                  ]}
+                />
+                <CodeEditor
+                  value={mcpConfig}
+                  language="json"
+                  variant="with-header"
+                  contentPadding="comfortable"
+                  autoHeight
+                  options={{
+                    readOnly: true,
+                    domReadOnly: true,
+                    lineNumbers: 'off',
+                    lineNumbersMinChars: 0,
+                    folding: false,
+                    glyphMargin: false,
+                    scrollBeyondLastLine: false,
+                    renderLineHighlight: 'none',
+                    wordWrap: 'on',
+                  }}
+                />
+              </Section>
+            </>
           )}
         </Fragment>
       ))}

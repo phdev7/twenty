@@ -185,6 +185,17 @@ Scores e diagnósticos são apoio à decisão. Comunicação externa, mudança d
 pipeline e intervenções consequenciais devem ser registradas como Ação de IA e
 permanecer em `Aguardando aprovação` até confirmação humana explícita.
 
+## MCP
+
+Em `Configurações > MCP & APIs > MCP`, a Central MCP verifica o endpoint ao
+vivo, HTTPS e a existência de uma chave ativa. Clientes com OAuth usam a
+configuração sem segredo e concluem o login no navegador. Clientes sem OAuth
+podem criar uma chave com o papel `Diex CRM function role` pré-selecionado.
+
+A chave é exibida uma única vez dentro do painel autenticado, junto da
+configuração completa para cópia. O token não entra na URL, em objetos do CRM,
+nos logs ou no pacote do aplicativo.
+
 ## Migração
 
 O fluxo em `tools/diex-migration` importa um tenant legado por workspace com
