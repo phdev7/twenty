@@ -16,8 +16,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso;
 - etiquetas comerciais configuráveis, filtráveis e ligadas ao histórico da
   conversa;
-- distribuição de conversas por responsável com edição e filtro direto na
-  Inbox;
+- distribuição de conversas por equipe e responsável, com filas, membros, SLA
+  próprio, roteamento manual ou por menor carga e filtros diretos na Inbox;
 - filas de atenção para não lidas, SLA estourado, prioridade alta ou urgente e
   follow-up vencido, com prioridade editável no contexto;
 - criação e conclusão de próxima ação dentro da conversa, com prazo,
@@ -62,9 +62,15 @@ Use etiquetas para criar filas operacionais como `Lead quente`, `Proposta`,
 
 ### Distribuição de conversas
 
-O responsável pode ser alterado no painel de contexto sem abrir outro módulo.
-A lista da Inbox pode ser filtrada por membro do workspace ou por conversas
-sem responsável, permitindo operar filas individuais e de triagem.
+Cadastre as filas em `Diex > Equipes da inbox` e vincule os usuários em
+`Diex > Membros das equipes`. Cada equipe define SLA, status, fila padrão e
+estratégia manual ou por menor carga.
+
+Ao escolher uma equipe na conversa, a estratégia balanceada seleciona o membro
+ativo com menos conversas abertas. Novas conversas da Evolution entram na
+primeira fila padrão ativa, recebem o SLA da equipe e, quando configurado,
+também são distribuídas. A lista pode ser filtrada por equipe, responsável ou
+conversas ainda sem distribuição.
 
 ### Adiamento
 

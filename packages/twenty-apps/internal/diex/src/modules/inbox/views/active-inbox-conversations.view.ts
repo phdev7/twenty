@@ -5,6 +5,7 @@ import {
   ViewType,
 } from 'twenty-sdk/define';
 
+import { INBOX_TEAM_RELATION_FIELD_IDS } from 'src/modules/inbox/constants/inbox-team.constants';
 import {
   INBOX_CONVERSATION_FIELD_IDS,
   INBOX_CONVERSATION_UNIVERSAL_IDENTIFIER,
@@ -67,10 +68,18 @@ export default defineView({
       size: 190,
     },
     {
+      universalIdentifier: INBOX_VIEW_IDS.activeConversationsFields.team,
+      fieldMetadataUniversalIdentifier:
+        INBOX_TEAM_RELATION_FIELD_IDS.teamOnConversation,
+      position: 6,
+      isVisible: true,
+      size: 150,
+    },
+    {
       universalIdentifier: INBOX_VIEW_IDS.activeConversationsFields.assignee,
       fieldMetadataUniversalIdentifier:
         INBOX_RELATION_FIELD_IDS.assigneeOnConversation,
-      position: 6,
+      position: 7,
       isVisible: true,
       size: 170,
     },
@@ -78,7 +87,7 @@ export default defineView({
       universalIdentifier: INBOX_VIEW_IDS.activeConversationsFields.unreadCount,
       fieldMetadataUniversalIdentifier:
         INBOX_CONVERSATION_FIELD_IDS.unreadCount,
-      position: 7,
+      position: 8,
       isVisible: true,
       size: 90,
     },
@@ -87,7 +96,7 @@ export default defineView({
         INBOX_VIEW_IDS.activeConversationsFields.lastMessagePreview,
       fieldMetadataUniversalIdentifier:
         INBOX_CONVERSATION_FIELD_IDS.lastMessagePreview,
-      position: 8,
+      position: 9,
       isVisible: true,
       size: 300,
     },
@@ -96,7 +105,7 @@ export default defineView({
         INBOX_VIEW_IDS.activeConversationsFields.lastMessageAt,
       fieldMetadataUniversalIdentifier:
         INBOX_CONVERSATION_FIELD_IDS.lastMessageAt,
-      position: 9,
+      position: 10,
       isVisible: true,
       size: 150,
     },
@@ -105,7 +114,7 @@ export default defineView({
         INBOX_VIEW_IDS.activeConversationsFields.followUpDueAt,
       fieldMetadataUniversalIdentifier:
         INBOX_CONVERSATION_FIELD_IDS.followUpDueAt,
-      position: 10,
+      position: 11,
       isVisible: true,
       size: 150,
     },

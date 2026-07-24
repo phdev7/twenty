@@ -14,6 +14,7 @@ import {
   type InboxConversation,
   type InboxConversationFilter,
   type InboxLabel,
+  type InboxTeam,
   type InboxWorkspaceMember,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
@@ -39,6 +40,8 @@ type ConversationListProps = {
   labelFilterId: string;
   workspaceMembers: InboxWorkspaceMember[];
   assigneeFilterId: string;
+  teams: InboxTeam[];
+  teamFilterId: string;
   attentionFilter: InboxAttentionFilter;
   isLoading: boolean;
   errorMessage: string | null;
@@ -46,6 +49,7 @@ type ConversationListProps = {
   onFilterChange: (filter: InboxConversationFilter) => void;
   onLabelFilterChange: (labelId: string) => void;
   onAssigneeFilterChange: (workspaceMemberId: string) => void;
+  onTeamFilterChange: (teamId: string) => void;
   onAttentionFilterChange: (filter: InboxAttentionFilter) => void;
   onSelect: (conversationId: string) => Promise<void>;
   onRefresh: () => Promise<void>;
@@ -60,6 +64,8 @@ export const ConversationList = ({
   labelFilterId,
   workspaceMembers,
   assigneeFilterId,
+  teams,
+  teamFilterId,
   attentionFilter,
   isLoading,
   errorMessage,
@@ -67,6 +73,7 @@ export const ConversationList = ({
   onFilterChange,
   onLabelFilterChange,
   onAssigneeFilterChange,
+  onTeamFilterChange,
   onAttentionFilterChange,
   onSelect,
   onRefresh,
@@ -148,6 +155,20 @@ export const ConversationList = ({
         </select>
       </div>
       <div style={inboxStyles.filterRow}>
+        <select
+          aria-label="Filtrar conversas por equipe"
+          value={teamFilterId}
+          onChange={(event) => onTeamFilterChange(event.target.value)}
+          style={inboxStyles.filterSelect}
+        >
+          <option value="ALL">Todas as equipes</option>
+          <option value="UNASSIGNED">Sem equipe</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
+          ))}
+        </select>
         <select
           aria-label="Filtrar conversas por responsável"
           value={assigneeFilterId}
@@ -271,6 +292,11 @@ export const ConversationList = ({
                   conversation.priority === 'URGENT' ? (
                     <span style={getPriorityChipStyle(conversation.priority)}>
                       {getPriorityLabel(conversation.priority)}
+                    </span>
+                  ) : null}
+                  {conversation.inboxTeam ? (
+                    <span style={getLabelChipStyle('BLUE')}>
+                      {conversation.inboxTeam.name}
                     </span>
                   ) : null}
                   {conversation.labelAssignments

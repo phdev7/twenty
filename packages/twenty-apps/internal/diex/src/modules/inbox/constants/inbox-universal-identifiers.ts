@@ -112,6 +112,7 @@ export const INBOX_VIEW_IDS = {
     person: '0f5ca83e-d2b4-4a1b-9edd-8d82c17d6f86',
     company: '7692045a-63a6-4196-a858-db01e56cdd84',
     opportunity: '8eac3d1b-ea14-41ac-8a92-9607533c05b7',
+    team: 'd1e0f900-0000-4000-8000-000000000001',
     assignee: '17c052e5-2b03-4335-a673-e49535a7a96a',
     unreadCount: 'a9692c16-28ed-4ebe-ad97-ed6e6ac88992',
     lastMessagePreview: '6b0b66d7-a282-4360-ba8c-2f2376eab334',

@@ -39,6 +39,23 @@ type InboxConversationRecord = {
   opportunityId: string | null;
 };
 
+type DefaultInboxTeam = {
+  id: string;
+  routingStrategy: string;
+  defaultResponseSlaMinutes: number | null;
+  memberships: Array<{
+    id: string;
+    role: string;
+    workspaceMemberId: string;
+  }>;
+};
+
+type InboxTeamAssignment = {
+  teamId: string;
+  assigneeId: string | null;
+  responseSlaMinutes: number;
+};
+
 type ProcessEvolutionWebhookResult = {
   received: number;
   createdMessages: number;
@@ -323,17 +340,195 @@ const findInboxConversation = async (
   return getEdges(result.inboxConversations)[0] ?? null;
 };
 
+const resolveDefaultInboxTeam = async (
+  client: CoreApiClient,
+): Promise<DefaultInboxTeam | null> => {
+  const result = (await client.query({
+    inboxTeams: {
+      __args: {
+        filter: {
+          status: { eq: 'ACTIVE' },
+          isDefault: { eq: true },
+        },
+        first: 1,
+        orderBy: [{ name: 'AscNullsLast' }],
+      },
+      edges: {
+        node: {
+          id: true,
+          routingStrategy: true,
+          defaultResponseSlaMinutes: true,
+          memberships: {
+            edges: {
+              node: {
+                id: true,
+                role: true,
+                isActive: true,
+                workspaceMemberId: true,
+              },
+            },
+          },
+        },
+      },
+    },
+  } as never)) as unknown as {
+    inboxTeams?: {
+      edges?: Array<{
+        node?: {
+          id?: string | null;
+          routingStrategy?: string | null;
+          defaultResponseSlaMinutes?: number | null;
+          memberships?: {
+            edges?: Array<{
+              node?: {
+                id?: string | null;
+                role?: string | null;
+                isActive?: boolean | null;
+                workspaceMemberId?: string | null;
+              } | null;
+            }>;
+          } | null;
+        } | null;
+      }>;
+    };
+  };
+  const team = getEdges(result.inboxTeams)[0];
+
+  if (!team?.id) {
+    return null;
+  }
+
+  return {
+    id: team.id,
+    routingStrategy: team.routingStrategy ?? 'MANUAL',
+    defaultResponseSlaMinutes: team.defaultResponseSlaMinutes ?? null,
+    memberships: getEdges(team.memberships)
+      .filter(
+        (
+          membership,
+        ): membership is {
+          id: string;
+          role: string;
+          isActive: true;
+          workspaceMemberId: string;
+        } =>
+          membership.isActive === true &&
+          typeof membership.id === 'string' &&
+          typeof membership.workspaceMemberId === 'string',
+      )
+      .map((membership) => ({
+        id: membership.id,
+        role: membership.role ?? 'MEMBER',
+        workspaceMemberId: membership.workspaceMemberId,
+      })),
+  };
+};
+
+const resolveInboxTeamAssignment = async (
+  client: CoreApiClient,
+): Promise<InboxTeamAssignment | null> => {
+  const team = await resolveDefaultInboxTeam(client);
+
+  if (!team) {
+    return null;
+  }
+
+  const responseSlaMinutes =
+    typeof team.defaultResponseSlaMinutes === 'number' &&
+    team.defaultResponseSlaMinutes > 0
+      ? team.defaultResponseSlaMinutes
+      : readResponseSlaMinutes();
+
+  if (team.routingStrategy !== 'BALANCED' || team.memberships.length === 0) {
+    return {
+      teamId: team.id,
+      assigneeId: null,
+      responseSlaMinutes,
+    };
+  }
+
+  const conversationsResult = (await client.query({
+    inboxConversations: {
+      __args: {
+        filter: {
+          inboxTeamId: { eq: team.id },
+        },
+        first: 500,
+      },
+      edges: {
+        node: {
+          id: true,
+          status: true,
+          assigneeId: true,
+        },
+      },
+    },
+  } as never)) as unknown as {
+    inboxConversations?: {
+      edges?: Array<{
+        node?: {
+          id?: string | null;
+          status?: string | null;
+          assigneeId?: string | null;
+        } | null;
+      }>;
+    };
+  };
+  const loadByMemberId = new Map(
+    team.memberships.map(({ workspaceMemberId }) => [workspaceMemberId, 0]),
+  );
+
+  for (const conversation of getEdges(conversationsResult.inboxConversations)) {
+    if (
+      conversation.status === InboxConversationStatus.RESOLVED ||
+      !conversation.assigneeId ||
+      !loadByMemberId.has(conversation.assigneeId)
+    ) {
+      continue;
+    }
+
+    loadByMemberId.set(
+      conversation.assigneeId,
+      (loadByMemberId.get(conversation.assigneeId) ?? 0) + 1,
+    );
+  }
+
+  const selectedMembership = [...team.memberships].sort((left, right) => {
+    const loadDifference =
+      (loadByMemberId.get(left.workspaceMemberId) ?? 0) -
+      (loadByMemberId.get(right.workspaceMemberId) ?? 0);
+
+    if (loadDifference !== 0) {
+      return loadDifference;
+    }
+
+    if (left.role !== right.role) {
+      return left.role === 'LEAD' ? -1 : 1;
+    }
+
+    return left.id.localeCompare(right.id);
+  })[0];
+
+  return {
+    teamId: team.id,
+    assigneeId: selectedMembership?.workspaceMemberId ?? null,
+    responseSlaMinutes,
+  };
+};
+
 const createInboxConversation = async (
   client: CoreApiClient,
   message: NormalizedEvolutionMessage,
 ): Promise<InboxConversationRecord> => {
   const person = await resolvePerson(client, message);
   const opportunityId = await resolveUniqueOpportunityId(client, person);
+  const teamAssignment = await resolveInboxTeamAssignment(client);
   const firstResponseDueAt =
     message.direction === 'INBOUND'
       ? new Date(
           new Date(message.sentAt).getTime() +
-            readResponseSlaMinutes() * 60_000,
+            (teamAssignment?.responseSlaMinutes ?? readResponseSlaMinutes()) *
+              60_000,
         ).toISOString()
       : undefined;
   const name =
@@ -364,6 +559,8 @@ const createInboxConversation = async (
             personId: person?.id,
             companyId: person?.companyId ?? undefined,
             opportunityId: opportunityId ?? undefined,
+            inboxTeamId: teamAssignment?.teamId,
+            assigneeId: teamAssignment?.assigneeId ?? undefined,
             metadata: {
               provider: 'evolution',
               instanceName: message.instanceName,

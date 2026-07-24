@@ -12,6 +12,26 @@ export type InboxWorkspaceMember = InboxRecordReference & {
   avatarUrl?: string | null;
 };
 
+export type InboxTeamMembership = {
+  id: string;
+  role: string;
+  isActive: boolean;
+  joinedAt?: string | null;
+  workspaceMember?: InboxWorkspaceMember | null;
+};
+
+export type InboxTeam = {
+  id: string;
+  name: string;
+  key: string;
+  description?: string | null;
+  status: string;
+  routingStrategy: string;
+  defaultResponseSlaMinutes: number;
+  isDefault: boolean;
+  memberships?: InboxTeamMembership[];
+};
+
 export type InboxOpportunity = InboxRecordReference & {
   stage?: string | null;
 };
@@ -69,6 +89,7 @@ export type InboxConversation = {
   person?: InboxRecordReference | null;
   company?: InboxRecordReference | null;
   opportunity?: InboxOpportunity | null;
+  inboxTeam?: InboxTeam | null;
   assignee?: InboxWorkspaceMember | null;
   tasks: InboxTask[];
   labelAssignments: InboxConversationLabelAssignment[];

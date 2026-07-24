@@ -19,6 +19,7 @@ import {
   IconTags,
   IconUser,
   IconUserPin,
+  IconUsers,
 } from 'twenty-ui/icon';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
@@ -27,6 +28,7 @@ import {
   type InboxLabel,
   type InboxRecordReference,
   type InboxTaskDraft,
+  type InboxTeam,
   type InboxWorkspaceMember,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
@@ -44,9 +46,11 @@ type CrmContextProps = {
   conversation: InboxConversation | null;
   labels: InboxLabel[];
   workspaceMembers: InboxWorkspaceMember[];
+  teams: InboxTeam[];
   busyAction: string | null;
   onToggleLabel: (label: InboxLabel) => Promise<void>;
   onAssign: (workspaceMemberId: string | null) => Promise<void>;
+  onTeamChange: (teamId: string | null) => Promise<void>;
   onPriorityChange: (priority: string) => Promise<void>;
   onCreateTask: (draft: InboxTaskDraft) => Promise<boolean>;
   onCompleteTask: (taskId: string) => Promise<void>;
@@ -215,9 +219,11 @@ export const CrmContext = ({
   conversation,
   labels,
   workspaceMembers,
+  teams,
   busyAction,
   onToggleLabel,
   onAssign,
+  onTeamChange,
   onPriorityChange,
   onCreateTask,
   onCompleteTask,
@@ -296,6 +302,16 @@ export const CrmContext = ({
       .filter(({ isActive }) => isActive)
       .map(({ label }) => label.id),
   );
+  const selectedTeam = conversation.inboxTeam
+    ? teams.find(({ id }) => id === conversation.inboxTeam?.id)
+    : null;
+  const eligibleAssignees = selectedTeam
+    ? (selectedTeam.memberships
+        ?.filter(({ isActive, workspaceMember }) => isActive && workspaceMember)
+        .flatMap(({ workspaceMember }) =>
+          workspaceMember ? [workspaceMember] : [],
+        ) ?? [])
+    : workspaceMembers;
 
   return (
     <aside
@@ -439,6 +455,44 @@ export const CrmContext = ({
           />
           <div style={inboxStyles.contextCard}>
             <span style={inboxStyles.contextCardIcon}>
+              <IconUsers
+                size={themeCssVariables.icon.size.sm}
+                stroke={themeCssVariables.icon.stroke.md}
+              />
+            </span>
+            <span style={inboxStyles.contextCardBody}>
+              <span style={inboxStyles.contextCardLabel}>Equipe</span>
+              <select
+                aria-label="Equipe responsável pela conversa"
+                disabled={busyAction !== null}
+                value={conversation.inboxTeam?.id ?? ''}
+                style={inboxStyles.contextSelect}
+                onChange={(event) =>
+                  void onTeamChange(event.target.value || null)
+                }
+              >
+                <option value="">Sem equipe</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                    {team.routingStrategy === 'BALANCED'
+                      ? ' · menor carga'
+                      : ''}
+                  </option>
+                ))}
+              </select>
+              {selectedTeam ? (
+                <span style={inboxStyles.taskMeta}>
+                  SLA de {selectedTeam.defaultResponseSlaMinutes} min ·{' '}
+                  {eligibleAssignees.length} membro
+                  {eligibleAssignees.length === 1 ? '' : 's'} ativo
+                  {eligibleAssignees.length === 1 ? '' : 's'}
+                </span>
+              ) : null}
+            </span>
+          </div>
+          <div style={inboxStyles.contextCard}>
+            <span style={inboxStyles.contextCardIcon}>
               <IconUserPin
                 size={themeCssVariables.icon.size.sm}
                 stroke={themeCssVariables.icon.stroke.md}
@@ -448,13 +502,13 @@ export const CrmContext = ({
               <span style={inboxStyles.contextCardLabel}>Responsável</span>
               <select
                 aria-label="Responsável pela conversa"
-                disabled={busyAction !== null || workspaceMembers.length === 0}
+                disabled={busyAction !== null || eligibleAssignees.length === 0}
                 value={conversation.assignee?.id ?? ''}
                 style={inboxStyles.contextSelect}
                 onChange={(event) => void onAssign(event.target.value || null)}
               >
                 <option value="">Sem responsável</option>
-                {workspaceMembers.map((workspaceMember) => (
+                {eligibleAssignees.map((workspaceMember) => (
                   <option key={workspaceMember.id} value={workspaceMember.id}>
                     {getRecordName(workspaceMember) || 'Usuário sem nome'}
                   </option>
@@ -669,7 +723,7 @@ export const CrmContext = ({
                   onChange={(event) => setTaskAssigneeId(event.target.value)}
                 >
                   <option value="">Sem responsável</option>
-                  {workspaceMembers.map((workspaceMember) => (
+                  {eligibleAssignees.map((workspaceMember) => (
                     <option key={workspaceMember.id} value={workspaceMember.id}>
                       {getRecordName(workspaceMember) || 'Usuário sem nome'}
                     </option>

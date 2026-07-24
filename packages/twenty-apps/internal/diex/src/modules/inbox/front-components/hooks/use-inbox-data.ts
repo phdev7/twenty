@@ -19,6 +19,8 @@ import {
   type InboxSavedReply,
   type InboxTask,
   type InboxTaskDraft,
+  type InboxTeam,
+  type InboxTeamMembership,
   type InboxTriageResult,
   type InboxWorkspaceMember,
   type SavedReplyRenderResult,
@@ -86,6 +88,22 @@ type WorkspaceMemberQueryResult = {
   };
 };
 
+type TeamNode = Omit<InboxTeam, 'memberships'> & {
+  memberships?: {
+    edges?: Array<{
+      node: InboxTeamMembership;
+    }>;
+  } | null;
+};
+
+type TeamQueryResult = {
+  inboxTeams?: {
+    edges?: Array<{
+      node: TeamNode;
+    }>;
+  };
+};
+
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
 
@@ -109,6 +127,59 @@ const getNextFollowUpDueAt = (tasks: InboxTask[]): string | null => {
     : null;
 };
 
+const getActiveTeamMembers = (team?: InboxTeam | null) =>
+  team?.memberships
+    ?.filter(({ isActive, workspaceMember }) => isActive && workspaceMember)
+    .flatMap(({ workspaceMember }) =>
+      workspaceMember ? [workspaceMember] : [],
+    ) ?? [];
+
+const getLeastLoadedTeamMember = ({
+  team,
+  conversations,
+  excludedConversationId,
+}: {
+  team: InboxTeam;
+  conversations: InboxConversation[];
+  excludedConversationId: string;
+}): InboxWorkspaceMember | null => {
+  const activeMembers = getActiveTeamMembers(team);
+
+  if (activeMembers.length === 0) {
+    return null;
+  }
+
+  const loadByMemberId = new Map(
+    activeMembers.map((workspaceMember) => [workspaceMember.id, 0]),
+  );
+
+  for (const conversation of conversations) {
+    if (
+      conversation.id === excludedConversationId ||
+      conversation.status === 'RESOLVED' ||
+      conversation.inboxTeam?.id !== team.id ||
+      !conversation.assignee?.id ||
+      !loadByMemberId.has(conversation.assignee.id)
+    ) {
+      continue;
+    }
+
+    loadByMemberId.set(
+      conversation.assignee.id,
+      (loadByMemberId.get(conversation.assignee.id) ?? 0) + 1,
+    );
+  }
+
+  return [...activeMembers].sort((left, right) => {
+    const loadDifference =
+      (loadByMemberId.get(left.id) ?? 0) - (loadByMemberId.get(right.id) ?? 0);
+
+    return loadDifference !== 0
+      ? loadDifference
+      : left.id.localeCompare(right.id);
+  })[0];
+};
+
 export const useInboxData = () => {
   const [conversations, setConversations] = useState<InboxConversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<
@@ -120,6 +191,7 @@ export const useInboxData = () => {
   const [workspaceMembers, setWorkspaceMembers] = useState<
     InboxWorkspaceMember[]
   >([]);
+  const [teams, setTeams] = useState<InboxTeam[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -175,6 +247,16 @@ export const useInboxData = () => {
                 id: true,
                 name: true,
                 stage: true,
+              },
+              inboxTeam: {
+                id: true,
+                name: true,
+                key: true,
+                description: true,
+                status: true,
+                routingStrategy: true,
+                defaultResponseSlaMinutes: true,
+                isDefault: true,
               },
               assignee: {
                 id: true,
@@ -493,6 +575,77 @@ export const useInboxData = () => {
     }
   }, []);
 
+  const loadTeams = useCallback(async () => {
+    try {
+      const queryResult = (await new CoreApiClient().query({
+        inboxTeams: {
+          __args: {
+            filter: {
+              status: {
+                eq: 'ACTIVE',
+              },
+            },
+            first: 100,
+            orderBy: [{ name: 'AscNullsLast' }],
+          },
+          edges: {
+            node: {
+              id: true,
+              name: true,
+              key: true,
+              description: true,
+              status: true,
+              routingStrategy: true,
+              defaultResponseSlaMinutes: true,
+              isDefault: true,
+              memberships: {
+                edges: {
+                  node: {
+                    id: true,
+                    role: true,
+                    isActive: true,
+                    joinedAt: true,
+                    workspaceMember: {
+                      id: true,
+                      name: {
+                        firstName: true,
+                        lastName: true,
+                      },
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as never)) as unknown as TeamQueryResult;
+
+      setTeams(
+        queryResult.inboxTeams?.edges?.map(({ node }) => {
+          const { memberships, ...team } = node;
+
+          return {
+            ...team,
+            defaultResponseSlaMinutes:
+              team.defaultResponseSlaMinutes > 0
+                ? team.defaultResponseSlaMinutes
+                : 60,
+            memberships:
+              memberships?.edges?.map(({ node: membership }) => membership) ??
+              [],
+          };
+        }) ?? [],
+      );
+    } catch {
+      setTeams([]);
+      await enqueueSnackbar({
+        message: 'Não foi possível carregar as equipes da Inbox.',
+        variant: 'error',
+      });
+    }
+  }, []);
+
   useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
@@ -508,6 +661,10 @@ export const useInboxData = () => {
   useEffect(() => {
     void loadWorkspaceMembers();
   }, [loadWorkspaceMembers]);
+
+  useEffect(() => {
+    void loadTeams();
+  }, [loadTeams]);
 
   useEffect(() => {
     setTriageResult(null);
@@ -786,6 +943,38 @@ export const useInboxData = () => {
         return;
       }
 
+      const selectedTeam = selectedConversation.inboxTeam
+        ? teams.find(({ id }) => id === selectedConversation.inboxTeam?.id)
+        : null;
+
+      if (selectedConversation.inboxTeam && !selectedTeam) {
+        await enqueueSnackbar({
+          message:
+            'A equipe da conversa não pôde ser validada. Atualize a Inbox.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
+      const activeTeamMemberIds = new Set(
+        getActiveTeamMembers(selectedTeam).map(({ id }) => id),
+      );
+
+      if (
+        workspaceMemberId !== null &&
+        selectedTeam &&
+        !activeTeamMemberIds.has(workspaceMemberId)
+      ) {
+        await enqueueSnackbar({
+          message:
+            'O responsável precisa ser membro ativo da equipe selecionada.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
       setBusyAction('assign-conversation');
 
       try {
@@ -820,7 +1009,116 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversation, workspaceMembers],
+    [selectedConversation, teams, workspaceMembers],
+  );
+
+  const setConversationTeam = useCallback(
+    async (teamId: string | null): Promise<void> => {
+      if (selectedConversation === null) {
+        return;
+      }
+
+      const nextTeam =
+        teamId === null
+          ? null
+          : (teams.find(({ id }) => id === teamId) ?? null);
+
+      if (teamId !== null && nextTeam === null) {
+        await enqueueSnackbar({
+          message: 'A equipe selecionada não está mais disponível.',
+          variant: 'warning',
+        });
+
+        return;
+      }
+
+      const activeMembers = getActiveTeamMembers(nextTeam);
+      const activeMemberIds = new Set(activeMembers.map(({ id }) => id));
+      let nextAssignee =
+        selectedConversation.assignee &&
+        (nextTeam === null ||
+          activeMemberIds.has(selectedConversation.assignee.id))
+          ? selectedConversation.assignee
+          : null;
+
+      if (nextTeam?.routingStrategy === 'BALANCED') {
+        nextAssignee = getLeastLoadedTeamMember({
+          team: nextTeam,
+          conversations,
+          excludedConversationId: selectedConversation.id,
+        });
+      }
+
+      const shouldResetResponseSla =
+        nextTeam !== null && !selectedConversation.firstRespondedAt;
+      const nextFirstResponseDueAt = shouldResetResponseSla
+        ? new Date(
+            Date.now() +
+              Math.max(1, nextTeam.defaultResponseSlaMinutes) * 60_000,
+          ).toISOString()
+        : selectedConversation.firstResponseDueAt;
+
+      setBusyAction('assign-team');
+
+      try {
+        await new CoreApiClient().mutation({
+          updateInboxConversation: {
+            __args: {
+              id: selectedConversation.id,
+              data: {
+                inboxTeamId: teamId,
+                assigneeId: nextAssignee?.id ?? null,
+                firstResponseDueAt: nextFirstResponseDueAt,
+                ...(shouldResetResponseSla
+                  ? {
+                      slaBreachedAt: null,
+                    }
+                  : {}),
+              },
+            },
+            id: true,
+          },
+        } as never);
+
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === selectedConversation.id
+              ? {
+                  ...conversation,
+                  inboxTeam: nextTeam
+                    ? {
+                        ...nextTeam,
+                        memberships: undefined,
+                      }
+                    : null,
+                  assignee: nextAssignee,
+                  firstResponseDueAt: nextFirstResponseDueAt,
+                  slaBreachedAt: shouldResetResponseSla
+                    ? null
+                    : conversation.slaBreachedAt,
+                }
+              : conversation,
+          ),
+        );
+
+        await enqueueSnackbar({
+          message: nextTeam
+            ? nextAssignee
+              ? `Conversa enviada para ${nextTeam.name} e distribuída.`
+              : `Conversa enviada para ${nextTeam.name}, aguardando responsável.`
+            : 'Conversa removida da fila de equipe.',
+          variant: 'success',
+        });
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [conversations, selectedConversation, teams],
   );
 
   const setConversationPriority = useCallback(
@@ -920,6 +1218,36 @@ export const useInboxData = () => {
       if (assigneeId !== null && assignee === null) {
         await enqueueSnackbar({
           message: 'O responsável selecionado não está mais disponível.',
+          variant: 'warning',
+        });
+
+        return false;
+      }
+
+      const selectedTeam = selectedConversation.inboxTeam
+        ? teams.find(({ id }) => id === selectedConversation.inboxTeam?.id)
+        : null;
+
+      if (selectedConversation.inboxTeam && !selectedTeam) {
+        await enqueueSnackbar({
+          message:
+            'A equipe da conversa não pôde ser validada. Atualize a Inbox.',
+          variant: 'warning',
+        });
+
+        return false;
+      }
+
+      if (
+        assigneeId !== null &&
+        selectedTeam &&
+        !getActiveTeamMembers(selectedTeam).some(
+          ({ id }) => id === assigneeId,
+        )
+      ) {
+        await enqueueSnackbar({
+          message:
+            'O responsável da tarefa precisa pertencer à equipe da conversa.',
           variant: 'warning',
         });
 
@@ -1070,7 +1398,7 @@ export const useInboxData = () => {
         setBusyAction(null);
       }
     },
-    [selectedConversation, workspaceMembers],
+    [selectedConversation, teams, workspaceMembers],
   );
 
   const completeConversationTask = useCallback(
@@ -1542,6 +1870,7 @@ export const useInboxData = () => {
     savedReplies,
     labels,
     workspaceMembers,
+    teams,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -1556,6 +1885,7 @@ export const useInboxData = () => {
     applySavedReply,
     toggleConversationLabel,
     setConversationAssignee,
+    setConversationTeam,
     setConversationPriority,
     createConversationTask,
     completeConversationTask,

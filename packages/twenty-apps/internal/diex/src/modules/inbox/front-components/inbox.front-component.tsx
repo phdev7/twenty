@@ -25,6 +25,7 @@ export const InboxFrontComponent = () => {
   const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
   const [labelFilterId, setLabelFilterId] = useState('ALL');
   const [assigneeFilterId, setAssigneeFilterId] = useState('ALL');
+  const [teamFilterId, setTeamFilterId] = useState('ALL');
   const [attentionFilter, setAttentionFilter] =
     useState<InboxAttentionFilter>('ALL');
   const {
@@ -32,6 +33,7 @@ export const InboxFrontComponent = () => {
     savedReplies,
     labels,
     workspaceMembers,
+    teams,
     selectedConversation,
     selectedConversationId,
     messages,
@@ -45,6 +47,7 @@ export const InboxFrontComponent = () => {
     applySavedReply,
     toggleConversationLabel,
     setConversationAssignee,
+    setConversationTeam,
     setConversationPriority,
     createConversationTask,
     completeConversationTask,
@@ -78,6 +81,16 @@ export const InboxFrontComponent = () => {
         );
 
       if (!matchesLabel) {
+        return false;
+      }
+
+      const matchesTeam =
+        teamFilterId === 'ALL' ||
+        (teamFilterId === 'UNASSIGNED'
+          ? !conversation.inboxTeam?.id
+          : conversation.inboxTeam?.id === teamFilterId);
+
+      if (!matchesTeam) {
         return false;
       }
 
@@ -119,6 +132,7 @@ export const InboxFrontComponent = () => {
         getRecordName(conversation.person),
         getRecordName(conversation.company),
         getRecordName(conversation.opportunity),
+        conversation.inboxTeam?.name,
         getRecordName(conversation.assignee),
         ...conversation.labelAssignments
           .filter(({ isActive }) => isActive)
@@ -136,6 +150,7 @@ export const InboxFrontComponent = () => {
     filter,
     labelFilterId,
     query,
+    teamFilterId,
   ]);
 
   return (
@@ -158,6 +173,8 @@ export const InboxFrontComponent = () => {
           labelFilterId={labelFilterId}
           workspaceMembers={workspaceMembers}
           assigneeFilterId={assigneeFilterId}
+          teams={teams}
+          teamFilterId={teamFilterId}
           attentionFilter={attentionFilter}
           isLoading={isLoadingConversations}
           errorMessage={errorMessage}
@@ -165,6 +182,7 @@ export const InboxFrontComponent = () => {
           onFilterChange={setFilter}
           onLabelFilterChange={setLabelFilterId}
           onAssigneeFilterChange={setAssigneeFilterId}
+          onTeamFilterChange={setTeamFilterId}
           onAttentionFilterChange={setAttentionFilter}
           onSelect={selectConversation}
           onRefresh={loadConversations}
@@ -187,9 +205,11 @@ export const InboxFrontComponent = () => {
           conversation={selectedConversation}
           labels={labels}
           workspaceMembers={workspaceMembers}
+          teams={teams}
           busyAction={busyAction}
           onToggleLabel={toggleConversationLabel}
           onAssign={setConversationAssignee}
+          onTeamChange={setConversationTeam}
           onPriorityChange={setConversationPriority}
           onCreateTask={createConversationTask}
           onCompleteTask={completeConversationTask}
