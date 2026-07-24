@@ -5,6 +5,7 @@ import { enqueueSnackbar, useUserId } from 'twenty-sdk/front-component';
 
 import {
   CUSTOMER_SUCCESS_HANDOFF_ROUTE,
+  CUSTOMER_SUCCESS_MILESTONE_ACTION_ROUTE,
   CUSTOMER_SUCCESS_REVIEW_ROUTE,
 } from 'src/modules/customer-success-command-center/constants/customer-success-command-center.constants';
 import {
@@ -15,6 +16,10 @@ import {
   type CustomerSuccessHandoffPreviewResult,
   type CustomerSuccessHandoffResult,
   type CustomerSuccessMilestone,
+  type CustomerSuccessMilestoneActionApplyResult,
+  type CustomerSuccessMilestoneActionDraft,
+  type CustomerSuccessMilestoneActionPreviewResult,
+  type CustomerSuccessMilestoneActionResult,
   type CustomerSuccessPlan,
   type CustomerSuccessReviewResult,
   type CustomerSuccessWorkspaceMember,
@@ -82,6 +87,9 @@ export const useCustomerSuccessCommandCenter = () => {
   const [handoffPreviews, setHandoffPreviews] = useState<
     Record<string, CustomerSuccessHandoffPreviewResult>
   >({});
+  const [milestoneActionPreviews, setMilestoneActionPreviews] = useState<
+    Record<string, CustomerSuccessMilestoneActionPreviewResult>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [busyReview, setBusyReview] = useState<{
     planId: string;
@@ -89,6 +97,10 @@ export const useCustomerSuccessCommandCenter = () => {
   } | null>(null);
   const [busyHandoff, setBusyHandoff] = useState<{
     opportunityId: string;
+    mode: ReviewMode;
+  } | null>(null);
+  const [busyMilestoneAction, setBusyMilestoneAction] = useState<{
+    milestoneId: string;
     mode: ReviewMode;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -486,6 +498,129 @@ export const useCustomerSuccessCommandCenter = () => {
     });
   }, []);
 
+  const previewMilestoneAction = useCallback(
+    async (
+      milestoneId: string,
+      draft: CustomerSuccessMilestoneActionDraft,
+    ): Promise<boolean> => {
+      setBusyMilestoneAction({ milestoneId, mode: 'PREVIEW' });
+
+      try {
+        const result =
+          await new RestApiClient().post<CustomerSuccessMilestoneActionResult>(
+            `/s${CUSTOMER_SUCCESS_MILESTONE_ACTION_ROUTE}`,
+            {
+              milestoneId,
+              ...draft,
+              previewOnly: true,
+              confirmUpdate: false,
+            },
+          );
+
+        if (result.mode !== 'PREVIEW' || result.milestoneId !== milestoneId) {
+          throw new Error('A ação do marco retornou uma prévia inválida.');
+        }
+
+        setMilestoneActionPreviews((current) => ({
+          ...current,
+          [milestoneId]: result,
+        }));
+        await enqueueSnackbar({
+          message: result.supported
+            ? 'Prévia do marco gerada sem alterar registros.'
+            : result.blockedReason,
+          variant: result.supported ? 'success' : 'warning',
+        });
+
+        return result.supported;
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+
+        return false;
+      } finally {
+        setBusyMilestoneAction(null);
+      }
+    },
+    [],
+  );
+
+  const confirmMilestoneAction = useCallback(
+    async (
+      milestoneId: string,
+      draft: CustomerSuccessMilestoneActionDraft,
+      confirmationToken: string,
+    ): Promise<boolean> => {
+      setBusyMilestoneAction({ milestoneId, mode: 'APPLY' });
+
+      try {
+        const result =
+          await new RestApiClient().post<CustomerSuccessMilestoneActionApplyResult>(
+            `/s${CUSTOMER_SUCCESS_MILESTONE_ACTION_ROUTE}`,
+            {
+              milestoneId,
+              ...draft,
+              previewOnly: false,
+              confirmUpdate: true,
+              confirmationToken,
+            },
+          );
+
+        if (
+          result.mode !== 'APPLY' ||
+          result.milestoneUpdated !== true ||
+          result.milestoneId !== milestoneId
+        ) {
+          throw new Error('A atualização do marco não foi confirmada.');
+        }
+
+        setMilestoneActionPreviews((current) => {
+          const next = { ...current };
+
+          delete next[milestoneId];
+
+          return next;
+        });
+        await load();
+        await enqueueSnackbar({
+          message:
+            result.warnings.length > 0
+              ? `${result.message} Revise ${result.warnings.length} alerta(s).`
+              : result.message,
+          variant: result.warnings.length > 0 ? 'warning' : 'success',
+        });
+
+        return true;
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+
+        return false;
+      } finally {
+        setBusyMilestoneAction(null);
+      }
+    },
+    [load],
+  );
+
+  const clearMilestoneActionPreview = useCallback((milestoneId: string) => {
+    setMilestoneActionPreviews((current) => {
+      if (!(milestoneId in current)) {
+        return current;
+      }
+
+      const next = { ...current };
+
+      delete next[milestoneId];
+
+      return next;
+    });
+  }, []);
+
   return {
     plans,
     handoffOpportunities,
@@ -493,14 +628,19 @@ export const useCustomerSuccessCommandCenter = () => {
     currentWorkspaceMemberId,
     reviews,
     handoffPreviews,
+    milestoneActionPreviews,
     isLoading,
     busyReview,
     busyHandoff,
+    busyMilestoneAction,
     errorMessage,
     load,
     reviewPlan,
     previewHandoff,
     confirmHandoff,
     clearHandoffPreview,
+    previewMilestoneAction,
+    confirmMilestoneAction,
+    clearMilestoneActionPreview,
   };
 };

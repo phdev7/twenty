@@ -46,6 +46,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   horizonte de renovação, marcos e revisão inteligente aplicável.
 - handoff confirmado de oportunidade ganha para Customer Success, com vínculo
   de origem, responsável, receita, renovação, cinco marcos e tarefa de kickoff.
+- execução governada de marcos de CS para iniciar, bloquear ou concluir com
+  resultado, evidência, impacto e reflexo automático no plano.
 
 ### Respostas prontas
 
@@ -214,6 +216,18 @@ A mesma operação está disponível no MCP como
 `handoff-won-opportunity-to-customer-success`. O uso correto exige primeiro
 `previewOnly=true`; a criação só ocorre com `confirmCreate=true` e o token
 temporário devolvido pela prévia. Nenhuma comunicação externa é enviada.
+
+Na carteira de CS, cada marco agora abre uma operação própria. O responsável
+pode iniciar ou retomar o trabalho, registrar um bloqueio com motivo e
+evidência, ou concluir com resultado verificável e impacto de 1 a 5. A prévia
+mostra a mudança de status, a próxima revisão, o risco, a jornada e os sinais
+que serão refletidos no plano. A confirmação usa token temporário e não envia
+mensagens.
+
+O MCP expõe a mesma operação como
+`update-diex-customer-success-milestone`. Use `previewOnly=true` primeiro e
+confirme somente com `confirmUpdate=true` e o token recebido. A conclusão exige
+resultado, evidência e impacto; o bloqueio exige uma causa verificável.
 
 `Diex > Renovações` usa uma esteira horizontal de retenção com seis etapas,
 forecast ponderado, receita sob risco, prazo, probabilidade e próxima ação.

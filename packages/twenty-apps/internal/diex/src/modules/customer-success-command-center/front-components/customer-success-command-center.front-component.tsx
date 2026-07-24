@@ -28,6 +28,8 @@ import { customerSuccessCommandCenterStyles as styles } from 'src/modules/custom
 import {
   type CustomerSuccessHandoffDraft,
   type CustomerSuccessHandoffOpportunity,
+  type CustomerSuccessMilestoneAction,
+  type CustomerSuccessMilestoneActionDraft,
   type CustomerSuccessMoney,
   type CustomerSuccessPlan,
   type CustomerSuccessRecordReference,
@@ -122,6 +124,15 @@ const getMilestoneTone = (status?: string | null): BadgeTone =>
       CANCELLED: 'orange',
     }) as Record<string, BadgeTone>
   )[status ?? ''] ?? 'gray';
+
+const getMilestoneActionLabel = (
+  action: CustomerSuccessMilestoneAction,
+): string =>
+  ({
+    START: 'Iniciar ou retomar',
+    BLOCK: 'Registrar bloqueio',
+    COMPLETE: 'Concluir com evidência',
+  })[action];
 
 const moneyAmount = (money?: CustomerSuccessMoney | null): number =>
   (money?.amountMicros ?? 0) / 1_000_000;
@@ -297,15 +308,20 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
     currentWorkspaceMemberId,
     reviews,
     handoffPreviews,
+    milestoneActionPreviews,
     isLoading,
     busyReview,
     busyHandoff,
+    busyMilestoneAction,
     errorMessage,
     load,
     reviewPlan,
     previewHandoff,
     confirmHandoff,
     clearHandoffPreview,
+    previewMilestoneAction,
+    confirmMilestoneAction,
+    clearMilestoneActionPreview,
   } = useCustomerSuccessCommandCenter();
   const [filter, setFilter] = useState('ALL');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -313,6 +329,16 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
     useState<string | null>(null);
   const [handoffDraft, setHandoffDraft] =
     useState<CustomerSuccessHandoffDraft | null>(null);
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(
+    null,
+  );
+  const [milestoneActionDraft, setMilestoneActionDraft] =
+    useState<CustomerSuccessMilestoneActionDraft>({
+      action: 'START',
+      outcome: '',
+      evidence: '',
+      impact: 'RATING_3',
+    });
 
   const metrics = useMemo(() => {
     const currencyCounts = plans.reduce<Record<string, number>>(
@@ -455,6 +481,16 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
         : [],
     [selectedPlan],
   );
+  const selectedMilestone =
+    selectedMilestones.find(({ id }) => id === selectedMilestoneId) ??
+    selectedMilestones.find(
+      ({ status }) => status !== 'COMPLETED' && status !== 'CANCELLED',
+    ) ??
+    selectedMilestones[0] ??
+    null;
+  const milestoneActionPreview = selectedMilestone
+    ? (milestoneActionPreviews[selectedMilestone.id] ?? null)
+    : null;
   const renewalHorizon = useMemo(
     () =>
       plans
@@ -508,6 +544,34 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
     }
   }, [selectedPlanId, visiblePlans]);
 
+  useEffect(() => {
+    if (
+      selectedMilestoneId === null ||
+      !selectedMilestones.some(({ id }) => id === selectedMilestoneId)
+    ) {
+      setSelectedMilestoneId(
+        selectedMilestones.find(
+          ({ status }) => status !== 'COMPLETED' && status !== 'CANCELLED',
+        )?.id ??
+          selectedMilestones[0]?.id ??
+          null,
+      );
+    }
+  }, [selectedMilestoneId, selectedMilestones]);
+
+  useEffect(() => {
+    if (!selectedMilestone) {
+      return;
+    }
+
+    setMilestoneActionDraft({
+      action: selectedMilestone.status === 'IN_PROGRESS' ? 'COMPLETE' : 'START',
+      outcome: selectedMilestone.outcome?.markdown?.trim() || '',
+      evidence: selectedMilestone.evidence?.markdown?.trim() || '',
+      impact: selectedMilestone.impact || 'RATING_3',
+    });
+  }, [selectedMilestone?.id, selectedMilestone?.status]);
+
   const updateHandoffDraft = (
     patch: Partial<CustomerSuccessHandoffDraft>,
   ): void => {
@@ -524,6 +588,20 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
           }
         : current,
     );
+  };
+
+  const updateMilestoneActionDraft = (
+    patch: Partial<CustomerSuccessMilestoneActionDraft>,
+  ): void => {
+    if (!selectedMilestone) {
+      return;
+    }
+
+    clearMilestoneActionPreview(selectedMilestone.id);
+    setMilestoneActionDraft((current) => ({
+      ...current,
+      ...patch,
+    }));
   };
 
   const totalForRing = Math.max(plans.length, 1);
@@ -1324,10 +1402,13 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
                           <button
                             key={milestone.id}
                             type="button"
-                            style={styles.milestoneButton}
-                            onClick={() =>
-                              void openRecord(milestone.id, 'successMilestone')
-                            }
+                            style={{
+                              ...styles.milestoneButton,
+                              ...(selectedMilestone?.id === milestone.id
+                                ? styles.milestoneButtonSelected
+                                : {}),
+                            }}
+                            onClick={() => setSelectedMilestoneId(milestone.id)}
                           >
                             <IconFlag
                               size={themeCssVariables.icon.size.sm}
@@ -1348,6 +1429,266 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
                         ))
                       )}
                     </div>
+                    {selectedMilestone ? (
+                      <Card style={styles.milestoneActionCard}>
+                        <CardHeader>
+                          <div style={styles.planTop}>
+                            <div>
+                              <p style={styles.metricLabel}>
+                                Execução do marco
+                              </p>
+                              <CardTitle>{selectedMilestone.name}</CardTitle>
+                              <CardDescription>
+                                {getMilestoneStatusLabel(
+                                  selectedMilestone.status,
+                                )}{' '}
+                                · {formatDate(selectedMilestone.dueAt)}
+                              </CardDescription>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              onClick={() =>
+                                void openRecord(
+                                  selectedMilestone.id,
+                                  'successMilestone',
+                                )
+                              }
+                            >
+                              <IconExternalLink
+                                size={themeCssVariables.icon.size.sm}
+                                stroke={themeCssVariables.icon.stroke.md}
+                              />
+                              Registro
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent style={styles.milestoneActionBody}>
+                          {selectedMilestone.status === 'COMPLETED' ||
+                          selectedMilestone.status === 'CANCELLED' ? (
+                            <div style={styles.milestoneActionClosed}>
+                              <IconCheck
+                                size={themeCssVariables.icon.size.md}
+                                stroke={themeCssVariables.icon.stroke.md}
+                              />
+                              <div>
+                                <p style={styles.planName}>Marco encerrado</p>
+                                <p style={styles.smallMuted}>
+                                  {selectedMilestone.outcome?.markdown ||
+                                    'Abra o registro para consultar os detalhes.'}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div style={styles.milestoneActionGrid}>
+                                <label style={styles.handoffField}>
+                                  <span style={styles.metricLabel}>Ação</span>
+                                  <select
+                                    aria-label="Ação do marco"
+                                    value={milestoneActionDraft.action}
+                                    style={styles.handoffInput}
+                                    onChange={(event) =>
+                                      updateMilestoneActionDraft({
+                                        action: event.target
+                                          .value as CustomerSuccessMilestoneAction,
+                                      })
+                                    }
+                                  >
+                                    <option value="START">
+                                      Iniciar ou retomar
+                                    </option>
+                                    <option value="BLOCK">
+                                      Registrar bloqueio
+                                    </option>
+                                    <option value="COMPLETE">
+                                      Concluir com evidência
+                                    </option>
+                                  </select>
+                                </label>
+                                {milestoneActionDraft.action === 'COMPLETE' ? (
+                                  <label style={styles.handoffField}>
+                                    <span style={styles.metricLabel}>
+                                      Impacto
+                                    </span>
+                                    <select
+                                      aria-label="Impacto do marco"
+                                      value={milestoneActionDraft.impact}
+                                      style={styles.handoffInput}
+                                      onChange={(event) =>
+                                        updateMilestoneActionDraft({
+                                          impact: event.target.value,
+                                        })
+                                      }
+                                    >
+                                      {[1, 2, 3, 4, 5].map((rating) => (
+                                        <option
+                                          key={rating}
+                                          value={`RATING_${rating}`}
+                                        >
+                                          {rating} de 5
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </label>
+                                ) : null}
+                              </div>
+
+                              {milestoneActionDraft.action !== 'START' ? (
+                                <>
+                                  <label style={styles.handoffField}>
+                                    <span style={styles.metricLabel}>
+                                      {milestoneActionDraft.action === 'BLOCK'
+                                        ? 'Motivo do bloqueio'
+                                        : 'Resultado alcançado'}
+                                    </span>
+                                    <textarea
+                                      aria-label="Resultado ou bloqueio do marco"
+                                      value={milestoneActionDraft.outcome}
+                                      style={styles.handoffTextarea}
+                                      onChange={(event) =>
+                                        updateMilestoneActionDraft({
+                                          outcome: event.target.value,
+                                        })
+                                      }
+                                    />
+                                  </label>
+                                  <label style={styles.handoffField}>
+                                    <span style={styles.metricLabel}>
+                                      Evidência{' '}
+                                      {milestoneActionDraft.action === 'BLOCK'
+                                        ? 'opcional'
+                                        : 'obrigatória'}
+                                    </span>
+                                    <textarea
+                                      aria-label="Evidência do marco"
+                                      value={milestoneActionDraft.evidence}
+                                      style={styles.handoffTextarea}
+                                      onChange={(event) =>
+                                        updateMilestoneActionDraft({
+                                          evidence: event.target.value,
+                                        })
+                                      }
+                                    />
+                                  </label>
+                                </>
+                              ) : null}
+
+                              <Button
+                                variant={
+                                  milestoneActionPreview === null
+                                    ? 'default'
+                                    : 'outline'
+                                }
+                                disabled={
+                                  busyMilestoneAction?.milestoneId ===
+                                  selectedMilestone.id
+                                }
+                                onClick={() =>
+                                  void previewMilestoneAction(
+                                    selectedMilestone.id,
+                                    milestoneActionDraft,
+                                  )
+                                }
+                              >
+                                <IconTimelineEvent
+                                  size={themeCssVariables.icon.size.sm}
+                                  stroke={themeCssVariables.icon.stroke.md}
+                                />
+                                {milestoneActionPreview === null
+                                  ? `Prévia: ${getMilestoneActionLabel(
+                                      milestoneActionDraft.action,
+                                    )}`
+                                  : 'Atualizar prévia'}
+                              </Button>
+
+                              {milestoneActionPreview?.supported === false ? (
+                                <div style={styles.milestoneActionBlocked}>
+                                  <IconAlertTriangle
+                                    size={themeCssVariables.icon.size.sm}
+                                    stroke={themeCssVariables.icon.stroke.md}
+                                  />
+                                  <span>
+                                    {milestoneActionPreview.blockedReason}
+                                  </span>
+                                </div>
+                              ) : milestoneActionPreview?.supported === true ? (
+                                <div style={styles.milestoneActionPreview}>
+                                  <div>
+                                    <p style={styles.metricLabel}>
+                                      Efeitos exatos
+                                    </p>
+                                    <div
+                                      style={styles.milestoneActionEffectList}
+                                    >
+                                      {milestoneActionPreview.preview.effects.map(
+                                        (effect) => (
+                                          <p
+                                            key={effect}
+                                            style={styles.smallMuted}
+                                          >
+                                            <IconCheck
+                                              size={
+                                                themeCssVariables.icon.size.sm
+                                              }
+                                              stroke={
+                                                themeCssVariables.icon.stroke.md
+                                              }
+                                            />
+                                            {effect}
+                                          </p>
+                                        ),
+                                      )}
+                                    </div>
+                                  </div>
+                                  {milestoneActionPreview.preview.warnings.map(
+                                    (warning) => (
+                                      <p
+                                        key={warning}
+                                        style={styles.handoffWarning}
+                                      >
+                                        {warning}
+                                      </p>
+                                    ),
+                                  )}
+                                  <p style={styles.smallMuted}>
+                                    Confirmação válida até{' '}
+                                    {new Date(
+                                      milestoneActionPreview.expiresAt,
+                                    ).toLocaleTimeString('pt-BR', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                    . Nenhuma mensagem será enviada.
+                                  </p>
+                                  <Button
+                                    disabled={
+                                      busyMilestoneAction?.milestoneId ===
+                                      selectedMilestone.id
+                                    }
+                                    onClick={() =>
+                                      void confirmMilestoneAction(
+                                        selectedMilestone.id,
+                                        milestoneActionDraft,
+                                        milestoneActionPreview.confirmationToken,
+                                      )
+                                    }
+                                  >
+                                    <IconCheck
+                                      size={themeCssVariables.icon.size.sm}
+                                      stroke={themeCssVariables.icon.stroke.md}
+                                    />
+                                    Confirmar{' '}
+                                    {getMilestoneActionLabel(
+                                      milestoneActionDraft.action,
+                                    ).toLowerCase()}
+                                  </Button>
+                                </div>
+                              ) : null}
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ) : null}
                   </div>
                 </div>
 

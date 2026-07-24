@@ -198,3 +198,77 @@ export type CustomerSuccessHandoffApplyResult = {
 
 export type CustomerSuccessHandoffResult =
   CustomerSuccessHandoffPreviewResult | CustomerSuccessHandoffApplyResult;
+
+export type CustomerSuccessMilestoneAction = 'START' | 'BLOCK' | 'COMPLETE';
+
+export type CustomerSuccessMilestoneActionDraft = {
+  action: CustomerSuccessMilestoneAction;
+  outcome: string;
+  evidence: string;
+  impact: string;
+};
+
+export type CustomerSuccessMilestoneActionPreviewPayload = {
+  generatedAt: string;
+  milestone: {
+    id: string;
+    name: string;
+    category?: string;
+    dueAt?: string;
+    previousStatus: string;
+    nextStatus: string;
+    outcome?: string;
+    evidence?: string;
+    impact?: string;
+    completedAt?: string;
+  };
+  successPlan: {
+    id: string;
+    name: string;
+    previousLifecycle?: string;
+    nextLifecycle?: string;
+    previousHealth?: string;
+    nextHealth?: string;
+    nextReviewAt: string;
+    risks?: string;
+    valueEvidenceRating?: string;
+    expansionSignal?: boolean;
+  };
+  effects: string[];
+  warnings: string[];
+};
+
+export type CustomerSuccessMilestoneActionPreviewResult =
+  | {
+      mode: 'PREVIEW';
+      supported: false;
+      milestoneId: string;
+      blockedReason: string;
+      message: string;
+    }
+  | {
+      mode: 'PREVIEW';
+      supported: true;
+      milestoneId: string;
+      preview: CustomerSuccessMilestoneActionPreviewPayload;
+      confirmationToken: string;
+      expiresAt: string;
+      message: string;
+    };
+
+export type CustomerSuccessMilestoneActionApplyResult = {
+  mode: 'APPLY';
+  supported: true;
+  milestoneId: string;
+  successPlanId: string;
+  action: CustomerSuccessMilestoneAction;
+  milestoneUpdated: true;
+  successPlanUpdated: boolean;
+  warnings: string[];
+  receipt: string;
+  message: string;
+};
+
+export type CustomerSuccessMilestoneActionResult =
+  | CustomerSuccessMilestoneActionPreviewResult
+  | CustomerSuccessMilestoneActionApplyResult;
