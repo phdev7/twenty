@@ -7,11 +7,13 @@ import {
 } from 'twenty-sdk/front-component';
 import {
   IconAlertTriangle,
+  IconCalendarDue,
   IconCheck,
   IconClock,
   IconCpu,
   IconExternalLink,
   IconInbox,
+  IconListCheck,
   IconPlayerPlay,
   IconRefresh,
   IconRefreshDot,
@@ -204,6 +206,18 @@ const getLinkedRecords = (action: AiAction): LinkedRecord[] => {
     });
   }
 
+  if (action.executionTask) {
+    records.push({
+      record: {
+        id: action.executionTask.id,
+        name: action.executionTask.title || 'Tarefa executada',
+      },
+      label: 'Tarefa executada',
+      objectNameSingular: 'task',
+      icon: <IconListCheck {...iconProps} />,
+    });
+  }
+
   return records;
 };
 
@@ -216,6 +230,9 @@ export const AiCommandCenterFrontComponent = () => {
     errorMessage,
     load,
     reviewAction,
+    busyExecution,
+    executionPreviews,
+    executeAction,
   } = useAiCommandCenter();
   const [filter, setFilter] = useState<QueueFilter>('PENDING');
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
@@ -285,6 +302,9 @@ export const AiCommandCenterFrontComponent = () => {
     actions.find(({ id }) => id === selectedActionId) ??
     visibleActions[0] ??
     null;
+  const executionPreview = selectedAction
+    ? (executionPreviews[selectedAction.id] ?? null)
+    : null;
 
   useEffect(() => {
     if (
@@ -680,12 +700,132 @@ export const AiCommandCenterFrontComponent = () => {
                   ) : selectedAction.status === 'APPROVED' ? (
                     <Card variant="accent">
                       <CardHeader>
-                        <CardTitle>Aguardando executor seguro</CardTitle>
+                        <CardTitle>Executor interno seguro</CardTitle>
                         <CardDescription>
-                          A aprovação foi registrada. O Centro de IA não simula
-                          execução nem dispara efeitos externos.
+                          Converte a proposta aprovada em tarefa nativa,
+                          responsável, prazo, vínculos CRM e recibo. Comunicação
+                          externa e pipeline permanecem bloqueados.
                         </CardDescription>
                       </CardHeader>
+                      <CardContent>
+                        {executionPreview?.supported === false ? (
+                          <div style={styles.blockedExecution}>
+                            <strong>Execução direta bloqueada</strong>
+                            <span>{executionPreview.blockedReason}</span>
+                          </div>
+                        ) : executionPreview?.supported === true ? (
+                          <div style={styles.executionPreview}>
+                            <div style={styles.executionPreviewHeader}>
+                              <span style={styles.executionPreviewIcon}>
+                                <IconListCheck
+                                  size={themeCssVariables.icon.size.sm}
+                                  stroke={themeCssVariables.icon.stroke.md}
+                                />
+                              </span>
+                              <div>
+                                <strong>{executionPreview.task.title}</strong>
+                                <p style={styles.executionPreviewMeta}>
+                                  <IconCalendarDue
+                                    size={themeCssVariables.icon.size.sm}
+                                    stroke={themeCssVariables.icon.stroke.sm}
+                                  />
+                                  {formatDateTime(executionPreview.task.dueAt)}
+                                </p>
+                              </div>
+                            </div>
+                            <div style={styles.executionFactList}>
+                              <span>
+                                Responsável:{' '}
+                                <strong>
+                                  {getRecordName(
+                                    executionPreview.task.assignee,
+                                  ) || 'Membro do workspace'}
+                                </strong>
+                              </span>
+                              <span>
+                                Vínculos CRM:{' '}
+                                <strong>
+                                  {executionPreview.task.targets.length}
+                                </strong>
+                              </span>
+                              <span>
+                                Confirmação válida até:{' '}
+                                <strong>
+                                  {formatDateTime(executionPreview.expiresAt)}
+                                </strong>
+                              </span>
+                            </div>
+                            {executionPreview.task.targets.length > 0 ? (
+                              <div style={styles.executionTargets}>
+                                {executionPreview.task.targets.map((target) => (
+                                  <Badge
+                                    key={`${target.objectNameSingular}:${target.id}`}
+                                    tone="gray"
+                                  >
+                                    {target.label}
+                                  </Badge>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <div style={styles.executionGuardrail}>
+                            <IconShield
+                              size={themeCssVariables.icon.size.sm}
+                              stroke={themeCssVariables.icon.stroke.md}
+                            />
+                            A prévia não altera registros e expira em dez
+                            minutos.
+                          </div>
+                        )}
+
+                        <div
+                          style={{
+                            ...styles.executionButtons,
+                            marginTop: themeCssVariables.spacing[3],
+                          }}
+                        >
+                          <Button
+                            variant={
+                              executionPreview === null ? 'default' : 'ghost'
+                            }
+                            disabled={
+                              busyExecution?.actionId === selectedAction.id
+                            }
+                            onClick={() =>
+                              void executeAction(selectedAction.id, 'PREVIEW')
+                            }
+                          >
+                            <IconRefresh
+                              size={themeCssVariables.icon.size.sm}
+                              stroke={themeCssVariables.icon.stroke.md}
+                            />
+                            {executionPreview === null
+                              ? 'Gerar prévia'
+                              : 'Atualizar prévia'}
+                          </Button>
+                          {executionPreview?.supported === true ? (
+                            <Button
+                              disabled={
+                                busyExecution?.actionId === selectedAction.id
+                              }
+                              onClick={() =>
+                                void executeAction(
+                                  selectedAction.id,
+                                  'APPLY',
+                                  executionPreview.confirmationToken,
+                                )
+                              }
+                            >
+                              <IconPlayerPlay
+                                size={themeCssVariables.icon.size.sm}
+                                stroke={themeCssVariables.icon.stroke.md}
+                              />
+                              Confirmar e criar tarefa
+                            </Button>
+                          ) : null}
+                        </div>
+                      </CardContent>
                     </Card>
                   ) : null}
                 </aside>

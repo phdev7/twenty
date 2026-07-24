@@ -32,8 +32,60 @@ export type AiAction = {
   customerRenewal?: AiRecordReference | null;
   inboxConversation?: AiRecordReference | null;
   reviewer?: AiRecordReference | null;
+  executor?: AiRecordReference | null;
+  executionTask?: {
+    id: string;
+    title?: string | null;
+    dueAt?: string | null;
+    status?: string | null;
+  } | null;
 };
 
 export type CurrentReviewer = AiRecordReference & {
   userId?: string | null;
 };
+
+export type AiActionExecutionTaskPreview = {
+  id: string;
+  title: string;
+  dueAt: string;
+  assignee: AiRecordReference;
+  targets: Array<{
+    id: string;
+    label: string;
+    objectNameSingular: 'company' | 'person' | 'opportunity';
+  }>;
+  body: string;
+};
+
+export type AiActionExecutionPreview =
+  | {
+      mode: 'PREVIEW';
+      supported: false;
+      actionId: string;
+      blockedReason: string;
+      message: string;
+    }
+  | {
+      mode: 'PREVIEW';
+      supported: true;
+      actionId: string;
+      task: AiActionExecutionTaskPreview;
+      confirmationToken: string;
+      expiresAt: string;
+      message: string;
+    };
+
+export type AiActionExecutionApplyResult = {
+  mode: 'APPLY';
+  supported: true;
+  actionId: string;
+  executed: true;
+  alreadyExecuted: boolean;
+  task: AiActionExecutionTaskPreview | null;
+  receipt: string;
+  message: string;
+};
+
+export type AiActionExecutionResult =
+  AiActionExecutionPreview | AiActionExecutionApplyResult;

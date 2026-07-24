@@ -10,7 +10,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - sinais de intenção, objeção, risco, expansão e churn;
 - planos e marcos de Customer Success;
 - saúde de carteira e pressão de renovação;
-- fila de ações propostas pela IA com aprovação e recibo;
+- fila de ações propostas pela IA com aprovação, executor interno seguro e
+  recibo;
 - agentes e skills especializados em vendas e CS;
 - inbox comercial ligado aos registros nativos do CRM;
 - respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso;
@@ -33,7 +34,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - cockpit de inteligência comercial com radar de sinais, ranking de
   oportunidades e fila acionável.
 - Centro de IA com fila de decisão, evidências, contexto do CRM, aprovação
-  humana e trilha de auditoria sem execução externa automática.
+  humana e execução confirmada como tarefa nativa, com prazo, responsável,
+  vínculos CRM, idempotência e trilha de auditoria.
 - painel de Customer Success com jornada da carteira, receita sob risco,
   horizonte de renovação, marcos e revisão inteligente aplicável.
 
@@ -118,6 +120,23 @@ menções e triagens de IA registram autor, data, resumo e detalhes.
 A visão `Diex > Histórico da inbox` permite auditoria transversal por conversa
 sem depender de texto solto em notas internas. Falha ao registrar o evento não
 é ocultada: a ação concluída retorna aviso para revisão operacional.
+
+### Executor interno da IA
+
+Em `Diex > Centro de IA`, propostas aprovadas dos tipos qualificação,
+follow-up, mitigação de risco, intervenção de CS e expansão podem virar uma
+tarefa nativa do Twenty. Primeiro o operador gera a prévia; depois confirma a
+tarefa exata, o prazo, o responsável e os vínculos com empresa, pessoa e
+oportunidade.
+
+A confirmação é individual, vinculada ao workspace, expira em dez minutos e é
+consumida uma única vez. A tarefa possui identificador determinístico para
+evitar duplicidade e a ação registra executor, data, tarefa e recibo.
+
+Respostas externas continuam obrigatoriamente no fluxo de prévia e confirmação
+da Inbox. Mudanças de pipeline permanecem bloqueadas enquanto não houver origem
+e destino estruturados; texto livre aprovado nunca altera etapa
+automaticamente.
 
 ### Páginas operacionais
 
