@@ -10,8 +10,7 @@ export default defineNavigationMenuItem({
   universalIdentifier: 'd1e08000-0000-4000-8000-000000000004',
   type: NavigationMenuItemType.VIEW,
   icon: 'IconHeartHandshake',
-  position: 3,
+  position: 5,
   folderUniversalIdentifier: DIEX_FOLDER_UNIVERSAL_IDENTIFIER,
-  viewUniversalIdentifier:
-    CUSTOMER_SUCCESS_PORTFOLIO_VIEW_UNIVERSAL_IDENTIFIER,
+  viewUniversalIdentifier: CUSTOMER_SUCCESS_PORTFOLIO_VIEW_UNIVERSAL_IDENTIFIER,
 });

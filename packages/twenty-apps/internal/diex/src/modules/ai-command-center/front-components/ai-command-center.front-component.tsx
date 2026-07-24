@@ -1,0 +1,764 @@
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { defineFrontComponent } from 'twenty-sdk/define';
+import {
+  SidePanelPages,
+  enqueueSnackbar,
+  openSidePanelPage,
+} from 'twenty-sdk/front-component';
+import {
+  IconAlertTriangle,
+  IconCheck,
+  IconClock,
+  IconCpu,
+  IconExternalLink,
+  IconInbox,
+  IconPlayerPlay,
+  IconRefresh,
+  IconRobot,
+  IconShield,
+  IconTarget,
+  IconX,
+} from 'twenty-ui/icon';
+import { themeCssVariables } from 'twenty-ui/theme-constants';
+
+import { AI_COMMAND_CENTER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/ai-command-center/constants/ai-command-center.constants';
+import { aiCommandCenterStyles as styles } from 'src/modules/ai-command-center/front-components/ai-command-center.styles';
+import {
+  type AiAction,
+  type AiRecordReference,
+} from 'src/modules/ai-command-center/front-components/ai-command-center.types';
+import { useAiCommandCenter } from 'src/modules/ai-command-center/front-components/use-ai-command-center';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Progress,
+  Skeleton,
+} from 'src/ui/shadcn-twenty';
+
+type BadgeTone =
+  'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'turquoise' | 'gray';
+type QueueFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'HISTORY';
+type LinkedRecord = {
+  record: AiRecordReference;
+  label: string;
+  objectNameSingular: string;
+  icon: ReactNode;
+};
+
+const getRecordName = (record?: AiRecordReference | null): string => {
+  if (!record?.name) {
+    return '';
+  }
+
+  if (typeof record.name === 'string') {
+    return record.name;
+  }
+
+  return [record.name.firstName, record.name.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+};
+
+const getTypeLabel = (type: string): string =>
+  ({
+    QUALIFY: 'Qualificar',
+    REPLY: 'Responder',
+    FOLLOW_UP: 'Follow-up',
+    PIPELINE_UPDATE: 'Atualizar pipeline',
+    RISK_MITIGATION: 'Mitigar risco',
+    CS_INTERVENTION: 'Intervenção de CS',
+    EXPANSION: 'Expansão',
+  })[type] ?? type;
+
+const getStatusLabel = (status: string): string =>
+  ({
+    DRAFT: 'Rascunho',
+    PENDING_APPROVAL: 'Aguardando aprovação',
+    APPROVED: 'Aprovada',
+    REJECTED: 'Rejeitada',
+    EXECUTED: 'Executada',
+    FAILED: 'Falhou',
+  })[status] ?? status;
+
+const getStatusTone = (status: string): BadgeTone =>
+  (
+    ({
+      DRAFT: 'gray',
+      PENDING_APPROVAL: 'orange',
+      APPROVED: 'blue',
+      REJECTED: 'red',
+      EXECUTED: 'green',
+      FAILED: 'red',
+    }) as Record<string, BadgeTone>
+  )[status] ?? 'gray';
+
+const formatDateTime = (value?: string | null): string => {
+  if (!value) {
+    return 'sem data';
+  }
+
+  const date = new Date(value);
+
+  return Number.isFinite(date.getTime())
+    ? date.toLocaleString('pt-BR', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      })
+    : 'sem data';
+};
+
+const openRecord = async (
+  recordId: string,
+  objectNameSingular: string,
+): Promise<void> => {
+  try {
+    await openSidePanelPage({
+      page: SidePanelPages.ViewRecord,
+      recordId,
+      objectNameSingular,
+    });
+  } catch {
+    await enqueueSnackbar({
+      message: 'Não foi possível abrir este registro.',
+      variant: 'error',
+    });
+  }
+};
+
+const MetricCard = ({
+  label,
+  value,
+  tone,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  tone: BadgeTone;
+  icon: ReactNode;
+}) => (
+  <Card style={styles.metricCard}>
+    <div style={styles.queueTopLine}>
+      <p style={styles.metricLabel}>{label}</p>
+      <Badge tone={tone}>{icon}</Badge>
+    </div>
+    <p style={styles.metricValue}>{value}</p>
+  </Card>
+);
+
+const getLinkedRecords = (action: AiAction): LinkedRecord[] => {
+  const records: LinkedRecord[] = [];
+  const iconProps = {
+    size: themeCssVariables.icon.size.sm,
+    stroke: themeCssVariables.icon.stroke.md,
+  };
+
+  if (action.opportunity) {
+    records.push({
+      record: action.opportunity,
+      label: 'Oportunidade',
+      objectNameSingular: 'opportunity',
+      icon: <IconTarget {...iconProps} />,
+    });
+  }
+
+  if (action.commercialSignal) {
+    records.push({
+      record: action.commercialSignal,
+      label: 'Sinal comercial',
+      objectNameSingular: 'commercialSignal',
+      icon: <IconAlertTriangle {...iconProps} />,
+    });
+  }
+
+  if (action.successPlan) {
+    records.push({
+      record: action.successPlan,
+      label: 'Plano de sucesso',
+      objectNameSingular: 'successPlan',
+      icon: <IconShield {...iconProps} />,
+    });
+  }
+
+  if (action.inboxConversation) {
+    records.push({
+      record: action.inboxConversation,
+      label: 'Conversa',
+      objectNameSingular: 'inboxConversation',
+      icon: <IconInbox {...iconProps} />,
+    });
+  }
+
+  return records;
+};
+
+export const AiCommandCenterFrontComponent = () => {
+  const {
+    actions,
+    currentReviewer,
+    isLoading,
+    busyActionId,
+    errorMessage,
+    load,
+    reviewAction,
+  } = useAiCommandCenter();
+  const [filter, setFilter] = useState<QueueFilter>('PENDING');
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState('');
+
+  const metrics = useMemo(() => {
+    const pending = actions.filter(
+      ({ status }) => status === 'PENDING_APPROVAL',
+    );
+    const approved = actions.filter(({ status }) => status === 'APPROVED');
+    const executed = actions.filter(({ status }) => status === 'EXECUTED');
+    const failed = actions.filter(({ status }) => status === 'FAILED');
+    const reviewed = actions.filter(
+      ({ status }) => status === 'APPROVED' || status === 'REJECTED',
+    );
+    const approvalRate =
+      reviewed.length === 0
+        ? 0
+        : Math.round(
+            (reviewed.filter(({ status }) => status === 'APPROVED').length /
+              reviewed.length) *
+              100,
+          );
+
+    return {
+      pending,
+      approved,
+      executed,
+      failed,
+      approvalRate,
+    };
+  }, [actions]);
+
+  const visibleActions = useMemo(() => {
+    const filtered = actions.filter((action) => {
+      if (filter === 'PENDING') {
+        return action.status === 'PENDING_APPROVAL';
+      }
+
+      if (filter === 'APPROVED') {
+        return action.status === 'APPROVED';
+      }
+
+      if (filter === 'HISTORY') {
+        return ['REJECTED', 'EXECUTED', 'FAILED'].includes(action.status);
+      }
+
+      return true;
+    });
+
+    return [...filtered].sort((left, right) => {
+      const leftPending = left.status === 'PENDING_APPROVAL' ? 1 : 0;
+      const rightPending = right.status === 'PENDING_APPROVAL' ? 1 : 0;
+
+      if (leftPending !== rightPending) {
+        return rightPending - leftPending;
+      }
+
+      return (
+        new Date(right.requestedAt ?? 0).getTime() -
+        new Date(left.requestedAt ?? 0).getTime()
+      );
+    });
+  }, [actions, filter]);
+
+  const selectedAction =
+    actions.find(({ id }) => id === selectedActionId) ??
+    visibleActions[0] ??
+    null;
+
+  useEffect(() => {
+    if (
+      selectedActionId === null ||
+      !visibleActions.some(({ id }) => id === selectedActionId)
+    ) {
+      setSelectedActionId(visibleActions[0]?.id ?? null);
+    }
+  }, [selectedActionId, visibleActions]);
+
+  useEffect(() => {
+    setReviewNote('');
+  }, [selectedAction?.id]);
+
+  if (isLoading && actions.length === 0) {
+    return (
+      <div style={styles.root}>
+        <Skeleton style={{ minHeight: 92 }} />
+        <div style={styles.metricStrip}>
+          <Skeleton style={{ minHeight: 88 }} />
+          <Skeleton style={{ minHeight: 88 }} />
+          <Skeleton style={{ minHeight: 88 }} />
+          <Skeleton style={{ minHeight: 88 }} />
+        </div>
+        <div style={styles.consoleGrid}>
+          <Skeleton style={{ minHeight: 520 }} />
+          <Skeleton style={{ minHeight: 520 }} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.root}>
+      <Card style={styles.consoleHeader}>
+        <div style={styles.consoleIdentity}>
+          <span style={styles.consoleIcon}>
+            <IconRobot
+              size={themeCssVariables.icon.size.lg}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          </span>
+          <div>
+            <h1 style={styles.title}>Centro de IA</h1>
+            <p style={styles.subtitle}>
+              Propostas rastreáveis, decisão humana e recibo antes de qualquer
+              efeito externo.
+            </p>
+          </div>
+        </div>
+        <div style={styles.systemStatus}>
+          <span style={styles.pulse} />
+          <div>
+            <p style={styles.queueTitle}>Governança ativa</p>
+            <p style={styles.queueMeta}>
+              {currentReviewer
+                ? `Revisor: ${getRecordName(currentReviewer)}`
+                : 'Revisor não identificado'}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            disabled={isLoading}
+            onClick={() => void load()}
+          >
+            <IconRefresh
+              size={themeCssVariables.icon.size.sm}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          </Button>
+        </div>
+      </Card>
+
+      {errorMessage ? (
+        <Card variant="danger">
+          <CardContent style={{ paddingTop: themeCssVariables.spacing[4] }}>
+            {errorMessage}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <section style={styles.metricStrip}>
+        <MetricCard
+          label="Aguardando decisão"
+          value={metrics.pending.length}
+          tone="orange"
+          icon={
+            <IconClock
+              size={themeCssVariables.icon.size.sm}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          }
+        />
+        <MetricCard
+          label="Aprovadas, não executadas"
+          value={metrics.approved.length}
+          tone="blue"
+          icon={
+            <IconShield
+              size={themeCssVariables.icon.size.sm}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          }
+        />
+        <MetricCard
+          label="Executadas"
+          value={metrics.executed.length}
+          tone="green"
+          icon={
+            <IconPlayerPlay
+              size={themeCssVariables.icon.size.sm}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          }
+        />
+        <MetricCard
+          label="Taxa de aprovação"
+          value={`${metrics.approvalRate}%`}
+          tone={metrics.failed.length > 0 ? 'red' : 'turquoise'}
+          icon={
+            <IconCpu
+              size={themeCssVariables.icon.size.sm}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+          }
+        />
+      </section>
+
+      <section style={styles.consoleGrid}>
+        <Card style={styles.queueCard}>
+          <CardHeader style={styles.queueHeader}>
+            <CardTitle>Fila de decisões</CardTitle>
+            <CardDescription>
+              Selecione uma proposta para revisar evidência e impacto.
+            </CardDescription>
+            <div style={styles.filterRow}>
+              {(
+                [
+                  ['PENDING', 'Pendentes'],
+                  ['APPROVED', 'Aprovadas'],
+                  ['HISTORY', 'Histórico'],
+                  ['ALL', 'Todas'],
+                ] as Array<[QueueFilter, string]>
+              ).map(([value, label]) => (
+                <Button
+                  key={value}
+                  variant={filter === value ? 'default' : 'ghost'}
+                  style={{ height: themeCssVariables.spacing[7] }}
+                  onClick={() => setFilter(value)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </CardHeader>
+          <div style={styles.queueList}>
+            {visibleActions.length === 0 ? (
+              <div style={styles.empty}>Nenhuma ação neste filtro.</div>
+            ) : (
+              visibleActions.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  style={{
+                    ...styles.queueItem,
+                    ...(selectedAction?.id === action.id
+                      ? styles.queueItemSelected
+                      : {}),
+                  }}
+                  onClick={() => setSelectedActionId(action.id)}
+                >
+                  <div style={styles.queueTopLine}>
+                    <p style={styles.queueTitle}>{action.name}</p>
+                    <Badge tone={getStatusTone(action.status)}>
+                      {getStatusLabel(action.status)}
+                    </Badge>
+                  </div>
+                  <div style={styles.queueMeta}>
+                    <span>{getTypeLabel(action.type)}</span>
+                    <span>·</span>
+                    <span>{Math.round(action.confidence ?? 0)}% confiança</span>
+                    <span>·</span>
+                    <span>{formatDateTime(action.requestedAt)}</span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card style={styles.detailCard}>
+          {selectedAction === null ? (
+            <div style={styles.empty}>
+              Selecione uma proposta da fila para abrir a revisão.
+            </div>
+          ) : (
+            <>
+              <CardHeader style={styles.detailHeader}>
+                <div style={styles.detailBadges}>
+                  <Badge tone={getStatusTone(selectedAction.status)}>
+                    {getStatusLabel(selectedAction.status)}
+                  </Badge>
+                  <Badge tone="blue">{getTypeLabel(selectedAction.type)}</Badge>
+                  <Badge
+                    tone={
+                      (selectedAction.confidence ?? 0) >= 75
+                        ? 'green'
+                        : 'orange'
+                    }
+                  >
+                    {Math.round(selectedAction.confidence ?? 0)}% confiança
+                  </Badge>
+                </div>
+                <div style={styles.queueTopLine}>
+                  <div>
+                    <CardTitle>{selectedAction.name}</CardTitle>
+                    <CardDescription>
+                      Solicitada em {formatDateTime(selectedAction.requestedAt)}
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      void openRecord(selectedAction.id, 'aiAction')
+                    }
+                  >
+                    <IconExternalLink
+                      size={themeCssVariables.icon.size.sm}
+                      stroke={themeCssVariables.icon.stroke.md}
+                    />
+                    Registro
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <div style={styles.detailBody}>
+                <div style={styles.narrative}>
+                  <section style={styles.narrativeBlock}>
+                    <p style={styles.narrativeLabel}>Evidência e raciocínio</p>
+                    <p style={styles.narrativeText}>
+                      {selectedAction.rationale?.markdown ||
+                        'A proposta não possui justificativa registrada.'}
+                    </p>
+                  </section>
+                  <section
+                    style={{
+                      ...styles.narrativeBlock,
+                      background: themeCssVariables.background.transparent.blue,
+                      borderColor: themeCssVariables.border.color.blue,
+                    }}
+                  >
+                    <p style={styles.narrativeLabel}>Ação proposta</p>
+                    <p style={styles.narrativeText}>
+                      {selectedAction.proposedAction?.markdown ||
+                        'Nenhuma ação detalhada foi registrada.'}
+                    </p>
+                  </section>
+                  {selectedAction.approvalNotes?.markdown ? (
+                    <section style={styles.narrativeBlock}>
+                      <p style={styles.narrativeLabel}>Decisão humana</p>
+                      <p style={styles.narrativeText}>
+                        {selectedAction.approvalNotes.markdown}
+                      </p>
+                    </section>
+                  ) : null}
+                  {selectedAction.executionReceipt?.markdown ? (
+                    <section style={styles.narrativeBlock}>
+                      <p style={styles.narrativeLabel}>Recibo de execução</p>
+                      <p style={styles.narrativeText}>
+                        {selectedAction.executionReceipt.markdown}
+                      </p>
+                    </section>
+                  ) : null}
+                </div>
+
+                <aside style={styles.decisionRail}>
+                  <Card variant="muted">
+                    <CardHeader>
+                      <CardTitle>Contexto vinculado</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div style={styles.contextList}>
+                        {getLinkedRecords(selectedAction).length === 0 ? (
+                          <CardDescription>
+                            Nenhum registro do CRM vinculado.
+                          </CardDescription>
+                        ) : (
+                          getLinkedRecords(selectedAction).map(
+                            ({ record, label, objectNameSingular, icon }) => (
+                              <button
+                                key={`${objectNameSingular}:${record.id}`}
+                                type="button"
+                                style={styles.contextButton}
+                                onClick={() =>
+                                  void openRecord(record.id, objectNameSingular)
+                                }
+                              >
+                                {icon}
+                                <span style={{ flex: 1 }}>
+                                  <strong>{label}</strong>
+                                  <br />
+                                  {getRecordName(record) || 'Sem nome'}
+                                </span>
+                                <IconExternalLink
+                                  size={themeCssVariables.icon.size.sm}
+                                  stroke={themeCssVariables.icon.stroke.sm}
+                                />
+                              </button>
+                            ),
+                          )
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {selectedAction.status === 'PENDING_APPROVAL' ? (
+                    <Card variant={currentReviewer ? 'accent' : 'danger'}>
+                      <CardHeader>
+                        <CardTitle>Decisão humana</CardTitle>
+                        <CardDescription>
+                          {currentReviewer
+                            ? 'Aprovar não executa automaticamente. Apenas libera a proposta para um executor seguro.'
+                            : 'A sessão não está vinculada a um membro do workspace. A decisão está bloqueada.'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <textarea
+                          aria-label="Nota da decisão"
+                          placeholder="Justificativa, ajuste ou condição para a decisão..."
+                          value={reviewNote}
+                          disabled={!currentReviewer}
+                          style={styles.reviewTextarea}
+                          onChange={(event) =>
+                            setReviewNote(event.target.value)
+                          }
+                        />
+                        <div
+                          style={{
+                            ...styles.decisionButtons,
+                            marginTop: themeCssVariables.spacing[2],
+                          }}
+                        >
+                          <Button
+                            variant="danger"
+                            disabled={
+                              !currentReviewer ||
+                              busyActionId === selectedAction.id
+                            }
+                            onClick={() =>
+                              void reviewAction(
+                                selectedAction.id,
+                                'REJECTED',
+                                reviewNote,
+                              ).then((saved) => {
+                                if (saved) {
+                                  setReviewNote('');
+                                }
+                              })
+                            }
+                          >
+                            <IconX
+                              size={themeCssVariables.icon.size.sm}
+                              stroke={themeCssVariables.icon.stroke.md}
+                            />
+                            Rejeitar
+                          </Button>
+                          <Button
+                            disabled={
+                              !currentReviewer ||
+                              busyActionId === selectedAction.id
+                            }
+                            onClick={() =>
+                              void reviewAction(
+                                selectedAction.id,
+                                'APPROVED',
+                                reviewNote,
+                              ).then((saved) => {
+                                if (saved) {
+                                  setReviewNote('');
+                                }
+                              })
+                            }
+                          >
+                            <IconCheck
+                              size={themeCssVariables.icon.size.sm}
+                              stroke={themeCssVariables.icon.stroke.md}
+                            />
+                            Aprovar
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : selectedAction.status === 'APPROVED' ? (
+                    <Card variant="accent">
+                      <CardHeader>
+                        <CardTitle>Aguardando executor seguro</CardTitle>
+                        <CardDescription>
+                          A aprovação foi registrada. O Centro de IA não simula
+                          execução nem dispara efeitos externos.
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  ) : null}
+                </aside>
+              </div>
+            </>
+          )}
+        </Card>
+      </section>
+
+      <section>
+        <div
+          style={{
+            ...styles.queueTopLine,
+            marginBottom: themeCssVariables.spacing[3],
+          }}
+        >
+          <div>
+            <CardTitle>Trilha recente</CardTitle>
+            <CardDescription>
+              Últimas decisões e recibos operacionais.
+            </CardDescription>
+          </div>
+          <Progress
+            value={metrics.approvalRate}
+            tone={metrics.failed.length > 0 ? 'red' : 'green'}
+            style={{ maxWidth: 180 }}
+          />
+        </div>
+        <div style={styles.auditGrid}>
+          {actions
+            .filter(({ status }) => status !== 'PENDING_APPROVAL')
+            .slice(0, 4)
+            .map((action) => (
+              <Card
+                key={action.id}
+                variant={action.status === 'FAILED' ? 'danger' : 'muted'}
+                style={styles.auditCard}
+                onClick={() => setSelectedActionId(action.id)}
+              >
+                <CardHeader>
+                  <div style={styles.queueTopLine}>
+                    <Badge tone={getStatusTone(action.status)}>
+                      {getStatusLabel(action.status)}
+                    </Badge>
+                    <span style={styles.metricLabel}>
+                      {formatDateTime(
+                        action.executedAt ||
+                          action.approvedAt ||
+                          action.requestedAt,
+                      )}
+                    </span>
+                  </div>
+                  <CardTitle
+                    style={{ fontSize: themeCssVariables.font.size.sm }}
+                  >
+                    {action.name}
+                  </CardTitle>
+                  <CardDescription>
+                    {getRecordName(action.reviewer)
+                      ? `por ${getRecordName(action.reviewer)}`
+                      : 'sem revisor vinculado'}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          {actions.filter(({ status }) => status !== 'PENDING_APPROVAL')
+            .length === 0 ? (
+            <Card style={{ gridColumn: '1 / -1' }}>
+              <div style={styles.empty}>
+                Nenhuma decisão registrada até agora.
+              </div>
+            </Card>
+          ) : null}
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default defineFrontComponent({
+  universalIdentifier: AI_COMMAND_CENTER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+  name: 'diex-ai-command-center',
+  description:
+    'Console visual para revisar propostas de IA, registrar decisões humanas e acompanhar recibos.',
+  component: AiCommandCenterFrontComponent,
+});

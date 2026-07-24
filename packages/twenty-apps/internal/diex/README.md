@@ -22,6 +22,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   mensagem;
 - cockpit de inteligência comercial com radar de sinais, ranking de
   oportunidades e fila acionável.
+- Centro de IA com fila de decisão, evidências, contexto do CRM, aprovação
+  humana e trilha de auditoria sem execução externa automática.
 
 ### Respostas prontas
 
@@ -71,6 +73,11 @@ As áreas principais usam componentes compartilhados com diagramações
 diferentes. A primeira página própria é `Diex > Inteligência`: hero em radar,
 faixa de KPIs, fluxo vertical de sinais, ranking por score e grade de próximas
 ações. Sinais podem ser assumidos e marcados como tratados sem sair do cockpit.
+
+`Diex > Centro de IA` usa uma diagramação de console: fila de decisões à
+esquerda, evidência e ação proposta no centro, contexto relacionado e comando
+humano à direita, além da trilha recente. A aprovação apenas registra e libera
+a proposta; nenhum efeito externo é disparado pelo front-end.
 
 Os componentes `Card`, `Badge`, `Progress`, `Button`, `Separator` e `Skeleton`
 seguem a composição source-owned do shadcn/ui, adaptada aos tokens e ao sandbox

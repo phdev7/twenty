@@ -10,7 +10,7 @@ export default defineNavigationMenuItem({
   universalIdentifier: 'd1e08000-0000-4000-8000-000000000005',
   type: NavigationMenuItemType.VIEW,
   icon: 'IconFlag3',
-  position: 4,
+  position: 6,
   folderUniversalIdentifier: DIEX_FOLDER_UNIVERSAL_IDENTIFIER,
   viewUniversalIdentifier: SUCCESS_MILESTONES_VIEW_UNIVERSAL_IDENTIFIER,
 });
