@@ -24,6 +24,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   responsável e vínculo nativo à pessoa, empresa e oportunidade;
 - menções estruturadas em notas internas, com alerta pessoal, leitura,
   resolução e trilha auditável por conversa e usuário;
+- macros comerciais configuráveis com prévia, status, prioridade, equipe,
+  responsável, etiqueta, nota interna e resposta pronta como rascunho;
 - adiamento com prazo, reabertura por vencimento e reativação por nova
   mensagem;
 - cockpit de inteligência comercial com radar de sinais, ranking de
@@ -92,6 +94,18 @@ histórico.
 Cada menção mantém vínculo com a conversa, a nota, o autor, o usuário
 mencionado e as datas de criação, leitura e resolução. A visão
 `Diex > Menções da inbox` fornece a trilha operacional completa.
+
+### Macros comerciais
+
+Cadastre em `Diex > Macros da inbox`. Cada macro pode combinar status,
+prioridade, equipe, responsável, etiqueta, nota interna contextual e uma
+resposta pronta. A macro pode ser limitada por canal e acompanha quantidade e
+data do último uso.
+
+Na conversa, selecione a macro e abra a prévia. A aplicação consolida as
+mudanças internas e prepara a resposta como rascunho; nunca envia comunicação
+externa automaticamente. Variáveis sem valor bloqueiam a nota interna e
+continuam visíveis no rascunho para revisão antes da prévia de envio.
 
 ### Páginas operacionais
 

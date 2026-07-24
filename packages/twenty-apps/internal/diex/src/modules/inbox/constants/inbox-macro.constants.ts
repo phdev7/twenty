@@ -1,0 +1,54 @@
+export const INBOX_MACRO_UNIVERSAL_IDENTIFIER =
+  'd1e0fb00-0000-4000-8000-000000000001';
+
+export const INBOX_MACRO_FIELD_IDS = {
+  name: 'd1e0fb10-0000-4000-8000-000000000001',
+  shortcut: 'd1e0fb10-0000-4000-8000-000000000002',
+  description: 'd1e0fb10-0000-4000-8000-000000000003',
+  status: 'd1e0fb10-0000-4000-8000-000000000004',
+  channel: 'd1e0fb10-0000-4000-8000-000000000005',
+  targetConversationStatus: 'd1e0fb10-0000-4000-8000-000000000006',
+  targetPriority: 'd1e0fb10-0000-4000-8000-000000000007',
+  internalNoteTemplate: 'd1e0fb10-0000-4000-8000-000000000008',
+  usageCount: 'd1e0fb10-0000-4000-8000-000000000009',
+  lastUsedAt: 'd1e0fb10-0000-4000-8000-00000000000a',
+  savedReply: 'd1e0fb10-0000-4000-8000-00000000000b',
+  label: 'd1e0fb10-0000-4000-8000-00000000000c',
+  team: 'd1e0fb10-0000-4000-8000-00000000000d',
+  assignee: 'd1e0fb10-0000-4000-8000-00000000000e',
+} as const;
+
+export const INBOX_MACRO_RELATION_FIELD_IDS = {
+  macrosOnSavedReply: 'd1e0fb20-0000-4000-8000-000000000001',
+  macrosOnLabel: 'd1e0fb20-0000-4000-8000-000000000002',
+  macrosOnTeam: 'd1e0fb20-0000-4000-8000-000000000003',
+  macrosOnWorkspaceMember: 'd1e0fb20-0000-4000-8000-000000000004',
+} as const;
+
+export const INBOX_MACRO_OPTION_IDS = {
+  status: {
+    active: 'd1e0fb30-0000-4000-8000-000000000001',
+    inactive: 'd1e0fb30-0000-4000-8000-000000000002',
+  },
+  channel: {
+    all: 'd1e0fb31-0000-4000-8000-000000000001',
+    whatsapp: 'd1e0fb31-0000-4000-8000-000000000002',
+    email: 'd1e0fb31-0000-4000-8000-000000000003',
+  },
+  conversationStatus: {
+    keep: 'd1e0fb32-0000-4000-8000-000000000001',
+    open: 'd1e0fb32-0000-4000-8000-000000000002',
+    pending: 'd1e0fb32-0000-4000-8000-000000000003',
+    resolved: 'd1e0fb32-0000-4000-8000-000000000004',
+  },
+  priority: {
+    keep: 'd1e0fb33-0000-4000-8000-000000000001',
+    low: 'd1e0fb33-0000-4000-8000-000000000002',
+    normal: 'd1e0fb33-0000-4000-8000-000000000003',
+    high: 'd1e0fb33-0000-4000-8000-000000000004',
+    urgent: 'd1e0fb33-0000-4000-8000-000000000005',
+  },
+} as const;
+
+export const INBOX_MACROS_VIEW_UNIVERSAL_IDENTIFIER =
+  'd1e0fb40-0000-4000-8000-000000000001';

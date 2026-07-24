@@ -31,6 +31,7 @@ export const InboxFrontComponent = () => {
   const {
     conversations,
     savedReplies,
+    macros,
     labels,
     workspaceMembers,
     teams,
@@ -48,6 +49,8 @@ export const InboxFrontComponent = () => {
     loadConversations,
     selectConversation,
     applySavedReply,
+    previewInboxMacro,
+    applyInboxMacro,
     toggleConversationLabel,
     setConversationAssignee,
     setConversationTeam,
@@ -216,6 +219,7 @@ export const InboxFrontComponent = () => {
           workspaceMembers={workspaceMembers}
           currentWorkspaceMemberId={currentWorkspaceMemberId}
           savedReplies={savedReplies}
+          macros={macros}
           isLoading={isLoadingMessages}
           busyAction={busyAction}
           triageResult={triageResult}
@@ -223,6 +227,8 @@ export const InboxFrontComponent = () => {
           onSaveInternalNote={saveInternalNote}
           onResolveMention={resolveMention}
           onUseSavedReply={applySavedReply}
+          onPreviewMacro={previewInboxMacro}
+          onApplyMacro={applyInboxMacro}
           onPreviewEvolutionText={previewEvolutionText}
           onConfirmEvolutionText={confirmEvolutionText}
           onRunAiTriage={triageConversation}

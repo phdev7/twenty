@@ -12,6 +12,7 @@ import {
   INBOX_CONVERSATION_LABEL_UNIVERSAL_IDENTIFIER,
   INBOX_LABEL_UNIVERSAL_IDENTIFIER,
 } from 'src/modules/inbox/constants/inbox-label.constants';
+import { INBOX_MACRO_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-macro.constants';
 import { INBOX_MENTION_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-mention.constants';
 import {
   INBOX_TEAM_MEMBER_UNIVERSAL_IDENTIFIER,
@@ -128,6 +129,10 @@ export default defineApplicationRole({
     },
     {
       objectUniversalIdentifier: INBOX_MENTION_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: INBOX_MACRO_UNIVERSAL_IDENTIFIER,
       ...readWrite,
     },
     {

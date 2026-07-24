@@ -12,12 +12,16 @@ import {
   IconRefresh,
   IconSend,
   IconSparkles,
+  IconWand,
 } from 'twenty-ui/icon';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import {
   type EvolutionTextPreview,
   type InboxConversation,
+  type InboxMacro,
+  type InboxMacroApplyResult,
+  type InboxMacroPreview,
   type InboxMention,
   type InboxMessage,
   type InboxSavedReply,
@@ -45,6 +49,7 @@ type ConversationThreadProps = {
   workspaceMembers: InboxWorkspaceMember[];
   currentWorkspaceMemberId: string | null;
   savedReplies: InboxSavedReply[];
+  macros: InboxMacro[];
   triageResult: InboxTriageResult | null;
   isLoading: boolean;
   busyAction: string | null;
@@ -58,6 +63,8 @@ type ConversationThreadProps = {
   onUseSavedReply: (
     savedReply: InboxSavedReply,
   ) => Promise<SavedReplyRenderResult | null>;
+  onPreviewMacro: (macroId: string) => Promise<InboxMacroPreview | null>;
+  onApplyMacro: (macroId: string) => Promise<InboxMacroApplyResult | null>;
   onPreviewEvolutionText: (
     text: string,
   ) => Promise<EvolutionTextPreview | null>;
@@ -84,6 +91,7 @@ export const ConversationThread = ({
   workspaceMembers,
   currentWorkspaceMemberId,
   savedReplies,
+  macros,
   triageResult,
   isLoading,
   busyAction,
@@ -92,6 +100,8 @@ export const ConversationThread = ({
   onSaveInternalNote,
   onResolveMention,
   onUseSavedReply,
+  onPreviewMacro,
+  onApplyMacro,
   onPreviewEvolutionText,
   onConfirmEvolutionText,
 }: ConversationThreadProps) => {
@@ -102,6 +112,12 @@ export const ConversationThread = ({
   const [internalNote, setInternalNote] = useState('');
   const [mentionedWorkspaceMemberIds, setMentionedWorkspaceMemberIds] =
     useState<string[]>([]);
+  const [selectedMacroId, setSelectedMacroId] = useState('');
+  const [macroPreview, setMacroPreview] = useState<InboxMacroPreview | null>(
+    null,
+  );
+  const [macroReceipt, setMacroReceipt] =
+    useState<InboxMacroApplyResult | null>(null);
   const [sendPreview, setSendPreview] = useState<EvolutionTextPreview | null>(
     null,
   );
@@ -121,6 +137,9 @@ export const ConversationThread = ({
     setExternalText('');
     setInternalNote('');
     setMentionedWorkspaceMemberIds([]);
+    setSelectedMacroId('');
+    setMacroPreview(null);
+    setMacroReceipt(null);
     setSendPreview(null);
   }, [conversation?.channel, conversation?.id, conversation?.provider]);
 
@@ -156,6 +175,10 @@ export const ConversationThread = ({
     (savedReply) =>
       savedReply.channel === 'ALL' ||
       savedReply.channel === conversation.channel,
+  );
+  const availableMacros = macros.filter(
+    (macro) =>
+      macro.channel === 'ALL' || macro.channel === conversation.channel,
   );
   const shortcutQuery = externalText
     .match(/^\/([^\s]*)$/)?.[1]
@@ -229,6 +252,40 @@ export const ConversationThread = ({
       ...current,
       workspaceMember.id,
     ]);
+  };
+
+  const handlePreviewMacro = async () => {
+    if (!selectedMacroId) {
+      return;
+    }
+
+    const preview = await onPreviewMacro(selectedMacroId);
+
+    if (preview && activeConversationIdRef.current === conversation.id) {
+      setMacroPreview(preview);
+      setMacroReceipt(null);
+    }
+  };
+
+  const handleApplyMacro = async () => {
+    if (!macroPreview) {
+      return;
+    }
+
+    const receipt = await onApplyMacro(macroPreview.macroId);
+
+    if (!receipt || activeConversationIdRef.current !== conversation.id) {
+      return;
+    }
+
+    setMacroReceipt(receipt);
+    setMacroPreview(null);
+
+    if (receipt.replyDraft && isEvolutionConversation) {
+      setComposerMode('EXTERNAL');
+      setExternalText(receipt.replyDraft);
+      setSendPreview(null);
+    }
   };
 
   const handleRequestSendPreview = async () => {
@@ -514,6 +571,141 @@ export const ConversationThread = ({
       </div>
 
       <footer style={inboxStyles.composer}>
+        <section style={inboxStyles.macroPanel}>
+          <div style={inboxStyles.macroToolbar}>
+            <span style={inboxStyles.savedReplyToolbarLabel}>
+              <IconWand
+                size={themeCssVariables.icon.size.sm}
+                stroke={themeCssVariables.icon.stroke.md}
+              />
+              Macro comercial
+            </span>
+            <select
+              aria-label="Selecionar macro comercial"
+              disabled={availableMacros.length === 0 || isBusy}
+              value={selectedMacroId}
+              style={inboxStyles.savedReplySelect}
+              onChange={(event) => {
+                setSelectedMacroId(event.target.value);
+                setMacroPreview(null);
+                setMacroReceipt(null);
+              }}
+            >
+              <option value="">
+                {availableMacros.length === 0
+                  ? 'Nenhuma macro cadastrada'
+                  : 'Selecionar pacote de ações'}
+              </option>
+              {availableMacros.map((macro) => (
+                <option key={macro.id} value={macro.id}>
+                  /{macro.shortcut} · {macro.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={!selectedMacroId || isBusy}
+              style={{
+                ...inboxStyles.secondaryButton,
+                ...(!selectedMacroId || isBusy
+                  ? inboxStyles.disabledButton
+                  : {}),
+              }}
+              onClick={() => void handlePreviewMacro()}
+            >
+              Prévia
+            </button>
+          </div>
+
+          {macroPreview ? (
+            <div style={inboxStyles.macroReview}>
+              <div>
+                <strong style={inboxStyles.macroReviewTitle}>
+                  Ações que serão aplicadas
+                </strong>
+                <ul style={inboxStyles.macroActionList}>
+                  {macroPreview.actions.map((action) => (
+                    <li key={action}>{action}</li>
+                  ))}
+                </ul>
+                {macroPreview.unresolvedNoteVariables.length > 0 ? (
+                  <p style={inboxStyles.macroWarning}>
+                    Corrija a configuração da nota:{' '}
+                    {macroPreview.unresolvedNoteVariables
+                      .map((variable) => `{{${variable}}}`)
+                      .join(', ')}
+                  </p>
+                ) : null}
+                {macroPreview.unresolvedReplyVariables.length > 0 ? (
+                  <p style={inboxStyles.macroWarning}>
+                    O rascunho exigirá completar:{' '}
+                    {macroPreview.unresolvedReplyVariables
+                      .map((variable) => `{{${variable}}}`)
+                      .join(', ')}
+                  </p>
+                ) : null}
+              </div>
+              <div style={inboxStyles.sendReviewActions}>
+                <button
+                  type="button"
+                  disabled={isBusy}
+                  style={{
+                    ...inboxStyles.secondaryButton,
+                    ...(isBusy ? inboxStyles.disabledButton : {}),
+                  }}
+                  onClick={() => setMacroPreview(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    isBusy || macroPreview.unresolvedNoteVariables.length > 0
+                  }
+                  style={{
+                    ...inboxStyles.primaryButton,
+                    ...(isBusy ||
+                    macroPreview.unresolvedNoteVariables.length > 0
+                      ? inboxStyles.disabledButton
+                      : {}),
+                  }}
+                  onClick={() => void handleApplyMacro()}
+                >
+                  <IconWand
+                    size={themeCssVariables.icon.size.sm}
+                    stroke={themeCssVariables.icon.stroke.md}
+                  />
+                  {busyAction === `macro:${macroPreview.macroId}`
+                    ? 'Aplicando'
+                    : 'Aplicar macro'}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {macroReceipt ? (
+            <div style={inboxStyles.macroReceipt}>
+              <strong style={inboxStyles.macroReviewTitle}>
+                Macro aplicada
+              </strong>
+              <span>
+                {macroReceipt.appliedActions.length} ação
+                {macroReceipt.appliedActions.length === 1 ? '' : 'ões'}
+              </span>
+              {macroReceipt.warnings.length > 0 ? (
+                <span style={inboxStyles.macroWarning}>
+                  {macroReceipt.warnings.join(' ')}
+                </span>
+              ) : null}
+              {macroReceipt.replyDraft && !isEvolutionConversation ? (
+                <p style={inboxStyles.macroDraftPreview}>
+                  Rascunho preparado: {macroReceipt.replyDraft}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+
         {activeTriageResult ? (
           <section style={inboxStyles.aiTriagePanel}>
             <div style={inboxStyles.aiTriageHeader}>

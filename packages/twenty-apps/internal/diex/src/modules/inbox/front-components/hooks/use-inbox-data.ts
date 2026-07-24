@@ -16,6 +16,9 @@ import {
   type InboxConversation,
   type InboxConversationLabelAssignment,
   type InboxLabel,
+  type InboxMacro,
+  type InboxMacroApplyResult,
+  type InboxMacroPreview,
   type InboxMention,
   type InboxMessage,
   type InboxSavedReply,
@@ -31,6 +34,7 @@ import {
   getUnresolvedSavedReplyVariables,
   renderSavedReplyTemplate,
 } from 'src/modules/inbox/front-components/utils/saved-reply-template';
+import { getRecordName } from 'src/modules/inbox/front-components/utils/inbox-formatters';
 
 type ConversationNode = Omit<
   InboxConversation,
@@ -78,6 +82,16 @@ type SavedReplyQueryResult = {
   inboxSavedReplies?: {
     edges?: Array<{
       node: InboxSavedReply;
+    }>;
+  };
+};
+
+type MacroQueryResult = {
+  inboxMacros?: {
+    edges?: Array<{
+      node: Omit<InboxMacro, 'inboxTeam'> & {
+        inboxTeam?: TeamNode | null;
+      };
     }>;
   };
 };
@@ -147,6 +161,19 @@ const mentionNodeSelection = {
     avatarUrl: true,
   },
 } as const;
+
+const macroConversationStatusLabels: Record<string, string> = {
+  OPEN: 'Aberta',
+  PENDING: 'Pendente',
+  RESOLVED: 'Resolvida',
+};
+
+const macroPriorityLabels: Record<string, string> = {
+  LOW: 'Baixa',
+  NORMAL: 'Normal',
+  HIGH: 'Alta',
+  URGENT: 'Urgente',
+};
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
@@ -238,6 +265,7 @@ export const useInboxData = () => {
     string | null
   >(null);
   const [savedReplies, setSavedReplies] = useState<InboxSavedReply[]>([]);
+  const [macros, setMacros] = useState<InboxMacro[]>([]);
   const [labels, setLabels] = useState<InboxLabel[]>([]);
   const [workspaceMembers, setWorkspaceMembers] = useState<
     InboxWorkspaceMember[]
@@ -647,6 +675,140 @@ export const useInboxData = () => {
     }
   }, []);
 
+  const loadMacros = useCallback(async () => {
+    try {
+      const queryResult = (await new CoreApiClient().query({
+        inboxMacros: {
+          __args: {
+            filter: {
+              status: {
+                eq: 'ACTIVE',
+              },
+            },
+            first: 100,
+            orderBy: [
+              { usageCount: 'DescNullsLast' },
+              { name: 'AscNullsLast' },
+            ],
+          },
+          edges: {
+            node: {
+              id: true,
+              name: true,
+              shortcut: true,
+              description: true,
+              status: true,
+              channel: true,
+              targetConversationStatus: true,
+              targetPriority: true,
+              internalNoteTemplate: true,
+              usageCount: true,
+              lastUsedAt: true,
+              savedReply: {
+                id: true,
+                name: true,
+                shortcut: true,
+                body: true,
+                status: true,
+                channel: true,
+                category: true,
+                usageCount: true,
+                lastUsedAt: true,
+              },
+              inboxLabel: {
+                id: true,
+                name: true,
+                slug: true,
+                color: true,
+                description: true,
+                status: true,
+                usageCount: true,
+              },
+              inboxTeam: {
+                id: true,
+                name: true,
+                key: true,
+                description: true,
+                status: true,
+                routingStrategy: true,
+                defaultResponseSlaMinutes: true,
+                isDefault: true,
+                memberships: {
+                  edges: {
+                    node: {
+                      id: true,
+                      role: true,
+                      isActive: true,
+                      joinedAt: true,
+                      workspaceMember: {
+                        id: true,
+                        name: {
+                          firstName: true,
+                          lastName: true,
+                        },
+                        avatarUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+              assignee: {
+                id: true,
+                name: {
+                  firstName: true,
+                  lastName: true,
+                },
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      } as never)) as unknown as MacroQueryResult;
+
+      setMacros(
+        queryResult.inboxMacros?.edges?.map(({ node }) => {
+          const { inboxTeam, ...macro } = node;
+
+          return {
+            ...macro,
+            usageCount: macro.usageCount ?? 0,
+            savedReply: macro.savedReply
+              ? {
+                  ...macro.savedReply,
+                  usageCount: macro.savedReply.usageCount ?? 0,
+                }
+              : null,
+            inboxLabel: macro.inboxLabel
+              ? {
+                  ...macro.inboxLabel,
+                  usageCount: macro.inboxLabel.usageCount ?? 0,
+                }
+              : null,
+            inboxTeam: inboxTeam
+              ? {
+                  ...inboxTeam,
+                  defaultResponseSlaMinutes:
+                    inboxTeam.defaultResponseSlaMinutes > 0
+                      ? inboxTeam.defaultResponseSlaMinutes
+                      : 60,
+                  memberships:
+                    inboxTeam.memberships?.edges?.map(
+                      ({ node: membership }) => membership,
+                    ) ?? [],
+                }
+              : null,
+          };
+        }) ?? [],
+      );
+    } catch {
+      setMacros([]);
+      await enqueueSnackbar({
+        message: 'Não foi possível carregar as macros da Inbox.',
+        variant: 'error',
+      });
+    }
+  }, []);
+
   const loadLabels = useCallback(async () => {
     try {
       const queryResult = (await new CoreApiClient().query({
@@ -804,6 +966,10 @@ export const useInboxData = () => {
   }, [loadSavedReplies]);
 
   useEffect(() => {
+    void loadMacros();
+  }, [loadMacros]);
+
+  useEffect(() => {
     void loadLabels();
   }, [loadLabels]);
 
@@ -942,6 +1108,655 @@ export const useInboxData = () => {
       return renderResult;
     },
     [selectedConversation],
+  );
+
+  const previewInboxMacro = useCallback(
+    async (macroId: string): Promise<InboxMacroPreview | null> => {
+      if (selectedConversation === null) {
+        return null;
+      }
+
+      const macro = macros.find(
+        ({ id, status }) => id === macroId && status === 'ACTIVE',
+      );
+
+      if (!macro) {
+        await enqueueSnackbar({
+          message: 'A macro selecionada não está mais disponível.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      if (
+        macro.channel !== 'ALL' &&
+        macro.channel !== selectedConversation.channel
+      ) {
+        await enqueueSnackbar({
+          message: 'Esta macro não está habilitada para o canal da conversa.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      if (macro.inboxLabel && macro.inboxLabel.status !== 'ACTIVE') {
+        await enqueueSnackbar({
+          message: 'A etiqueta configurada na macro está inativa.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      if (macro.inboxTeam && macro.inboxTeam.status !== 'ACTIVE') {
+        await enqueueSnackbar({
+          message: 'A equipe configurada na macro está inativa.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      if (
+        macro.savedReply &&
+        (macro.savedReply.status !== 'ACTIVE' ||
+          (macro.savedReply.channel !== 'ALL' &&
+            macro.savedReply.channel !== selectedConversation.channel))
+      ) {
+        await enqueueSnackbar({
+          message:
+            'A resposta pronta configurada na macro não está disponível para este canal.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      const actions: string[] = [];
+      let replyDraft: string | null = null;
+      let internalNote: string | null = null;
+      let unresolvedReplyVariables: string[] = [];
+      let unresolvedNoteVariables: string[] = [];
+
+      if (macro.targetConversationStatus !== 'KEEP') {
+        actions.push(
+          `Status → ${
+            macroConversationStatusLabels[macro.targetConversationStatus] ??
+            macro.targetConversationStatus
+          }`,
+        );
+      }
+
+      if (macro.targetPriority !== 'KEEP') {
+        actions.push(
+          `Prioridade → ${
+            macroPriorityLabels[macro.targetPriority] ?? macro.targetPriority
+          }`,
+        );
+      }
+
+      if (macro.inboxTeam) {
+        actions.push(`Equipe → ${macro.inboxTeam.name}`);
+      }
+
+      if (macro.assignee) {
+        actions.push(
+          `Responsável → ${
+            getRecordName(macro.assignee) || 'Usuário sem nome'
+          }`,
+        );
+      }
+
+      if (macro.inboxLabel) {
+        actions.push(`Aplicar etiqueta → ${macro.inboxLabel.name}`);
+      }
+
+      if (macro.internalNoteTemplate?.trim()) {
+        const noteRender = renderSavedReplyTemplate(
+          macro.internalNoteTemplate,
+          selectedConversation,
+        );
+
+        internalNote = noteRender.text.trim();
+        unresolvedNoteVariables = noteRender.unresolvedVariables;
+        actions.push('Registrar nota interna contextual');
+      }
+
+      if (macro.savedReply) {
+        const replyRender = renderSavedReplyTemplate(
+          macro.savedReply.body,
+          selectedConversation,
+        );
+
+        replyDraft = replyRender.text;
+        unresolvedReplyVariables = replyRender.unresolvedVariables;
+        actions.push(
+          `Preparar resposta /${macro.savedReply.shortcut} como rascunho`,
+        );
+      }
+
+      if (actions.length === 0) {
+        await enqueueSnackbar({
+          message: 'Esta macro ainda não possui ações configuradas.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      return {
+        macroId: macro.id,
+        actions,
+        replyDraft,
+        internalNote,
+        unresolvedReplyVariables,
+        unresolvedNoteVariables,
+      };
+    },
+    [macros, selectedConversation],
+  );
+
+  const applyInboxMacro = useCallback(
+    async (macroId: string): Promise<InboxMacroApplyResult | null> => {
+      if (selectedConversation === null) {
+        return null;
+      }
+
+      const macro = macros.find(
+        ({ id, status }) => id === macroId && status === 'ACTIVE',
+      );
+      const preview = await previewInboxMacro(macroId);
+
+      if (!macro || !preview) {
+        return null;
+      }
+
+      if (preview.unresolvedNoteVariables.length > 0) {
+        await enqueueSnackbar({
+          message: `A nota da macro possui variáveis sem valor: ${preview.unresolvedNoteVariables
+            .map((variable) => `{{${variable}}}`)
+            .join(', ')}.`,
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      const targetTeam = macro.inboxTeam ?? null;
+      const currentTeam = selectedConversation.inboxTeam
+        ? (teams.find(({ id }) => id === selectedConversation.inboxTeam?.id) ??
+          null)
+        : null;
+      const assignmentTeam = targetTeam ?? currentTeam;
+      const availableAssignee = macro.assignee
+        ? (workspaceMembers.find(({ id }) => id === macro.assignee?.id) ?? null)
+        : null;
+      const macroSavedReply = macro.savedReply
+        ? (savedReplies.find(({ id }) => id === macro.savedReply?.id) ??
+          macro.savedReply)
+        : null;
+
+      if (macro.assignee && !availableAssignee) {
+        await enqueueSnackbar({
+          message: 'O responsável configurado na macro não está disponível.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      if (
+        macro.assignee &&
+        !targetTeam &&
+        selectedConversation.inboxTeam &&
+        !currentTeam
+      ) {
+        await enqueueSnackbar({
+          message:
+            'A equipe atual não pôde ser validada para aplicar o responsável da macro.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      if (
+        availableAssignee &&
+        assignmentTeam &&
+        !getActiveTeamMembers(assignmentTeam).some(
+          ({ id }) => id === availableAssignee.id,
+        )
+      ) {
+        await enqueueSnackbar({
+          message:
+            'O responsável da macro não pertence à equipe ativa da conversa.',
+          variant: 'warning',
+        });
+
+        return null;
+      }
+
+      let nextAssignee = selectedConversation.assignee;
+
+      if (targetTeam) {
+        const targetMemberIds = new Set(
+          getActiveTeamMembers(targetTeam).map(({ id }) => id),
+        );
+
+        nextAssignee = availableAssignee;
+
+        if (!nextAssignee && targetTeam.routingStrategy === 'BALANCED') {
+          nextAssignee = getLeastLoadedTeamMember({
+            team: targetTeam,
+            conversations,
+            excludedConversationId: selectedConversation.id,
+          });
+        } else if (
+          !nextAssignee &&
+          selectedConversation.assignee &&
+          targetMemberIds.has(selectedConversation.assignee.id)
+        ) {
+          nextAssignee = selectedConversation.assignee;
+        }
+      } else if (availableAssignee) {
+        nextAssignee = availableAssignee;
+      }
+
+      const conversationUpdate: Record<string, unknown> = {};
+      const nextStatus =
+        macro.targetConversationStatus === 'KEEP'
+          ? selectedConversation.status
+          : macro.targetConversationStatus;
+      const nextPriority =
+        macro.targetPriority === 'KEEP'
+          ? selectedConversation.priority
+          : macro.targetPriority;
+      const shouldResetResponseSla =
+        targetTeam !== null && !selectedConversation.firstRespondedAt;
+      const nextFirstResponseDueAt = shouldResetResponseSla
+        ? new Date(
+            Date.now() +
+              Math.max(1, targetTeam.defaultResponseSlaMinutes) * 60_000,
+          ).toISOString()
+        : selectedConversation.firstResponseDueAt;
+
+      if (macro.targetConversationStatus !== 'KEEP') {
+        conversationUpdate.status = nextStatus;
+        conversationUpdate.snoozedUntil = null;
+
+        if (nextStatus === 'RESOLVED') {
+          conversationUpdate.unreadCount = 0;
+        }
+      }
+
+      if (macro.targetPriority !== 'KEEP') {
+        conversationUpdate.priority = nextPriority;
+      }
+
+      if (targetTeam) {
+        conversationUpdate.inboxTeamId = targetTeam.id;
+        conversationUpdate.assigneeId = nextAssignee?.id ?? null;
+        conversationUpdate.firstResponseDueAt = nextFirstResponseDueAt;
+
+        if (shouldResetResponseSla) {
+          conversationUpdate.slaBreachedAt = null;
+        }
+      } else if (availableAssignee) {
+        conversationUpdate.assigneeId = availableAssignee.id;
+      }
+
+      setBusyAction(`macro:${macro.id}`);
+
+      try {
+        const client = new CoreApiClient();
+        const appliedActions: string[] = [];
+        const warnings: string[] = [];
+        const usedAt = new Date().toISOString();
+
+        if (Object.keys(conversationUpdate).length > 0) {
+          await client.mutation({
+            updateInboxConversation: {
+              __args: {
+                id: selectedConversation.id,
+                data: conversationUpdate,
+              },
+              id: true,
+            },
+          } as never);
+
+          if (macro.targetConversationStatus !== 'KEEP') {
+            appliedActions.push(
+              `Status → ${
+                macroConversationStatusLabels[nextStatus] ?? nextStatus
+              }`,
+            );
+          }
+
+          if (macro.targetPriority !== 'KEEP') {
+            appliedActions.push(
+              `Prioridade → ${
+                macroPriorityLabels[nextPriority] ?? nextPriority
+              }`,
+            );
+          }
+
+          if (targetTeam) {
+            appliedActions.push(`Equipe → ${targetTeam.name}`);
+
+            if (nextAssignee) {
+              appliedActions.push(
+                `Responsável → ${
+                  getRecordName(nextAssignee) || 'Usuário sem nome'
+                }`,
+              );
+            }
+          } else if (availableAssignee) {
+            appliedActions.push(
+              `Responsável → ${
+                getRecordName(availableAssignee) || 'Usuário sem nome'
+              }`,
+            );
+          }
+
+          setConversations((current) =>
+            current.map((conversation) =>
+              conversation.id === selectedConversation.id
+                ? {
+                    ...conversation,
+                    status: nextStatus,
+                    priority: nextPriority,
+                    snoozedUntil:
+                      macro.targetConversationStatus === 'KEEP'
+                        ? conversation.snoozedUntil
+                        : null,
+                    unreadCount:
+                      nextStatus === 'RESOLVED' ? 0 : conversation.unreadCount,
+                    inboxTeam: targetTeam ?? conversation.inboxTeam,
+                    assignee:
+                      targetTeam || availableAssignee
+                        ? nextAssignee
+                        : conversation.assignee,
+                    firstResponseDueAt: targetTeam
+                      ? nextFirstResponseDueAt
+                      : conversation.firstResponseDueAt,
+                    slaBreachedAt: shouldResetResponseSla
+                      ? null
+                      : conversation.slaBreachedAt,
+                  }
+                : conversation,
+            ),
+          );
+        }
+
+        if (macro.inboxLabel) {
+          const label =
+            labels.find(({ id }) => id === macro.inboxLabel?.id) ??
+            macro.inboxLabel;
+          const existingAssignment = selectedConversation.labelAssignments.find(
+            (assignment) => assignment.label.id === label.id,
+          );
+
+          try {
+            let assignmentId = existingAssignment?.id;
+
+            if (existingAssignment?.isActive) {
+              appliedActions.push(`Etiqueta mantida → ${label.name}`);
+            } else {
+              if (existingAssignment) {
+                await client.mutation({
+                  updateInboxConversationLabel: {
+                    __args: {
+                      id: existingAssignment.id,
+                      data: {
+                        isActive: true,
+                        assignedAt: usedAt,
+                        removedAt: null,
+                      },
+                    },
+                    id: true,
+                  },
+                } as never);
+              } else {
+                const result = (await client.mutation({
+                  createInboxConversationLabel: {
+                    __args: {
+                      data: {
+                        name: `${selectedConversation.id}:${label.id}`,
+                        isActive: true,
+                        assignedAt: usedAt,
+                        removedAt: null,
+                        inboxConversationId: selectedConversation.id,
+                        inboxLabelId: label.id,
+                      },
+                    },
+                    id: true,
+                  },
+                } as never)) as unknown as {
+                  createInboxConversationLabel?: {
+                    id?: string | null;
+                  } | null;
+                };
+
+                assignmentId =
+                  result.createInboxConversationLabel?.id ?? undefined;
+              }
+
+              if (!assignmentId) {
+                throw new Error('A etiqueta não retornou um vínculo.');
+              }
+
+              const nextAssignment: InboxConversationLabelAssignment = {
+                id: assignmentId,
+                isActive: true,
+                assignedAt: usedAt,
+                removedAt: null,
+                label,
+              };
+
+              setConversations((current) =>
+                current.map((conversation) =>
+                  conversation.id === selectedConversation.id
+                    ? {
+                        ...conversation,
+                        labelAssignments: existingAssignment
+                          ? conversation.labelAssignments.map((assignment) =>
+                              assignment.id === existingAssignment.id
+                                ? nextAssignment
+                                : assignment,
+                            )
+                          : [...conversation.labelAssignments, nextAssignment],
+                      }
+                    : conversation,
+                ),
+              );
+              appliedActions.push(`Etiqueta aplicada → ${label.name}`);
+
+              const nextLabelUsageCount = (label.usageCount ?? 0) + 1;
+
+              setLabels((current) =>
+                current.map((item) =>
+                  item.id === label.id
+                    ? {
+                        ...item,
+                        usageCount: nextLabelUsageCount,
+                      }
+                    : item,
+                ),
+              );
+
+              try {
+                await client.mutation({
+                  updateInboxLabel: {
+                    __args: {
+                      id: label.id,
+                      data: {
+                        usageCount: nextLabelUsageCount,
+                      },
+                    },
+                    id: true,
+                  },
+                } as never);
+              } catch {
+                warnings.push(
+                  'A etiqueta foi aplicada, mas sua contagem não foi atualizada.',
+                );
+              }
+            }
+          } catch {
+            warnings.push(`A etiqueta ${label.name} não pôde ser aplicada.`);
+          }
+        }
+
+        if (preview.internalNote) {
+          try {
+            await client.mutation({
+              createInboxMessage: {
+                __args: {
+                  data: {
+                    name:
+                      preview.internalNote.length > 70
+                        ? `${preview.internalNote.slice(0, 67)}...`
+                        : preview.internalNote,
+                    providerMessageKey: createInternalMessageKey(),
+                    direction: 'OUTBOUND',
+                    type: 'TEXT',
+                    body: preview.internalNote,
+                    deliveryStatus: 'SENT',
+                    sentAt: usedAt,
+                    isInternalNote: true,
+                    inboxConversationId: selectedConversation.id,
+                  },
+                },
+                id: true,
+              },
+            } as never);
+            await loadMessages(selectedConversation.id);
+            appliedActions.push('Nota interna registrada');
+          } catch {
+            warnings.push('A nota interna da macro não pôde ser registrada.');
+          }
+        }
+
+        if (preview.replyDraft && macroSavedReply) {
+          appliedActions.push(
+            `Rascunho /${macroSavedReply.shortcut} preparado`,
+          );
+        }
+
+        if (appliedActions.length === 0) {
+          throw new Error('Nenhuma ação da macro pôde ser aplicada.');
+        }
+
+        const nextMacroUsageCount = (macro.usageCount ?? 0) + 1;
+        const usageUpdates = [
+          client.mutation({
+            updateInboxMacro: {
+              __args: {
+                id: macro.id,
+                data: {
+                  usageCount: nextMacroUsageCount,
+                  lastUsedAt: usedAt,
+                },
+              },
+              id: true,
+            },
+          } as never),
+        ];
+
+        setMacros((current) =>
+          current.map((item) =>
+            item.id === macro.id
+              ? {
+                  ...item,
+                  usageCount: nextMacroUsageCount,
+                  lastUsedAt: usedAt,
+                }
+              : item,
+          ),
+        );
+
+        if (preview.replyDraft && macroSavedReply) {
+          const savedReply = macroSavedReply;
+          const nextSavedReplyUsageCount = (savedReply.usageCount ?? 0) + 1;
+
+          usageUpdates.push(
+            client.mutation({
+              updateInboxSavedReply: {
+                __args: {
+                  id: savedReply.id,
+                  data: {
+                    usageCount: nextSavedReplyUsageCount,
+                    lastUsedAt: usedAt,
+                  },
+                },
+                id: true,
+              },
+            } as never),
+          );
+          setSavedReplies((current) =>
+            current.map((item) =>
+              item.id === savedReply.id
+                ? {
+                    ...item,
+                    usageCount: nextSavedReplyUsageCount,
+                    lastUsedAt: usedAt,
+                  }
+                : item,
+            ),
+          );
+        }
+
+        const usageResults = await Promise.allSettled(usageUpdates);
+
+        if (usageResults.some(({ status }) => status === 'rejected')) {
+          warnings.push(
+            'As ações foram aplicadas, mas parte das métricas de uso não foi atualizada.',
+          );
+        }
+
+        await enqueueSnackbar({
+          message:
+            warnings.length > 0
+              ? `Macro aplicada com ${warnings.length} aviso${
+                  warnings.length === 1 ? '' : 's'
+                }.`
+              : `Macro aplicada: ${appliedActions.length} ação${
+                  appliedActions.length === 1 ? '' : 'ões'
+                }.`,
+          variant: warnings.length > 0 ? 'warning' : 'success',
+        });
+
+        return {
+          macroId: macro.id,
+          appliedActions,
+          warnings,
+          replyDraft: preview.replyDraft,
+          unresolvedReplyVariables: preview.unresolvedReplyVariables,
+        };
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+
+        return null;
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [
+      conversations,
+      labels,
+      loadMessages,
+      macros,
+      previewInboxMacro,
+      savedReplies,
+      selectedConversation,
+      teams,
+      workspaceMembers,
+    ],
   );
 
   const toggleConversationLabel = useCallback(
@@ -2218,6 +3033,7 @@ export const useInboxData = () => {
   return {
     conversations,
     savedReplies,
+    macros,
     labels,
     workspaceMembers,
     teams,
@@ -2236,6 +3052,8 @@ export const useInboxData = () => {
     selectConversation,
     snoozeConversation,
     applySavedReply,
+    previewInboxMacro,
+    applyInboxMacro,
     toggleConversationLabel,
     setConversationAssignee,
     setConversationTeam,
