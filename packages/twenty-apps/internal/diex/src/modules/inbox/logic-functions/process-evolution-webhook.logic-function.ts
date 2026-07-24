@@ -24,6 +24,7 @@ import {
   readBooleanEnvironmentValue,
   readResponseSlaMinutes,
 } from 'src/modules/inbox/utils/evolution-environment';
+import { executeInboxAutomations } from 'src/modules/inbox/utils/inbox-automation';
 
 type PersonMatch = {
   id: string;
@@ -61,7 +62,15 @@ type ProcessEvolutionWebhookResult = {
   createdMessages: number;
   duplicateMessages: number;
   updatedStatuses: number;
+  automationsApplied: number;
+  automationWarnings: string[];
   ignored: number;
+};
+
+type IngestMessageResult = {
+  status: 'CREATED' | 'DUPLICATE';
+  automationsApplied: number;
+  automationWarnings: string[];
 };
 
 const getEdges = <TNode>(
@@ -596,18 +605,27 @@ const createInboxConversation = async (
 const resolveConversation = async (
   client: CoreApiClient,
   message: NormalizedEvolutionMessage,
-): Promise<InboxConversationRecord> => {
+): Promise<{
+  conversation: InboxConversationRecord;
+  created: boolean;
+}> => {
   const existingConversation = await findInboxConversation(
     client,
     message.providerThreadKey,
   );
 
   if (existingConversation) {
-    return existingConversation;
+    return {
+      conversation: existingConversation,
+      created: false,
+    };
   }
 
   try {
-    return await createInboxConversation(client, message);
+    return {
+      conversation: await createInboxConversation(client, message),
+      created: true,
+    };
   } catch (error) {
     const conversationCreatedByAnotherDelivery = await findInboxConversation(
       client,
@@ -615,7 +633,10 @@ const resolveConversation = async (
     );
 
     if (conversationCreatedByAnotherDelivery) {
-      return conversationCreatedByAnotherDelivery;
+      return {
+        conversation: conversationCreatedByAnotherDelivery,
+        created: false,
+      };
     }
 
     throw error;
@@ -731,21 +752,64 @@ const updateConversationAfterMessage = async (
 const ingestMessage = async (
   client: CoreApiClient,
   message: NormalizedEvolutionMessage,
-): Promise<'CREATED' | 'DUPLICATE'> => {
+): Promise<IngestMessageResult> => {
   if (await inboxMessageExists(client, message.providerMessageKey)) {
-    return 'DUPLICATE';
+    return {
+      status: 'DUPLICATE',
+      automationsApplied: 0,
+      automationWarnings: [],
+    };
   }
 
-  const conversation = await resolveConversation(client, message);
+  const { conversation, created: conversationCreated } =
+    await resolveConversation(client, message);
   const wasCreated = await createInboxMessage(client, conversation, message);
 
   if (!wasCreated) {
-    return 'DUPLICATE';
+    return {
+      status: 'DUPLICATE',
+      automationsApplied: 0,
+      automationWarnings: [],
+    };
   }
 
   await updateConversationAfterMessage(client, conversation, message);
 
-  return 'CREATED';
+  if (message.direction !== 'INBOUND') {
+    return {
+      status: 'CREATED',
+      automationsApplied: 0,
+      automationWarnings: [],
+    };
+  }
+
+  try {
+    const automationResult = await executeInboxAutomations({
+      client,
+      conversationId: conversation.id,
+      trigger: conversationCreated
+        ? 'CONVERSATION_CREATED'
+        : 'INBOUND_MESSAGE_CREATED',
+      triggerKey: message.providerMessageKey,
+      messageBody: message.body,
+    });
+
+    return {
+      status: 'CREATED',
+      automationsApplied: automationResult.applied,
+      automationWarnings: automationResult.warnings,
+    };
+  } catch (error) {
+    return {
+      status: 'CREATED',
+      automationsApplied: 0,
+      automationWarnings: [
+        error instanceof Error
+          ? error.message
+          : 'Inbox automation could not be evaluated.',
+      ],
+    };
+  }
 };
 
 const updateDeliveryStatus = async (
@@ -808,15 +872,20 @@ export const processEvolutionWebhookHandler = async (
   let createdMessages = 0;
   let duplicateMessages = 0;
   let updatedStatuses = 0;
+  let automationsApplied = 0;
+  const automationWarnings: string[] = [];
 
   for (const message of messages) {
     const result = await ingestMessage(client, message);
 
-    if (result === 'CREATED') {
+    if (result.status === 'CREATED') {
       createdMessages += 1;
     } else {
       duplicateMessages += 1;
     }
+
+    automationsApplied += result.automationsApplied;
+    automationWarnings.push(...result.automationWarnings);
   }
 
   for (const status of statuses) {
@@ -830,6 +899,8 @@ export const processEvolutionWebhookHandler = async (
     createdMessages,
     duplicateMessages,
     updatedStatuses,
+    automationsApplied,
+    automationWarnings,
     ignored:
       messages.length === 0 && statuses.length === 0
         ? 1
@@ -843,6 +914,6 @@ export default defineLogicFunction({
   name: 'process-diex-evolution-webhook',
   description:
     'Creates idempotent inbox conversations and messages, links CRM context and updates delivery status inside the resolved workspace.',
-  timeoutSeconds: 30,
+  timeoutSeconds: 60,
   handler: processEvolutionWebhookHandler,
 });

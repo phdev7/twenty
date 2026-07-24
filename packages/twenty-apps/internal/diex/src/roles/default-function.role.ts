@@ -13,6 +13,7 @@ import {
   INBOX_LABEL_UNIVERSAL_IDENTIFIER,
 } from 'src/modules/inbox/constants/inbox-label.constants';
 import { INBOX_CONVERSATION_EVENT_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-conversation-event.constants';
+import { INBOX_AUTOMATION_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-automation.constants';
 import { INBOX_MACRO_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-macro.constants';
 import { INBOX_MENTION_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-mention.constants';
 import {
@@ -140,6 +141,10 @@ export default defineApplicationRole({
     },
     {
       objectUniversalIdentifier: INBOX_MACRO_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: INBOX_AUTOMATION_UNIVERSAL_IDENTIFIER,
       ...readWrite,
     },
     {

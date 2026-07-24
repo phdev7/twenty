@@ -289,11 +289,14 @@ export const useInboxData = () => {
   const messageRequestVersionRef = useRef(0);
   const mentionRequestVersionRef = useRef(0);
   const consumedEmailConfirmationTokensRef = useRef(new Set<string>());
-  const { conversationEvents, recordConversationEvent } =
-    useInboxConversationActivity({
-      selectedConversationId,
-      currentWorkspaceMemberId,
-    });
+  const {
+    conversationEvents,
+    loadConversationEvents,
+    recordConversationEvent,
+  } = useInboxConversationActivity({
+    selectedConversationId,
+    currentWorkspaceMemberId,
+  });
 
   const loadConversations = useCallback(async () => {
     setIsLoadingConversations(true);
@@ -545,6 +548,23 @@ export const useInboxData = () => {
       }
     }
   }, []);
+
+  const refreshInbox = useCallback(async (): Promise<void> => {
+    await Promise.all([
+      loadConversations(),
+      ...(selectedConversationId
+        ? [
+            loadMessages(selectedConversationId),
+            loadConversationEvents(selectedConversationId),
+          ]
+        : []),
+    ]);
+  }, [
+    loadConversationEvents,
+    loadConversations,
+    loadMessages,
+    selectedConversationId,
+  ]);
 
   const loadCurrentWorkspaceMember = useCallback(async () => {
     try {
@@ -3095,13 +3115,22 @@ export const useInboxData = () => {
         return;
       }
 
-      await loadConversations();
+      await refreshInbox();
+      const automationSummary =
+        result.automationsApplied > 0
+          ? ` ${result.automationsApplied} automação(ões) aplicada(s).`
+          : '';
+      const warningSummary =
+        result.automationWarnings.length > 0
+          ? ` ${result.automationWarnings.length} automação(ões) exigem revisão no histórico.`
+          : '';
+
       await enqueueSnackbar({
         message:
           result.createdMessages > 0
-            ? `${result.createdMessages} e-mail(s) sincronizado(s) em ${result.importedThreads} conversa(s).`
-            : `Canais verificados. Nenhum e-mail novo em ${result.importedThreads} conversa(s).`,
-        variant: 'success',
+            ? `${result.createdMessages} e-mail(s) sincronizado(s) em ${result.importedThreads} conversa(s).${automationSummary}${warningSummary}`
+            : `Canais verificados. Nenhum e-mail novo em ${result.importedThreads} conversa(s).${warningSummary}`,
+        variant: result.automationWarnings.length > 0 ? 'warning' : 'success',
       });
     } catch (error) {
       await enqueueSnackbar({
@@ -3111,7 +3140,7 @@ export const useInboxData = () => {
     } finally {
       setBusyAction(null);
     }
-  }, [getEmailSyncRouting, loadConversations]);
+  }, [getEmailSyncRouting, refreshInbox]);
 
   const previewExternalMessage = useCallback(
     async ({
@@ -3336,10 +3365,7 @@ export const useInboxData = () => {
             );
           }
 
-          await Promise.all([
-            loadMessages(selectedConversationId),
-            loadConversations(),
-          ]);
+          await refreshInbox();
           await enqueueSnackbar({
             message: 'Mensagem aceita pelo WhatsApp e registrada na inbox.',
             variant: 'success',
@@ -3405,10 +3431,7 @@ export const useInboxData = () => {
           syncSucceeded = false;
         }
 
-        await Promise.all([
-          loadMessages(selectedConversationId),
-          loadConversations(),
-        ]);
+        await refreshInbox();
         await enqueueSnackbar({
           message: syncSucceeded
             ? 'E-mail enviado pela conta nativa do Twenty e sincronizado na Inbox.'
@@ -3430,8 +3453,7 @@ export const useInboxData = () => {
     },
     [
       getEmailSyncRouting,
-      loadConversations,
-      loadMessages,
+      refreshInbox,
       selectedConversation,
       selectedConversationId,
     ],
@@ -3486,6 +3508,7 @@ export const useInboxData = () => {
     errorMessage,
     triageResult,
     loadConversations,
+    refreshInbox,
     selectConversation,
     snoozeConversation,
     applySavedReply,

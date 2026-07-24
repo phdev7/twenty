@@ -47,7 +47,7 @@ export const InboxFrontComponent = () => {
     busyAction,
     errorMessage,
     triageResult,
-    loadConversations,
+    refreshInbox,
     selectConversation,
     applySavedReply,
     previewInboxMacro,
@@ -213,7 +213,7 @@ export const InboxFrontComponent = () => {
           onTeamFilterChange={setTeamFilterId}
           onAttentionFilterChange={setAttentionFilter}
           onSelect={selectConversation}
-          onRefresh={loadConversations}
+          onRefresh={refreshInbox}
           onSyncEmail={syncTwentyEmail}
         />
         <ConversationThread

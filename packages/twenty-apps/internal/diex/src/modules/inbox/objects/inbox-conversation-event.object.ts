@@ -18,6 +18,7 @@ export enum InboxConversationEventType {
   MACRO_APPLIED = 'MACRO_APPLIED',
   MENTION_RESOLVED = 'MENTION_RESOLVED',
   AI_TRIAGED = 'AI_TRIAGED',
+  AUTOMATION_APPLIED = 'AUTOMATION_APPLIED',
 }
 
 export default defineObject({
@@ -124,6 +125,13 @@ export default defineObject({
           label: 'Triagem de IA',
           position: 10,
           color: 'purple',
+        },
+        {
+          id: INBOX_CONVERSATION_EVENT_OPTION_IDS.automationApplied,
+          value: InboxConversationEventType.AUTOMATION_APPLIED,
+          label: 'Automação aplicada',
+          position: 11,
+          color: 'turquoise',
         },
       ],
     },

@@ -2,6 +2,7 @@ import { CoreApiClient } from 'twenty-client-sdk/core';
 import { MetadataApiClient } from 'twenty-client-sdk/metadata';
 
 import { type PersonName } from 'src/modules/inbox/front-components/types/inbox.types';
+import { executeInboxAutomations } from 'src/modules/inbox/utils/inbox-automation';
 
 type NativeRecordReference = {
   id: string;
@@ -113,6 +114,8 @@ export type TwentyEmailSyncResult = {
   createdConversations: number;
   updatedConversations: number;
   createdMessages: number;
+  automationsApplied: number;
+  automationWarnings: string[];
 };
 
 type SyncTwentyEmailInput = {
@@ -613,6 +616,8 @@ export const syncTwentyEmailToInbox = async ({
       createdConversations: 0,
       updatedConversations: 0,
       createdMessages: 0,
+      automationsApplied: 0,
+      automationWarnings: [],
     };
   }
 
@@ -650,6 +655,8 @@ export const syncTwentyEmailToInbox = async ({
   let createdConversations = 0;
   let updatedConversations = 0;
   let createdMessages = 0;
+  let automationsApplied = 0;
+  const automationWarnings: string[] = [];
 
   for (const group of groups) {
     const contact = getRepresentativeContact(group);
@@ -684,6 +691,7 @@ export const syncTwentyEmailToInbox = async ({
       latestMessage,
     });
     let conversationId = existing?.id;
+    const conversationWasCreated = !conversationId;
 
     if (!conversationId) {
       const firstRespondedAt = getFirstRespondedAt(group);
@@ -834,6 +842,35 @@ export const syncTwentyEmailToInbox = async ({
       existingMessageKeys.add(providerMessageKey);
       createdMessages += 1;
     }
+
+    const latestProviderMessageKey = buildProviderMessageKey(latestMessage);
+    const latestMessageWasCreated = missingMessages.some(
+      (message) =>
+        buildProviderMessageKey(message) === latestProviderMessageKey,
+    );
+
+    if (isIncoming(latestMessage) && latestMessageWasCreated) {
+      try {
+        const automationResult = await executeInboxAutomations({
+          client: coreClient,
+          conversationId,
+          trigger: conversationWasCreated
+            ? 'CONVERSATION_CREATED'
+            : 'INBOUND_MESSAGE_CREATED',
+          triggerKey: latestProviderMessageKey,
+          messageBody: latestMessage.message?.text,
+        });
+
+        automationsApplied += automationResult.applied;
+        automationWarnings.push(...automationResult.warnings);
+      } catch (error) {
+        automationWarnings.push(
+          error instanceof Error
+            ? error.message
+            : 'A automação da Inbox não pôde ser avaliada.',
+        );
+      }
+    }
   }
 
   return {
@@ -842,5 +879,7 @@ export const syncTwentyEmailToInbox = async ({
     createdConversations,
     updatedConversations,
     createdMessages,
+    automationsApplied,
+    automationWarnings,
   };
 };

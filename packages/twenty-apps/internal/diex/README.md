@@ -30,6 +30,9 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   resolução e trilha auditável por conversa e usuário;
 - macros comerciais configuráveis com prévia, status, prioridade, equipe,
   responsável, etiqueta, nota interna e resposta pronta como rascunho;
+- automações comerciais por nova conversa ou mensagem recebida, com condições
+  de canal, palavras-chave e vínculo CRM, distribuição, prioridade, etiqueta,
+  follow-up, tarefa, nota interna, idempotência e auditoria;
 - linha do tempo operacional com eventos estruturados de status, prioridade,
   roteamento, etiquetas, tarefas, macros, menções e triagem de IA;
 - adiamento com prazo, reabertura por vencimento e reativação por nova
@@ -123,6 +126,26 @@ menções e triagens de IA registram autor, data, resumo e detalhes.
 A visão `Diex > Histórico da inbox` permite auditoria transversal por conversa
 sem depender de texto solto em notas internas. Falha ao registrar o evento não
 é ocultada: a ação concluída retorna aviso para revisão operacional.
+
+### Automações comerciais
+
+Cadastre em `Diex > Automações da inbox`. Cada regra escolhe o gatilho `Nova
+conversa` ou `Nova mensagem recebida`, canal, palavras-chave, condição de
+vínculo CRM e a exigência de conversa sem responsável. Regras ativas são
+avaliadas pela ordem configurada e podem interromper a cadeia após aplicar.
+Novas regras nascem inativas e só entram em operação após ativação explícita.
+
+As ações disponíveis são status, prioridade, equipe, responsável, etiqueta,
+prazo de follow-up, tarefa vinculada à pessoa, empresa e oportunidade e nota
+interna contextual. Os templates aceitam variáveis como `{{contact.name}}`,
+`{{company.name}}`, `{{opportunity.name}}`, `{{conversation.name}}` e
+`{{message.body}}`.
+
+Cada execução cria antes uma chave idempotente no histórico da conversa. Isso
+evita tarefas e notas duplicadas em reentregas do webhook ou nova
+sincronização. Falhas ficam registradas no mesmo evento e não bloqueiam a
+entrada da mensagem. Automações nunca enviam comunicação externa; WhatsApp e
+e-mail continuam exigindo prévia e confirmação humana.
 
 ### Executor interno da IA
 
