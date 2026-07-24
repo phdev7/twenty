@@ -24,6 +24,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   oportunidades e fila acionável.
 - Centro de IA com fila de decisão, evidências, contexto do CRM, aprovação
   humana e trilha de auditoria sem execução externa automática.
+- painel de Customer Success com jornada da carteira, receita sob risco,
+  horizonte de renovação, marcos e revisão inteligente aplicável.
 
 ### Respostas prontas
 
@@ -78,6 +80,12 @@ ações. Sinais podem ser assumidos e marcados como tratados sem sair do cockpit
 esquerda, evidência e ação proposta no centro, contexto relacionado e comando
 humano à direita, além da trilha recente. A aprovação apenas registra e libera
 a proposta; nenhum efeito externo é disparado pelo front-end.
+
+`Diex > Customer Success` usa uma diagramação de carteira e jornada: pulso de
+saúde, receita protegida e sob risco, etapas clicáveis, carteira priorizada,
+plano detalhado, marcos e horizonte de renovação. A revisão de IA possui prévia
+sem mutação; quando aplicada explicitamente, atualiza saúde, resumo e próxima
+revisão e cria somente uma proposta governada quando houver intervenção.
 
 Os componentes `Card`, `Badge`, `Progress`, `Button`, `Separator` e `Skeleton`
 seguem a composição source-owned do shadcn/ui, adaptada aos tokens e ao sandbox
