@@ -19,7 +19,9 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
 - distribuição de conversas por responsável com edição e filtro direto na
   Inbox;
 - adiamento com prazo, reabertura por vencimento e reativação por nova
-  mensagem.
+  mensagem;
+- cockpit de inteligência comercial com radar de sinais, ranking de
+  oportunidades e fila acionável.
 
 ### Respostas prontas
 
@@ -62,6 +64,18 @@ A conversa pode ser adiada por uma ou quatro horas, até amanhã às 9h ou até
 segunda-feira, além de aceitar data e hora personalizadas. A Inbox reabre
 adiamentos vencidos ao carregar a fila; uma nova mensagem recebida ou um envio
 manual também reabre imediatamente e limpa o prazo anterior.
+
+### Páginas operacionais
+
+As áreas principais usam componentes compartilhados com diagramações
+diferentes. A primeira página própria é `Diex > Inteligência`: hero em radar,
+faixa de KPIs, fluxo vertical de sinais, ranking por score e grade de próximas
+ações. Sinais podem ser assumidos e marcados como tratados sem sair do cockpit.
+
+Os componentes `Card`, `Badge`, `Progress`, `Button`, `Separator` e `Skeleton`
+seguem a composição source-owned do shadcn/ui, adaptada aos tokens e ao sandbox
+Remote DOM do Twenty. Isso preserva a experiência nativa sem introduzir um
+segundo tema Tailwind dentro do CRM.
 
 ## Instalação
 
