@@ -46,6 +46,8 @@ export const InboxFrontComponent = () => {
     toggleConversationLabel,
     setConversationAssignee,
     setConversationPriority,
+    createConversationTask,
+    completeConversationTask,
     setConversationStatus,
     snoozeConversation,
     saveInternalNote,
@@ -189,6 +191,8 @@ export const InboxFrontComponent = () => {
           onToggleLabel={toggleConversationLabel}
           onAssign={setConversationAssignee}
           onPriorityChange={setConversationPriority}
+          onCreateTask={createConversationTask}
+          onCompleteTask={completeConversationTask}
           onSnooze={snoozeConversation}
           onConfigureEvolution={configureEvolution}
         />

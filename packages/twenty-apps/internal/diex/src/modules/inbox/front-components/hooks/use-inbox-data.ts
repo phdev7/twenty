@@ -18,6 +18,7 @@ import {
   type InboxMessage,
   type InboxSavedReply,
   type InboxTask,
+  type InboxTaskDraft,
   type InboxTriageResult,
   type InboxWorkspaceMember,
   type SavedReplyRenderResult,
@@ -95,6 +96,17 @@ const createInternalMessageKey = (): string => {
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   return `internal:${randomPart}`;
+};
+
+const getNextFollowUpDueAt = (tasks: InboxTask[]): string | null => {
+  const dueAtTimestamps = tasks
+    .filter(({ status, dueAt }) => status !== 'DONE' && Boolean(dueAt))
+    .map(({ dueAt }) => new Date(dueAt as string).getTime())
+    .filter(Number.isFinite);
+
+  return dueAtTimestamps.length > 0
+    ? new Date(Math.min(...dueAtTimestamps)).toISOString()
+    : null;
 };
 
 export const useInboxData = () => {
@@ -179,6 +191,14 @@ export const useInboxData = () => {
                     title: true,
                     status: true,
                     dueAt: true,
+                    assignee: {
+                      id: true,
+                      name: {
+                        firstName: true,
+                        lastName: true,
+                      },
+                      avatarUrl: true,
+                    },
                   },
                 },
               },
@@ -860,6 +880,287 @@ export const useInboxData = () => {
     [selectedConversationId],
   );
 
+  const createConversationTask = useCallback(
+    async ({ title, dueAt, assigneeId }: InboxTaskDraft): Promise<boolean> => {
+      if (selectedConversation === null) {
+        return false;
+      }
+
+      const normalizedTitle = title.trim();
+      const dueAtTimestamp = new Date(dueAt).getTime();
+      const minimumDueAt = Date.now() + 60_000;
+      const maximumDueAt = Date.now() + 2 * 365 * 24 * 60 * 60_000;
+      const assignee =
+        assigneeId === null
+          ? null
+          : (workspaceMembers.find(({ id }) => id === assigneeId) ?? null);
+
+      if (normalizedTitle.length === 0 || normalizedTitle.length > 255) {
+        await enqueueSnackbar({
+          message: 'A próxima ação precisa ter entre 1 e 255 caracteres.',
+          variant: 'warning',
+        });
+
+        return false;
+      }
+
+      if (
+        !Number.isFinite(dueAtTimestamp) ||
+        dueAtTimestamp < minimumDueAt ||
+        dueAtTimestamp > maximumDueAt
+      ) {
+        await enqueueSnackbar({
+          message: 'Defina um prazo futuro de até dois anos.',
+          variant: 'warning',
+        });
+
+        return false;
+      }
+
+      if (assigneeId !== null && assignee === null) {
+        await enqueueSnackbar({
+          message: 'O responsável selecionado não está mais disponível.',
+          variant: 'warning',
+        });
+
+        return false;
+      }
+
+      const normalizedDueAt = new Date(dueAtTimestamp).toISOString();
+
+      setBusyAction('create-task');
+
+      try {
+        const client = new CoreApiClient();
+        const result = (await client.mutation({
+          createTask: {
+            __args: {
+              data: {
+                title: normalizedTitle,
+                status: 'TODO',
+                dueAt: normalizedDueAt,
+                assigneeId,
+                diexInboxConversationId: selectedConversation.id,
+                bodyV2: {
+                  markdown: [
+                    'Próxima ação criada pela Inbox Diex.',
+                    `Conversa: ${selectedConversation.name}`,
+                    selectedConversation.opportunity
+                      ? `Oportunidade: ${
+                          selectedConversation.opportunity.name ||
+                          selectedConversation.opportunity.id
+                        }`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join('\n\n'),
+                  blocknote: null,
+                },
+              },
+            },
+            id: true,
+          },
+        } as never)) as unknown as {
+          createTask?: {
+            id?: string | null;
+          } | null;
+        };
+        const taskId = result.createTask?.id;
+
+        if (!taskId) {
+          throw new Error('A tarefa não retornou um identificador.');
+        }
+
+        const targets = [
+          selectedConversation.person?.id
+            ? { targetPersonId: selectedConversation.person.id }
+            : null,
+          selectedConversation.company?.id
+            ? { targetCompanyId: selectedConversation.company.id }
+            : null,
+          selectedConversation.opportunity?.id
+            ? { targetOpportunityId: selectedConversation.opportunity.id }
+            : null,
+        ].filter(
+          (
+            target,
+          ): target is
+            | { targetPersonId: string }
+            | { targetCompanyId: string }
+            | { targetOpportunityId: string } => target !== null,
+        );
+        const targetResults = await Promise.allSettled(
+          targets.map((target) =>
+            client.mutation({
+              createTaskTarget: {
+                __args: {
+                  data: {
+                    taskId,
+                    ...target,
+                  },
+                },
+                id: true,
+              },
+            } as never),
+          ),
+        );
+        const createdTask: InboxTask = {
+          id: taskId,
+          title: normalizedTitle,
+          status: 'TODO',
+          dueAt: normalizedDueAt,
+          assignee,
+        };
+        const nextTasks = [...selectedConversation.tasks, createdTask];
+        const nextFollowUpDueAt = getNextFollowUpDueAt(nextTasks);
+        let followUpWasSynced = true;
+
+        try {
+          await client.mutation({
+            updateInboxConversation: {
+              __args: {
+                id: selectedConversation.id,
+                data: {
+                  followUpDueAt: nextFollowUpDueAt,
+                },
+              },
+              id: true,
+            },
+          } as never);
+        } catch {
+          followUpWasSynced = false;
+        }
+
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === selectedConversation.id
+              ? {
+                  ...conversation,
+                  tasks: nextTasks,
+                  followUpDueAt: followUpWasSynced
+                    ? nextFollowUpDueAt
+                    : conversation.followUpDueAt,
+                }
+              : conversation,
+          ),
+        );
+
+        const failedTargetCount = targetResults.filter(
+          ({ status }) => status === 'rejected',
+        ).length;
+
+        await enqueueSnackbar({
+          message:
+            failedTargetCount > 0 || !followUpWasSynced
+              ? 'Tarefa criada. Alguns vínculos do CRM precisam ser revisados.'
+              : 'Próxima ação criada e vinculada ao contexto comercial.',
+          variant:
+            failedTargetCount > 0 || !followUpWasSynced ? 'warning' : 'success',
+        });
+
+        return true;
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+
+        return false;
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [selectedConversation, workspaceMembers],
+  );
+
+  const completeConversationTask = useCallback(
+    async (taskId: string): Promise<void> => {
+      if (selectedConversation === null) {
+        return;
+      }
+
+      const task = selectedConversation.tasks.find(({ id }) => id === taskId);
+
+      if (!task || task.status === 'DONE') {
+        return;
+      }
+
+      setBusyAction(`complete-task:${taskId}`);
+
+      try {
+        const client = new CoreApiClient();
+
+        await client.mutation({
+          updateTask: {
+            __args: {
+              id: taskId,
+              data: {
+                status: 'DONE',
+              },
+            },
+            id: true,
+          },
+        } as never);
+
+        const nextTasks = selectedConversation.tasks.map((currentTask) =>
+          currentTask.id === taskId
+            ? {
+                ...currentTask,
+                status: 'DONE',
+              }
+            : currentTask,
+        );
+        const nextFollowUpDueAt = getNextFollowUpDueAt(nextTasks);
+        let followUpWasSynced = true;
+
+        try {
+          await client.mutation({
+            updateInboxConversation: {
+              __args: {
+                id: selectedConversation.id,
+                data: {
+                  followUpDueAt: nextFollowUpDueAt,
+                },
+              },
+              id: true,
+            },
+          } as never);
+        } catch {
+          followUpWasSynced = false;
+        }
+
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === selectedConversation.id
+              ? {
+                  ...conversation,
+                  tasks: nextTasks,
+                  followUpDueAt: followUpWasSynced
+                    ? nextFollowUpDueAt
+                    : conversation.followUpDueAt,
+                }
+              : conversation,
+          ),
+        );
+
+        await enqueueSnackbar({
+          message: followUpWasSynced
+            ? 'Próxima ação concluída.'
+            : 'Tarefa concluída. Revise a data do próximo follow-up.',
+          variant: followUpWasSynced ? 'success' : 'warning',
+        });
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    [selectedConversation],
+  );
+
   const selectConversation = useCallback(
     async (conversationId: string) => {
       setSelectedConversationId(conversationId);
@@ -1256,6 +1557,8 @@ export const useInboxData = () => {
     toggleConversationLabel,
     setConversationAssignee,
     setConversationPriority,
+    createConversationTask,
+    completeConversationTask,
     setConversationStatus,
     saveInternalNote,
     previewEvolutionText,

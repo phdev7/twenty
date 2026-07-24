@@ -131,7 +131,7 @@ desabilitados.
 
 ## Estado operacional
 
-O app privado `diex` chegou à versão `0.8.0` com:
+O app privado `diex` chegou à versão `0.10.0` com:
 
 - Inbox em três painéis, contexto de pessoa, empresa e oportunidade, SLA,
   prioridade, responsável, tarefas, notas internas e triagem por IA;
@@ -139,6 +139,8 @@ O app privado `diex` chegou à versão `0.8.0` com:
   prévia e confirmação de envio;
 - respostas prontas com variáveis do CRM, etiquetas, filtros, adiamento e
   reabertura automática;
+- filas de atenção, prioridade editável e criação/conclusão de próxima ação
+  vinculada à conversa, pessoa, empresa e oportunidade;
 - cockpit de inteligência comercial, fila de sinais e ranking acionável;
 - Centro de IA com evidência, aprovação humana e trilha de execução;
 - Customer Success com carteira, receita sob risco, renovação, marcos e revisão

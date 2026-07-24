@@ -15,6 +15,7 @@ import {
   IconInbox,
   IconListCheck,
   IconPlug,
+  IconPlus,
   IconTags,
   IconUser,
   IconUserPin,
@@ -25,6 +26,7 @@ import {
   type InboxConversation,
   type InboxLabel,
   type InboxRecordReference,
+  type InboxTaskDraft,
   type InboxWorkspaceMember,
 } from 'src/modules/inbox/front-components/types/inbox.types';
 import {
@@ -46,6 +48,8 @@ type CrmContextProps = {
   onToggleLabel: (label: InboxLabel) => Promise<void>;
   onAssign: (workspaceMemberId: string | null) => Promise<void>;
   onPriorityChange: (priority: string) => Promise<void>;
+  onCreateTask: (draft: InboxTaskDraft) => Promise<boolean>;
+  onCompleteTask: (taskId: string) => Promise<void>;
   onSnooze: (snoozedUntil: string) => Promise<void>;
   onConfigureEvolution: () => Promise<void>;
 };
@@ -215,10 +219,16 @@ export const CrmContext = ({
   onToggleLabel,
   onAssign,
   onPriorityChange,
+  onCreateTask,
+  onCompleteTask,
   onSnooze,
   onConfigureEvolution,
 }: CrmContextProps) => {
   const [customSnoozeUntil, setCustomSnoozeUntil] = useState('');
+  const [isTaskComposerOpen, setIsTaskComposerOpen] = useState(false);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDueAt, setTaskDueAt] = useState('');
+  const [taskAssigneeId, setTaskAssigneeId] = useState('');
 
   useEffect(() => {
     const defaultTarget =
@@ -227,6 +237,13 @@ export const CrmContext = ({
 
     setCustomSnoozeUntil(toLocalDateTimeInputValue(defaultTarget));
   }, [conversation?.id, conversation?.snoozedUntil]);
+
+  useEffect(() => {
+    setIsTaskComposerOpen(false);
+    setTaskTitle('');
+    setTaskDueAt(toLocalDateTimeInputValue(getSnoozedUntil('TOMORROW')));
+    setTaskAssigneeId(conversation?.assignee?.id ?? '');
+  }, [conversation?.assignee?.id, conversation?.id]);
 
   if (conversation === null) {
     return (
@@ -597,9 +614,118 @@ export const CrmContext = ({
         </section>
 
         <section style={inboxStyles.contextSection}>
-          <h3 style={inboxStyles.contextSectionTitle}>
-            Próximas tarefas ({openTasks.length})
-          </h3>
+          <div style={inboxStyles.contextSectionHeader}>
+            <h3 style={inboxStyles.contextSectionTitle}>
+              Próximas tarefas ({openTasks.length})
+            </h3>
+            <button
+              type="button"
+              disabled={busyAction !== null}
+              style={{
+                ...inboxStyles.textButton,
+                ...(busyAction !== null ? inboxStyles.disabledButton : {}),
+              }}
+              onClick={() => setIsTaskComposerOpen((current) => !current)}
+            >
+              <IconPlus
+                size={themeCssVariables.icon.size.sm}
+                stroke={themeCssVariables.icon.stroke.md}
+              />
+              Nova
+            </button>
+          </div>
+          {isTaskComposerOpen ? (
+            <div style={inboxStyles.taskComposer}>
+              <label style={inboxStyles.contextCardLabel}>
+                Próxima ação
+                <input
+                  aria-label="Título da próxima ação"
+                  maxLength={255}
+                  placeholder="Ex.: Retornar com proposta revisada"
+                  value={taskTitle}
+                  style={inboxStyles.contextTextInput}
+                  onChange={(event) => setTaskTitle(event.target.value)}
+                />
+              </label>
+              <label style={inboxStyles.contextCardLabel}>
+                Prazo
+                <input
+                  aria-label="Prazo da próxima ação"
+                  type="datetime-local"
+                  min={toLocalDateTimeInputValue(
+                    new Date(Date.now() + 60_000).toISOString(),
+                  )}
+                  value={taskDueAt}
+                  style={inboxStyles.contextTextInput}
+                  onChange={(event) => setTaskDueAt(event.target.value)}
+                />
+              </label>
+              <label style={inboxStyles.contextCardLabel}>
+                Responsável
+                <select
+                  aria-label="Responsável pela próxima ação"
+                  value={taskAssigneeId}
+                  style={inboxStyles.contextTextInput}
+                  onChange={(event) => setTaskAssigneeId(event.target.value)}
+                >
+                  <option value="">Sem responsável</option>
+                  {workspaceMembers.map((workspaceMember) => (
+                    <option key={workspaceMember.id} value={workspaceMember.id}>
+                      {getRecordName(workspaceMember) || 'Usuário sem nome'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div style={inboxStyles.contextActionRow}>
+                <button
+                  type="button"
+                  style={inboxStyles.secondaryButton}
+                  onClick={() => setIsTaskComposerOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    busyAction !== null ||
+                    taskTitle.trim().length === 0 ||
+                    taskDueAt.length === 0
+                  }
+                  style={{
+                    ...inboxStyles.primaryButton,
+                    ...(busyAction !== null ||
+                    taskTitle.trim().length === 0 ||
+                    taskDueAt.length === 0
+                      ? inboxStyles.disabledButton
+                      : {}),
+                  }}
+                  onClick={async () => {
+                    const target = new Date(taskDueAt);
+
+                    if (!Number.isFinite(target.getTime())) {
+                      return;
+                    }
+
+                    const wasCreated = await onCreateTask({
+                      title: taskTitle,
+                      dueAt: target.toISOString(),
+                      assigneeId: taskAssigneeId || null,
+                    });
+
+                    if (wasCreated) {
+                      setTaskTitle('');
+                      setTaskDueAt(
+                        toLocalDateTimeInputValue(getSnoozedUntil('TOMORROW')),
+                      );
+                      setIsTaskComposerOpen(false);
+                    }
+                  }}
+                >
+                  Criar ação
+                </button>
+              </div>
+            </div>
+          ) : null}
           {openTasks.length === 0 ? (
             <div style={inboxStyles.contextCard}>
               <span style={inboxStyles.contextCardIcon}>
@@ -616,46 +742,59 @@ export const CrmContext = ({
             </div>
           ) : (
             openTasks.map((task) => (
-              <button
-                key={task.id}
-                type="button"
-                style={{
-                  ...inboxStyles.taskCard,
-                  cursor: 'pointer',
-                  fontFamily: themeCssVariables.font.family,
-                  textAlign: 'left',
-                  width: '100%',
-                }}
-                onClick={() => void openRecord(task.id, 'task')}
-              >
-                <IconListCheck
-                  size={themeCssVariables.icon.size.sm}
-                  stroke={themeCssVariables.icon.stroke.md}
-                />
-                <span style={inboxStyles.contextCardBody}>
-                  <span
-                    style={{
-                      ...inboxStyles.taskTitle,
-                      display: 'block',
-                    }}
-                  >
-                    {task.title || 'Tarefa sem título'}
+              <div key={task.id} style={inboxStyles.taskCard}>
+                <button
+                  type="button"
+                  aria-label={`Concluir ${task.title || 'tarefa'}`}
+                  title="Marcar como concluída"
+                  disabled={busyAction !== null}
+                  style={{
+                    ...inboxStyles.taskCompleteButton,
+                    ...(busyAction !== null ? inboxStyles.disabledButton : {}),
+                  }}
+                  onClick={() => void onCompleteTask(task.id)}
+                >
+                  <IconCheck
+                    size={themeCssVariables.icon.size.sm}
+                    stroke={themeCssVariables.icon.stroke.md}
+                  />
+                </button>
+                <button
+                  type="button"
+                  style={inboxStyles.taskOpenButton}
+                  onClick={() => void openRecord(task.id, 'task')}
+                >
+                  <span style={inboxStyles.contextCardBody}>
+                    <span
+                      style={{
+                        ...inboxStyles.taskTitle,
+                        display: 'block',
+                      }}
+                    >
+                      {task.title || 'Tarefa sem título'}
+                    </span>
+                    <span
+                      style={{
+                        ...inboxStyles.taskMeta,
+                        display: 'block',
+                      }}
+                    >
+                      {getTaskStatusLabel(task.status)} ·{' '}
+                      {formatDateTime(task.dueAt)}
+                      {task.assignee
+                        ? ` · ${
+                            getRecordName(task.assignee) ||
+                            'Responsável sem nome'
+                          }`
+                        : ''}
+                    </span>
                   </span>
-                  <span
-                    style={{
-                      ...inboxStyles.taskMeta,
-                      display: 'block',
-                    }}
-                  >
-                    {getTaskStatusLabel(task.status)} ·{' '}
-                    {formatDateTime(task.dueAt)}
-                  </span>
-                </span>
-                <IconChevronRight
-                  size={themeCssVariables.icon.size.sm}
-                  stroke={themeCssVariables.icon.stroke.md}
-                />
-              </button>
+                  <IconChevronRight
+                    size={themeCssVariables.icon.size.sm}
+                    stroke={themeCssVariables.icon.stroke.md}
+                  />
+                </button>
+              </div>
             ))
           )}
         </section>

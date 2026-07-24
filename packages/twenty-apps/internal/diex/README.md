@@ -20,6 +20,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   Inbox;
 - filas de atenção para não lidas, SLA estourado, prioridade alta ou urgente e
   follow-up vencido, com prioridade editável no contexto;
+- criação e conclusão de próxima ação dentro da conversa, com prazo,
+  responsável e vínculo nativo à pessoa, empresa e oportunidade;
 - adiamento com prazo, reabertura por vencimento e reativação por nova
   mensagem;
 - cockpit de inteligência comercial com radar de sinais, ranking de

@@ -21,6 +21,13 @@ export type InboxTask = {
   title?: string | null;
   status?: string | null;
   dueAt?: string | null;
+  assignee?: InboxWorkspaceMember | null;
+};
+
+export type InboxTaskDraft = {
+  title: string;
+  dueAt: string;
+  assigneeId: string | null;
 };
 
 export type InboxLabel = {
