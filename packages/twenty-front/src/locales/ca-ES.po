@@ -970,11 +970,6 @@ msgstr "ID de la clau d'accés"
 msgid "Access your workspace data"
 msgstr "Accedir a les dades de l'espai de treball"
 
-#. js-lingui-id: IF4QNM
-#: src/modules/settings/mcp-and-apis/components/SettingsMcpSetup.tsx
-msgid "Access your workspace data from your favorite MCP client like Claude, Codex or Cursor."
-msgstr "Accediu a les dades del vostre espai de treball des del vostre client MCP preferit, com Claude, Codex o Cursor."
-
 #. js-lingui-id: AeXO77
 #: src/modules/settings/accounts/components/SettingsConnectedAccountsTableHeader.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowEditActionCreateCalendarEvent.tsx
@@ -1243,6 +1238,11 @@ msgstr "Afegeix punts finals personalitzats, passarel·les privades o regions ad
 msgid "Add Custom Provider"
 msgstr "Afegeix un proveïdor personalitzat"
 
+#. js-lingui-id: iDhtpz
+#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
+msgid "Add Diex CRM as a Streamable HTTP extension in Goose."
+msgstr ""
+
 #. js-lingui-id: WT0Ie4
 #: src/modules/settings/workspace/components/SettingsWorkspaceEmailGroupSection.tsx
 msgid "Add email channel"
@@ -1448,35 +1448,35 @@ msgstr "Afegeix tasca"
 msgid "Add test input for evaluation (e.g., \"Find all customers in NY\")"
 msgstr ""
 
-#. js-lingui-id: FKGcEL
+#. js-lingui-id: uYbkn1
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server as a remote context server in Zed."
-msgstr "Afegeix el servidor Twenty MCP com a servidor de context remot a Zed."
+msgid "Add the Diex CRM MCP server as a remote context server in Zed."
+msgstr ""
 
-#. js-lingui-id: iA2nHX
+#. js-lingui-id: 1qFFZ0
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Augment Code settings."
-msgstr "Afegeix el servidor Twenty MCP des de la configuració d'Augment Code."
+msgid "Add the Diex CRM MCP server from Augment Code settings."
+msgstr ""
 
-#. js-lingui-id: l+NzAk
+#. js-lingui-id: ufrW9I
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Raycast's MCP commands or settings."
-msgstr "Afegeix el servidor Twenty MCP des de les ordres MCP o la configuració de Raycast."
+msgid "Add the Diex CRM MCP server from Raycast's MCP commands or settings."
+msgstr ""
 
-#. js-lingui-id: j6G/yI
+#. js-lingui-id: oBPSlS
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server in Gemini CLI settings."
-msgstr "Afegeix el servidor Twenty MCP a la configuració de Gemini CLI."
+msgid "Add the Diex CRM MCP server in Gemini CLI settings."
+msgstr ""
 
-#. js-lingui-id: /OyhlM
+#. js-lingui-id: B7ThbP
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server to your LibreChat configuration file."
-msgstr "Afegeix el servidor Twenty MCP al teu fitxer de configuració de LibreChat."
+msgid "Add the Diex CRM MCP server to your LibreChat configuration file."
+msgstr ""
 
-#. js-lingui-id: K0DXoj
+#. js-lingui-id: RQF+77
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty remote server with LM Studio's install link."
-msgstr "Afegeix el servidor remot Twenty amb l'enllaç d'instal·lació de LM Studio."
+msgid "Add the Diex CRM remote server with LM Studio's install link."
+msgstr ""
 
 #. js-lingui-id: 5+ttxv
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistInput.tsx
@@ -1492,11 +1492,6 @@ msgstr "Afegeix a les preferides"
 #: src/modules/settings/unsubscribe-topics/components/SettingsWorkspaceUnsubscribeTopicSection.tsx
 msgid "Add topic"
 msgstr "Afegeix tema"
-
-#. js-lingui-id: 4D/zWv
-#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add Twenty as a Streamable HTTP extension in Goose."
-msgstr "Afegeix Twenty com a extensió HTTP reproduïble a Goose."
 
 #. js-lingui-id: XnwceV
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationRedirectURIsInput.tsx
@@ -3092,10 +3087,10 @@ msgstr "Interval de facturació"
 msgid "Billing period"
 msgstr "Període de facturació"
 
-#. js-lingui-id: xF/NXI
+#. js-lingui-id: OlZvKT
 #: src/modules/settings/billing/hooks/useBillingPortalSession.ts
-msgid "Billing portal session error. Please retry or contact Twenty team"
-msgstr "Error a la sessió del portal de facturació. Torna-ho a intentar o contacta amb l'equip de Twenty"
+msgid "Billing portal session error. Please retry or contact Diex team"
+msgstr ""
 
 #. js-lingui-id: K1172m
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistSection.tsx
@@ -3219,10 +3214,10 @@ msgstr "Inclòs amb {applicationName}"
 msgid "by {author}"
 msgstr "per {author}"
 
-#. js-lingui-id: 8Pfllj
+#. js-lingui-id: xE8eTf
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "En utilitzar Twenty, accepteu les"
+msgid "By using Diex CRM, you agree to the"
+msgstr ""
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -3653,11 +3648,6 @@ msgstr "Sessions de xat"
 msgid "Chat with AI agents and use AI features"
 msgstr "Xat amb agents d'IA i utilitzar funcions d'IA"
 
-#. js-lingui-id: yOaaWk
-#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "ChatGPT"
-msgstr "ChatGPT"
-
 #. js-lingui-id: 8Q+lLG
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceDetail.tsx
 msgid "Chats"
@@ -3678,11 +3668,11 @@ msgstr "Comproveu els vostres correus electrònics"
 msgid "Check your inbox to verify your new email address."
 msgstr "Comprova la teva safata d'entrada per verificar la teva nova adreça de correu electrònic."
 
-#. js-lingui-id: SxwQE8
+#. js-lingui-id: 77Lcen
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
-msgid "Checkout session error. Please retry or contact Twenty team"
-msgstr "Error a la sessió de compra. Si us plau, torna-ho a intentar o contacta amb l'equip de Twenty."
+msgid "Checkout session error. Please retry or contact Diex team"
+msgstr ""
 
 #. js-lingui-id: SviKkE
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
@@ -4273,6 +4263,16 @@ msgstr "Configura la configuració de SMTP per enviar correus electrònics des d
 msgid "Configure the default AI models for all workspaces"
 msgstr "Configura els models d'IA predeterminats per a tots els espais de treball"
 
+#. js-lingui-id: 1DWmeD
+#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
+msgid "Configure the Diex CRM MCP server manually in Cascade."
+msgstr ""
+
+#. js-lingui-id: TvSM2o
+#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
+msgid "Configure the Diex CRM MCP server manually in Cline."
+msgstr ""
+
 #. js-lingui-id: CcCy4C
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
 msgid "Configure the remote MCP server through Warp's agent settings."
@@ -4282,16 +4282,6 @@ msgstr "Configura el servidor MCP remot a través de la configuració de l'agent
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
 msgid "Configure the remote server in Amazon Q Developer's MCP settings."
 msgstr "Configura el servidor remot a la configuració MCP d'Amazon Q Developer."
-
-#. js-lingui-id: g1/8jH
-#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cascade."
-msgstr "Configura manualment el servidor Twenty MCP a Cascade."
-
-#. js-lingui-id: XiyvRh
-#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cline."
-msgstr "Configura manualment el servidor Twenty MCP a Cline."
 
 #. js-lingui-id: qA9AGQ
 #: src/modules/settings/domains/components/SettingsDomainRecords.tsx
@@ -4393,10 +4383,10 @@ msgstr "Connecteu un nou compte al vostre espai de treball"
 msgid "Connect additional MCP clients using install links or client docs."
 msgstr "Connecta clients MCP addicionals mitjançant enllaços d'instal·lació o documentació del client."
 
-#. js-lingui-id: vPCRNy
+#. js-lingui-id: DGYQ/o
 #: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
-msgid "Connect AI assistants like Claude or Cursor to your workspace via the Model Context Protocol"
-msgstr "Connecta assistents d’IA com Claude o Cursor al teu espai de treball mitjançant el Model Context Protocol"
+msgid "Connect Claude, Codex, Cursor and other assistants to this workspace with a scoped API key"
+msgstr ""
 
 #. js-lingui-id: YLx3sC
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
@@ -4653,6 +4643,11 @@ msgstr "Copia l'enllaç"
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownDefaultView.tsx
 msgid "Copy link to view"
 msgstr "Copia l'enllaç per veure"
+
+#. js-lingui-id: 36ANyU
+#: src/modules/settings/mcp-and-apis/components/SettingsMcpSetup.tsx
+msgid "Copy one Diex CRM configuration into Claude, Codex, Cursor or another MCP client. The API key remains scoped to this workspace."
+msgstr ""
 
 #. js-lingui-id: VBIlvI
 #: src/modules/ai/components/TerminalOutput.tsx
@@ -6279,6 +6274,16 @@ msgstr "Enllaços per a desenvolupadors"
 msgid "Development instance"
 msgstr "Instància de desenvolupament"
 
+#. js-lingui-id: PxclPS
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+msgid "Diex CRM MCP Server"
+msgstr ""
+
+#. js-lingui-id: ArwFBW
+#: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
+msgid "Diex fields"
+msgstr ""
+
 #. js-lingui-id: MRB7nI
 #: src/pages/settings/layout/SettingsLayoutViewDetail.tsx
 msgid "Direction"
@@ -7569,10 +7574,10 @@ msgstr "Error en cancel·lar el canvi d'interval."
 msgid "Error while cancelling plan switching."
 msgstr "Error en cancel·lar el canvi de pla."
 
-#. js-lingui-id: QmR+2U
+#. js-lingui-id: FaoeuE
 #: src/modules/settings/billing/hooks/useEndSubscriptionTrialPeriod.ts
-msgid "Error while ending trial period. Please contact Twenty team."
-msgstr "Error mentre finalitzava el període de prova. Si us plau contacti amb l'equip de Twenty."
+msgid "Error while ending trial period. Please contact Diex team."
+msgstr ""
 
 #. js-lingui-id: 5g78zo
 #: src/pages/settings/members/SettingsWorkspaceMember.tsx
@@ -9235,10 +9240,10 @@ msgstr "Amaga l'etiqueta"
 msgid "Hide system indexes"
 msgstr "Amaga els índexs del sistema"
 
-#. js-lingui-id: 1ETc0T
+#. js-lingui-id: nMENrp
 #: src/pages/settings/community/SettingsCommunity.tsx
-msgid "Hire a partner to help you implement and customize Twenty."
-msgstr "Contracta un soci perquè t’ajudi a implementar i personalitzar Twenty."
+msgid "Hire a partner to help you implement and customize Diex CRM."
+msgstr ""
 
 #. js-lingui-id: i0qMbr
 #: src/modules/navigation/components/MainNavigationDrawerTabsRow.tsx
@@ -11294,11 +11299,6 @@ msgstr "Configuració del client MCP"
 msgid "MCP server"
 msgstr "Servidor MCP"
 
-#. js-lingui-id: 8CWirf
-#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
-msgid "MCP Server"
-msgstr "Servidor MCP"
-
 #. js-lingui-id: upbzgm
 #: src/modules/object-record/record-field/ui/form-types/components/FormWorkspaceMemberFilterValueInput.tsx
 #: src/modules/object-record/record-field/ui/form-types/components/FormWorkspaceMemberFilterValueInput.tsx
@@ -13181,11 +13181,6 @@ msgstr "de"
 msgid "Off the beaten path"
 msgstr "Fora del camí conegut"
 
-#. js-lingui-id: s1X4Cm
-#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Official app"
-msgstr "Aplicació oficial"
-
 #. js-lingui-id: Zd5vVt
 #: src/modules/workflow/workflow-steps/workflow-actions/find-records-action/components/WorkflowEditActionFindRecords.tsx
 msgid "Offset"
@@ -13360,7 +13355,6 @@ msgstr "Només tu podràs veure els teus correus electrònics i esdeveniments"
 #. js-lingui-id: 1TNIig
 #: src/modules/command-menu-item/components/RecordShowSidePanelOpenRecordButton.tsx
 #: src/modules/settings/data-model/objects/forms/components/SettingsDataModelObjectAboutForm.tsx
-#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
 #: src/pages/settings/members/tabs/SettingsWorkspaceMembersTeamTab.tsx
 msgid "Open"
 msgstr "Obrir"
@@ -13375,15 +13369,15 @@ msgstr "Obre una integració mantinguda o preomple clients que acceptin enllaço
 msgid "Open as link"
 msgstr "Obrir com a enllaç"
 
-#. js-lingui-id: n0vVgf
+#. js-lingui-id: rKSWG4
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Claude with the Twenty connector name and MCP URL prefilled."
-msgstr "Obre Claude amb el nom del connector Twenty i la URL MCP preomplerts."
+msgid "Open Claude with the Diex CRM connector name and MCP URL prefilled."
+msgstr ""
 
-#. js-lingui-id: +n2jpB
+#. js-lingui-id: HjN62X
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Cursor's MCP installer with the Twenty remote server config."
-msgstr "Obre l'instal·lador MCP de Cursor amb la configuració del servidor remot Twenty."
+msgid "Open Cursor's MCP installer with the Diex CRM remote server config."
+msgstr ""
 
 #. js-lingui-id: pZZH4Q
 #: src/modules/auth/sign-in-up/components/EmailVerificationSent.tsx
@@ -13416,15 +13410,10 @@ msgstr "Obrir en Outlook"
 msgid "Open records in"
 msgstr "Obrir registres en"
 
-#. js-lingui-id: q170S2
+#. js-lingui-id: kagqwN
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Replit with the Twenty remote server config."
-msgstr "Obre Replit amb la configuració del servidor remot Twenty."
-
-#. js-lingui-id: sBd/cl
-#: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Twenty's official ChatGPT integration for your workspace."
-msgstr "Obre la integració oficial de ChatGPT de Twenty per al teu espai de treball."
+msgid "Open Replit with the Diex CRM remote server config."
+msgstr ""
 
 #. js-lingui-id: OV5wZZ
 #: src/modules/navigation-menu-item/display/sections/components/NavigationDrawerOpenedSection.tsx
@@ -13707,10 +13696,10 @@ msgstr "Dissenys de pàgina"
 msgid "Page name"
 msgstr "Nom de la pàgina"
 
-#. js-lingui-id: NRvxzv
+#. js-lingui-id: 1riujJ
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "Pàgina no trobada | Twenty"
+msgid "Page Not Found | Diex CRM"
+msgstr ""
 
 #. js-lingui-id: sF+Xp9
 #: src/modules/settings/event-logs/components/EventLogTableSelector.tsx
@@ -17207,13 +17196,13 @@ msgstr "Subscripció"
 msgid "Subscription activated."
 msgstr "Subscripció activada."
 
-#. js-lingui-id: 0okvpx
+#. js-lingui-id: k94yEk
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
-msgid "Subscription error. Please retry or contact Twenty team"
-msgstr "Error de subscripció. Torna-ho a intentar o contacta amb l'equip de Twenty"
+msgid "Subscription error. Please retry or contact Diex team"
+msgstr ""
 
 #. js-lingui-id: FooJUj
 #. placeholder {0}: getTargetPlanLabel(targetPlanKey)
@@ -17587,14 +17576,14 @@ msgstr "El punt final de l'API per al vostre proveïdor compatible amb OpenAI"
 msgid "The AWS region for Bedrock"
 msgstr "La regió d'AWS per a Bedrock"
 
-#. js-lingui-id: HP7per
+#. js-lingui-id: YdwmAI
 #: src/pages/settings/applications/utils/getStandardApplicationDescription.ts
 msgid ""
-"The base data model every Twenty workspace runs on.\n"
+"The base data model every Diex CRM workspace runs on.\n"
 "\n"
 "#### What \"foundation\" means\n"
 "\n"
-"Every Twenty workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
+"Every Diex CRM workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
 "\n"
 "#### Included objects\n"
 "- **People & Companies**: contact and account records\n"
@@ -17602,11 +17591,11 @@ msgid ""
 "- **Notes & Tasks**: activity and follow-ups\n"
 "- **Workflows & Dashboards**: automation and reporting\n"
 "\n"
-"Remove this app and the rest of Twenty has nothing to hang off.\n"
+"Remove this app and the rest of Diex CRM has nothing to hang off.\n"
 "\n"
 "#### Build your own app\n"
 "\n"
-"Extend Twenty with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
+"Extend Diex CRM with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17621,36 +17610,6 @@ msgid ""
 "\n"
 "See the [Getting Started guide](https://twenty.com/developers/extend/apps/getting-started) for the full walkthrough, and [Building Apps](https://twenty.com/developers/extend/apps/building) for the `defineApplication` / `defineEntity` APIs."
 msgstr ""
-"El model de dades base sobre el qual funciona cada espai de treball de Twenty.\n"
-"\n"
-"#### Què vol dir \"fonament\"\n"
-"\n"
-"Cada espai de treball de Twenty comença amb aquest conjunt d'objectes. Defineixen l'estructura del teu CRM, incloses les relacions, l'activitat i els informes. La resta, incloses les aplicacions del marketplace, els agents d'IA i els objectes personalitzats, s'hi connecta.\n"
-"\n"
-"#### Objectes inclosos\n"
-"- **Persones i empreses**: registres de contactes i comptes\n"
-"- **Oportunitats**: el teu pipeline de vendes\n"
-"- **Notes i tasques**: activitat i seguiments\n"
-"- **Fluxos de treball i quadres de comandament**: automatització i informes\n"
-"\n"
-"Si elimines aquesta aplicació, la resta de Twenty es quedarà sense base.\n"
-"\n"
-"#### Crea la teva pròpia aplicació\n"
-"\n"
-"Amplia Twenty amb els teus propis objectes, camps, funcions de lògica o habilitats d'IA. Genera l'esquelet d'una aplicació nova amb una sola ordre:\n"
-"\n"
-"```bash\n"
-"npx create-twenty-app@latest my-twenty-app\n"
-"```\n"
-"\n"
-"A continuació, dins de la carpeta:\n"
-"\n"
-"```bash\n"
-"cd my-twenty-app\n"
-"yarn twenty dev\n"
-"```\n"
-"\n"
-"Consulta la [Guia d'inici](https://twenty.com/developers/extend/apps/getting-started) per a la guia completa pas a pas, i [Creació d'aplicacions](https://twenty.com/developers/extend/apps/building) per a les API `defineApplication` / `defineEntity`."
 
 #. js-lingui-id: /kfzmx
 #: src/pages/settings/legal/SettingsLegalDpa.tsx
@@ -18615,11 +18574,6 @@ msgstr ""
 #: src/modules/settings/data-model/fields/forms/select/components/SettingsDataModelFieldSelectFormOptionRow.tsx
 msgid "Turquoise"
 msgstr "Turquesa"
-
-#. js-lingui-id: JnaRPe
-#: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
-msgid "Twenty fields"
-msgstr "Camps de Twenty"
 
 #. js-lingui-id: YIjS4q
 #: src/modules/ai/components/SettingsAgentModelCapabilities.tsx
@@ -20108,10 +20062,10 @@ msgstr ""
 msgid "Weight"
 msgstr "Pes"
 
-#. js-lingui-id: nTuObL
+#. js-lingui-id: rXVpiT
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "Benvingut a Twenty"
+msgid "Welcome to Diex"
+msgstr ""
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

@@ -65,8 +65,18 @@ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
-msgid "Connect to Twenty"
-msgstr "Connecta't a Twenty"
+msgid "Connect to Diex CRM"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Contact Diex support"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "contato@bydiex.com"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
@@ -75,8 +85,8 @@ msgstr "Benvolgut {userName},"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Developers"
-msgstr "Desenvolupadors"
+msgid "Diex CRM"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/server-admin-access-changed.email.tsx
@@ -87,11 +97,6 @@ msgstr "Desactivat"
 #: src/emails/server-admin-access-changed.email.tsx
 msgid "Enabled"
 msgstr "Activat"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Github"
-msgstr "Github"
 
 #. js-lingui-explicit-id
 #: src/emails/warn-suspended-workspace.email.tsx
@@ -119,8 +124,8 @@ msgstr "Hola {userName},"
 
 #. js-lingui-explicit-id
 #: src/emails/billing-trial-converting.email.tsx
-msgid "If Twenty is working for you, you're all set — there's nothing to do. If it's not the right fit, you can cancel in one click before then and you won't be charged."
-msgstr "Si Twenty us funciona, ja està tot preparat — no heu de fer res. Si no és el producte adequat, la podeu cancel·lar amb un sol clic abans d'aquesta data i no se us cobrarà res."
+msgid "If Diex CRM is working for you, you're all set — there's nothing to do. If it's not the right fit, you can cancel in one click before then and you won't be charged."
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
@@ -134,13 +139,13 @@ msgstr "Si no feu res, posarem en pausa el vostre espai de treball i mantindrem 
 
 #. js-lingui-explicit-id
 #: src/emails/clean-suspended-workspace.email.tsx
-msgid "If you'd ever like to give Twenty another try, you can start a fresh workspace in minutes — we'd love to have you back."
-msgstr "Si mai voleu tornar a provar Twenty, podeu iniciar un espai de treball nou en pocs minuts — ens encantaria tenir-vos de nou."
+msgid "If you'd ever like to give Diex CRM another try, you can start a fresh workspace in minutes — we'd love to have you back."
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/components/WhatIsTwenty.tsx
-msgid "It's a CRM, a software to help businesses manage their customer data and relationships efficiently."
-msgstr "És un CRM, un programari per ajudar les empreses a gestionar les seves dades de clients i relacions de manera eficient."
+msgid "It's a commercial CRM with communication, automation, and artificial intelligence to help teams turn customer relationships into revenue."
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/clean-suspended-workspace.email.tsx
@@ -149,8 +154,8 @@ msgstr "Les seves dades s'han suprimit i ja no es poden recuperar."
 
 #. js-lingui-explicit-id
 #: src/emails/send-invite-link.email.tsx
-msgid "Join your team on Twenty"
-msgstr "Uneix-te al teu equip a Twenty"
+msgid "Join your team on Diex CRM"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/billing-subscription-renewing.email.tsx
@@ -174,6 +179,11 @@ msgid "Password updated"
 msgstr "Contrasenya actualitzada"
 
 #. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Privacy"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: src/emails/warn-suspended-workspace.email.tsx
 msgid "Reactivate it within the next {remainingDays} {dayOrDays} and you'll pick up exactly where you left off, with every record, view and setting right where you left it."
 msgstr "Reactiveu-lo durant els propers {remainingDays} {dayOrDays} i podreu reprendre exactament on ho vau deixar, amb tots els registres, vistes i paràmetres al mateix lloc."
@@ -185,8 +195,13 @@ msgstr "Reactiva l'espai de treball"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Read Twenty's user guide"
-msgstr "Llegeix la guia de l'usuari de Twenty"
+msgid "Read Diex's privacy policy"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Read Diex's terms of service"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-reset-link.email.tsx
@@ -197,11 +212,6 @@ msgstr "Restableix"
 #: src/emails/password-reset-link.email.tsx
 msgid "Reset your password 🗝"
 msgstr "Restableix la teva contrasenya 🗝"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "San Francisco / Paris"
-msgstr "San Francisco / París"
 
 #. js-lingui-explicit-id
 #: src/emails/server-admin-access-changed.email.tsx
@@ -244,6 +254,16 @@ msgid "Start a new workspace"
 msgstr "Inicia un espai de treball nou"
 
 #. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Support"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Terms"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: src/emails/test.email.tsx
 msgid "Test email"
 msgstr "Correu electrònic de prova"
@@ -264,16 +284,6 @@ msgid "To keep your workspace and everything you've built, add a payment method 
 msgstr "Per conservar el vostre espai de treball i tot el que hi heu creat, afegiu un mètode de pagament i trieu un pla."
 
 #. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Twenty.com, Public Benefit Corporation"
-msgstr "Twenty.com, Corporació de Benefici Públic"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "User guide"
-msgstr "Guia de l'usuari"
-
-#. js-lingui-explicit-id
 #: src/emails/validate-approved-access-domain.email.tsx
 #: src/emails/validate-approved-access-domain.email.tsx
 msgid "Validate domain"
@@ -286,18 +296,8 @@ msgstr "Verifica el correu electrònic"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Visit Twenty's developer documentation"
-msgstr "Visita la documentació per a desenvolupadors de Twenty"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Visit Twenty's GitHub repository"
-msgstr "Visita el repositori GitHub de Twenty"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Visit Twenty's website"
-msgstr "Visita el lloc web de Twenty"
+msgid "Visit Diex's website"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/billing-trial-converting.email.tsx
@@ -311,8 +311,8 @@ msgstr "Lloc web"
 
 #. js-lingui-explicit-id
 #: src/components/WhatIsTwenty.tsx
-msgid "What is Twenty?"
-msgstr "Què és Twenty?"
+msgid "What is Diex CRM?"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/billing-subscription-renewing.email.tsx

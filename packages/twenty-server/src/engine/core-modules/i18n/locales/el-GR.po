@@ -2020,11 +2020,6 @@ msgstr "Οι προσαρμοσμένοι τομείς είναι απενεργ
 msgid "Custom object is missing a label identifier field."
 msgstr "Στο προσαρμοσμένο αντικείμενο λείπει πεδίο αναγνωριστικού ετικέτας."
 
-#. js-lingui-id: 876pfE
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Customer"
-msgstr "Πελάτης"
-
 #. js-lingui-id: 7p5kLi
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-attachment-standard-flat-field-metadata.util.ts
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-timeline-activity-standard-flat-field-metadata.util.ts
@@ -2231,6 +2226,16 @@ msgstr "Κατάσταση παράδοσης"
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-calendar-event-standard-flat-field-metadata.util.ts
 msgid "Description"
 msgstr "Περιγραφή"
+
+#. js-lingui-id: QGCpzd
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Diagnóstico marcado"
+msgstr ""
+
+#. js-lingui-id: x8ZPqs
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Diagnóstico realizado"
+msgstr ""
 
 #. js-lingui-id: m2jBI/
 #: src/engine/core-modules/file/file-upload/services/file-upload.service.ts
@@ -2718,6 +2723,16 @@ msgstr "Δεν βρέθηκε ρύθμιση λειτουργίας."
 #: src/engine/api/graphql/graphql-query-runner/group-by/resolvers/utils/format-result-with-group-by-dimension-values.util.ts
 msgid "February"
 msgstr "Φεβρουάριος"
+
+#. js-lingui-id: Gnuzbi
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Fechado ganho"
+msgstr ""
+
+#. js-lingui-id: 4E5G56
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Fechado perdido"
+msgstr ""
 
 #. js-lingui-id: vngnhF
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-field-metadata-validator.service.ts
@@ -4740,11 +4755,6 @@ msgstr "Μάιος"
 msgid "Meet Link"
 msgstr "Σύνδεσμος Meet"
 
-#. js-lingui-id: oE8Gmu
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Meeting"
-msgstr "Συνάντηση"
-
 #. js-lingui-id: LlEGbi
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-call-recording-standard-flat-field-metadata.util.ts
 msgid "Meeting title from the calendar event"
@@ -5147,10 +5157,10 @@ msgstr "Απαιτείται τύπος στοιχείου μενού πλοήγ
 msgid "Needs Action"
 msgstr "Απαιτείται ενέργεια"
 
-#. js-lingui-id: isRobC
+#. js-lingui-id: R0iUk3
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "New"
-msgstr "Νέο"
+msgid "Negociação"
+msgstr ""
 
 #. js-lingui-id: TYhxR+
 #: src/engine/core-modules/user/services/user.service.ts
@@ -5362,6 +5372,11 @@ msgstr "Στόχος NoteTarget"
 #: src/engine/api/graphql/graphql-query-runner/group-by/resolvers/utils/format-result-with-group-by-dimension-values.util.ts
 msgid "November"
 msgstr "Νοέμβριος"
+
+#. js-lingui-id: 9p53o1
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Novo lead"
+msgstr ""
 
 #. js-lingui-id: bR2sEm
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workspace-member-standard-flat-field-metadata.util.ts
@@ -6275,10 +6290,10 @@ msgstr "Η προτροπή δεν μπορεί να είναι κενή"
 msgid "Property {property} is required for role"
 msgstr ""
 
-#. js-lingui-id: qcybNQ
+#. js-lingui-id: JJ91U+
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Proposal"
-msgstr "Πρόταση"
+msgid "Proposta enviada"
+msgstr ""
 
 #. js-lingui-id: dtGxRz
 #: src/engine/core-modules/record-transformer/utils/transform-phones-value.util.ts
@@ -6314,6 +6329,11 @@ msgstr "Ο δημόσιος τομέας δεν βρέθηκε."
 #: src/engine/core-modules/dns-manager/services/dns-manager.service.ts
 msgid "Public domain URL is not defined. Please set the PUBLIC_DOMAIN_URL environment variable"
 msgstr "Η διεύθυνση URL του δημόσιου domain δεν έχει οριστεί. Παρακαλώ ορίστε τη μεταβλητή περιβάλλοντος PUBLIC_DOMAIN_URL."
+
+#. js-lingui-id: AIFiKL
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Qualificação"
+msgstr ""
 
 #. js-lingui-id: vVCf2E
 #: src/modules/dashboard/chart-data/exceptions/chart-data.exception.ts
@@ -6828,11 +6848,6 @@ msgstr "Σάββατο"
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-campaign-standard-flat-field-metadata.util.ts
 msgid "Scheduled"
 msgstr "Προγραμματισμένο"
-
-#. js-lingui-id: cOh+MI
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Screening"
-msgstr "Έλεγχος"
 
 #. js-lingui-id: eKi1df
 #: src/engine/core-modules/sdk-client/exceptions/sdk-client.exception.ts

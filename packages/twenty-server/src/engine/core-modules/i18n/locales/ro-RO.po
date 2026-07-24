@@ -2020,11 +2020,6 @@ msgstr "Domeniile personalizate sunt dezactivate pentru acest spațiu de lucru."
 msgid "Custom object is missing a label identifier field."
 msgstr "Obiectului personalizat îi lipsește un câmp identificator de etichetă."
 
-#. js-lingui-id: 876pfE
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Customer"
-msgstr "Client"
-
 #. js-lingui-id: 7p5kLi
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-attachment-standard-flat-field-metadata.util.ts
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-timeline-activity-standard-flat-field-metadata.util.ts
@@ -2231,6 +2226,16 @@ msgstr "Stare livrare"
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-calendar-event-standard-flat-field-metadata.util.ts
 msgid "Description"
 msgstr "Descriere"
+
+#. js-lingui-id: QGCpzd
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Diagnóstico marcado"
+msgstr ""
+
+#. js-lingui-id: x8ZPqs
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Diagnóstico realizado"
+msgstr ""
 
 #. js-lingui-id: m2jBI/
 #: src/engine/core-modules/file/file-upload/services/file-upload.service.ts
@@ -2718,6 +2723,16 @@ msgstr "Configurația funcționalității nu a fost găsită."
 #: src/engine/api/graphql/graphql-query-runner/group-by/resolvers/utils/format-result-with-group-by-dimension-values.util.ts
 msgid "February"
 msgstr "Februarie"
+
+#. js-lingui-id: Gnuzbi
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Fechado ganho"
+msgstr ""
+
+#. js-lingui-id: 4E5G56
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Fechado perdido"
+msgstr ""
 
 #. js-lingui-id: vngnhF
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-field-metadata-validator.service.ts
@@ -4740,11 +4755,6 @@ msgstr "mai"
 msgid "Meet Link"
 msgstr "Link de întâlnire"
 
-#. js-lingui-id: oE8Gmu
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Meeting"
-msgstr "Întâlnire"
-
 #. js-lingui-id: LlEGbi
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-call-recording-standard-flat-field-metadata.util.ts
 msgid "Meeting title from the calendar event"
@@ -5147,10 +5157,10 @@ msgstr "Tipul elementului de meniu de navigare este necesar"
 msgid "Needs Action"
 msgstr "Necesită acțiune"
 
-#. js-lingui-id: isRobC
+#. js-lingui-id: R0iUk3
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "New"
-msgstr "Nou"
+msgid "Negociação"
+msgstr ""
 
 #. js-lingui-id: TYhxR+
 #: src/engine/core-modules/user/services/user.service.ts
@@ -5362,6 +5372,11 @@ msgstr "Țintă NoteTarget"
 #: src/engine/api/graphql/graphql-query-runner/group-by/resolvers/utils/format-result-with-group-by-dimension-values.util.ts
 msgid "November"
 msgstr "noiembrie"
+
+#. js-lingui-id: 9p53o1
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Novo lead"
+msgstr ""
 
 #. js-lingui-id: bR2sEm
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workspace-member-standard-flat-field-metadata.util.ts
@@ -6275,10 +6290,10 @@ msgstr "Promptul nu poate fi gol"
 msgid "Property {property} is required for role"
 msgstr ""
 
-#. js-lingui-id: qcybNQ
+#. js-lingui-id: JJ91U+
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Proposal"
-msgstr "Propunere"
+msgid "Proposta enviada"
+msgstr ""
 
 #. js-lingui-id: dtGxRz
 #: src/engine/core-modules/record-transformer/utils/transform-phones-value.util.ts
@@ -6314,6 +6329,11 @@ msgstr "Domeniul public nu a fost găsit."
 #: src/engine/core-modules/dns-manager/services/dns-manager.service.ts
 msgid "Public domain URL is not defined. Please set the PUBLIC_DOMAIN_URL environment variable"
 msgstr "URL-ul domeniului public nu este definit. Vă rugăm să setați variabila de mediu PUBLIC_DOMAIN_URL"
+
+#. js-lingui-id: AIFiKL
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Qualificação"
+msgstr ""
 
 #. js-lingui-id: vVCf2E
 #: src/modules/dashboard/chart-data/exceptions/chart-data.exception.ts
@@ -6828,11 +6848,6 @@ msgstr "Sâmbătă"
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-campaign-standard-flat-field-metadata.util.ts
 msgid "Scheduled"
 msgstr "Programat"
-
-#. js-lingui-id: cOh+MI
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Screening"
-msgstr "Filtrare"
 
 #. js-lingui-id: eKi1df
 #: src/engine/core-modules/sdk-client/exceptions/sdk-client.exception.ts

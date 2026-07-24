@@ -65,8 +65,18 @@ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
-msgid "Connect to Twenty"
-msgstr "Koble til Twenty"
+msgid "Connect to Diex CRM"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Contact Diex support"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "contato@bydiex.com"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
@@ -75,8 +85,8 @@ msgstr "Kjære {userName},"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Developers"
-msgstr "Utviklere"
+msgid "Diex CRM"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/server-admin-access-changed.email.tsx
@@ -87,11 +97,6 @@ msgstr "Deaktivert"
 #: src/emails/server-admin-access-changed.email.tsx
 msgid "Enabled"
 msgstr "Aktivert"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Github"
-msgstr "Github"
 
 #. js-lingui-explicit-id
 #: src/emails/warn-suspended-workspace.email.tsx
@@ -119,8 +124,8 @@ msgstr "Hei {userName},"
 
 #. js-lingui-explicit-id
 #: src/emails/billing-trial-converting.email.tsx
-msgid "If Twenty is working for you, you're all set — there's nothing to do. If it's not the right fit, you can cancel in one click before then and you won't be charged."
-msgstr "Hvis Twenty fungerer for deg, er alt klart — du trenger ikke å gjøre noe. Hvis det ikke er den rette løsningen, kan du avbryte med ett klikk før den tid, og du blir ikke belastet."
+msgid "If Diex CRM is working for you, you're all set — there's nothing to do. If it's not the right fit, you can cancel in one click before then and you won't be charged."
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
@@ -134,13 +139,13 @@ msgstr "Hvis du ikke gjør noe, setter vi arbeidsområdet ditt på pause og hold
 
 #. js-lingui-explicit-id
 #: src/emails/clean-suspended-workspace.email.tsx
-msgid "If you'd ever like to give Twenty another try, you can start a fresh workspace in minutes — we'd love to have you back."
-msgstr "Hvis du noen gang har lyst til å gi Twenty et nytt forsøk, kan du starte et nytt arbeidsområde i løpet av noen få minutter — vi vil gjerne ha deg tilbake."
+msgid "If you'd ever like to give Diex CRM another try, you can start a fresh workspace in minutes — we'd love to have you back."
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/components/WhatIsTwenty.tsx
-msgid "It's a CRM, a software to help businesses manage their customer data and relationships efficiently."
-msgstr "Det er en CRM, en programvare for å hjelpe bedrifter med å administrere kundedata og relasjoner effektivt."
+msgid "It's a commercial CRM with communication, automation, and artificial intelligence to help teams turn customer relationships into revenue."
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/clean-suspended-workspace.email.tsx
@@ -149,8 +154,8 @@ msgstr "Dataene har blitt fjernet og kan ikke lenger gjenopprettes."
 
 #. js-lingui-explicit-id
 #: src/emails/send-invite-link.email.tsx
-msgid "Join your team on Twenty"
-msgstr "Bli med teamet ditt på Twenty"
+msgid "Join your team on Diex CRM"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/billing-subscription-renewing.email.tsx
@@ -174,6 +179,11 @@ msgid "Password updated"
 msgstr "Passord oppdatert"
 
 #. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Privacy"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: src/emails/warn-suspended-workspace.email.tsx
 msgid "Reactivate it within the next {remainingDays} {dayOrDays} and you'll pick up exactly where you left off, with every record, view and setting right where you left it."
 msgstr "Aktiver det på nytt innen de neste {remainingDays} {dayOrDays}, så kan du fortsette nøyaktig der du slapp, med alle oppføringer, visninger og innstillinger akkurat der du forlot dem."
@@ -185,8 +195,13 @@ msgstr "Aktiver arbeidsområde på nytt"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Read Twenty's user guide"
-msgstr "Les Twenty's brukerveiledning"
+msgid "Read Diex's privacy policy"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Read Diex's terms of service"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-reset-link.email.tsx
@@ -197,11 +212,6 @@ msgstr "Tilbakestill"
 #: src/emails/password-reset-link.email.tsx
 msgid "Reset your password 🗝"
 msgstr "Tilbakestill passordet ditt 🗝"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "San Francisco / Paris"
-msgstr "San Francisco / Paris"
 
 #. js-lingui-explicit-id
 #: src/emails/server-admin-access-changed.email.tsx
@@ -244,6 +254,16 @@ msgid "Start a new workspace"
 msgstr "Start et nytt arbeidsområde"
 
 #. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Support"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Terms"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: src/emails/test.email.tsx
 msgid "Test email"
 msgstr "Test e-post"
@@ -264,16 +284,6 @@ msgid "To keep your workspace and everything you've built, add a payment method 
 msgstr "For å beholde arbeidsområdet ditt og alt du har bygget, legg til en betalingsmåte og velg et abonnement."
 
 #. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Twenty.com, Public Benefit Corporation"
-msgstr "Twenty.com, Offentlig Fordel Selskap"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "User guide"
-msgstr "Brukerveiledning"
-
-#. js-lingui-explicit-id
 #: src/emails/validate-approved-access-domain.email.tsx
 #: src/emails/validate-approved-access-domain.email.tsx
 msgid "Validate domain"
@@ -286,18 +296,8 @@ msgstr "Verifiser e-post"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Visit Twenty's developer documentation"
-msgstr "Besøk Twenty's utviklerdokumentasjon"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Visit Twenty's GitHub repository"
-msgstr "Besøk Twenty's GitHub-repository"
-
-#. js-lingui-explicit-id
-#: src/components/Footer.tsx
-msgid "Visit Twenty's website"
-msgstr "Besøk Twenty's nettsted"
+msgid "Visit Diex's website"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/billing-trial-converting.email.tsx
@@ -311,8 +311,8 @@ msgstr "Nettside"
 
 #. js-lingui-explicit-id
 #: src/components/WhatIsTwenty.tsx
-msgid "What is Twenty?"
-msgstr "Hva er Twenty?"
+msgid "What is Diex CRM?"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/billing-subscription-renewing.email.tsx

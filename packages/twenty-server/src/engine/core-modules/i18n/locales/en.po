@@ -2015,11 +2015,6 @@ msgstr "Custom domains are disabled for this workspace."
 msgid "Custom object is missing a label identifier field."
 msgstr "Custom object is missing a label identifier field."
 
-#. js-lingui-id: 876pfE
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Customer"
-msgstr "Customer"
-
 #. js-lingui-id: 7p5kLi
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-attachment-standard-flat-field-metadata.util.ts
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-timeline-activity-standard-flat-field-metadata.util.ts
@@ -2226,6 +2221,16 @@ msgstr "Delivery status"
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-calendar-event-standard-flat-field-metadata.util.ts
 msgid "Description"
 msgstr "Description"
+
+#. js-lingui-id: QGCpzd
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Diagnóstico marcado"
+msgstr "Diagnóstico marcado"
+
+#. js-lingui-id: x8ZPqs
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Diagnóstico realizado"
+msgstr "Diagnóstico realizado"
 
 #. js-lingui-id: m2jBI/
 #: src/engine/core-modules/file/file-upload/services/file-upload.service.ts
@@ -2713,6 +2718,16 @@ msgstr "Feature configuration not found."
 #: src/engine/api/graphql/graphql-query-runner/group-by/resolvers/utils/format-result-with-group-by-dimension-values.util.ts
 msgid "February"
 msgstr "February"
+
+#. js-lingui-id: Gnuzbi
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Fechado ganho"
+msgstr "Fechado ganho"
+
+#. js-lingui-id: 4E5G56
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Fechado perdido"
+msgstr "Fechado perdido"
 
 #. js-lingui-id: vngnhF
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-field-metadata-validator.service.ts
@@ -4735,11 +4750,6 @@ msgstr "May"
 msgid "Meet Link"
 msgstr "Meet Link"
 
-#. js-lingui-id: oE8Gmu
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Meeting"
-msgstr "Meeting"
-
 #. js-lingui-id: LlEGbi
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-call-recording-standard-flat-field-metadata.util.ts
 msgid "Meeting title from the calendar event"
@@ -5142,10 +5152,10 @@ msgstr "Navigation menu item type is required"
 msgid "Needs Action"
 msgstr "Needs Action"
 
-#. js-lingui-id: isRobC
+#. js-lingui-id: R0iUk3
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "New"
-msgstr "New"
+msgid "Negociação"
+msgstr "Negociação"
 
 #. js-lingui-id: TYhxR+
 #: src/engine/core-modules/user/services/user.service.ts
@@ -5357,6 +5367,11 @@ msgstr "NoteTarget target"
 #: src/engine/api/graphql/graphql-query-runner/group-by/resolvers/utils/format-result-with-group-by-dimension-values.util.ts
 msgid "November"
 msgstr "November"
+
+#. js-lingui-id: 9p53o1
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Novo lead"
+msgstr "Novo lead"
 
 #. js-lingui-id: bR2sEm
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workspace-member-standard-flat-field-metadata.util.ts
@@ -6270,10 +6285,10 @@ msgstr "Prompt cannot be empty"
 msgid "Property {property} is required for role"
 msgstr "Property {property} is required for role"
 
-#. js-lingui-id: qcybNQ
+#. js-lingui-id: JJ91U+
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Proposal"
-msgstr "Proposal"
+msgid "Proposta enviada"
+msgstr "Proposta enviada"
 
 #. js-lingui-id: dtGxRz
 #: src/engine/core-modules/record-transformer/utils/transform-phones-value.util.ts
@@ -6309,6 +6324,11 @@ msgstr "Public domain not found."
 #: src/engine/core-modules/dns-manager/services/dns-manager.service.ts
 msgid "Public domain URL is not defined. Please set the PUBLIC_DOMAIN_URL environment variable"
 msgstr "Public domain URL is not defined. Please set the PUBLIC_DOMAIN_URL environment variable"
+
+#. js-lingui-id: AIFiKL
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
+msgid "Qualificação"
+msgstr "Qualificação"
 
 #. js-lingui-id: vVCf2E
 #: src/modules/dashboard/chart-data/exceptions/chart-data.exception.ts
@@ -6823,11 +6843,6 @@ msgstr "Saturday"
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-campaign-standard-flat-field-metadata.util.ts
 msgid "Scheduled"
 msgstr "Scheduled"
-
-#. js-lingui-id: cOh+MI
-#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
-msgid "Screening"
-msgstr "Screening"
 
 #. js-lingui-id: eKi1df
 #: src/engine/core-modules/sdk-client/exceptions/sdk-client.exception.ts
