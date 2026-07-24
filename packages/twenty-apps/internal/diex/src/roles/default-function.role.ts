@@ -22,6 +22,8 @@ import {
 import { INBOX_SAVED_REPLY_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/objects/inbox-saved-reply.object';
 import { AI_ACTION_UNIVERSAL_IDENTIFIER } from 'src/objects/ai-action.object';
 import { COMMERCIAL_SIGNAL_UNIVERSAL_IDENTIFIER } from 'src/objects/commercial-signal.object';
+import { CUSTOMER_RENEWAL_EVENT_UNIVERSAL_IDENTIFIER } from 'src/objects/customer-renewal-event.object';
+import { CUSTOMER_RENEWAL_UNIVERSAL_IDENTIFIER } from 'src/objects/customer-renewal.object';
 import { OFFER_UNIVERSAL_IDENTIFIER } from 'src/objects/offer.object';
 import { SUCCESS_MILESTONE_UNIVERSAL_IDENTIFIER } from 'src/objects/success-milestone.object';
 import { SUCCESS_PLAN_UNIVERSAL_IDENTIFIER } from 'src/objects/success-plan.object';
@@ -150,6 +152,14 @@ export default defineApplicationRole({
     },
     {
       objectUniversalIdentifier: SUCCESS_MILESTONE_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: CUSTOMER_RENEWAL_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: CUSTOMER_RENEWAL_EVENT_UNIVERSAL_IDENTIFIER,
       ...readWrite,
     },
     {

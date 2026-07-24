@@ -14,6 +14,7 @@ import {
   IconInbox,
   IconPlayerPlay,
   IconRefresh,
+  IconRefreshDot,
   IconRobot,
   IconShield,
   IconTarget,
@@ -182,6 +183,15 @@ const getLinkedRecords = (action: AiAction): LinkedRecord[] => {
       label: 'Plano de sucesso',
       objectNameSingular: 'successPlan',
       icon: <IconShield {...iconProps} />,
+    });
+  }
+
+  if (action.customerRenewal) {
+    records.push({
+      record: action.customerRenewal,
+      label: 'Renovação',
+      objectNameSingular: 'customerRenewal',
+      icon: <IconRefreshDot {...iconProps} />,
     });
   }
 

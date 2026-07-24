@@ -137,6 +137,14 @@ plano detalhado, marcos e horizonte de renovação. A revisão de IA possui pré
 sem mutação; quando aplicada explicitamente, atualiza saúde, resumo e próxima
 revisão e cria somente uma proposta governada quando houver intervenção.
 
+`Diex > Renovações` usa uma esteira horizontal de retenção com seis etapas,
+forecast ponderado, receita sob risco, prazo, probabilidade e próxima ação.
+Cada caso nasce de um plano de sucesso e herda empresa, responsável, valor,
+data e risco. O operador pode registrar contatos, atualizar negociação,
+fechar como renovada ou churn com motivo obrigatório e consultar o histórico
+por autor. A IA cria somente uma intervenção pendente de aprovação no Centro
+de IA.
+
 Os componentes `Card`, `Badge`, `Progress`, `Button`, `Separator` e `Skeleton`
 seguem a composição source-owned do shadcn/ui, adaptada aos tokens e ao sandbox
 Remote DOM do Twenty. Isso preserva a experiência nativa sem introduzir um

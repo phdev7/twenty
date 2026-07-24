@@ -80,6 +80,10 @@ export const useAiCommandCenter = () => {
                   id: true,
                   name: true,
                 },
+                customerRenewal: {
+                  id: true,
+                  name: true,
+                },
                 inboxConversation: {
                   id: true,
                   name: true,

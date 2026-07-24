@@ -29,6 +29,7 @@ export type AiAction = {
   opportunity?: AiRecordReference | null;
   commercialSignal?: AiRecordReference | null;
   successPlan?: AiRecordReference | null;
+  customerRenewal?: AiRecordReference | null;
   inboxConversation?: AiRecordReference | null;
   reviewer?: AiRecordReference | null;
 };
