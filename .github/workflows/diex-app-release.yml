@@ -3,30 +3,68 @@ name: Diex app release
 on:
   workflow_dispatch:
     inputs:
-      target_url:
-        description: Twenty target URL
+      target_environment:
+        description: Diex CRM target environment
         required: true
-        type: string
+        type: choice
+        default: homologation
+        options:
+          - homologation
+          - production
 
 permissions:
   contents: read
 
+concurrency:
+  group: diex-app-release-${{ inputs.target_environment }}
+  cancel-in-progress: false
+
 jobs:
   deploy-and-install:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.target_environment }}
+    env:
+      TARGET_URL: ${{ inputs.target_environment == 'production' && 'https://crm.bydiex.com' || 'https://next-crm.bydiex.com' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Validate target and deployment credential
+        shell: bash
+        env:
+          DEPLOY_API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${DEPLOY_API_KEY}" ]]; then
+            echo "::error::TWENTY_DEPLOY_API_KEY is not configured in the ${TARGET_URL} GitHub environment."
+            exit 1
+          fi
+
+          case "${TARGET_URL}" in
+            https://next-crm.bydiex.com|https://crm.bydiex.com) ;;
+            *)
+              echo "::error::Refusing an unapproved Diex CRM target."
+              exit 1
+              ;;
+          esac
+
+          curl --fail --silent --show-error "${TARGET_URL}/healthz" >/dev/null
 
       - name: Deploy private Diex app
         uses: ./.github/actions/deploy-twenty-app
         with:
-          api-url: ${{ inputs.target_url }}
+          api-url: ${{ env.TARGET_URL }}
           api-key: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
           app-path: packages/twenty-apps/internal/diex
 
       - name: Install or upgrade Diex app
         uses: ./.github/actions/install-twenty-app
         with:
-          api-url: ${{ inputs.target_url }}
+          api-url: ${{ env.TARGET_URL }}
           api-key: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
           app-path: packages/twenty-apps/internal/diex
+
+      - name: Remove temporary Twenty CLI configuration
+        if: always()
+        shell: bash
+        run: rm -f "${HOME}/.twenty/config.json"

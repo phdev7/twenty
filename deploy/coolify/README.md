@@ -75,6 +75,24 @@ ou API key entre ambientes.
 
 O arquivo de exemplo contém placeholders, nunca credenciais reais.
 
+### Primeiro workspace e instalação do app
+
+1. O administrador cria a primeira conta e o primeiro workspace diretamente
+   em `next-crm.bydiex.com`.
+2. Dentro desse workspace, cria uma API key exclusiva chamada
+   `Diex app deploy - homologation`.
+3. No GitHub, cria o Environment `homologation` e grava a chave no secret
+   `TWENTY_DEPLOY_API_KEY`. A chave não deve ser enviada em chat, issue, log,
+   variável não secreta ou arquivo local versionado.
+4. Executa o workflow `Diex app release` escolhendo `homologation`.
+5. Confirma no workspace a versão do app, os objetos, as páginas `Inbox`,
+   `Inteligência`, `Centro de IA` e `Customer Success`, e as rotas autenticadas.
+
+Produção usa outro workspace, outra API key e o Environment `production`. O
+workflow resolve URLs fixas por ambiente e rejeita destinos diferentes de
+`next-crm.bydiex.com` e `crm.bydiex.com`, reduzindo o risco de exfiltração da
+chave de implantação.
+
 ### Proteção da homologação
 
 A homologação não usa Basic Auth no proxy. O controle de acesso fica no próprio
