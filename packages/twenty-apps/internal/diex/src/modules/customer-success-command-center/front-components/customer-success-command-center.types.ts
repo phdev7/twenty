@@ -8,6 +8,10 @@ export type CustomerSuccessRecordReference = {
   name?: string | CustomerSuccessRecordName | null;
 };
 
+export type CustomerSuccessWorkspaceMember = CustomerSuccessRecordReference & {
+  userId?: string | null;
+};
+
 export type CustomerSuccessRichText = {
   markdown?: string | null;
 };
@@ -57,6 +61,7 @@ export type CustomerSuccessPlan = {
   company?: CustomerSuccessRecordReference | null;
   primaryContact?: CustomerSuccessRecordReference | null;
   owner?: CustomerSuccessRecordReference | null;
+  opportunity?: CustomerSuccessRecordReference | null;
   milestones: CustomerSuccessMilestone[];
   aiActions: CustomerSuccessAiAction[];
 };
@@ -86,3 +91,110 @@ export type CustomerSuccessReviewResult = {
   aiActionId?: string;
   message: string;
 };
+
+export type CustomerSuccessHandoffOpportunity = {
+  id: string;
+  name?: string | null;
+  stage?: string | null;
+  closeDate?: string | null;
+  updatedAt?: string | null;
+  amount?: CustomerSuccessMoney | null;
+  company?:
+    | (CustomerSuccessRecordReference & {
+        diexLifecycle?: string | null;
+      })
+    | null;
+  pointOfContact?: CustomerSuccessRecordReference | null;
+  owner?: CustomerSuccessWorkspaceMember | null;
+  diexOffer?:
+    | (CustomerSuccessRecordReference & {
+        pricingModel?: string | null;
+        valueProposition?: CustomerSuccessRichText | null;
+      })
+    | null;
+};
+
+export type CustomerSuccessHandoffDraft = {
+  ownerId: string;
+  renewalDate: string;
+  recurringRevenueMicros: number;
+  currencyCode: string;
+  objectives: string;
+  successCriteria: string;
+};
+
+export type CustomerSuccessHandoffMilestonePreview = {
+  id: string;
+  name: string;
+  category: string;
+  dueAt: string;
+};
+
+export type CustomerSuccessHandoffPreviewPayload = {
+  opportunity: {
+    id: string;
+    name: string;
+    companyId: string;
+    companyName: string;
+    contactId?: string;
+    contactName?: string;
+    offerName?: string;
+  };
+  plan: {
+    id: string;
+    name: string;
+    owner: CustomerSuccessRecordReference;
+    startDate: string;
+    renewalDate: string;
+    nextReviewAt: string;
+    recurringRevenueMicros: number;
+    currencyCode: string;
+    objectives: string;
+    successCriteria: string;
+  };
+  milestones: CustomerSuccessHandoffMilestonePreview[];
+  task: {
+    id: string;
+    title: string;
+    dueAt: string;
+    assignee: CustomerSuccessRecordReference;
+  };
+  warnings: string[];
+};
+
+export type CustomerSuccessHandoffPreviewResult =
+  | {
+      mode: 'PREVIEW';
+      supported: false;
+      opportunityId: string;
+      existingPlanId?: string;
+      blockedReason: string;
+      message: string;
+    }
+  | {
+      mode: 'PREVIEW';
+      supported: true;
+      opportunityId: string;
+      preview: CustomerSuccessHandoffPreviewPayload;
+      confirmationToken: string;
+      expiresAt: string;
+      message: string;
+    };
+
+export type CustomerSuccessHandoffApplyResult = {
+  mode: 'APPLY';
+  supported: true;
+  opportunityId: string;
+  created: true;
+  alreadyCreated: boolean;
+  successPlanId: string;
+  taskId?: string;
+  milestonesCreated: number;
+  milestonesExpected: number;
+  warnings: string[];
+  receipt: string;
+  message: string;
+};
+
+export type CustomerSuccessHandoffResult =
+  CustomerSuccessHandoffPreviewResult | CustomerSuccessHandoffApplyResult;

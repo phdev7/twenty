@@ -44,6 +44,8 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   vínculos CRM, idempotência e trilha de auditoria.
 - painel de Customer Success com jornada da carteira, receita sob risco,
   horizonte de renovação, marcos e revisão inteligente aplicável.
+- handoff confirmado de oportunidade ganha para Customer Success, com vínculo
+  de origem, responsável, receita, renovação, cinco marcos e tarefa de kickoff.
 
 ### Respostas prontas
 
@@ -200,6 +202,18 @@ saúde, receita protegida e sob risco, etapas clicáveis, carteira priorizada,
 plano detalhado, marcos e horizonte de renovação. A revisão de IA possui prévia
 sem mutação; quando aplicada explicitamente, atualiza saúde, resumo e próxima
 revisão e cria somente uma proposta governada quando houver intervenção.
+
+O bloco `Entrada de novos clientes` lista oportunidades em `Fechado ganho` que
+ainda não possuem plano. O operador define responsável de CS, receita
+recorrente, data de renovação, objetivos e critérios de sucesso. A prévia exibe
+o plano, cinco marcos e a tarefa de kickoff sem criar registros. A confirmação
+expira em dez minutos e cria tudo de forma idempotente, liga o plano à
+oportunidade de origem e atualiza a jornada da empresa para `Cliente`.
+
+A mesma operação está disponível no MCP como
+`handoff-won-opportunity-to-customer-success`. O uso correto exige primeiro
+`previewOnly=true`; a criação só ocorre com `confirmCreate=true` e o token
+temporário devolvido pela prévia. Nenhuma comunicação externa é enviada.
 
 `Diex > Renovações` usa uma esteira horizontal de retenção com seis etapas,
 forecast ponderado, receita sob risco, prazo, probabilidade e próxima ação.
