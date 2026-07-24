@@ -13,6 +13,7 @@ import {
   ApplicationExceptionCode,
 } from 'src/engine/core-modules/application/application.exception';
 import { TwentyStandardApplicationService } from 'src/engine/workspace-manager/twenty-standard-application/services/twenty-standard-application.service';
+import { WorkspaceMigrationBuilderException } from 'src/engine/workspace-manager/workspace-migration/exceptions/workspace-migration-builder-exception';
 
 @Injectable()
 export class PreInstalledAppsService {
@@ -53,6 +54,18 @@ export class PreInstalledAppsService {
             workspaceId,
           });
         } catch (error) {
+          if (error instanceof WorkspaceMigrationBuilderException) {
+            const validationFailures = Object.fromEntries(
+              Object.entries(
+                error.failedWorkspaceMigrationBuildResult.report,
+              ).filter(([, failures]) => failures.length > 0),
+            );
+
+            this.logger.error(
+              `Pre-installed app "${registration.name}" metadata validation failed on workspace ${workspaceId}: ${JSON.stringify(validationFailures)}`,
+            );
+          }
+
           this.logger.error(
             `Failed to install pre-installed app "${registration.name}" (${registration.id}) on workspace ${workspaceId}: ${
               error instanceof Error ? error.message : String(error)
@@ -97,6 +110,18 @@ export class PreInstalledAppsService {
             error.code === ApplicationExceptionCode.APP_ALREADY_INSTALLED
           ) {
             return;
+          }
+
+          if (error instanceof WorkspaceMigrationBuilderException) {
+            const validationFailures = Object.fromEntries(
+              Object.entries(
+                error.failedWorkspaceMigrationBuildResult.report,
+              ).filter(([, failures]) => failures.length > 0),
+            );
+
+            this.logger.error(
+              `Pre-installed app "${registration.name}" metadata validation failed on workspace ${workspaceId}: ${JSON.stringify(validationFailures)}`,
+            );
           }
 
           throw error;

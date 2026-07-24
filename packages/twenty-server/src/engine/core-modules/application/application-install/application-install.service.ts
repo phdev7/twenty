@@ -43,6 +43,7 @@ import { MessageQueueService } from 'src/engine/core-modules/message-queue/servi
 import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
 import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
+import { WorkspaceMigrationBuilderException } from 'src/engine/workspace-manager/workspace-migration/exceptions/workspace-migration-builder-exception';
 
 @Injectable()
 export class ApplicationInstallService {
@@ -398,6 +399,31 @@ export class ApplicationInstallService {
       this.logger.error(
         `Failed to install app ${appRegistration.universalIdentifier}: ${error}`,
       );
+
+      if (
+        isVersionUpgrade &&
+        error instanceof WorkspaceMigrationBuilderException &&
+        isDefined(existingApplication)
+      ) {
+        try {
+          await this.applicationService.update(application.id, {
+            name: existingApplication.name,
+            description: existingApplication.description,
+            logo: existingApplication.logo,
+            logoFileId: existingApplication.logoFileId,
+            version: existingApplication.version,
+            packageJsonChecksum: existingApplication.packageJsonChecksum,
+            yarnLockChecksum: existingApplication.yarnLockChecksum,
+            applicationRegistrationId:
+              existingApplication.applicationRegistrationId,
+            workspaceId: params.workspaceId,
+          });
+        } catch (rollbackError) {
+          this.logger.error(
+            `Failed to restore app ${appRegistration.universalIdentifier} after metadata validation failure: ${rollbackError}`,
+          );
+        }
+      }
 
       if (!isVersionUpgrade) {
         await this.applicationSyncService.uninstallApplication({
