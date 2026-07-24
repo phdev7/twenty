@@ -16,7 +16,7 @@ export const computeStandardCompanyViews = (
       objectName: 'company',
       context: {
         viewName: 'allCompanies',
-        name: 'All {objectLabelPlural}',
+        name: 'Todas as {objectLabelPlural}',
         type: ViewType.TABLE,
         key: ViewKey.INDEX,
         position: 0,
@@ -28,7 +28,7 @@ export const computeStandardCompanyViews = (
       objectName: 'company',
       context: {
         viewName: 'companyRecordPageFields',
-        name: 'Company Record Page Fields',
+        name: 'Campos da empresa',
         type: ViewType.FIELDS_WIDGET,
         key: null,
         position: 0,

@@ -165,6 +165,13 @@ export const SettingsApplicationRegistrationGeneralInfo = ({
           value: 'Local',
         });
         break;
+      case ApplicationRegistrationSourceType.BUNDLED:
+        items.push({
+          Icon: IconBox,
+          label: t`Source`,
+          value: 'Diex CRM Core',
+        });
+        break;
       case ApplicationRegistrationSourceType.OAUTH_ONLY:
         items.push({
           Icon: IconBox,

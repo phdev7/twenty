@@ -183,23 +183,7 @@ const createWelcomeRichText = ({
           content: [
             {
               type: 'text',
-              text: 'If you have any issues, you can check ',
-              styles: {},
-            },
-            {
-              type: 'link',
-              href: 'https://docs.twenty.com/getting-started/introduction',
-              content: [
-                {
-                  type: 'text',
-                  text: 'our documentation',
-                  styles: {},
-                },
-              ],
-            },
-            {
-              type: 'text',
-              text: ' or contact us through the Support section in Settings.',
+              text: 'Se precisar de ajuda, use a seção Suporte nas Configurações.',
               styles: {},
             },
           ],
@@ -228,7 +212,7 @@ const createWelcomeRichText = ({
       layoutName: 'myFirstDashboard',
       tabTitle: 'tab1',
       widgetName: 'welcomeRichText',
-      title: 'Untitled Rich Text',
+      title: 'Resumo comercial',
       type: WidgetType.STANDALONE_RICH_TEXT,
       gridPosition: { row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
       position: {
@@ -265,7 +249,7 @@ const createDealsByCompany = ({
       layoutName: 'myFirstDashboard',
       tabTitle: 'tab1',
       widgetName: 'dealsByCompany',
-      title: 'Deals by Company',
+      title: 'Negócios por empresa',
       type: WidgetType.GRAPH,
       gridPosition: { row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
       position: {
@@ -330,7 +314,7 @@ const createPipelineValueByStage = ({
       layoutName: 'myFirstDashboard',
       tabTitle: 'tab1',
       widgetName: 'pipelineValueByStage',
-      title: 'Pipeline Value by Stage',
+      title: 'Valor do pipeline por etapa',
       type: WidgetType.GRAPH,
       gridPosition: { row: 6, column: 0, rowSpan: 6, columnSpan: 6 },
       position: {
@@ -408,7 +392,7 @@ const createRevenueTimeline = ({
       layoutName: 'myFirstDashboard',
       tabTitle: 'tab1',
       widgetName: 'revenueTimeline',
-      title: 'Revenue Timeline',
+      title: 'Evolução da receita',
       type: WidgetType.GRAPH,
       gridPosition: { row: 6, column: 6, rowSpan: 6, columnSpan: 6 },
       position: {
@@ -475,7 +459,7 @@ const createOpportunitiesByOwner = ({
       layoutName: 'myFirstDashboard',
       tabTitle: 'tab1',
       widgetName: 'opportunitiesByOwner',
-      title: 'Opportunities by Owner',
+      title: 'Oportunidades por responsável',
       type: WidgetType.GRAPH,
       gridPosition: { row: 12, column: 0, rowSpan: 6, columnSpan: 6 },
       position: {

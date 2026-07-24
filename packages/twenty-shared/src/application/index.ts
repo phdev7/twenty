@@ -36,6 +36,7 @@ export { DEFAULT_API_KEY_NAME } from './constants/DefaultApiKeyName';
 export { DEFAULT_API_URL_NAME } from './constants/DefaultApiUrlName';
 export { DEFAULT_APP_ACCESS_TOKEN_NAME } from './constants/DefaultAppAccessTokenName';
 export { DEFAULT_FUNCTIONS_URL_NAME } from './constants/DefaultFunctionsUrlName';
+export { DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER } from './constants/DiexCoreApplicationUniversalIdentifier';
 export { GENERATED_DIR } from './constants/GeneratedDirectory';
 export { NODE_ESM_CJS_BANNER } from './constants/NodeEsmCjsBanner';
 export { OUTPUT_DIR } from './constants/OutputDirectory';

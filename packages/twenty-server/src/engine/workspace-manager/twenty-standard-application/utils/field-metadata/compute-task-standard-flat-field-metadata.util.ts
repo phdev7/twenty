@@ -52,7 +52,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Creation date`),
+      label: i18nLabel(msg`Data de criação`),
       description: i18nLabel(msg`Creation date`),
       icon: 'IconCalendar',
       isSystem: true,
@@ -74,7 +74,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Last update`),
+      label: i18nLabel(msg`Última atualização`),
       description: i18nLabel(msg`Last time the record was changed`),
       icon: 'IconCalendarClock',
       isSystem: true,
@@ -96,7 +96,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'deletedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Deleted at`),
+      label: i18nLabel(msg`Excluído em`),
       description: i18nLabel(msg`Date when the record was deleted`),
       icon: 'IconCalendarMinus',
       isSystem: true,
@@ -119,7 +119,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'position',
       type: FieldMetadataType.POSITION,
-      label: i18nLabel(msg`Position`),
+      label: i18nLabel(msg`Posição`),
       description: i18nLabel(msg`Task record position`),
       icon: 'IconHierarchy2',
       isSystem: true,
@@ -137,7 +137,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'title',
       type: FieldMetadataType.TEXT,
-      label: i18nLabel(msg`Title`),
+      label: i18nLabel(msg`Título`),
       description: i18nLabel(msg`Task title`),
       icon: 'IconNotes',
       isNullable: true,
@@ -153,7 +153,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'bodyV2',
       type: FieldMetadataType.RICH_TEXT,
-      label: i18nLabel(msg`Body`),
+      label: i18nLabel(msg`Descrição`),
       description: i18nLabel(msg`Task body`),
       icon: 'IconFilePencil',
       isNullable: true,
@@ -169,7 +169,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'dueAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Due Date`),
+      label: i18nLabel(msg`Prazo`),
       description: i18nLabel(msg`Task due date`),
       icon: 'IconCalendarEvent',
       isNullable: true,
@@ -194,21 +194,21 @@ export const buildTaskStandardFlatFieldMetadatas = ({
         {
           id: '20202020-3d31-4860-ad07-5c4603d44887',
           value: 'TODO',
-          label: i18nLabel(msg`To do`),
+          label: i18nLabel(msg`A fazer`),
           position: 0,
           color: 'sky',
         },
         {
           id: '20202020-c559-4f8e-8b8e-21136da8684d',
           value: 'IN_PROGRESS',
-          label: i18nLabel(msg`In progress`),
+          label: i18nLabel(msg`Em andamento`),
           position: 1,
           color: 'purple',
         },
         {
           id: '20202020-c7a7-43ff-8226-f6a97a32759e',
           value: 'DONE',
-          label: i18nLabel(msg`Done`),
+          label: i18nLabel(msg`Concluída`),
           position: 2,
           color: 'green',
         },
@@ -225,7 +225,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Created by`),
+      label: i18nLabel(msg`Criado por`),
       description: i18nLabel(msg`The creator of the record`),
       icon: 'IconCreativeCommonsSa',
       isSystem: true,
@@ -248,7 +248,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Updated by`),
+      label: i18nLabel(msg`Atualizado por`),
       description: i18nLabel(
         msg`The workspace member who last updated the record`,
       ),
@@ -273,7 +273,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'searchVector',
       type: FieldMetadataType.TS_VECTOR,
-      label: i18nLabel(msg`Search vector`),
+      label: i18nLabel(msg`Índice de busca`),
       description: i18nLabel(msg`Field used for full-text search`),
       icon: 'IconUser',
       isSystem: true,
@@ -293,7 +293,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'taskTargets',
-      label: i18nLabel(msg`Relations`),
+      label: i18nLabel(msg`Relações`),
       description: i18nLabel(msg`Task targets`),
       icon: 'IconArrowUpRight',
       isNullable: true,
@@ -341,7 +341,7 @@ export const buildTaskStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'assignee',
-      label: i18nLabel(msg`Assignee`),
+      label: i18nLabel(msg`Responsável`),
       description: i18nLabel(msg`Task assignee`),
       icon: 'IconUserCircle',
       isNullable: true,

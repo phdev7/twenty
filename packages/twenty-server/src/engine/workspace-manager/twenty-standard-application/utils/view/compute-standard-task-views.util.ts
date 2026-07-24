@@ -16,7 +16,7 @@ export const computeStandardTaskViews = (
       objectName: 'task',
       context: {
         viewName: 'allTasks',
-        name: 'All {objectLabelPlural}',
+        name: 'Todas as {objectLabelPlural}',
         type: ViewType.TABLE,
         key: ViewKey.INDEX,
         position: 0,
@@ -28,7 +28,7 @@ export const computeStandardTaskViews = (
       objectName: 'task',
       context: {
         viewName: 'byStatus',
-        name: 'By Status',
+        name: 'Por status',
         type: ViewType.KANBAN,
         key: null,
         position: 1,
@@ -41,7 +41,7 @@ export const computeStandardTaskViews = (
       objectName: 'task',
       context: {
         viewName: 'assignedToMe',
-        name: 'Assigned to Me',
+        name: 'Atribuídas a mim',
         type: ViewType.TABLE,
         key: null,
         position: 2,
@@ -54,7 +54,7 @@ export const computeStandardTaskViews = (
       objectName: 'task',
       context: {
         viewName: 'taskRecordPageFields',
-        name: 'Task Record Page Fields',
+        name: 'Campos da tarefa',
         type: ViewType.FIELDS_WIDGET,
         key: null,
         position: 0,

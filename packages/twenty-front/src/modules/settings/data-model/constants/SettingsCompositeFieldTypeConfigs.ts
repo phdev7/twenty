@@ -121,20 +121,20 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     ],
     exampleValues: [
       {
-        primaryEmail: 'tim@twenty.com',
+        primaryEmail: 'maria@empresa.com.br',
         additionalEmails: [
-          'tim@twenty.com',
-          'timapple@twenty.com',
-          'johnappletim@twenty.com',
+          'comercial@empresa.com.br',
+          'financeiro@empresa.com.br',
+          'suporte@empresa.com.br',
         ],
       },
       {
-        primaryEmail: 'jane@twenty.com',
-        additionalEmails: ['jane@twenty.com', 'jane.doe@twenty.com'],
+        primaryEmail: 'joao@empresa.com.br',
+        additionalEmails: ['vendas@empresa.com.br', 'cs@empresa.com.br'],
       },
       {
-        primaryEmail: 'john@twenty.com',
-        additionalEmails: ['john.doe@twenty.com'],
+        primaryEmail: 'contato@empresa.com.br',
+        additionalEmails: ['atendimento@empresa.com.br'],
       },
     ],
     category: 'Basic',
@@ -179,14 +179,14 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     ],
     exampleValues: [
       {
-        primaryLinkUrl: 'twenty.com',
+        primaryLinkUrl: 'bydiex.com',
         primaryLinkLabel: '',
-        secondaryLinks: [{ url: 'twenty.com', label: 'Twenty' }],
+        secondaryLinks: [{ url: 'bydiex.com', label: 'Diex' }],
       },
       {
-        primaryLinkUrl: 'github.com/twentyhq/twenty',
-        primaryLinkLabel: 'Twenty Repo',
-        secondaryLinks: [{ url: 'twenty.com', label: '' }],
+        primaryLinkUrl: 'linkedin.com/company/diex',
+        primaryLinkLabel: 'LinkedIn',
+        secondaryLinks: [{ url: 'bydiex.com', label: '' }],
       },
       {
         primaryLinkUrl: 'react.dev',

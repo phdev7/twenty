@@ -14,7 +14,7 @@ export const computeStandardOpportunityViewFieldGroups = (
       context: {
         viewName: 'opportunityRecordPageFields',
         viewFieldGroupName: 'deal',
-        name: 'Deal',
+        name: 'Negócio',
         position: 0,
         isVisible: true,
       },
@@ -26,7 +26,7 @@ export const computeStandardOpportunityViewFieldGroups = (
         context: {
           viewName: 'opportunityRecordPageFields',
           viewFieldGroupName: 'relations',
-          name: 'Relations',
+          name: 'Relações',
           position: 1,
           isVisible: true,
         },
@@ -38,7 +38,7 @@ export const computeStandardOpportunityViewFieldGroups = (
         context: {
           viewName: 'opportunityRecordPageFields',
           viewFieldGroupName: 'system',
-          name: 'System',
+          name: 'Sistema',
           position: 2,
           isVisible: true,
         },

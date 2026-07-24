@@ -54,7 +54,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Creation date`),
+      label: i18nLabel(msg`Data de criação`),
       description: i18nLabel(msg`Creation date`),
       icon: 'IconCalendar',
       isSystem: true,
@@ -76,7 +76,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Last update`),
+      label: i18nLabel(msg`Última atualização`),
       description: i18nLabel(msg`Last time the record was changed`),
       icon: 'IconCalendarClock',
       isSystem: true,
@@ -98,7 +98,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'deletedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Deleted at`),
+      label: i18nLabel(msg`Excluído em`),
       description: i18nLabel(msg`Date when the record was deleted`),
       icon: 'IconCalendarMinus',
       isSystem: true,
@@ -121,7 +121,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'name',
       type: FieldMetadataType.FULL_NAME,
-      label: i18nLabel(msg`Name`),
+      label: i18nLabel(msg`Nome`),
       description: "Contact's name",
       icon: 'IconUser',
       isNullable: true,
@@ -137,7 +137,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'emails',
       type: FieldMetadataType.EMAILS,
-      label: i18nLabel(msg`Emails`),
+      label: i18nLabel(msg`E-mails`),
       description: "Contact's Emails",
       icon: 'IconMail',
       isNullable: true,
@@ -173,7 +173,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'jobTitle',
       type: FieldMetadataType.TEXT,
-      label: i18nLabel(msg`Job Title`),
+      label: i18nLabel(msg`Cargo`),
       description: "Contact's job title",
       icon: 'IconBriefcase',
       isNullable: true,
@@ -189,7 +189,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'phones',
       type: FieldMetadataType.PHONES,
-      label: i18nLabel(msg`Phones`),
+      label: i18nLabel(msg`Telefones`),
       description: "Contact's phone numbers",
       icon: 'IconPhone',
       isNullable: true,
@@ -226,7 +226,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'avatarFile',
       type: FieldMetadataType.FILES,
-      label: i18nLabel(msg`Avatar File`),
+      label: i18nLabel(msg`Arquivo do avatar`),
       description: "Contact's avatar file",
       icon: 'IconFileUpload',
       isSystem: true,
@@ -246,7 +246,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'position',
       type: FieldMetadataType.POSITION,
-      label: i18nLabel(msg`Position`),
+      label: i18nLabel(msg`Posição`),
       description: i18nLabel(msg`Person record Position`),
       icon: 'IconHierarchy2',
       isSystem: true,
@@ -264,7 +264,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Created by`),
+      label: i18nLabel(msg`Criado por`),
       description: i18nLabel(msg`The creator of the record`),
       icon: 'IconCreativeCommonsSa',
       isSystem: true,
@@ -287,7 +287,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Updated by`),
+      label: i18nLabel(msg`Atualizado por`),
       description: i18nLabel(
         msg`The workspace member who last updated the record`,
       ),
@@ -315,7 +315,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'company',
-      label: i18nLabel(msg`Company`),
+      label: i18nLabel(msg`Empresa`),
       description: "Contact's company",
       icon: 'IconBuildingSkyscraper',
       isNullable: true,
@@ -339,7 +339,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'pointOfContactForOpportunities',
-      label: i18nLabel(msg`Opportunities`),
+      label: i18nLabel(msg`Oportunidades`),
       description: i18nLabel(
         msg`List of opportunities for which that person is the point of contact`,
       ),
@@ -443,7 +443,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'messageParticipants',
-      label: i18nLabel(msg`Message Participants`),
+      label: i18nLabel(msg`Participantes das mensagens`),
       description: i18nLabel(msg`Message Participants`),
       icon: 'IconUserCircle',
       isNullable: true,
@@ -465,7 +465,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'calendarEventParticipants',
-      label: i18nLabel(msg`Calendar Event Participants`),
+      label: i18nLabel(msg`Participantes dos eventos`),
       description: i18nLabel(msg`Calendar Event Participants`),
       icon: 'IconCalendar',
       isNullable: true,
@@ -488,7 +488,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       morphId: null,
       fieldName: 'timelineActivities',
       isSystemSideEffect: true,
-      label: i18nLabel(msg`Events`),
+      label: i18nLabel(msg`Eventos`),
       description: i18nLabel(msg`Events linked to the person`),
       icon: 'IconTimelineEvent',
       isNullable: true,
@@ -510,7 +510,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'listMemberships',
-      label: i18nLabel(msg`Lists`),
+      label: i18nLabel(msg`Listas`),
       description: i18nLabel(msg`Lists the contact belongs to`),
       icon: 'IconUsersGroup',
       isUIEditable: true,
@@ -534,7 +534,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'searchVector',
       type: FieldMetadataType.TS_VECTOR,
-      label: i18nLabel(msg`Search vector`),
+      label: i18nLabel(msg`Índice de busca`),
       description: i18nLabel(msg`Field used for full-text search`),
       icon: 'IconUser',
       isSystem: true,

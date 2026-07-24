@@ -70,7 +70,7 @@ export default defineApplication({
         'Lista de origins Evolution autorizadas pelo operador da infraestrutura, separadas por vírgula. Exemplo: https://evolution.exemplo.com. Nenhum workspace pode acessar uma origin fora desta lista.',
       type: FieldType.TEXT,
       isSecret: false,
-      isRequired: true,
+      isRequired: false,
     },
     DIEX_EVOLUTION_ALLOW_PRIVATE_NETWORK: {
       description:

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
+import { TWENTY_STANDARD_APPLICATION } from 'src/engine/workspace-manager/twenty-standard-application/constants/twenty-standard-applications';
 import { MetadataFlatEntity } from 'src/engine/metadata-modules/flat-entity/types/metadata-flat-entity.type';
 import { getMetadataFlatEntityMapsKey } from 'src/engine/metadata-modules/flat-entity/utils/get-metadata-flat-entity-maps-key.util';
 import { getSubFlatEntityMapsByApplicationIdsOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/get-sub-flat-entity-maps-by-application-ids-or-throw.util';
@@ -33,6 +34,15 @@ export class TwentyStandardApplicationService {
           workspaceId,
         },
       );
+
+    if (
+      twentyStandardFlatApplication.name !== TWENTY_STANDARD_APPLICATION.name
+    ) {
+      await this.applicationService.update(twentyStandardFlatApplication.id, {
+        name: TWENTY_STANDARD_APPLICATION.name,
+        workspaceId,
+      });
+    }
     const { featureFlagsMap, ...fromTwentyStandardAllFlatEntityMaps } =
       await this.workspaceCacheService.getOrRecompute(workspaceId, [
         ...TWENTY_STANDARD_ALL_METADATA_NAME.map(getMetadataFlatEntityMapsKey),

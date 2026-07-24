@@ -720,6 +720,21 @@ export class ApplicationInstallService {
     sourceType: ApplicationRegistrationSourceType;
   }): Promise<ApplicationEntity> {
     if (isDefined(params.existingApplication)) {
+      if (
+        params.sourceType === ApplicationRegistrationSourceType.BUNDLED &&
+        params.existingApplication.canBeUninstalled
+      ) {
+        return await this.applicationService.update(
+          params.existingApplication.id,
+          {
+            canBeUninstalled: false,
+            applicationRegistrationId: params.applicationRegistrationId,
+            sourceType: ApplicationRegistrationSourceType.BUNDLED,
+            workspaceId: params.workspaceId,
+          },
+        );
+      }
+
       return params.existingApplication;
     }
 
@@ -730,6 +745,8 @@ export class ApplicationInstallService {
       sourcePath: params.universalIdentifier,
       sourceType: params.sourceType,
       applicationRegistrationId: params.applicationRegistrationId,
+      canBeUninstalled:
+        params.sourceType !== ApplicationRegistrationSourceType.BUNDLED,
       workspaceId: params.workspaceId,
     });
   }

@@ -45,7 +45,7 @@ const OPPORTUNITY_PAGE_TABS = {
         universalIdentifier:
           STANDARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIERS.opportunityRecordPage.tabs
             .home.widgets.company.universalIdentifier,
-        title: 'Company',
+        title: 'Empresa',
         type: WidgetType.FIELD,
         gridPosition: GRID_POSITIONS.FULL_WIDTH,
         position: VERTICAL_LIST_LAYOUT_POSITIONS.THIRD,
@@ -152,7 +152,7 @@ const OPPORTUNITY_PAGE_TABS = {
 } as const satisfies Record<string, StandardPageLayoutTabConfig>;
 
 export const STANDARD_OPPORTUNITY_PAGE_LAYOUT_CONFIG = {
-  name: 'Default Opportunity Layout',
+  name: 'Layout padrão de oportunidade',
   type: PageLayoutType.RECORD_PAGE,
   objectUniversalIdentifier: STANDARD_OBJECTS.opportunity.universalIdentifier,
   universalIdentifier:

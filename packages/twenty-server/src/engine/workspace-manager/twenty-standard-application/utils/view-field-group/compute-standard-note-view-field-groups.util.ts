@@ -14,7 +14,7 @@ export const computeStandardNoteViewFieldGroups = (
       context: {
         viewName: 'noteRecordPageFields',
         viewFieldGroupName: 'general',
-        name: 'General',
+        name: 'Geral',
         position: 0,
         isVisible: true,
       },
@@ -25,7 +25,7 @@ export const computeStandardNoteViewFieldGroups = (
       context: {
         viewName: 'noteRecordPageFields',
         viewFieldGroupName: 'system',
-        name: 'System',
+        name: 'Sistema',
         position: 1,
         isVisible: true,
       },

@@ -52,7 +52,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Creation date`),
+      label: i18nLabel(msg`Data de criação`),
       description: i18nLabel(msg`Creation date`),
       icon: 'IconCalendar',
       isSystem: true,
@@ -74,7 +74,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Last update`),
+      label: i18nLabel(msg`Última atualização`),
       description: i18nLabel(msg`Last time the record was changed`),
       icon: 'IconCalendarClock',
       isSystem: true,
@@ -96,7 +96,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'deletedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Deleted at`),
+      label: i18nLabel(msg`Excluído em`),
       description: i18nLabel(msg`Date when the record was deleted`),
       icon: 'IconCalendarMinus',
       isSystem: true,
@@ -119,7 +119,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'name',
       type: FieldMetadataType.TEXT,
-      label: i18nLabel(msg`Name`),
+      label: i18nLabel(msg`Nome`),
       description: i18nLabel(msg`The opportunity name`),
       icon: 'IconTargetArrow',
       isNullable: true,
@@ -135,7 +135,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'amount',
       type: FieldMetadataType.CURRENCY,
-      label: i18nLabel(msg`Amount`),
+      label: i18nLabel(msg`Valor`),
       description: i18nLabel(msg`Opportunity amount`),
       icon: 'IconCurrencyDollar',
       isNullable: true,
@@ -151,7 +151,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'closeDate',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Close date`),
+      label: i18nLabel(msg`Data de fechamento`),
       description: i18nLabel(msg`Opportunity close date`),
       icon: 'IconCalendarEvent',
       isNullable: true,
@@ -167,7 +167,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'stage',
       type: FieldMetadataType.SELECT,
-      label: i18nLabel(msg`Stage`),
+      label: i18nLabel(msg`Etapa`),
       description: i18nLabel(msg`Opportunity stage`),
       icon: 'IconProgressCheck',
       isNullable: false,
@@ -242,7 +242,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'position',
       type: FieldMetadataType.POSITION,
-      label: i18nLabel(msg`Position`),
+      label: i18nLabel(msg`Posição`),
       description: i18nLabel(msg`Opportunity record position`),
       icon: 'IconHierarchy2',
       isSystem: true,
@@ -260,7 +260,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Created by`),
+      label: i18nLabel(msg`Criado por`),
       description: i18nLabel(msg`The creator of the record`),
       icon: 'IconCreativeCommonsSa',
       isSystem: true,
@@ -283,7 +283,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Updated by`),
+      label: i18nLabel(msg`Atualizado por`),
       description: i18nLabel(
         msg`The workspace member who last updated the record`,
       ),
@@ -308,7 +308,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'searchVector',
       type: FieldMetadataType.TS_VECTOR,
-      label: i18nLabel(msg`Search vector`),
+      label: i18nLabel(msg`Índice de busca`),
       description: i18nLabel(msg`Field used for full-text search`),
       icon: 'IconUser',
       isSystem: true,
@@ -328,7 +328,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'pointOfContact',
-      label: i18nLabel(msg`Point of Contact`),
+      label: i18nLabel(msg`Contato principal`),
       description: i18nLabel(msg`Opportunity point of contact`),
       icon: 'IconUser',
       isNullable: true,
@@ -352,7 +352,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'company',
-      label: i18nLabel(msg`Company`),
+      label: i18nLabel(msg`Empresa`),
       description: i18nLabel(msg`Opportunity company`),
       icon: 'IconBuildingSkyscraper',
       isNullable: true,
@@ -485,7 +485,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'owner',
-      label: i18nLabel(msg`Owner`),
+      label: i18nLabel(msg`Responsável`),
       description: i18nLabel(msg`Opportunity owner`),
       icon: 'IconUserCircle',
       isNullable: true,

@@ -15,6 +15,7 @@ import { v4 } from 'uuid';
 
 import { ApplicationRegistrationEntity } from 'src/engine/core-modules/application/application-registration/application-registration.entity';
 import { ApplicationRegistrationSourceType } from 'src/engine/core-modules/application/application-registration/enums/application-registration-source-type.enum';
+import { resolveBundledApplicationPackagePath } from 'src/engine/core-modules/application/application-package/constants/bundled-application-package.constant';
 import {
   ApplicationException,
   ApplicationExceptionCode,
@@ -84,6 +85,8 @@ export class ApplicationPackageFetcherService implements OnModuleInit {
         );
       case ApplicationRegistrationSourceType.TARBALL:
         return this.resolveFromTarball(appRegistration);
+      case ApplicationRegistrationSourceType.BUNDLED:
+        return this.resolveFromBundled(appRegistration);
       case ApplicationRegistrationSourceType.LOCAL:
       case ApplicationRegistrationSourceType.OAUTH_ONLY:
         return null;
@@ -235,6 +238,56 @@ export class ApplicationPackageFetcherService implements OnModuleInit {
       throw new ApplicationException(
         `Failed to resolve tarball for app ${appRegistration.universalIdentifier}: ${error}`,
         ApplicationExceptionCode.TARBALL_EXTRACTION_FAILED,
+      );
+    }
+  }
+
+  private async resolveFromBundled(
+    appRegistration: ApplicationRegistrationEntity,
+  ): Promise<ResolvedPackage> {
+    if (!isDefined(appRegistration.sourcePackage)) {
+      throw new ApplicationException(
+        `Bundled app registration ${appRegistration.id} has no source package`,
+        ApplicationExceptionCode.PACKAGE_RESOLUTION_FAILED,
+      );
+    }
+
+    const workDir = join(APP_FETCHER_TMPDIR, v4());
+
+    await fs.mkdir(workDir, { recursive: true });
+
+    try {
+      const bundledPackagePath = await resolveBundledApplicationPackagePath(
+        appRegistration.sourcePackage,
+      );
+
+      await fs.cp(bundledPackagePath, workDir, { recursive: true });
+
+      const manifest = await readJsonFileOrThrow<Manifest>(
+        workDir,
+        'manifest.json',
+      );
+      const packageJson = await readJsonFileOrThrow<PackageJson>(
+        workDir,
+        'package.json',
+      );
+
+      return {
+        extractedDir: workDir,
+        cleanupDir: workDir,
+        manifest,
+        packageJson,
+      };
+    } catch (error) {
+      await this.cleanupExtractedDir(workDir);
+
+      if (error instanceof ApplicationException) {
+        throw error;
+      }
+
+      throw new ApplicationException(
+        `Failed to resolve bundled package ${appRegistration.sourcePackage}: ${error}`,
+        ApplicationExceptionCode.PACKAGE_RESOLUTION_FAILED,
       );
     }
   }

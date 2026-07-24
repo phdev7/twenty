@@ -92,7 +92,7 @@ const TASK_PAGE_TABS = {
 } as const satisfies Record<string, StandardPageLayoutTabConfig>;
 
 export const STANDARD_TASK_PAGE_LAYOUT_CONFIG = {
-  name: 'Default Task Layout',
+  name: 'Layout padrão de tarefa',
   type: PageLayoutType.RECORD_PAGE,
   objectUniversalIdentifier: STANDARD_OBJECTS.task.universalIdentifier,
   universalIdentifier:

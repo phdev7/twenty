@@ -31,7 +31,7 @@ const WORKFLOW_PAGE_TABS = {
 } as const satisfies Record<string, StandardPageLayoutTabConfig>;
 
 export const STANDARD_WORKFLOW_PAGE_LAYOUT_CONFIG = {
-  name: 'Default Workflow Layout',
+  name: 'Layout padrão de automação',
   type: PageLayoutType.RECORD_PAGE,
   objectUniversalIdentifier: STANDARD_OBJECTS.workflow.universalIdentifier,
   universalIdentifier:

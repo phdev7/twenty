@@ -1,6 +1,7 @@
 # Diex CRM
 
-Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
+Núcleo comercial oficial do Diex CRM, compilado e sincronizado pela própria
+imagem da plataforma.
 
 ## Capacidades
 
@@ -14,7 +15,7 @@ Aplicativo oficial da camada comercial Diex sobre o núcleo Twenty.
   recibo;
 - agentes e skills especializados em vendas e CS;
 - inbox comercial ligado aos registros nativos do CRM;
-- e-mail Gmail, Microsoft ou IMAP/SMTP nativo do Twenty espelhado na Inbox,
+- e-mail Gmail, Microsoft ou IMAP/SMTP nativo da plataforma espelhado na Inbox,
   com vínculo automático a pessoa, empresa e oportunidade e resposta por
   prévia confirmada;
 - respostas prontas por workspace com atalho, variáveis CRM e rastreio de uso;
@@ -155,7 +156,7 @@ e-mail continuam exigindo prévia e confirmação humana.
 
 Em `Diex > Centro de IA`, propostas aprovadas dos tipos qualificação,
 follow-up, mitigação de risco, intervenção de CS e expansão podem virar uma
-tarefa nativa do Twenty. Propostas de atualização de pipeline podem mover uma
+tarefa nativa do Diex CRM. Propostas de atualização de pipeline podem mover uma
 única oportunidade entre etapas reais configuradas no workspace. Primeiro o
 operador gera a prévia; depois confirma a tarefa exata ou a transição exata de
 origem para destino.
@@ -171,7 +172,7 @@ novamente. Texto livre aprovado nunca define sozinho a oportunidade ou a etapa.
 
 ### E-mail nativo na Inbox
 
-Conecte Gmail, Microsoft ou IMAP/SMTP pelas contas nativas do Twenty, habilite
+Conecte Gmail, Microsoft ou IMAP/SMTP pelas contas nativas do Diex CRM, habilite
 a sincronização e defina a visibilidade do canal como `Compartilhar tudo`.
 Depois, use `Sincronizar e-mail` no cabeçalho da Inbox. Somente canais
 explicitamente compartilhados são espelhados.
@@ -184,7 +185,7 @@ mensagem.
 
 O envio exige uma prévia com destinatário, assunto e corpo. A confirmação usa
 a conta nativa disponível ao usuário atual e volta a sincronizar o histórico.
-Credenciais, tokens e segredos permanecem no núcleo autenticado do Twenty e
+Credenciais, tokens e segredos permanecem no núcleo autenticado do Diex CRM e
 não entram nos registros da aplicação nem no MCP.
 
 ### Páginas operacionais
@@ -239,21 +240,18 @@ de IA.
 
 Os componentes `Card`, `Badge`, `Progress`, `Button`, `Separator` e `Skeleton`
 seguem a composição source-owned do shadcn/ui, adaptada aos tokens e ao sandbox
-Remote DOM do Twenty. Isso preserva a experiência nativa sem introduzir um
+interno da plataforma. Isso preserva a experiência nativa sem introduzir um
 segundo tema Tailwind dentro do CRM.
 
-## Instalação
+## Distribuição
 
-No diretório deste aplicativo:
+O Diex Core faz parte da imagem oficial do CRM. A inicialização identifica sua
+versão, instala ou atualiza os metadados e sincroniza cada workspace
+automaticamente. Não existe instalação manual, chave de API de publicação ou
+loja de aplicativos para esta camada.
 
-```bash
-yarn install
-yarn twenty app dev
-```
-
-O aplicativo usa o workspace do Twenty como fronteira de tenant. Objetos,
-relações, views, agentes, variáveis e permissões são instalados separadamente em
-cada workspace.
+Cada workspace é a fronteira de tenant. Objetos, relações, views, agentes,
+variáveis e permissões são provisionados separadamente.
 
 ## Evolution
 

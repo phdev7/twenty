@@ -53,19 +53,23 @@ O `workspace` nativo é a fronteira de tenant. Toda empresa cliente opera em um
 workspace próprio, com membros, permissões, objetos, automações, credenciais e
 dados isolados. Não deve ser criada uma segunda camada paralela de tenant.
 
-### Extensão sem perder o upstream
+### Produto nativo sobre o framework
 
 As mudanças ficam separadas por responsabilidade:
 
-1. `packages/twenty-apps/internal/diex`: modelo comercial, CS, views,
-   agentes, skills e automações instaláveis.
-2. Núcleo: apenas identidade Diex, comportamento global de IA/MCP e capacidades
-   que o SDK ainda não permite entregar.
-3. Inbox: reutiliza pessoas, empresas, oportunidades, tarefas e infraestrutura
-   de mensagens do núcleo; adaptadores de canal ficam isolados.
+1. `packages/twenty-apps/internal/diex`: fonte versionada dos metadados, páginas,
+   agentes, skills, conectores e automações oficiais do produto.
+2. A imagem compila esse pacote como `Diex CRM Core`.
+3. O servidor registra e sincroniza o core automaticamente em todos os
+   workspaces, inclusive os existentes.
+4. O usuário não instala, publica nem remove o core Diex.
+5. MCP, GraphQL dinâmico, permissões, views, busca, side panels, auditoria,
+   workflows, e-mail e calendário continuam usando os mecanismos nativos do
+   framework.
 
-Essa divisão mantém a UX do Twenty e reduz conflitos ao incorporar atualizações
-do repositório upstream.
+O pacote existe como fronteira técnica de manutenção, não como aplicativo
+opcional percebido pelo cliente. A interface e a operação são integralmente
+Diex CRM.
 
 ## Domínio Diex
 
@@ -131,7 +135,7 @@ desabilitados.
 
 ## Estado operacional
 
-O app privado `diex` chegou à versão `0.14.0` com:
+O Diex CRM Core contém:
 
 - Inbox em três painéis, contexto de pessoa, empresa e oportunidade, SLA,
   prioridade, responsável, tarefas, notas internas e triagem por IA;
@@ -159,12 +163,13 @@ O app privado `diex` chegou à versão `0.14.0` com:
 
 Isso ainda não autoriza o cutover. Os gates restantes são:
 
-1. criar o primeiro workspace de homologação e instalar o app;
-2. configurar IA, Evolution e armazenamento pelos painéis e secrets corretos;
-3. executar prévia e aplicação da migração com reconciliação;
-4. validar os fluxos reais de venda, atendimento e CS em homologação;
-5. gerar backup final, importar o delta e obter aceite operacional;
-6. só então trocar `crm.bydiex.com` e manter o Laravel recuperável durante a
+1. publicar a imagem única com o Diex CRM Core compilado;
+2. confirmar a sincronização automática do core no workspace de homologação;
+3. configurar IA, Evolution e armazenamento pelos painéis e secrets corretos;
+4. executar prévia e aplicação da migração com reconciliação;
+5. validar os fluxos reais de venda, atendimento e CS em homologação;
+6. gerar backup final, importar o delta e obter aceite operacional;
+7. só então trocar `crm.bydiex.com` e manter o Laravel recuperável durante a
    janela de rollback.
 
 ## Regra de evolução

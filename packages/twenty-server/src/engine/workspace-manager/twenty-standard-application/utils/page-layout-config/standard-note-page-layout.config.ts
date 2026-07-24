@@ -92,7 +92,7 @@ const NOTE_PAGE_TABS = {
 } as const satisfies Record<string, StandardPageLayoutTabConfig>;
 
 export const STANDARD_NOTE_PAGE_LAYOUT_CONFIG = {
-  name: 'Default Note Layout',
+  name: 'Layout padrão de nota',
   type: PageLayoutType.RECORD_PAGE,
   objectUniversalIdentifier: STANDARD_OBJECTS.note.universalIdentifier,
   universalIdentifier:

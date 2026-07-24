@@ -13,8 +13,8 @@ A topologia de produção é:
 - Redis 7 dedicado e sem exposição pública;
 - armazenamento S3 compatível;
 - Evolution API existente, acessada somente por origin autorizada;
-- app privado `diex` publicado e instalado no workspace após o core estar
-  saudável.
+- Diex CRM Core compilado na mesma imagem e sincronizado automaticamente em
+  todos os workspaces.
 
 Isso substitui os três processos Laravel atuais (`app`, `horizon`,
 `scheduler`) por dois processos Twenty. PostgreSQL e Redis continuam
@@ -70,28 +70,22 @@ ou API key entre ambientes.
    `DIEX_PROXY_ROUTER`; na homologação, manter `noindex`.
 6. Habilitar health check em `/healthz`.
 7. Criar backup do banco a cada seis horas com cópia S3.
-8. Publicar e instalar o app privado `packages/twenty-apps/internal/diex`
-   pelo workflow `Diex app release`.
+8. Confirmar nos logs a sincronização automática de `Diex CRM Core`; nenhuma
+   API key ou instalação manual é necessária.
 
 O arquivo de exemplo contém placeholders, nunca credenciais reais.
 
-### Primeiro workspace e instalação do app
+### Primeiro workspace
 
 1. O administrador cria a primeira conta e o primeiro workspace diretamente
    em `next-crm.bydiex.com`.
-2. Dentro desse workspace, cria uma API key exclusiva chamada
-   `Diex app deploy - homologation`.
-3. No GitHub, cria o Environment `homologation` e grava a chave no secret
-   `TWENTY_DEPLOY_API_KEY`. A chave não deve ser enviada em chat, issue, log,
-   variável não secreta ou arquivo local versionado.
-4. Executa o workflow `Diex app release` escolhendo `homologation`.
-5. Confirma no workspace a versão do app, os objetos, as páginas `Inbox`,
-   `Inteligência`, `Centro de IA` e `Customer Success`, e as rotas autenticadas.
-
-Produção usa outro workspace, outra API key e o Environment `production`. O
-workflow resolve URLs fixas por ambiente e rejeita destinos diferentes de
-`next-crm.bydiex.com` e `crm.bydiex.com`, reduzindo o risco de exfiltração da
-chave de implantação.
+2. O servidor sincroniza o Diex CRM Core durante a inicialização e também
+   retroalimenta workspaces já existentes.
+3. Confirma no workspace os objetos e as páginas `Inbox Comercial`,
+   `Inteligência Comercial`, `Governança de IA`, `Customer Success` e
+   `Renovações`.
+4. API keys continuam sendo criadas somente para integrações e MCP, nunca para
+   instalar o próprio produto.
 
 ### Proteção da homologação
 
@@ -114,7 +108,7 @@ migração. Depois do aceite, a chave deve ser revogada e a variável removida.
 ## Regra de release
 
 - Imagem: usar tag de release ou SHA, nunca `latest`.
-- App Diex: aumentar o `version` antes de cada publicação.
+- Diex CRM Core: aumentar o `version` antes de cada imagem que altere metadados.
 - Banco: apenas o `server` executa migrações.
 - Worker: inicia somente depois do health check do `server`.
 - Cutover: somente depois de backup final, delta de migração e aceite

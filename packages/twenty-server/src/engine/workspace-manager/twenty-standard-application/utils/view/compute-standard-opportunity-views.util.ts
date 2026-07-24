@@ -16,7 +16,7 @@ export const computeStandardOpportunityViews = (
       objectName: 'opportunity',
       context: {
         viewName: 'allOpportunities',
-        name: 'All {objectLabelPlural}',
+        name: 'Todas as {objectLabelPlural}',
         type: ViewType.TABLE,
         key: ViewKey.INDEX,
         position: 0,
@@ -28,7 +28,7 @@ export const computeStandardOpportunityViews = (
       objectName: 'opportunity',
       context: {
         viewName: 'byStage',
-        name: 'By Stage',
+        name: 'Por etapa',
         type: ViewType.KANBAN,
         key: null,
         position: 2,
@@ -43,7 +43,7 @@ export const computeStandardOpportunityViews = (
       objectName: 'opportunity',
       context: {
         viewName: 'opportunityRecordPageFields',
-        name: 'Opportunity Record Page Fields',
+        name: 'Campos da oportunidade',
         type: ViewType.FIELDS_WIDGET,
         key: null,
         position: 0,

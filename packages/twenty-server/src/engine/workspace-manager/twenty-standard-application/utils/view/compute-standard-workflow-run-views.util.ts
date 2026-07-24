@@ -16,7 +16,7 @@ export const computeStandardWorkflowRunViews = (
       objectName: 'workflowRun',
       context: {
         viewName: 'allWorkflowRuns',
-        name: 'Runs',
+        name: 'Execuções',
         type: ViewType.TABLE,
         key: ViewKey.INDEX,
         position: 0,
@@ -28,7 +28,7 @@ export const computeStandardWorkflowRunViews = (
       objectName: 'workflowRun',
       context: {
         viewName: 'workflowRunRecordPageFields',
-        name: 'Workflow Run Record Page Fields',
+        name: 'Campos da execução',
         type: ViewType.FIELDS_WIDGET,
         key: null,
         position: 0,

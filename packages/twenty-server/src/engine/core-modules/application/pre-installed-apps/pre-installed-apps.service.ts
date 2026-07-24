@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
 
+import { DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER } from 'twenty-shared/application';
+
 import { WorkspaceIteratorService } from 'src/database/commands/command-runners/workspace-iterator.service';
 import { ApplicationInstallService } from 'src/engine/core-modules/application/application-install/application-install.service';
 import { ApplicationRegistrationEntity } from 'src/engine/core-modules/application/application-registration/application-registration.entity';
@@ -10,6 +12,7 @@ import {
   ApplicationException,
   ApplicationExceptionCode,
 } from 'src/engine/core-modules/application/application.exception';
+import { TwentyStandardApplicationService } from 'src/engine/workspace-manager/twenty-standard-application/services/twenty-standard-application.service';
 
 @Injectable()
 export class PreInstalledAppsService {
@@ -20,6 +23,7 @@ export class PreInstalledAppsService {
     @InjectRepository(ApplicationRegistrationEntity)
     private readonly applicationRegistrationRepository: Repository<ApplicationRegistrationEntity>,
     private readonly workspaceIteratorService: WorkspaceIteratorService,
+    private readonly twentyStandardApplicationService: TwentyStandardApplicationService,
   ) {}
 
   // Per-app failures are logged but never block the other installs —
@@ -37,8 +41,15 @@ export class PreInstalledAppsService {
     await Promise.allSettled(
       registrations.map(async (registration) => {
         try {
-          await this.applicationInstallService.installApplication({
-            appRegistrationId: registration.id,
+          const applicationChanged =
+            await this.applicationInstallService.installApplication({
+              appRegistrationId: registration.id,
+              workspaceId,
+            });
+
+          await this.synchronizeDiexStandardCoreIfNeeded({
+            applicationChanged,
+            registration,
             workspaceId,
           });
         } catch (error) {
@@ -69,8 +80,15 @@ export class PreInstalledAppsService {
     const report = await this.workspaceIteratorService.iterate({
       callback: async ({ workspaceId }) => {
         try {
-          await this.applicationInstallService.installApplication({
-            appRegistrationId: registration.id,
+          const applicationChanged =
+            await this.applicationInstallService.installApplication({
+              appRegistrationId: registration.id,
+              workspaceId,
+            });
+
+          await this.synchronizeDiexStandardCoreIfNeeded({
+            applicationChanged,
+            registration,
             workspaceId,
           });
         } catch (error) {
@@ -88,6 +106,30 @@ export class PreInstalledAppsService {
 
     this.logger.log(
       `Backfilled app "${registration.name}" (${registration.id}): ${report.success.length} succeeded, ${report.fail.length} failed`,
+    );
+  }
+
+  private async synchronizeDiexStandardCoreIfNeeded({
+    applicationChanged,
+    registration,
+    workspaceId,
+  }: {
+    applicationChanged: boolean;
+    registration: ApplicationRegistrationEntity;
+    workspaceId: string;
+  }): Promise<void> {
+    if (
+      !applicationChanged ||
+      registration.universalIdentifier !==
+        DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER
+    ) {
+      return;
+    }
+
+    await this.twentyStandardApplicationService.synchronizeTwentyStandardApplicationOrThrow(
+      {
+        workspaceId,
+      },
     );
   }
 }

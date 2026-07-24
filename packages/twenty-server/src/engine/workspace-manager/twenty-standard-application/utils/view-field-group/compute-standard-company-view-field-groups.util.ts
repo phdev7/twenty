@@ -14,7 +14,7 @@ export const computeStandardCompanyViewFieldGroups = (
       context: {
         viewName: 'companyRecordPageFields',
         viewFieldGroupName: 'general',
-        name: 'General',
+        name: 'Geral',
         position: 0,
         isVisible: true,
       },
@@ -25,7 +25,7 @@ export const computeStandardCompanyViewFieldGroups = (
       context: {
         viewName: 'companyRecordPageFields',
         viewFieldGroupName: 'business',
-        name: 'Business',
+        name: 'Negócio',
         position: 1,
         isVisible: true,
       },
@@ -36,7 +36,7 @@ export const computeStandardCompanyViewFieldGroups = (
       context: {
         viewName: 'companyRecordPageFields',
         viewFieldGroupName: 'contact',
-        name: 'Contact',
+        name: 'Contato',
         position: 2,
         isVisible: true,
       },
@@ -47,7 +47,7 @@ export const computeStandardCompanyViewFieldGroups = (
       context: {
         viewName: 'companyRecordPageFields',
         viewFieldGroupName: 'system',
-        name: 'System',
+        name: 'Sistema',
         position: 3,
         isVisible: true,
       },

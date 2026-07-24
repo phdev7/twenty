@@ -1,33 +1,20 @@
 import { t } from '@lingui/core/macro';
 
 export const getStandardApplicationDescription =
-  (): string => t`The base data model every Diex CRM workspace runs on.
+  (): string => t`O núcleo de dados e operações de todos os workspaces Diex CRM.
 
-#### What "foundation" means
+#### Estrutura principal
 
-Every Diex CRM workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.
+Empresas, pessoas, oportunidades, atividades e automações compartilham o mesmo modelo, as mesmas permissões e a mesma camada de auditoria.
 
-#### Included objects
-- **People & Companies**: contact and account records
-- **Opportunities**: your sales pipeline
-- **Notes & Tasks**: activity and follow-ups
-- **Workflows & Dashboards**: automation and reporting
+#### Capacidades incluídas
+- **Empresas e pessoas**: contas e contatos
+- **Oportunidades**: pipeline comercial
+- **Notas e tarefas**: execução e acompanhamento
+- **Inbox comercial**: conversas vinculadas ao CRM
+- **Inteligência comercial**: sinais, score e próxima ação
+- **Customer Success e renovações**: retenção, expansão e receita protegida
+- **Governança de IA**: propostas, aprovação humana, execução e recibo
+- **MCP, conectores e workflows**: integração segura sobre o mesmo workspace
 
-Remove this app and the rest of Diex CRM has nothing to hang off.
-
-#### Build your own app
-
-Extend Diex CRM with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:
-
-\`\`\`bash
-npx create-twenty-app@latest my-twenty-app
-\`\`\`
-
-Then inside the folder:
-
-\`\`\`bash
-cd my-twenty-app
-yarn twenty dev
-\`\`\`
-
-See the [Getting Started guide](https://twenty.com/developers/extend/apps/getting-started) for the full walkthrough, and [Building Apps](https://twenty.com/developers/extend/apps/building) for the \`defineApplication\` / \`defineEntity\` APIs.`;
+Esse núcleo é obrigatório e não pode ser removido do workspace.`;

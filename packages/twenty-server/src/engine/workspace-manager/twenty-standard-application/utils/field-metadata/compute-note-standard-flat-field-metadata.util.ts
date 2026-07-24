@@ -51,7 +51,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Creation date`),
+      label: i18nLabel(msg`Data de criação`),
       description: i18nLabel(msg`Creation date`),
       icon: 'IconCalendar',
       isSystem: true,
@@ -73,7 +73,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Last update`),
+      label: i18nLabel(msg`Última atualização`),
       description: i18nLabel(msg`Last time the record was changed`),
       icon: 'IconCalendarClock',
       isSystem: true,
@@ -95,7 +95,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'deletedAt',
       type: FieldMetadataType.DATE_TIME,
-      label: i18nLabel(msg`Deleted at`),
+      label: i18nLabel(msg`Excluído em`),
       description: i18nLabel(msg`Date when the record was deleted`),
       icon: 'IconCalendarMinus',
       isSystem: true,
@@ -118,7 +118,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'position',
       type: FieldMetadataType.POSITION,
-      label: i18nLabel(msg`Position`),
+      label: i18nLabel(msg`Posição`),
       description: i18nLabel(msg`Note record position`),
       icon: 'IconHierarchy2',
       isSystem: true,
@@ -136,7 +136,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'title',
       type: FieldMetadataType.TEXT,
-      label: i18nLabel(msg`Title`),
+      label: i18nLabel(msg`Título`),
       description: i18nLabel(msg`Note title`),
       icon: 'IconNotes',
       isNullable: true,
@@ -152,7 +152,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'bodyV2',
       type: FieldMetadataType.RICH_TEXT,
-      label: i18nLabel(msg`Body`),
+      label: i18nLabel(msg`Conteúdo`),
       description: i18nLabel(msg`Note body`),
       icon: 'IconFilePencil',
       isNullable: true,
@@ -168,7 +168,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'createdBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Created by`),
+      label: i18nLabel(msg`Criado por`),
       description: i18nLabel(msg`The creator of the record`),
       icon: 'IconCreativeCommonsSa',
       isSystem: true,
@@ -191,7 +191,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'updatedBy',
       type: FieldMetadataType.ACTOR,
-      label: i18nLabel(msg`Updated by`),
+      label: i18nLabel(msg`Atualizado por`),
       description: i18nLabel(
         msg`The workspace member who last updated the record`,
       ),
@@ -216,7 +216,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     context: {
       fieldName: 'searchVector',
       type: FieldMetadataType.TS_VECTOR,
-      label: i18nLabel(msg`Search vector`),
+      label: i18nLabel(msg`Índice de busca`),
       description: i18nLabel(msg`Field used for full-text search`),
       icon: 'IconUser',
       isSystem: true,
@@ -236,7 +236,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'noteTargets',
-      label: i18nLabel(msg`Relations`),
+      label: i18nLabel(msg`Relações`),
       description: i18nLabel(msg`Note targets`),
       icon: 'IconArrowUpRight',
       isNullable: true,

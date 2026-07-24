@@ -16,7 +16,7 @@ export const computeStandardWorkflowVersionViews = (
       objectName: 'workflowVersion',
       context: {
         viewName: 'allWorkflowVersions',
-        name: 'Versions',
+        name: 'Versões',
         type: ViewType.TABLE,
         key: ViewKey.INDEX,
         position: 0,
@@ -28,7 +28,7 @@ export const computeStandardWorkflowVersionViews = (
       objectName: 'workflowVersion',
       context: {
         viewName: 'workflowVersionRecordPageFields',
-        name: 'Workflow Version Record Page Fields',
+        name: 'Campos da versão',
         type: ViewType.FIELDS_WIDGET,
         key: null,
         position: 0,

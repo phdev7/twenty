@@ -15,7 +15,7 @@ export const computeStandardNoteViews = (
       objectName: 'note',
       context: {
         viewName: 'allNotes',
-        name: 'All {objectLabelPlural}',
+        name: 'Todas as {objectLabelPlural}',
         type: ViewType.TABLE,
         key: ViewKey.INDEX,
         position: 0,
@@ -27,7 +27,7 @@ export const computeStandardNoteViews = (
       objectName: 'note',
       context: {
         viewName: 'noteRecordPageFields',
-        name: 'Note Record Page Fields',
+        name: 'Campos da nota',
         type: ViewType.FIELDS_WIDGET,
         key: null,
         position: 0,

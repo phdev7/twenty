@@ -4,6 +4,7 @@ export enum ApplicationRegistrationSourceType {
   NPM = 'npm',
   TARBALL = 'tarball',
   LOCAL = 'local',
+  BUNDLED = 'bundled',
   OAUTH_ONLY = 'oauth-only',
 }
 

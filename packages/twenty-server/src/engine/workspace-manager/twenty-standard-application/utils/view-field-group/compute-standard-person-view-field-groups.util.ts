@@ -14,7 +14,7 @@ export const computeStandardPersonViewFieldGroups = (
       context: {
         viewName: 'personRecordPageFields',
         viewFieldGroupName: 'general',
-        name: 'General',
+        name: 'Geral',
         position: 0,
         isVisible: true,
       },
@@ -25,7 +25,7 @@ export const computeStandardPersonViewFieldGroups = (
       context: {
         viewName: 'personRecordPageFields',
         viewFieldGroupName: 'work',
-        name: 'Work',
+        name: 'Trabalho',
         position: 1,
         isVisible: true,
       },
@@ -47,7 +47,7 @@ export const computeStandardPersonViewFieldGroups = (
       context: {
         viewName: 'personRecordPageFields',
         viewFieldGroupName: 'system',
-        name: 'System',
+        name: 'Sistema',
         position: 3,
         isVisible: true,
       },

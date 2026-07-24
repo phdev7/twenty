@@ -44,7 +44,7 @@ const COMPANY_PAGE_TABS = {
         universalIdentifier:
           STANDARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIERS.companyRecordPage.tabs.home
             .widgets.opportunities.universalIdentifier,
-        title: 'Opportunities',
+        title: 'Oportunidades',
         type: WidgetType.FIELD,
         gridPosition: GRID_POSITIONS.FULL_WIDTH,
         position: VERTICAL_LIST_LAYOUT_POSITIONS.THIRD,
@@ -140,7 +140,7 @@ const COMPANY_PAGE_TABS = {
 } as const satisfies Record<string, StandardPageLayoutTabConfig>;
 
 export const STANDARD_COMPANY_PAGE_LAYOUT_CONFIG = {
-  name: 'Default Company Layout',
+  name: 'Layout padrão de empresa',
   type: PageLayoutType.RECORD_PAGE,
   objectUniversalIdentifier: STANDARD_OBJECTS.company.universalIdentifier,
   universalIdentifier:

@@ -33,7 +33,7 @@ const PERSON_PAGE_TABS = {
         universalIdentifier:
           STANDARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIERS.personRecordPage.tabs.home
             .widgets.company.universalIdentifier,
-        title: 'Company',
+        title: 'Empresa',
         type: WidgetType.FIELD,
         gridPosition: GRID_POSITIONS.FULL_WIDTH,
         position: VERTICAL_LIST_LAYOUT_POSITIONS.SECOND,
@@ -44,7 +44,7 @@ const PERSON_PAGE_TABS = {
         universalIdentifier:
           STANDARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIERS.personRecordPage.tabs.home
             .widgets.pointOfContactForOpportunities.universalIdentifier,
-        title: 'Opportunities',
+        title: 'Oportunidades',
         type: WidgetType.FIELD,
         gridPosition: GRID_POSITIONS.FULL_WIDTH,
         position: VERTICAL_LIST_LAYOUT_POSITIONS.THIRD,
@@ -152,7 +152,7 @@ const PERSON_PAGE_TABS = {
 } as const satisfies Record<string, StandardPageLayoutTabConfig>;
 
 export const STANDARD_PERSON_PAGE_LAYOUT_CONFIG = {
-  name: 'Default Person Layout',
+  name: 'Layout padrão de pessoa',
   type: PageLayoutType.RECORD_PAGE,
   objectUniversalIdentifier: STANDARD_OBJECTS.person.universalIdentifier,
   universalIdentifier:

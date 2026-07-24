@@ -9,8 +9,8 @@ export const DIEX_FOLDER_UNIVERSAL_IDENTIFIER =
 export default defineNavigationMenuItem({
   universalIdentifier: DIEX_FOLDER_UNIVERSAL_IDENTIFIER,
   type: NavigationMenuItemType.FOLDER,
-  name: 'Diex',
+  name: 'Cadastros Diex',
   icon: 'IconSparkles',
   color: 'purple',
-  position: -2,
+  position: 20,
 });
