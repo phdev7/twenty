@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 
 import { CoreApiClient } from 'twenty-client-sdk/core';
+import { MetadataApiClient } from 'twenty-client-sdk/metadata';
 import { defineLogicFunction, type RoutePayload } from 'twenty-sdk/define';
 
 import {
@@ -16,6 +17,7 @@ type ExecuteAiActionRequest = {
   previewOnly?: unknown;
   confirmExecute?: unknown;
   confirmationToken?: unknown;
+  targetStage?: unknown;
 };
 
 type RecordName = {
@@ -28,6 +30,10 @@ type RecordReference = {
   name?: string | RecordName | null;
 };
 
+type OpportunityReference = RecordReference & {
+  stage?: string | null;
+};
+
 type WorkspaceMemberReference = RecordReference & {
   userId?: string | null;
 };
@@ -35,7 +41,7 @@ type WorkspaceMemberReference = RecordReference & {
 type CrmContext = {
   company?: RecordReference | null;
   person?: RecordReference | null;
-  opportunity?: RecordReference | null;
+  opportunity?: OpportunityReference | null;
 };
 
 type AiActionForExecution = {
@@ -62,7 +68,7 @@ type AiActionForExecution = {
     assignee?: WorkspaceMemberReference | null;
   } | null;
   opportunity?:
-    | (RecordReference & {
+    | (OpportunityReference & {
         company?: RecordReference | null;
         pointOfContact?: RecordReference | null;
       })
@@ -105,7 +111,23 @@ export type AiActionExecutionTaskPreview = {
   body: string;
 };
 
-type ConfirmationRecord = {
+export type PipelineStageOption = {
+  value: string;
+  label: string;
+  position: number;
+  color?: string | null;
+};
+
+export type AiActionPipelineChangePreview = {
+  opportunity: {
+    id: string;
+    name: string;
+  };
+  sourceStage: PipelineStageOption;
+  targetStage: PipelineStageOption;
+};
+
+type ConfirmationRecordBase = {
   actionId: string;
   actionFingerprint: string;
   expiresAt: string;
@@ -113,8 +135,17 @@ type ConfirmationRecord = {
   userId: string;
   userWorkspaceId: string;
   workspaceId: string;
-  task: AiActionExecutionTaskPreview;
 };
+
+type ConfirmationRecord =
+  | (ConfirmationRecordBase & {
+      executionKind: 'TASK';
+      task: AiActionExecutionTaskPreview;
+    })
+  | (ConfirmationRecordBase & {
+      executionKind: 'PIPELINE_UPDATE';
+      pipelineChange: AiActionPipelineChangePreview;
+    });
 
 export type AiActionExecutionResult =
   | {
@@ -127,6 +158,7 @@ export type AiActionExecutionResult =
   | {
       mode: 'PREVIEW';
       supported: true;
+      executionKind: 'TASK';
       actionId: string;
       task: AiActionExecutionTaskPreview;
       confirmationToken: string;
@@ -134,12 +166,37 @@ export type AiActionExecutionResult =
       message: string;
     }
   | {
+      mode: 'PREVIEW';
+      supported: true;
+      executionKind: 'PIPELINE_UPDATE';
+      actionId: string;
+      requiresTargetStage: true;
+      opportunity: AiActionPipelineChangePreview['opportunity'];
+      currentStage: PipelineStageOption;
+      stageOptions: PipelineStageOption[];
+      message: string;
+    }
+  | {
+      mode: 'PREVIEW';
+      supported: true;
+      executionKind: 'PIPELINE_UPDATE';
+      actionId: string;
+      requiresTargetStage: false;
+      pipelineChange: AiActionPipelineChangePreview;
+      stageOptions: PipelineStageOption[];
+      confirmationToken: string;
+      expiresAt: string;
+      message: string;
+    }
+  | {
       mode: 'APPLY';
       supported: true;
+      executionKind: 'TASK' | 'PIPELINE_UPDATE';
       actionId: string;
       executed: true;
       alreadyExecuted: boolean;
       task: AiActionExecutionTaskPreview | null;
+      pipelineChange: AiActionPipelineChangePreview | null;
       receipt: string;
       message: string;
     };
@@ -150,6 +207,7 @@ const EXECUTABLE_TYPES = new Set<string>([
   AiActionType.RISK_MITIGATION,
   AiActionType.CS_INTERVENTION,
   AiActionType.EXPANSION,
+  AiActionType.PIPELINE_UPDATE,
 ]);
 
 const TYPE_LABELS: Record<string, string> = {
@@ -214,10 +272,6 @@ const getUnsupportedReason = (action: AiActionForExecution): string | null => {
     return 'Respostas externas continuam na Inbox, com texto exato, consentimento, prévia e confirmação de envio.';
   }
 
-  if (action.type === AiActionType.PIPELINE_UPDATE) {
-    return 'Mudanças de etapa exigem origem, destino e impacto estruturados; uma proposta em texto não pode alterar o pipeline.';
-  }
-
   if (!EXECUTABLE_TYPES.has(action.type)) {
     return 'Este tipo de ação ainda não possui executor interno seguro.';
   }
@@ -269,6 +323,7 @@ const loadAiAction = async (
       opportunity: {
         id: true,
         name: true,
+        stage: true,
         company: { id: true, name: true },
         pointOfContact: {
           id: true,
@@ -283,7 +338,7 @@ const loadAiAction = async (
           id: true,
           name: { firstName: true, lastName: true },
         },
-        opportunity: { id: true, name: true },
+        opportunity: { id: true, name: true, stage: true },
       },
       successPlan: {
         id: true,
@@ -318,7 +373,7 @@ const loadAiAction = async (
           name: { firstName: true, lastName: true },
         },
         company: { id: true, name: true },
-        opportunity: { id: true, name: true },
+        opportunity: { id: true, name: true, stage: true },
         assignee: {
           id: true,
           userId: true,
@@ -369,6 +424,201 @@ const loadCurrentWorkspaceMember = async (
   }
 
   return member;
+};
+
+const collectPipelineOpportunities = (
+  action: AiActionForExecution,
+): OpportunityReference[] => {
+  const opportunities = new Map<string, OpportunityReference>();
+
+  [
+    action.opportunity,
+    action.commercialSignal?.opportunity,
+    action.inboxConversation?.opportunity,
+  ].forEach((opportunity) => {
+    if (opportunity?.id && !opportunities.has(opportunity.id)) {
+      opportunities.set(opportunity.id, opportunity);
+    }
+  });
+
+  return [...opportunities.values()];
+};
+
+const getPipelineOpportunity = (
+  action: AiActionForExecution,
+): OpportunityReference => {
+  const opportunities = collectPipelineOpportunities(action);
+
+  if (opportunities.length === 0) {
+    throw new Error(
+      'Vincule uma oportunidade à ação antes de alterar o pipeline.',
+    );
+  }
+
+  if (opportunities.length > 1) {
+    throw new Error(
+      'A ação referencia mais de uma oportunidade. Mantenha apenas um destino antes de executar.',
+    );
+  }
+
+  return opportunities[0];
+};
+
+const getOptionLabel = (label: unknown, fallback: string): string => {
+  if (typeof label === 'string' && label.trim()) {
+    return label.trim();
+  }
+
+  if (label && typeof label === 'object') {
+    const values = Object.values(label);
+    const translated = values.find(
+      (value): value is string =>
+        typeof value === 'string' && value.trim().length > 0,
+    );
+
+    if (translated) {
+      return translated.trim();
+    }
+  }
+
+  return fallback;
+};
+
+const loadOpportunityStageOptions = async (): Promise<
+  PipelineStageOption[]
+> => {
+  const metadata = (await new MetadataApiClient().query({
+    objects: {
+      __args: {
+        paging: { first: 500 },
+        filter: { isActive: { is: true } },
+      },
+      edges: {
+        node: {
+          nameSingular: true,
+          fieldsList: {
+            name: true,
+            type: true,
+            isActive: true,
+            options: true,
+          },
+        },
+      },
+    },
+  } as never)) as unknown as {
+    objects?: {
+      edges?: Array<{
+        node?: {
+          nameSingular?: string | null;
+          fieldsList?: Array<{
+            name?: string | null;
+            type?: string | null;
+            isActive?: boolean | null;
+            options?: unknown;
+          }>;
+        } | null;
+      }>;
+    };
+  };
+  const opportunityObject = metadata.objects?.edges
+    ?.map(({ node }) => node)
+    .find((node) => node?.nameSingular === 'opportunity');
+  const stageField = opportunityObject?.fieldsList?.find(
+    ({ name, type, isActive }) =>
+      name === 'stage' && type === 'SELECT' && isActive !== false,
+  );
+
+  if (!stageField || !Array.isArray(stageField.options)) {
+    throw new Error(
+      'O campo de etapa da oportunidade não está disponível neste workspace.',
+    );
+  }
+
+  const uniqueOptions = new Map<string, PipelineStageOption>();
+
+  stageField.options.forEach((rawOption, index) => {
+    if (!rawOption || typeof rawOption !== 'object') {
+      return;
+    }
+
+    const option = rawOption as {
+      value?: unknown;
+      label?: unknown;
+      position?: unknown;
+      color?: unknown;
+    };
+    const value = typeof option.value === 'string' ? option.value.trim() : '';
+
+    if (!value || uniqueOptions.has(value)) {
+      return;
+    }
+
+    uniqueOptions.set(value, {
+      value,
+      label: getOptionLabel(option.label, value),
+      position:
+        typeof option.position === 'number' && Number.isFinite(option.position)
+          ? option.position
+          : index,
+      color: typeof option.color === 'string' ? option.color : null,
+    });
+  });
+
+  const options = [...uniqueOptions.values()].sort(
+    (left, right) => left.position - right.position,
+  );
+
+  if (options.length === 0) {
+    throw new Error(
+      'Cadastre ao menos uma etapa válida para oportunidades antes de executar.',
+    );
+  }
+
+  return options;
+};
+
+const loadLiveOpportunity = async (
+  client: CoreApiClient,
+  opportunityId: string,
+): Promise<OpportunityReference> => {
+  const result = (await client.query({
+    opportunity: {
+      __args: { filter: { id: { eq: opportunityId } } },
+      id: true,
+      name: true,
+      stage: true,
+    },
+  } as never)) as unknown as {
+    opportunity?: OpportunityReference | null;
+  };
+
+  if (!result.opportunity?.id) {
+    throw new Error(
+      'A oportunidade vinculada não existe mais neste workspace.',
+    );
+  }
+
+  return result.opportunity;
+};
+
+const getStageOption = (
+  options: PipelineStageOption[],
+  value: string | null | undefined,
+): PipelineStageOption => {
+  const normalizedValue = value?.trim() ?? '';
+
+  if (!normalizedValue) {
+    throw new Error('A oportunidade não possui uma etapa atual válida.');
+  }
+
+  return (
+    options.find((option) => option.value === normalizedValue) ?? {
+      value: normalizedValue,
+      label: normalizedValue,
+      position: -1,
+      color: null,
+    }
+  );
 };
 
 const collectTaskTargets = (
@@ -499,6 +749,9 @@ const getActionFingerprint = (action: AiActionForExecution): string =>
       approvedAt: action.approvedAt ?? null,
       reviewerId: action.reviewer?.id ?? null,
       context: getContextLines(action),
+      pipelineOpportunities: collectPipelineOpportunities(action).map(
+        ({ id, stage }) => ({ id, stage: stage ?? null }),
+      ),
       targets: collectTaskTargets(action),
       assigneeId:
         action.inboxConversation?.assignee?.id ??
@@ -697,14 +950,146 @@ const executeConfirmedAction = async ({
   return {
     mode: 'APPLY',
     supported: true,
+    executionKind: 'TASK',
     actionId: action.id,
     executed: true,
     alreadyExecuted: Boolean(existingTask),
     task,
+    pipelineChange: null,
     receipt,
     message: existingTask
       ? 'A tarefa idempotente foi reconciliada e o recibo foi registrado.'
       : 'A tarefa interna foi criada e o recibo foi registrado.',
+  };
+};
+
+const compareAndSetOpportunityStage = async ({
+  client,
+  opportunityId,
+  expectedStage,
+  targetStage,
+}: {
+  client: CoreApiClient;
+  opportunityId: string;
+  expectedStage: string;
+  targetStage: string;
+}): Promise<boolean> => {
+  const result = (await client.mutation({
+    updateOpportunities: {
+      __args: {
+        filter: {
+          and: [
+            { id: { eq: opportunityId } },
+            { stage: { eq: expectedStage } },
+          ],
+        },
+        data: { stage: targetStage },
+      },
+      id: true,
+      stage: true,
+    },
+  } as never)) as unknown as {
+    updateOpportunities?: Array<{ id?: string | null; stage?: string | null }>;
+  };
+
+  return Boolean(
+    result.updateOpportunities?.some(
+      ({ id, stage }) => id === opportunityId && stage === targetStage,
+    ),
+  );
+};
+
+const executeConfirmedPipelineUpdate = async ({
+  client,
+  action,
+  executor,
+  pipelineChange,
+}: {
+  client: CoreApiClient;
+  action: AiActionForExecution;
+  executor: WorkspaceMemberReference;
+  pipelineChange: AiActionPipelineChangePreview;
+}): Promise<AiActionExecutionResult> => {
+  const liveOpportunity = await loadLiveOpportunity(
+    client,
+    pipelineChange.opportunity.id,
+  );
+
+  if (liveOpportunity.stage !== pipelineChange.sourceStage.value) {
+    throw new Error(
+      `A oportunidade mudou de etapa depois da prévia. Atual: ${liveOpportunity.stage ?? 'sem etapa'}. Gere uma nova confirmação.`,
+    );
+  }
+
+  const stageUpdated = await compareAndSetOpportunityStage({
+    client,
+    opportunityId: pipelineChange.opportunity.id,
+    expectedStage: pipelineChange.sourceStage.value,
+    targetStage: pipelineChange.targetStage.value,
+  });
+
+  if (!stageUpdated) {
+    throw new Error(
+      'A etapa foi alterada por outra operação. Nenhuma mudança da IA foi aplicada; gere uma nova prévia.',
+    );
+  }
+
+  const executedAt = new Date().toISOString();
+  const executorName = getRecordName(executor) || executor.id;
+  const receipt = [
+    `Executada em ${executedAt} por ${executorName}.`,
+    `Oportunidade: ${pipelineChange.opportunity.name} (${pipelineChange.opportunity.id}).`,
+    `Etapa anterior: ${pipelineChange.sourceStage.label} (${pipelineChange.sourceStage.value}).`,
+    `Nova etapa: ${pipelineChange.targetStage.label} (${pipelineChange.targetStage.value}).`,
+    'Efeito aplicado: etapa da oportunidade atualizada no pipeline.',
+    'Governança: origem e destino vieram dos metadados atuais do workspace; a confirmação foi individual, explícita e consumida uma única vez.',
+    'Efeitos bloqueados: nenhum e-mail, WhatsApp ou outro efeito externo.',
+  ].join('\n');
+
+  try {
+    await client.mutation({
+      updateAiAction: {
+        __args: {
+          id: action.id,
+          data: {
+            status: AiActionStatus.EXECUTED,
+            executedAt,
+            executorId: executor.id,
+            executionReceipt: {
+              markdown: receipt,
+              blocknote: null,
+            },
+          },
+        },
+        id: true,
+      },
+    } as never);
+  } catch {
+    const rolledBack = await compareAndSetOpportunityStage({
+      client,
+      opportunityId: pipelineChange.opportunity.id,
+      expectedStage: pipelineChange.targetStage.value,
+      targetStage: pipelineChange.sourceStage.value,
+    }).catch(() => false);
+
+    throw new Error(
+      rolledBack
+        ? 'O recibo não pôde ser registrado; a oportunidade foi devolvida à etapa anterior.'
+        : 'O recibo não pôde ser registrado e a reversão segura falhou. Verifique a oportunidade antes de tentar novamente.',
+    );
+  }
+
+  return {
+    mode: 'APPLY',
+    supported: true,
+    executionKind: 'PIPELINE_UPDATE',
+    actionId: action.id,
+    executed: true,
+    alreadyExecuted: false,
+    task: null,
+    pipelineChange,
+    receipt,
+    message: `Oportunidade movida de ${pipelineChange.sourceStage.label} para ${pipelineChange.targetStage.label}.`,
   };
 };
 
@@ -731,13 +1116,18 @@ export const executeAiActionHandler = async (
   const previewOnly = routePayload.body?.previewOnly !== false;
 
   if (!previewOnly && action.status === AiActionStatus.EXECUTED) {
+    const executionKind =
+      action.type === AiActionType.PIPELINE_UPDATE ? 'PIPELINE_UPDATE' : 'TASK';
+
     return {
       mode: 'APPLY',
       supported: true,
+      executionKind,
       actionId,
       executed: true,
       alreadyExecuted: true,
       task: toExecutedTaskPreview(action),
+      pipelineChange: null,
       receipt:
         action.executionReceipt?.markdown ??
         'A ação já havia sido executada neste workspace.',
@@ -762,6 +1152,115 @@ export const executeAiActionHandler = async (
   }
 
   if (previewOnly) {
+    if (action.type === AiActionType.PIPELINE_UPDATE) {
+      const key = confirmationKey(actionId, identity.userWorkspaceId);
+
+      await appKeyValue.delete(key).catch(() => false);
+
+      try {
+        const pipelineOpportunity = getPipelineOpportunity(action);
+        const [liveOpportunity, stageOptions] = await Promise.all([
+          loadLiveOpportunity(client, pipelineOpportunity.id),
+          loadOpportunityStageOptions(),
+        ]);
+
+        pipelineOpportunity.stage = liveOpportunity.stage;
+        const currentStage = getStageOption(
+          stageOptions,
+          liveOpportunity.stage,
+        );
+        const opportunity = {
+          id: liveOpportunity.id,
+          name:
+            getRecordName(liveOpportunity) ||
+            getRecordName(pipelineOpportunity) ||
+            'Oportunidade sem nome',
+        };
+        const targetStageValue =
+          typeof routePayload.body?.targetStage === 'string'
+            ? routePayload.body.targetStage.trim()
+            : '';
+
+        if (!targetStageValue) {
+          return {
+            mode: 'PREVIEW',
+            supported: true,
+            executionKind: 'PIPELINE_UPDATE',
+            actionId,
+            requiresTargetStage: true,
+            opportunity,
+            currentStage,
+            stageOptions,
+            message:
+              'Selecione a etapa de destino. Nenhuma mudança foi aplicada.',
+          };
+        }
+
+        const targetStage = stageOptions.find(
+          ({ value }) => value === targetStageValue,
+        );
+
+        if (!targetStage) {
+          throw new Error('A etapa escolhida não existe mais neste workspace.');
+        }
+
+        if (targetStage.value === currentStage.value) {
+          throw new Error(
+            'A etapa de destino deve ser diferente da etapa atual.',
+          );
+        }
+
+        const confirmationToken = randomBytes(32).toString('base64url');
+        const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString();
+        const pipelineChange: AiActionPipelineChangePreview = {
+          opportunity,
+          sourceStage: currentStage,
+          targetStage,
+        };
+        const confirmation: ConfirmationRecord = {
+          actionId,
+          actionFingerprint: getActionFingerprint(action),
+          expiresAt,
+          tokenHash: sha256(confirmationToken),
+          userId: identity.userId,
+          userWorkspaceId: identity.userWorkspaceId,
+          workspaceId: identity.workspaceId,
+          executionKind: 'PIPELINE_UPDATE',
+          pipelineChange,
+        };
+
+        await appKeyValue.set(key, confirmation);
+
+        return {
+          mode: 'PREVIEW',
+          supported: true,
+          executionKind: 'PIPELINE_UPDATE',
+          actionId,
+          requiresTargetStage: false,
+          pipelineChange,
+          stageOptions,
+          confirmationToken,
+          expiresAt,
+          message:
+            'Revise a oportunidade, a etapa atual e o destino antes de confirmar.',
+        };
+      } catch (error) {
+        const blockedReason =
+          error instanceof Error
+            ? error.message
+            : 'A mudança de pipeline não pôde ser estruturada.';
+
+        return {
+          mode: 'PREVIEW',
+          supported: false,
+          actionId,
+          blockedReason,
+          message:
+            'A mudança de pipeline foi bloqueada antes de alterar o CRM.',
+        };
+      }
+    }
+
     const confirmationToken = randomBytes(32).toString('base64url');
     const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString();
     const task = buildTaskPreview(action, executor);
@@ -773,6 +1272,7 @@ export const executeAiActionHandler = async (
       userId: identity.userId,
       userWorkspaceId: identity.userWorkspaceId,
       workspaceId: identity.workspaceId,
+      executionKind: 'TASK',
       task,
     };
 
@@ -784,6 +1284,7 @@ export const executeAiActionHandler = async (
     return {
       mode: 'PREVIEW',
       supported: true,
+      executionKind: 'TASK',
       actionId,
       task,
       confirmationToken,
@@ -825,7 +1326,26 @@ export const executeAiActionHandler = async (
     );
   }
 
+  const expectedExecutionKind =
+    action.type === AiActionType.PIPELINE_UPDATE ? 'PIPELINE_UPDATE' : 'TASK';
+
+  if (confirmation.executionKind !== expectedExecutionKind) {
+    await appKeyValue.delete(key).catch(() => false);
+    throw new Error(
+      'O tipo de execução mudou depois da prévia. Gere uma nova confirmação.',
+    );
+  }
+
   await appKeyValue.delete(key);
+
+  if (confirmation.executionKind === 'PIPELINE_UPDATE') {
+    return executeConfirmedPipelineUpdate({
+      client,
+      action,
+      executor,
+      pipelineChange: confirmation.pipelineChange,
+    });
+  }
 
   return executeConfirmedAction({
     client,
@@ -839,7 +1359,7 @@ export default defineLogicFunction({
   universalIdentifier: AI_ACTION_EXECUTOR_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
   name: 'execute-diex-ai-action',
   description:
-    'Previews and executes approved internal CRM actions as idempotent tasks with explicit confirmation, ownership and receipt; external effects remain blocked.',
+    'Previews and executes approved internal CRM tasks or compare-and-set opportunity stage changes with explicit confirmation, ownership and receipt; external communication remains blocked.',
   timeoutSeconds: 30,
   handler: executeAiActionHandler,
   httpRouteTriggerSettings: {

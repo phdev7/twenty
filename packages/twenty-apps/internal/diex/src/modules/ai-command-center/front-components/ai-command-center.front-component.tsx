@@ -237,6 +237,9 @@ export const AiCommandCenterFrontComponent = () => {
   const [filter, setFilter] = useState<QueueFilter>('PENDING');
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState('');
+  const [pipelineTargets, setPipelineTargets] = useState<
+    Record<string, string>
+  >({});
 
   const metrics = useMemo(() => {
     const pending = actions.filter(
@@ -305,6 +308,18 @@ export const AiCommandCenterFrontComponent = () => {
   const executionPreview = selectedAction
     ? (executionPreviews[selectedAction.id] ?? null)
     : null;
+  const isPipelineAction = selectedAction?.type === 'PIPELINE_UPDATE';
+  const pipelineTargetStage = selectedAction
+    ? (pipelineTargets[selectedAction.id] ?? '')
+    : '';
+  const pipelinePreview =
+    executionPreview?.supported === true &&
+    executionPreview.executionKind === 'PIPELINE_UPDATE'
+      ? executionPreview
+      : null;
+  const isPipelineConfirmationReady =
+    pipelinePreview?.requiresTargetStage === false &&
+    pipelinePreview.pipelineChange.targetStage.value === pipelineTargetStage;
 
   useEffect(() => {
     if (
@@ -702,9 +717,10 @@ export const AiCommandCenterFrontComponent = () => {
                       <CardHeader>
                         <CardTitle>Executor interno seguro</CardTitle>
                         <CardDescription>
-                          Converte a proposta aprovada em tarefa nativa,
-                          responsável, prazo, vínculos CRM e recibo. Comunicação
-                          externa e pipeline permanecem bloqueados.
+                          {isPipelineAction
+                            ? 'Move uma única oportunidade entre etapas reais do workspace após prévia e confirmação explícita.'
+                            : 'Converte a proposta aprovada em tarefa nativa, responsável, prazo, vínculos CRM e recibo.'}{' '}
+                          Comunicação externa permanece bloqueada.
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -713,7 +729,8 @@ export const AiCommandCenterFrontComponent = () => {
                             <strong>Execução direta bloqueada</strong>
                             <span>{executionPreview.blockedReason}</span>
                           </div>
-                        ) : executionPreview?.supported === true ? (
+                        ) : executionPreview?.supported === true &&
+                          executionPreview.executionKind === 'TASK' ? (
                           <div style={styles.executionPreview}>
                             <div style={styles.executionPreviewHeader}>
                               <span style={styles.executionPreviewIcon}>
@@ -768,6 +785,99 @@ export const AiCommandCenterFrontComponent = () => {
                               </div>
                             ) : null}
                           </div>
+                        ) : pipelinePreview ? (
+                          <div style={styles.executionPreview}>
+                            <div style={styles.executionPreviewHeader}>
+                              <span style={styles.executionPreviewIcon}>
+                                <IconTarget
+                                  size={themeCssVariables.icon.size.sm}
+                                  stroke={themeCssVariables.icon.stroke.md}
+                                />
+                              </span>
+                              <div>
+                                <strong>
+                                  {pipelinePreview.requiresTargetStage
+                                    ? pipelinePreview.opportunity.name
+                                    : pipelinePreview.pipelineChange.opportunity
+                                        .name}
+                                </strong>
+                                <p style={styles.executionPreviewMeta}>
+                                  Etapa atual:{' '}
+                                  {pipelinePreview.requiresTargetStage
+                                    ? pipelinePreview.currentStage.label
+                                    : pipelinePreview.pipelineChange.sourceStage
+                                        .label}
+                                </p>
+                              </div>
+                            </div>
+                            <label style={styles.pipelineField}>
+                              <span style={styles.narrativeLabel}>
+                                Etapa de destino
+                              </span>
+                              <select
+                                aria-label="Etapa de destino da oportunidade"
+                                value={pipelineTargetStage}
+                                style={styles.pipelineSelect}
+                                onChange={(event) =>
+                                  setPipelineTargets((current) => ({
+                                    ...current,
+                                    [selectedAction.id]: event.target.value,
+                                  }))
+                                }
+                              >
+                                <option value="">Selecione uma etapa</option>
+                                {pipelinePreview.stageOptions.map((stage) => (
+                                  <option
+                                    key={stage.value}
+                                    value={stage.value}
+                                    disabled={
+                                      stage.value ===
+                                      (pipelinePreview.requiresTargetStage
+                                        ? pipelinePreview.currentStage.value
+                                        : pipelinePreview.pipelineChange
+                                            .sourceStage.value)
+                                    }
+                                  >
+                                    {stage.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            {pipelinePreview.requiresTargetStage === false &&
+                            isPipelineConfirmationReady ? (
+                              <div style={styles.executionFactList}>
+                                <span>
+                                  Mudança:{' '}
+                                  <strong>
+                                    {
+                                      pipelinePreview.pipelineChange.sourceStage
+                                        .label
+                                    }{' '}
+                                    →{' '}
+                                    {
+                                      pipelinePreview.pipelineChange.targetStage
+                                        .label
+                                    }
+                                  </strong>
+                                </span>
+                                <span>
+                                  Confirmação válida até:{' '}
+                                  <strong>
+                                    {formatDateTime(pipelinePreview.expiresAt)}
+                                  </strong>
+                                </span>
+                              </div>
+                            ) : pipelineTargetStage ? (
+                              <div style={styles.executionGuardrail}>
+                                <IconShield
+                                  size={themeCssVariables.icon.size.sm}
+                                  stroke={themeCssVariables.icon.stroke.md}
+                                />
+                                Gere a prévia exata desta mudança antes de
+                                confirmar.
+                              </div>
+                            ) : null}
+                          </div>
                         ) : (
                           <div style={styles.executionGuardrail}>
                             <IconShield
@@ -790,31 +900,48 @@ export const AiCommandCenterFrontComponent = () => {
                               executionPreview === null ? 'default' : 'ghost'
                             }
                             disabled={
-                              busyExecution?.actionId === selectedAction.id
+                              busyExecution?.actionId === selectedAction.id ||
+                              (isPipelineAction &&
+                                pipelinePreview !== null &&
+                                !pipelineTargetStage)
                             }
                             onClick={() =>
-                              void executeAction(selectedAction.id, 'PREVIEW')
+                              void executeAction(
+                                selectedAction.id,
+                                'PREVIEW',
+                                isPipelineAction && pipelineTargetStage
+                                  ? { targetStage: pipelineTargetStage }
+                                  : undefined,
+                              )
                             }
                           >
                             <IconRefresh
                               size={themeCssVariables.icon.size.sm}
                               stroke={themeCssVariables.icon.stroke.md}
                             />
-                            {executionPreview === null
-                              ? 'Gerar prévia'
-                              : 'Atualizar prévia'}
+                            {isPipelineAction
+                              ? pipelinePreview === null
+                                ? 'Carregar etapas'
+                                : !pipelineTargetStage
+                                  ? 'Escolha o destino'
+                                  : isPipelineConfirmationReady
+                                    ? 'Atualizar prévia'
+                                    : 'Gerar prévia da mudança'
+                              : executionPreview === null
+                                ? 'Gerar prévia'
+                                : 'Atualizar prévia'}
                           </Button>
-                          {executionPreview?.supported === true ? (
+                          {executionPreview?.supported === true &&
+                          executionPreview.executionKind === 'TASK' ? (
                             <Button
                               disabled={
                                 busyExecution?.actionId === selectedAction.id
                               }
                               onClick={() =>
-                                void executeAction(
-                                  selectedAction.id,
-                                  'APPLY',
-                                  executionPreview.confirmationToken,
-                                )
+                                void executeAction(selectedAction.id, 'APPLY', {
+                                  confirmationToken:
+                                    executionPreview.confirmationToken,
+                                })
                               }
                             >
                               <IconPlayerPlay
@@ -822,6 +949,25 @@ export const AiCommandCenterFrontComponent = () => {
                                 stroke={themeCssVariables.icon.stroke.md}
                               />
                               Confirmar e criar tarefa
+                            </Button>
+                          ) : pipelinePreview?.requiresTargetStage === false &&
+                            isPipelineConfirmationReady ? (
+                            <Button
+                              disabled={
+                                busyExecution?.actionId === selectedAction.id
+                              }
+                              onClick={() =>
+                                void executeAction(selectedAction.id, 'APPLY', {
+                                  confirmationToken:
+                                    pipelinePreview.confirmationToken,
+                                })
+                              }
+                            >
+                              <IconPlayerPlay
+                                size={themeCssVariables.icon.size.sm}
+                                stroke={themeCssVariables.icon.stroke.md}
+                              />
+                              Confirmar mudança de etapa
                             </Button>
                           ) : null}
                         </div>

@@ -151,18 +151,19 @@ e-mail continuam exigindo prévia e confirmação humana.
 
 Em `Diex > Centro de IA`, propostas aprovadas dos tipos qualificação,
 follow-up, mitigação de risco, intervenção de CS e expansão podem virar uma
-tarefa nativa do Twenty. Primeiro o operador gera a prévia; depois confirma a
-tarefa exata, o prazo, o responsável e os vínculos com empresa, pessoa e
-oportunidade.
+tarefa nativa do Twenty. Propostas de atualização de pipeline podem mover uma
+única oportunidade entre etapas reais configuradas no workspace. Primeiro o
+operador gera a prévia; depois confirma a tarefa exata ou a transição exata de
+origem para destino.
 
 A confirmação é individual, vinculada ao workspace, expira em dez minutos e é
 consumida uma única vez. A tarefa possui identificador determinístico para
 evitar duplicidade e a ação registra executor, data, tarefa e recibo.
 
 Respostas externas continuam obrigatoriamente no fluxo de prévia e confirmação
-da Inbox. Mudanças de pipeline permanecem bloqueadas enquanto não houver origem
-e destino estruturados; texto livre aprovado nunca altera etapa
-automaticamente.
+da Inbox. A mudança de pipeline usa atualização condicional: se outra operação
+alterar a etapa depois da prévia, a execução é recusada e deve ser revisada
+novamente. Texto livre aprovado nunca define sozinho a oportunidade ou a etapa.
 
 ### E-mail nativo na Inbox
 

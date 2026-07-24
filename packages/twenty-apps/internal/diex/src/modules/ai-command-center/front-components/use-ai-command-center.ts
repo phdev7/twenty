@@ -82,6 +82,7 @@ export const useAiCommandCenter = () => {
                 opportunity: {
                   id: true,
                   name: true,
+                  stage: true,
                 },
                 commercialSignal: {
                   id: true,
@@ -267,7 +268,10 @@ export const useAiCommandCenter = () => {
     async (
       actionId: string,
       mode: 'PREVIEW' | 'APPLY',
-      confirmationToken?: string,
+      options?: {
+        confirmationToken?: string;
+        targetStage?: string;
+      },
     ): Promise<boolean> => {
       const action = actions.find(({ id }) => id === actionId);
 
@@ -289,7 +293,12 @@ export const useAiCommandCenter = () => {
             actionId,
             previewOnly: mode === 'PREVIEW',
             confirmExecute: mode === 'APPLY',
-            ...(mode === 'APPLY' ? { confirmationToken } : {}),
+            ...(mode === 'APPLY'
+              ? { confirmationToken: options?.confirmationToken }
+              : {}),
+            ...(options?.targetStage
+              ? { targetStage: options.targetStage }
+              : {}),
           },
         );
 
@@ -318,7 +327,7 @@ export const useAiCommandCenter = () => {
           result.actionId !== actionId ||
           result.executed !== true
         ) {
-          throw new Error('O executor não confirmou a criação da tarefa.');
+          throw new Error('O executor não confirmou a operação no CRM.');
         }
 
         setExecutionPreviews((current) => {
