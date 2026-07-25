@@ -1,10 +1,5 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { defineFrontComponent } from 'twenty-sdk/define';
-import {
-  SidePanelPages,
-  enqueueSnackbar,
-  openSidePanelPage,
-} from 'twenty-sdk/front-component';
 import {
   IconAlertTriangle,
   IconCalendarDue,
@@ -24,17 +19,35 @@ import {
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { CUSTOMER_SUCCESS_COMMAND_CENTER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/customer-success-command-center/constants/customer-success-command-center.constants';
+import { MetricCard } from 'src/modules/customer-success-command-center/front-components/components/metric-card';
+import { PortfolioList } from 'src/modules/customer-success-command-center/front-components/components/portfolio-list';
 import { customerSuccessCommandCenterStyles as styles } from 'src/modules/customer-success-command-center/front-components/customer-success-command-center.styles';
 import {
   type CustomerSuccessHandoffDraft,
-  type CustomerSuccessHandoffOpportunity,
   type CustomerSuccessMilestoneAction,
   type CustomerSuccessMilestoneActionDraft,
-  type CustomerSuccessMoney,
   type CustomerSuccessPlan,
-  type CustomerSuccessRecordReference,
 } from 'src/modules/customer-success-command-center/front-components/customer-success-command-center.types';
 import { useCustomerSuccessCommandCenter } from 'src/modules/customer-success-command-center/front-components/use-customer-success-command-center';
+import {
+  LIFECYCLE_STAGES,
+  buildHandoffDraft,
+  daysUntil,
+  formatDate,
+  formatMoney,
+  formatPlanMoney,
+  getDatePressureLabel,
+  getHealthLabel,
+  getHealthTone,
+  getLifecycleLabel,
+  getMilestoneActionLabel,
+  getMilestoneStatusLabel,
+  getMilestoneTone,
+  getRecordName,
+  isRiskPlan,
+  moneyAmount,
+  openRecord,
+} from 'src/modules/customer-success-command-center/front-components/utils/customer-success-formatters';
 import {
   Badge,
   Button,
@@ -46,259 +59,6 @@ import {
   Progress,
   Skeleton,
 } from 'src/ui/shadcn-twenty';
-
-type BadgeTone =
-  'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'turquoise' | 'gray';
-
-const LIFECYCLE_STAGES = [
-  ['ONBOARDING', 'Onboarding'],
-  ['ADOPTION', 'Adoção'],
-  ['VALUE_DELIVERED', 'Valor entregue'],
-  ['EXPANSION', 'Expansão'],
-  ['RENEWAL', 'Renovação'],
-  ['AT_RISK', 'Em risco'],
-] as const;
-
-const getRecordName = (
-  record?: CustomerSuccessRecordReference | null,
-): string => {
-  if (!record?.name) {
-    return '';
-  }
-
-  if (typeof record.name === 'string') {
-    return record.name;
-  }
-
-  return [record.name.firstName, record.name.lastName]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-};
-
-const getHealthLabel = (health?: string | null): string =>
-  ({
-    UNKNOWN: 'Sem diagnóstico',
-    HEALTHY: 'Saudável',
-    ATTENTION: 'Atenção',
-    CRITICAL: 'Crítico',
-  })[health ?? 'UNKNOWN'] ?? 'Sem diagnóstico';
-
-const getHealthTone = (health?: string | null): BadgeTone =>
-  (
-    ({
-      UNKNOWN: 'gray',
-      HEALTHY: 'green',
-      ATTENTION: 'orange',
-      CRITICAL: 'red',
-    }) as Record<string, BadgeTone>
-  )[health ?? 'UNKNOWN'] ?? 'gray';
-
-const getLifecycleLabel = (lifecycle?: string | null): string =>
-  ({
-    ONBOARDING: 'Onboarding',
-    ADOPTION: 'Adoção',
-    VALUE_DELIVERED: 'Valor entregue',
-    EXPANSION: 'Expansão',
-    RENEWAL: 'Renovação',
-    AT_RISK: 'Em risco',
-    CHURNED: 'Churn',
-  })[lifecycle ?? ''] ?? 'Jornada não definida';
-
-const getMilestoneStatusLabel = (status?: string | null): string =>
-  ({
-    PLANNED: 'Planejado',
-    IN_PROGRESS: 'Em andamento',
-    BLOCKED: 'Bloqueado',
-    COMPLETED: 'Concluído',
-    CANCELLED: 'Cancelado',
-  })[status ?? ''] ?? 'Sem status';
-
-const getMilestoneTone = (status?: string | null): BadgeTone =>
-  (
-    ({
-      PLANNED: 'gray',
-      IN_PROGRESS: 'blue',
-      BLOCKED: 'red',
-      COMPLETED: 'green',
-      CANCELLED: 'orange',
-    }) as Record<string, BadgeTone>
-  )[status ?? ''] ?? 'gray';
-
-const getMilestoneActionLabel = (
-  action: CustomerSuccessMilestoneAction,
-): string =>
-  ({
-    START: 'Iniciar ou retomar',
-    BLOCK: 'Registrar bloqueio',
-    COMPLETE: 'Concluir com evidência',
-  })[action];
-
-const moneyAmount = (money?: CustomerSuccessMoney | null): number =>
-  (money?.amountMicros ?? 0) / 1_000_000;
-
-const formatMoney = (
-  value: number,
-  currencyCode = 'BRL',
-  compact = true,
-): string => {
-  try {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: currencyCode,
-      notation: compact ? 'compact' : 'standard',
-      maximumFractionDigits: compact ? 1 : 2,
-    }).format(value);
-  } catch {
-    return `${currencyCode} ${value.toLocaleString('pt-BR')}`;
-  }
-};
-
-const formatPlanMoney = (
-  money?: CustomerSuccessMoney | null,
-  compact = true,
-): string =>
-  money?.amountMicros
-    ? formatMoney(
-        moneyAmount(money),
-        money.currencyCode?.trim() || 'BRL',
-        compact,
-      )
-    : 'Sem receita';
-
-const formatDate = (value?: string | null): string => {
-  if (!value) {
-    return 'Sem data';
-  }
-
-  const date = new Date(value);
-
-  return Number.isFinite(date.getTime())
-    ? date.toLocaleDateString('pt-BR')
-    : 'Sem data';
-};
-
-const daysUntil = (value?: string | null): number | null => {
-  if (!value) {
-    return null;
-  }
-
-  const timestamp = new Date(value).getTime();
-
-  return Number.isFinite(timestamp)
-    ? Math.ceil((timestamp - Date.now()) / 86_400_000)
-    : null;
-};
-
-const getDatePressureLabel = (value?: string | null): string => {
-  const days = daysUntil(value);
-
-  if (days === null) {
-    return 'sem prazo';
-  }
-
-  if (days < 0) {
-    return `${Math.abs(days)}d atrasado`;
-  }
-
-  if (days === 0) {
-    return 'hoje';
-  }
-
-  return `em ${days}d`;
-};
-
-const getDefaultRenewalDate = (closeDate?: string | null): string => {
-  const now = new Date();
-  const source = closeDate ? new Date(closeDate) : now;
-  const base =
-    Number.isFinite(source.getTime()) && source.getTime() > now.getTime()
-      ? source
-      : now;
-  const renewal = new Date(base);
-
-  renewal.setUTCFullYear(renewal.getUTCFullYear() + 1);
-
-  return renewal.toISOString().slice(0, 10);
-};
-
-const buildHandoffDraft = ({
-  opportunity,
-  currentWorkspaceMemberId,
-  fallbackOwnerId,
-}: {
-  opportunity: CustomerSuccessHandoffOpportunity;
-  currentWorkspaceMemberId: string | null;
-  fallbackOwnerId: string;
-}): CustomerSuccessHandoffDraft => {
-  const isRecurringOffer = ['MONTHLY', 'ANNUAL', 'USAGE'].includes(
-    opportunity.diexOffer?.pricingModel ?? '',
-  );
-  const opportunityName = opportunity.name?.trim() || 'negócio fechado';
-  const companyName = getRecordName(opportunity.company) || 'cliente';
-
-  return {
-    ownerId:
-      currentWorkspaceMemberId || opportunity.owner?.id || fallbackOwnerId,
-    renewalDate: getDefaultRenewalDate(opportunity.closeDate),
-    recurringRevenueMicros: isRecurringOffer
-      ? (opportunity.amount?.amountMicros ?? 0)
-      : 0,
-    currencyCode:
-      opportunity.amount?.currencyCode?.trim().toUpperCase() || 'BRL',
-    objectives:
-      opportunity.diexOffer?.valueProposition?.markdown?.trim() ||
-      `Entregar ao ${companyName} o resultado comercial acordado em ${opportunityName}.`,
-    successCriteria:
-      'Kick-off concluído, operação ativada, adoção validada e primeira evidência de valor reconhecida pelo cliente antes da renovação.',
-  };
-};
-
-const isRiskPlan = (plan: CustomerSuccessPlan): boolean =>
-  plan.health === 'CRITICAL' ||
-  plan.health === 'ATTENTION' ||
-  plan.lifecycle === 'AT_RISK';
-
-const openRecord = async (
-  recordId: string,
-  objectNameSingular: string,
-): Promise<void> => {
-  try {
-    await openSidePanelPage({
-      page: SidePanelPages.ViewRecord,
-      recordId,
-      objectNameSingular,
-    });
-  } catch {
-    await enqueueSnackbar({
-      message: 'Não foi possível abrir este registro.',
-      variant: 'error',
-    });
-  }
-};
-
-const MetricCard = ({
-  label,
-  value,
-  note,
-  tone,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  note: string;
-  tone: BadgeTone;
-  icon: ReactNode;
-}) => (
-  <Card style={styles.metricCard}>
-    <div style={styles.metricTop}>
-      <p style={styles.metricLabel}>{label}</p>
-      <Badge tone={tone}>{icon}</Badge>
-    </div>
-    <p style={styles.metricValue}>{value}</p>
-    <p style={styles.smallMuted}>{note}</p>
-  </Card>
-);
 
 export const CustomerSuccessCommandCenterFrontComponent = () => {
   const {
@@ -1169,74 +929,13 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
       </Card>
 
       <section style={styles.workspaceGrid}>
-        <Card style={styles.portfolioCard}>
-          <CardHeader style={styles.portfolioHeader}>
-            <CardTitle>Carteira priorizada</CardTitle>
-            <CardDescription>
-              Risco, revisão vencida e renovação próxima aparecem primeiro.
-            </CardDescription>
-            <div style={styles.filterRow}>
-              {[
-                ['ALL', 'Todos'],
-                ['RISK', 'Risco'],
-                ['RENEWAL', 'Renovação'],
-                ['EXPANSION', 'Expansão'],
-                ['OVERDUE', 'Revisão vencida'],
-              ].map(([value, label]) => (
-                <Button
-                  key={value}
-                  variant={filter === value ? 'default' : 'ghost'}
-                  style={{ height: themeCssVariables.spacing[7] }}
-                  onClick={() => setFilter(value)}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </CardHeader>
-          <div style={styles.portfolioList}>
-            {visiblePlans.length === 0 ? (
-              <div style={styles.empty}>
-                Nenhum plano encontrado neste recorte.
-              </div>
-            ) : (
-              visiblePlans.map((plan) => (
-                <button
-                  key={plan.id}
-                  type="button"
-                  style={{
-                    ...styles.planButton,
-                    ...(selectedPlan?.id === plan.id
-                      ? styles.planButtonSelected
-                      : {}),
-                  }}
-                  onClick={() => setSelectedPlanId(plan.id)}
-                >
-                  <div style={styles.planTop}>
-                    <p style={styles.planName}>{plan.name}</p>
-                    <Badge tone={getHealthTone(plan.health)}>
-                      {getHealthLabel(plan.health)}
-                    </Badge>
-                  </div>
-                  <p style={styles.planCompany}>
-                    {getRecordName(plan.company) || 'Empresa não vinculada'} ·{' '}
-                    {getLifecycleLabel(plan.lifecycle)}
-                  </p>
-                  <Progress
-                    value={plan.healthScore ?? 0}
-                    tone={getHealthTone(plan.health)}
-                  />
-                  <div style={styles.planMeta}>
-                    <span>{formatPlanMoney(plan.recurringRevenue)}</span>
-                    <span>
-                      renovação {getDatePressureLabel(plan.renewalDate)}
-                    </span>
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        </Card>
+        <PortfolioList
+          plans={visiblePlans}
+          selectedPlanId={selectedPlan?.id ?? null}
+          filter={filter}
+          onFilterChange={setFilter}
+          onSelectPlan={setSelectedPlanId}
+        />
 
         <Card style={styles.detailCard}>
           {selectedPlan === null ? (
