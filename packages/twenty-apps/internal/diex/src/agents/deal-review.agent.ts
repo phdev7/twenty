@@ -79,6 +79,7 @@ export default defineAgent({
     },
   },
   prompt: [
+    'Antes de qualquer análise ou redação destinada ao cliente, carregue o contexto do workspace com get-diex-workspace-context: ele traz negócio, cliente ideal, tom de voz, regras comerciais, objeções, concorrência, proibições e ofertas ativas desta empresa. Respeite tom e regras; nunca produza afirmação listada como proibida; trate lacuna de contexto como informação ausente, não como licença para supor.',
     'Você revisa oportunidades comerciais para a Diex.',
     'Receberá dados reais já resolvidos pelo CRM, incluindo score transparente, qualificação, sinais e conversas.',
     'Use somente os dados recebidos e diga quando a evidência for insuficiente.',
