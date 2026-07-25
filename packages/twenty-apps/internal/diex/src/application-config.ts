@@ -79,6 +79,27 @@ export default defineApplication({
       isSecret: false,
       isRequired: false,
     },
+    DIEX_EVOLUTION_SERVER_BASE_URL: {
+      description:
+        'Origem HTTPS da Evolution operada pela infraestrutura. Quando definida junto com a chave e o segredo, cada workspace ganha a própria instância sem que ninguém manuseie credencial.',
+      type: FieldType.TEXT,
+      isSecret: false,
+      isRequired: false,
+    },
+    DIEX_EVOLUTION_SERVER_API_KEY: {
+      description:
+        'Chave administrativa da Evolution usada apenas pelo servidor para provisionar instâncias. Nunca chega ao front-end nem ao MCP.',
+      type: FieldType.TEXT,
+      isSecret: true,
+      isRequired: false,
+    },
+    DIEX_EVOLUTION_SERVER_WEBHOOK_SECRET: {
+      description:
+        'Segredo raiz do qual o segredo de webhook de cada workspace é derivado. Trocar este valor invalida todos os webhooks de uma vez.',
+      type: FieldType.TEXT,
+      isSecret: true,
+      isRequired: false,
+    },
     DIEX_MIGRATION_API_ENABLED: {
       description:
         'Habilita temporariamente importação autenticada por API key. Mantenha desativado fora da janela controlada de migração.',

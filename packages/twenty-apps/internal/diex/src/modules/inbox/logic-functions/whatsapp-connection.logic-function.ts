@@ -8,10 +8,8 @@ import {
   WHATSAPP_CONNECTION_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
   WHATSAPP_CONNECTION_ROUTE,
 } from 'src/modules/inbox/constants/whatsapp-connection.constants';
-import {
-  buildEvolutionWebhookUrl,
-  getEvolutionConfiguration,
-} from 'src/modules/inbox/utils/evolution-environment';
+import { buildEvolutionWebhookUrl } from 'src/modules/inbox/utils/evolution-environment';
+import { resolveWhatsappProvisioning } from 'src/modules/inbox/utils/whatsapp-provisioning';
 import { safeEvolutionFetch } from 'src/modules/inbox/utils/safe-evolution-fetch';
 
 export type WhatsappConnectionState =
@@ -87,8 +85,8 @@ const readConnectionState = (payload: Record<string, unknown>): string | null =>
 export const whatsappConnectionHandler = async (
   _routePayload: RoutePayload<Record<string, unknown>>,
 ): Promise<WhatsappConnectionResult> => {
-  const configuration = getEvolutionConfiguration();
-  const { baseUrl, instanceName, apiKey, webhookSecret } = configuration;
+  const { baseUrl, instanceName, apiKey, webhookSecret } =
+    resolveWhatsappProvisioning();
   const headers = jsonHeaders(apiKey);
 
   const stateResponse = await safeEvolutionFetch({
