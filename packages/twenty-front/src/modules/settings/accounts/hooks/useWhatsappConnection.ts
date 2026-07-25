@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { getTokenPair } from '@/apollo/utils/getTokenPair';
 import { useLingui } from '@lingui/react/macro';
+import { useCallback, useEffect, useState } from 'react';
+import { REACT_APP_SERVER_BASE_URL } from '~/config';
 
-const WHATSAPP_CONNECTION_ROUTE = '/diex/accounts/whatsapp/connection';
+// App routes are served by the API server under /s, not by the frontend origin.
+const WHATSAPP_CONNECTION_ROUTE = '/s/diex/accounts/whatsapp/connection';
 
 export type WhatsappConnection = {
   state:
@@ -16,8 +19,8 @@ export type WhatsappConnection = {
   message: string;
 };
 
-// The connection state lives in the provider, not in the CRM, so it is read
-// through the app route on demand rather than cached in a record.
+// The connection state lives in the provider, not in the CRM, so it is read on
+// demand through the app route rather than cached in a record.
 export const useWhatsappConnection = () => {
   const { t } = useLingui();
   const [connection, setConnection] = useState<WhatsappConnection | null>(null);
@@ -29,12 +32,23 @@ export const useWhatsappConnection = () => {
     setErrorMessage(null);
 
     try {
-      const response = await fetch(WHATSAPP_CONNECTION_ROUTE, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
+      const accessToken = getTokenPair()?.accessOrWorkspaceAgnosticToken?.token;
+
+      if (!accessToken) {
+        throw new Error('missing-token');
+      }
+
+      const response = await fetch(
+        `${REACT_APP_SERVER_BASE_URL}${WHATSAPP_CONNECTION_ROUTE}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: '{}',
+        },
+      );
 
       if (!response.ok) {
         throw new Error(String(response.status));
