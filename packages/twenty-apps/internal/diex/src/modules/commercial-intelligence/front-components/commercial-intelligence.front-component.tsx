@@ -1,10 +1,5 @@
-import { type ReactNode, useMemo } from 'react';
+import { useMemo } from 'react';
 import { defineFrontComponent } from 'twenty-sdk/define';
-import {
-  SidePanelPages,
-  enqueueSnackbar,
-  openSidePanelPage,
-} from 'twenty-sdk/front-component';
 import {
   IconAlertTriangle,
   IconArrowRight,
@@ -19,12 +14,23 @@ import {
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { COMMERCIAL_INTELLIGENCE_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/commercial-intelligence/constants/commercial-intelligence.constants';
-import { commercialIntelligenceStyles as styles } from 'src/modules/commercial-intelligence/front-components/commercial-intelligence.styles';
 import {
-  type CommercialOpportunity,
-  type CommercialRecordReference,
-  type CommercialSignal,
-} from 'src/modules/commercial-intelligence/front-components/commercial-intelligence.types';
+  KpiCard,
+  OpportunityRank,
+} from 'src/modules/commercial-intelligence/front-components/components/intelligence-cards';
+import {
+  formatCurrency,
+  formatRelativeDate,
+  getRecordName,
+  getSignalPriority,
+  getSignalTone,
+  getSignalTypeLabel,
+  getStatusLabel,
+  getStatusTone,
+  getStrength,
+  openRecord,
+} from 'src/modules/commercial-intelligence/front-components/utils/commercial-intelligence-formatters';
+import { commercialIntelligenceStyles as styles } from 'src/modules/commercial-intelligence/front-components/commercial-intelligence.styles';
 import { useCommercialIntelligence } from 'src/modules/commercial-intelligence/front-components/use-commercial-intelligence';
 import {
   Badge,
@@ -34,240 +40,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Progress,
   Separator,
   Skeleton,
 } from 'src/ui/shadcn-twenty';
 
-type BadgeTone =
-  'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'turquoise' | 'gray';
-
-const getRecordName = (record?: CommercialRecordReference | null): string => {
-  if (!record?.name) {
-    return '';
-  }
-
-  if (typeof record.name === 'string') {
-    return record.name;
-  }
-
-  return [record.name.firstName, record.name.lastName]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-};
-
-const getSignalTypeLabel = (type: string): string =>
-  ({
-    INTENT: 'Intenção',
-    ENGAGEMENT: 'Engajamento',
-    OBJECTION: 'Objeção',
-    RISK: 'Risco',
-    EXPANSION: 'Expansão',
-    CHURN_RISK: 'Risco de churn',
-    COMPETITOR: 'Concorrente',
-  })[type] ?? type;
-
-const getSignalTone = (type: string): BadgeTone =>
-  (
-    ({
-      INTENT: 'blue',
-      ENGAGEMENT: 'green',
-      OBJECTION: 'orange',
-      RISK: 'red',
-      EXPANSION: 'turquoise',
-      CHURN_RISK: 'red',
-      COMPETITOR: 'gray',
-    }) as Record<string, BadgeTone>
-  )[type] ?? 'gray';
-
-const getStatusLabel = (status: string): string =>
-  ({
-    NEW: 'Novo',
-    IN_REVIEW: 'Em análise',
-    ACTIONED: 'Tratado',
-    DISMISSED: 'Descartado',
-  })[status] ?? status;
-
-const getStatusTone = (status: string): BadgeTone =>
-  (
-    ({
-      NEW: 'blue',
-      IN_REVIEW: 'orange',
-      ACTIONED: 'green',
-      DISMISSED: 'gray',
-    }) as Record<string, BadgeTone>
-  )[status] ?? 'gray';
-
-const getRiskLabel = (risk?: string | null): string =>
-  ({
-    LOW: 'Risco baixo',
-    MEDIUM: 'Risco médio',
-    HIGH: 'Risco alto',
-    UNKNOWN: 'Sem avaliação',
-  })[risk ?? 'UNKNOWN'] ?? 'Sem avaliação';
-
-const getRiskTone = (risk?: string | null): BadgeTone =>
-  (
-    ({
-      LOW: 'green',
-      MEDIUM: 'orange',
-      HIGH: 'red',
-      UNKNOWN: 'gray',
-    }) as Record<string, BadgeTone>
-  )[risk ?? 'UNKNOWN'] ?? 'gray';
-
-const getStrength = (strength?: string | null): number => {
-  const parsed = Number.parseInt(strength?.replace('RATING_', '') ?? '', 10);
-
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatRelativeDate = (value?: string | null): string => {
-  if (!value) {
-    return 'sem data';
-  }
-
-  const timestamp = new Date(value).getTime();
-
-  if (!Number.isFinite(timestamp)) {
-    return 'sem data';
-  }
-
-  const days = Math.round((timestamp - Date.now()) / (24 * 60 * 60_000));
-
-  if (days === 0) {
-    return 'hoje';
-  }
-
-  if (days === 1) {
-    return 'amanhã';
-  }
-
-  if (days === -1) {
-    return 'ontem';
-  }
-
-  return days > 0 ? `em ${days} dias` : `${Math.abs(days)} dias atrasada`;
-};
-
-const formatCurrency = (amountMicros: number): string =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 0,
-  }).format(amountMicros / 1_000_000);
-
-const openRecord = async (
-  recordId: string,
-  objectNameSingular: string,
-): Promise<void> => {
-  try {
-    await openSidePanelPage({
-      page: SidePanelPages.ViewRecord,
-      recordId,
-      objectNameSingular,
-    });
-  } catch {
-    await enqueueSnackbar({
-      message: 'Não foi possível abrir este registro.',
-      variant: 'error',
-    });
-  }
-};
-
-const getSignalPriority = (signal: CommercialSignal): number => {
-  const typeWeight =
-    signal.signalType === 'CHURN_RISK' || signal.signalType === 'RISK'
-      ? 40
-      : signal.signalType === 'OBJECTION'
-        ? 30
-        : signal.signalType === 'INTENT' || signal.signalType === 'EXPANSION'
-          ? 25
-          : 10;
-  const statusWeight = signal.status === 'NEW' ? 20 : 10;
-
-  return (
-    typeWeight +
-    statusWeight +
-    getStrength(signal.strength) * 4 +
-    (signal.confidence ?? 0) / 10
-  );
-};
-
-const KpiCard = ({
-  title,
-  value,
-  description,
-  tone,
-  icon,
-}: {
-  title: string;
-  value: number;
-  description: string;
-  tone: BadgeTone;
-  icon: ReactNode;
-}) => (
-  <Card>
-    <CardHeader style={{ paddingBottom: themeCssVariables.spacing[2] }}>
-      <div style={styles.sectionHeader}>
-        <CardDescription>{title}</CardDescription>
-        <Badge tone={tone}>{icon}</Badge>
-      </div>
-    </CardHeader>
-    <CardContent>
-      <div style={styles.kpiContent}>
-        <span style={styles.kpiValue}>{value}</span>
-        <CardDescription style={{ maxWidth: 130, textAlign: 'right' }}>
-          {description}
-        </CardDescription>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const OpportunityRank = ({
-  opportunity,
-}: {
-  opportunity: CommercialOpportunity;
-}) => {
-  const score = Math.max(0, Math.min(100, opportunity.commercialScore ?? 0));
-  const scoreTone: BadgeTone =
-    score >= 75 ? 'green' : score >= 50 ? 'orange' : 'gray';
-
-  return (
-    <button
-      type="button"
-      style={{
-        background: 'transparent',
-        border: 0,
-        cursor: 'pointer',
-        fontFamily: themeCssVariables.font.family,
-        padding: 0,
-        textAlign: 'left',
-        width: '100%',
-      }}
-      onClick={() => void openRecord(opportunity.id, 'opportunity')}
-    >
-      <div style={styles.opportunityHeader}>
-        <p style={styles.opportunityName}>
-          {getRecordName(opportunity) || 'Oportunidade sem nome'}
-        </p>
-        <Badge tone={scoreTone}>{Math.round(score)} pts</Badge>
-      </div>
-      <p style={styles.opportunityMeta}>
-        {getRecordName(opportunity.company) || 'Empresa não vinculada'} ·{' '}
-        {opportunity.stage || 'Sem etapa'}
-      </p>
-      <Progress value={score} tone={scoreTone} />
-      <div style={{ marginTop: themeCssVariables.spacing[2] }}>
-        <Badge tone={getRiskTone(opportunity.dealRisk)}>
-          {getRiskLabel(opportunity.dealRisk)}
-        </Badge>
-      </div>
-    </button>
-  );
-};
 
 export const CommercialIntelligenceFrontComponent = () => {
   const {

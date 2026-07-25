@@ -1,30 +1,35 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { defineFrontComponent } from 'twenty-sdk/define';
 import {
   IconAlertTriangle,
   IconCalendarDue,
   IconChartBar,
-  IconCheck,
-  IconClock,
   IconCurrencyReal,
-  IconMessage,
   IconRefresh,
   IconRefreshDot,
-  IconRobot,
-  IconTarget,
   IconTargetArrow,
-  IconTimelineEvent,
   IconUser,
 } from 'twenty-ui/icon';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { RENEWAL_COMMAND_CENTER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/renewal-command-center/constants/renewal-command-center.constants';
+import {
+  MetricCell,
+} from 'src/modules/renewal-command-center/front-components/components/renewal-primitives';
+import { RenewalWorkbench } from 'src/modules/renewal-command-center/front-components/components/renewal-workbench';
+import {
+  STAGES,
+  createDraft,
+  daysUntil,
+  formatDate,
+  formatMoney,
+  getAmountMicros,
+  getRecordName,
+  getRisk,
+} from 'src/modules/renewal-command-center/front-components/utils/renewal-formatters';
 import { renewalCommandCenterStyles as styles } from 'src/modules/renewal-command-center/front-components/renewal-command-center.styles';
 import {
-  type CustomerRenewal,
   type RenewalDraft,
-  type RenewalMoney,
-  type RenewalRecordReference,
 } from 'src/modules/renewal-command-center/front-components/renewal-command-center.types';
 import { useRenewalCommandCenter } from 'src/modules/renewal-command-center/front-components/use-renewal-command-center';
 import {
@@ -33,226 +38,12 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
   Progress,
   Separator,
   Skeleton,
 } from 'src/ui/shadcn-twenty';
 
-type BadgeTone =
-  'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'turquoise' | 'gray';
-
-const STAGES = [
-  {
-    value: 'PLANNING',
-    label: 'Planejamento',
-    tone: 'gray' as BadgeTone,
-  },
-  {
-    value: 'VALUE_PROOF',
-    label: 'Prova de valor',
-    tone: 'blue' as BadgeTone,
-  },
-  {
-    value: 'NEGOTIATION',
-    label: 'Negociação',
-    tone: 'orange' as BadgeTone,
-  },
-  {
-    value: 'COMMITMENT',
-    label: 'Compromisso',
-    tone: 'turquoise' as BadgeTone,
-  },
-  {
-    value: 'RENEWED',
-    label: 'Renovada',
-    tone: 'green' as BadgeTone,
-  },
-  {
-    value: 'CHURNED',
-    label: 'Churn',
-    tone: 'red' as BadgeTone,
-  },
-] as const;
-
-const RISKS = [
-  { value: 'LOW', label: 'Baixo', tone: 'green' as BadgeTone },
-  { value: 'MEDIUM', label: 'Médio', tone: 'yellow' as BadgeTone },
-  { value: 'HIGH', label: 'Alto', tone: 'orange' as BadgeTone },
-  { value: 'CRITICAL', label: 'Crítico', tone: 'red' as BadgeTone },
-] as const;
-
-const FORECASTS = [
-  { value: 'PIPELINE', label: 'Pipeline' },
-  { value: 'BEST_CASE', label: 'Melhor caso' },
-  { value: 'COMMIT', label: 'Compromisso' },
-  { value: 'CLOSED', label: 'Fechado' },
-] as const;
-
-const EVENT_LABELS: Record<string, string> = {
-  CREATED: 'Caso criado',
-  STAGE_CHANGED: 'Etapa alterada',
-  PLAN_UPDATED: 'Plano atualizado',
-  TOUCH_RECORDED: 'Contato registrado',
-  AI_ACTION_PROPOSED: 'Intervenção de IA proposta',
-  CLOSED_WON: 'Renovação ganha',
-  CLOSED_LOST: 'Churn registrado',
-};
-
-const getRecordName = (record?: RenewalRecordReference | null): string => {
-  if (!record?.name) {
-    return '';
-  }
-
-  if (typeof record.name === 'string') {
-    return record.name;
-  }
-
-  return [record.name.firstName, record.name.lastName]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-};
-
-const getAmountMicros = (money?: RenewalMoney | null): number =>
-  money?.amountMicros ?? 0;
-
-const formatMoney = (
-  amountMicros: number,
-  currencyCode = 'BRL',
-  compact = false,
-): string => {
-  try {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: currencyCode,
-      notation: compact ? 'compact' : 'standard',
-      maximumFractionDigits: compact ? 1 : 2,
-    }).format(amountMicros / 1_000_000);
-  } catch {
-    return `${currencyCode} ${(amountMicros / 1_000_000).toLocaleString('pt-BR')}`;
-  }
-};
-
-const formatDate = (value?: string | null): string => {
-  if (!value) {
-    return 'Sem data';
-  }
-
-  const parsed = new Date(value);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return 'Data inválida';
-  }
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(parsed);
-};
-
-const formatDateTime = (value?: string | null): string => {
-  if (!value) {
-    return 'Sem registro';
-  }
-
-  const parsed = new Date(value);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return 'Data inválida';
-  }
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(parsed);
-};
-
-const toDateTimeLocal = (value?: string | null): string => {
-  if (!value) {
-    return '';
-  }
-
-  const parsed = new Date(value);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return '';
-  }
-
-  const offset = parsed.getTimezoneOffset() * 60_000;
-
-  return new Date(parsed.getTime() - offset).toISOString().slice(0, 16);
-};
-
-const daysUntil = (value?: string | null): number | null => {
-  if (!value) {
-    return null;
-  }
-
-  const timestamp = new Date(value).getTime();
-
-  if (Number.isNaN(timestamp)) {
-    return null;
-  }
-
-  return Math.ceil((timestamp - Date.now()) / 86_400_000);
-};
-
-const getStage = (stage: string) =>
-  STAGES.find(({ value }) => value === stage) ?? STAGES[0];
-
-const getRisk = (risk: string) =>
-  RISKS.find(({ value }) => value === risk) ?? RISKS[1];
-
-const createDraft = (renewal: CustomerRenewal): RenewalDraft => ({
-  stage: renewal.stage,
-  risk: renewal.risk,
-  forecast: renewal.forecast,
-  probability: renewal.probability ?? 0,
-  targetDate: renewal.targetDate?.slice(0, 10) ?? '',
-  nextAction: renewal.nextAction ?? '',
-  nextActionAt: toDateTimeLocal(renewal.nextActionAt),
-  ownerId: renewal.owner?.id ?? '',
-  riskReason: renewal.riskReason?.markdown ?? '',
-  valueEvidence: renewal.valueEvidence?.markdown ?? '',
-  commercialTerms: renewal.commercialTerms?.markdown ?? '',
-  outcome: renewal.outcome?.markdown ?? '',
-});
-
-const MetricCell = ({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: ReactNode;
-  note: string;
-}) => (
-  <div style={styles.metricCell}>
-    <p style={styles.metricLabel}>{label}</p>
-    <p style={styles.metricValue}>{value}</p>
-    <p style={styles.metricNote}>{note}</p>
-  </div>
-);
-
-const Field = ({
-  label,
-  wide = false,
-  children,
-}: {
-  label: string;
-  wide?: boolean;
-  children: ReactNode;
-}) => (
-  <label style={wide ? styles.fieldWide : styles.field}>
-    <span style={styles.fieldLabel}>{label}</span>
-    {children}
-  </label>
-);
 
 const RenewalCommandCenter = () => {
   const {
@@ -605,354 +396,16 @@ const RenewalCommandCenter = () => {
         </div>
       </Card>
 
-      <section style={styles.workbench}>
-        <Card>
-          {selectedRenewal && draft ? (
-            <>
-              <CardHeader>
-                <div style={styles.detailHeader}>
-                  <div>
-                    <CardTitle>{selectedRenewal.name}</CardTitle>
-                    <CardDescription>
-                      {getRecordName(selectedRenewal.company) ||
-                        'Empresa não vinculada'}{' '}
-                      ·{' '}
-                      {getRecordName(selectedRenewal.owner) ||
-                        'Sem responsável'}
-                    </CardDescription>
-                    <div style={styles.badgeRow}>
-                      <Badge tone={getStage(selectedRenewal.stage).tone}>
-                        {getStage(selectedRenewal.stage).label}
-                      </Badge>
-                      <Badge tone={getRisk(selectedRenewal.risk).tone}>
-                        risco{' '}
-                        {getRisk(selectedRenewal.risk).label.toLowerCase()}
-                      </Badge>
-                      <Badge tone="blue">{selectedRenewal.forecast}</Badge>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={styles.metricLabel}>Valor</p>
-                    <p style={styles.metricValue}>
-                      {formatMoney(
-                        getAmountMicros(selectedRenewal.renewalValue),
-                        selectedRenewal.renewalValue?.currencyCode ?? 'BRL',
-                        true,
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div style={styles.formGrid}>
-                  <Field label="Etapa">
-                    <select
-                      value={draft.stage}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          stage: event.currentTarget.value,
-                        })
-                      }
-                    >
-                      {STAGES.map((stage) => (
-                        <option key={stage.value} value={stage.value}>
-                          {stage.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Risco">
-                    <select
-                      value={draft.risk}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          risk: event.currentTarget.value,
-                        })
-                      }
-                    >
-                      {RISKS.map((risk) => (
-                        <option key={risk.value} value={risk.value}>
-                          {risk.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Forecast">
-                    <select
-                      value={draft.forecast}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          forecast: event.currentTarget.value,
-                        })
-                      }
-                    >
-                      {FORECASTS.map((forecast) => (
-                        <option key={forecast.value} value={forecast.value}>
-                          {forecast.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Probabilidade (%)">
-                    <input
-                      min={0}
-                      max={100}
-                      type="number"
-                      value={draft.probability}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          probability: Number(event.currentTarget.value),
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="Data-alvo">
-                    <input
-                      type="date"
-                      value={draft.targetDate}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          targetDate: event.currentTarget.value,
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="Responsável">
-                    <select
-                      value={draft.ownerId}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          ownerId: event.currentTarget.value,
-                        })
-                      }
-                    >
-                      <option value="">Sem responsável</option>
-                      {workspaceMembers.map((member) => (
-                        <option key={member.id} value={member.id}>
-                          {getRecordName(member) || 'Membro sem nome'}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Próxima ação" wide>
-                    <input
-                      type="text"
-                      value={draft.nextAction}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          nextAction: event.currentTarget.value,
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="Prazo da próxima ação">
-                    <input
-                      type="datetime-local"
-                      value={draft.nextActionAt}
-                      style={styles.input}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          nextActionAt: event.currentTarget.value,
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="Último contato">
-                    <input
-                      readOnly
-                      value={formatDateTime(selectedRenewal.lastTouchAt)}
-                      style={styles.input}
-                    />
-                  </Field>
-                  <Field label="Plano de sucesso">
-                    <input
-                      readOnly
-                      value={
-                        getRecordName(selectedRenewal.successPlan) ||
-                        'Não vinculado'
-                      }
-                      style={styles.input}
-                    />
-                  </Field>
-                  <Field label="Motivo do risco" wide>
-                    <textarea
-                      value={draft.riskReason}
-                      style={styles.textarea}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          riskReason: event.currentTarget.value,
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="Evidência de valor" wide>
-                    <textarea
-                      value={draft.valueEvidence}
-                      style={styles.textarea}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          valueEvidence: event.currentTarget.value,
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="Condições comerciais" wide>
-                    <textarea
-                      value={draft.commercialTerms}
-                      style={styles.textarea}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          commercialTerms: event.currentTarget.value,
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="Resultado / motivo de fechamento" wide>
-                    <textarea
-                      value={draft.outcome}
-                      style={styles.textarea}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          outcome: event.currentTarget.value,
-                        })
-                      }
-                    />
-                  </Field>
-                </div>
-
-                <div style={styles.actionBar}>
-                  <Button
-                    disabled={busyAction !== null}
-                    onClick={() =>
-                      void updateRenewal(selectedRenewal.id, draft)
-                    }
-                  >
-                    <IconCheck
-                      size={themeCssVariables.icon.size.sm}
-                      stroke={themeCssVariables.icon.stroke.md}
-                    />
-                    Salvar plano
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={busyAction !== null}
-                    onClick={() => void recordTouch(selectedRenewal.id)}
-                  >
-                    <IconMessage
-                      size={themeCssVariables.icon.size.sm}
-                      stroke={themeCssVariables.icon.stroke.md}
-                    />
-                    Registrar contato agora
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={busyAction !== null}
-                    onClick={() =>
-                      void proposeAiIntervention(selectedRenewal.id)
-                    }
-                  >
-                    <IconRobot
-                      size={themeCssVariables.icon.size.sm}
-                      stroke={themeCssVariables.icon.stroke.md}
-                    />
-                    Propor intervenção com IA
-                  </Button>
-                </div>
-              </CardContent>
-            </>
-          ) : (
-            <div style={styles.emptyState}>
-              <IconTarget
-                size={themeCssVariables.icon.size.xl}
-                stroke={themeCssVariables.icon.stroke.md}
-              />
-              Selecione uma renovação na esteira ou abra um caso a partir de um
-              plano de sucesso.
-            </div>
-          )}
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <span
-                style={{
-                  alignItems: 'center',
-                  display: 'inline-flex',
-                  gap: themeCssVariables.spacing[1],
-                }}
-              >
-                <IconTimelineEvent
-                  size={themeCssVariables.icon.size.sm}
-                  stroke={themeCssVariables.icon.stroke.md}
-                />
-                Histórico operacional
-              </span>
-            </CardTitle>
-            <CardDescription>
-              Alterações, contatos, IA e fechamento com autoria.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {selectedRenewal?.renewalEvents.length ? (
-              <div style={styles.timeline}>
-                {selectedRenewal.renewalEvents.map((event) => (
-                  <div key={event.id} style={styles.timelineItem}>
-                    <span style={styles.timelineDot} />
-                    <div>
-                      <Badge
-                        tone={
-                          event.eventType === 'CLOSED_WON'
-                            ? 'green'
-                            : event.eventType === 'CLOSED_LOST'
-                              ? 'red'
-                              : event.eventType === 'AI_ACTION_PROPOSED'
-                                ? 'orange'
-                                : 'blue'
-                        }
-                      >
-                        {EVENT_LABELS[event.eventType] ?? event.eventType}
-                      </Badge>
-                      <p style={styles.timelineSummary}>{event.summary}</p>
-                      <p style={styles.timelineMeta}>
-                        {formatDateTime(event.occurredAt)} ·{' '}
-                        {getRecordName(event.actor) || 'Sistema'}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={styles.emptyState}>
-                <IconClock
-                  size={themeCssVariables.icon.size.lg}
-                  stroke={themeCssVariables.icon.stroke.md}
-                />
-                O histórico aparecerá após a primeira operação.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+      <RenewalWorkbench
+        selectedRenewal={selectedRenewal}
+        draft={draft}
+        workspaceMembers={workspaceMembers}
+        busyAction={busyAction}
+        setDraft={setDraft}
+        updateRenewal={updateRenewal}
+        recordTouch={recordTouch}
+        proposeAiIntervention={proposeAiIntervention}
+      />
 
       <Card variant="muted">
         <CardContent
