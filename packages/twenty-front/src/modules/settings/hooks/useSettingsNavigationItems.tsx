@@ -16,6 +16,7 @@ import { isNonEmptyString } from '@sniptt/guards';
 import {
   IconApps,
   IconAt,
+  IconBrandWhatsapp,
   IconCalendarEvent,
   IconColorSwatch,
   type IconComponent,
@@ -96,6 +97,13 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
               label: t`Emails`,
               path: SettingsPath.AccountsEmails,
               Icon: IconMail,
+              isHidden: !permissionMap[PermissionFlagType.CONNECTED_ACCOUNTS],
+              indentationLevel: 2,
+            },
+            {
+              label: t`WhatsApp`,
+              path: SettingsPath.AccountsWhatsapp,
+              Icon: IconBrandWhatsapp,
               isHidden: !permissionMap[PermissionFlagType.CONNECTED_ACCOUNTS],
               indentationLevel: 2,
             },

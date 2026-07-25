@@ -410,6 +410,14 @@ const SettingsAccountsEmails = lazy(() =>
   })),
 );
 
+const SettingsAccountsWhatsapp = lazy(() =>
+  import('~/pages/settings/accounts/SettingsAccountsWhatsapp').then(
+    (module) => ({
+      default: module.SettingsAccountsWhatsapp,
+    }),
+  ),
+);
+
 const SettingsAccountsCalendars = lazy(() =>
   import('~/pages/settings/accounts/SettingsAccountsCalendars').then(
     (module) => ({
@@ -674,6 +682,10 @@ export const SettingsRoutes = ({ isAdminPageEnabled }: SettingsRoutesProps) => (
         <Route
           path={SettingsPath.AccountsEmails}
           element={<SettingsAccountsEmails />}
+        />
+        <Route
+          path={SettingsPath.AccountsWhatsapp}
+          element={<SettingsAccountsWhatsapp />}
         />
         <Route
           path={SettingsPath.AccountsCalendars}
