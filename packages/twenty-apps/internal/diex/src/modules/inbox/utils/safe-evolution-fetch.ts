@@ -14,14 +14,27 @@ type SafeEvolutionFetchInput = {
   body?: string;
 };
 
-type PinnedLookup = (
-  hostname: string,
-  options: unknown,
-  callback: (
+type PinnedLookupAddress = {
+  address: string;
+  family: number;
+};
+
+type PinnedLookupCallback = {
+  (
     error: NodeJS.ErrnoException | null,
     address: string,
     family: number,
-  ) => void,
+  ): void;
+  (
+    error: NodeJS.ErrnoException | null,
+    addresses: PinnedLookupAddress[],
+  ): void;
+};
+
+type PinnedLookup = (
+  hostname: string,
+  options: unknown,
+  callback: PinnedLookupCallback,
 ) => void;
 
 const parseBoolean = (value: string | undefined): boolean =>
@@ -176,7 +189,13 @@ const assertAllowedTarget = (baseUrl: string, path: string): URL => {
 const buildPinnedLookup = (
   allowPrivateNetwork: boolean,
 ): PinnedLookup => {
-  return (hostname, _options, callback) => {
+  return (hostname, options, callback) => {
+    const returnAllAddresses =
+      typeof options === 'object' &&
+      options !== null &&
+      'all' in options &&
+      options.all === true;
+
     void lookup(hostname, { all: true, verbatim: true })
       .then((addresses) => {
         if (addresses.length === 0) {
@@ -194,16 +213,25 @@ const buildPinnedLookup = (
 
         const selectedAddress = addresses[0];
 
+        if (returnAllAddresses) {
+          callback(null, addresses);
+          return;
+        }
+
         callback(null, selectedAddress.address, selectedAddress.family);
       })
       .catch((error: unknown) => {
-        callback(
+        const lookupError =
           error instanceof Error
             ? error
-            : new Error('The Evolution hostname could not be resolved.'),
-          '',
-          4,
-        );
+            : new Error('The Evolution hostname could not be resolved.');
+
+        if (returnAllAddresses) {
+          callback(lookupError, []);
+          return;
+        }
+
+        callback(lookupError, '', 4);
       });
   };
 };
