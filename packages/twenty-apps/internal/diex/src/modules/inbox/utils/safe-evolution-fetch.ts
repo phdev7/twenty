@@ -14,28 +14,10 @@ type SafeEvolutionFetchInput = {
   body?: string;
 };
 
-type PinnedLookupAddress = {
+type ResolvedAddress = {
   address: string;
   family: number;
 };
-
-type PinnedLookupCallback = {
-  (
-    error: NodeJS.ErrnoException | null,
-    address: string,
-    family: number,
-  ): void;
-  (
-    error: NodeJS.ErrnoException | null,
-    addresses: PinnedLookupAddress[],
-  ): void;
-};
-
-type PinnedLookup = (
-  hostname: string,
-  options: unknown,
-  callback: PinnedLookupCallback,
-) => void;
 
 const parseBoolean = (value: string | undefined): boolean =>
   ['1', 'true', 'yes', 'on'].includes(value?.trim().toLowerCase() ?? '');
@@ -186,54 +168,26 @@ const assertAllowedTarget = (baseUrl: string, path: string): URL => {
   return target;
 };
 
-const buildPinnedLookup = (
+const resolvePinnedAddress = async (
+  hostname: string,
   allowPrivateNetwork: boolean,
-): PinnedLookup => {
-  return (hostname, options, callback) => {
-    const returnAllAddresses =
-      typeof options === 'object' &&
-      options !== null &&
-      'all' in options &&
-      options.all === true;
+): Promise<ResolvedAddress> => {
+  const addresses = await lookup(hostname, { all: true, verbatim: true });
 
-    void lookup(hostname, { all: true, verbatim: true })
-      .then((addresses) => {
-        if (addresses.length === 0) {
-          throw new Error('The Evolution hostname did not resolve.');
-        }
+  if (addresses.length === 0) {
+    throw new Error('The Evolution hostname did not resolve.');
+  }
 
-        if (
-          !allowPrivateNetwork &&
-          addresses.some(({ address }) => isNonPublicIpAddress(address))
-        ) {
-          throw new Error(
-            'The Evolution hostname resolved to a non-public network address.',
-          );
-        }
+  if (
+    !allowPrivateNetwork &&
+    addresses.some(({ address }) => isNonPublicIpAddress(address))
+  ) {
+    throw new Error(
+      'The Evolution hostname resolved to a non-public network address.',
+    );
+  }
 
-        const selectedAddress = addresses[0];
-
-        if (returnAllAddresses) {
-          callback(null, addresses);
-          return;
-        }
-
-        callback(null, selectedAddress.address, selectedAddress.family);
-      })
-      .catch((error: unknown) => {
-        const lookupError =
-          error instanceof Error
-            ? error
-            : new Error('The Evolution hostname could not be resolved.');
-
-        if (returnAllAddresses) {
-          callback(lookupError, []);
-          return;
-        }
-
-        callback(lookupError, '', 4);
-      });
-  };
+  return addresses[0];
 };
 
 export const safeEvolutionFetch = async ({
@@ -247,20 +201,28 @@ export const safeEvolutionFetch = async ({
   const allowPrivateNetwork = parseBoolean(
     process.env.DIEX_EVOLUTION_ALLOW_PRIVATE_NETWORK,
   );
+  const pinnedAddress = await resolvePinnedAddress(
+    target.hostname,
+    allowPrivateNetwork,
+  );
   const request = target.protocol === 'https:' ? requestHttps : requestHttp;
 
   return await new Promise<Response>((resolve, reject) => {
     const outgoingRequest = request(
-      target,
       {
+        protocol: target.protocol,
+        hostname: pinnedAddress.address,
+        port: target.port || undefined,
+        path: `${target.pathname}${target.search}`,
         method,
+        servername: target.protocol === 'https:' ? target.hostname : undefined,
         headers: {
+          Host: target.host,
           ...headers,
           ...(body === undefined
             ? {}
             : { 'Content-Length': Buffer.byteLength(body).toString() }),
         },
-        lookup: buildPinnedLookup(allowPrivateNetwork),
       },
       (incomingResponse) => {
         const status = incomingResponse.statusCode ?? 502;
