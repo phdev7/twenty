@@ -28,6 +28,7 @@ import { CUSTOMER_RENEWAL_UNIVERSAL_IDENTIFIER } from 'src/objects/customer-rene
 import { OFFER_UNIVERSAL_IDENTIFIER } from 'src/objects/offer.object';
 import { SUCCESS_MILESTONE_UNIVERSAL_IDENTIFIER } from 'src/objects/success-milestone.object';
 import { SUCCESS_PLAN_UNIVERSAL_IDENTIFIER } from 'src/objects/success-plan.object';
+import { WORKSPACE_CONTEXT_UNIVERSAL_IDENTIFIER } from 'src/objects/workspace-context.object';
 
 export const DEFAULT_FUNCTION_ROLE_UNIVERSAL_IDENTIFIER =
   'd1e09000-0000-4000-8000-000000000001';
@@ -174,6 +175,12 @@ export default defineApplicationRole({
     {
       objectUniversalIdentifier: OFFER_UNIVERSAL_IDENTIFIER,
       ...readWrite,
+    },
+    {
+      // Read-only: the context is the company's own commercial position and is
+      // edited by people, never rewritten by a function or an agent.
+      objectUniversalIdentifier: WORKSPACE_CONTEXT_UNIVERSAL_IDENTIFIER,
+      ...readOnly,
     },
   ],
 });
