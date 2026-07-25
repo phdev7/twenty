@@ -1,22 +1,14 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { defineFrontComponent } from 'twenty-sdk/define';
 import {
-  SidePanelPages,
-  enqueueSnackbar,
-  openSidePanelPage,
-} from 'twenty-sdk/front-component';
-import {
-  IconAlertTriangle,
   IconCalendarDue,
   IconCheck,
   IconClock,
   IconCpu,
   IconExternalLink,
-  IconInbox,
   IconListCheck,
   IconPlayerPlay,
   IconRefresh,
-  IconRefreshDot,
   IconRobot,
   IconShield,
   IconTarget,
@@ -25,10 +17,19 @@ import {
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { AI_COMMAND_CENTER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/ai-command-center/constants/ai-command-center.constants';
+import { MetricCard } from 'src/modules/ai-command-center/front-components/components/metric-card';
+import {
+  type QueueFilter,
+  formatDateTime,
+  getLinkedRecords,
+  getRecordName,
+  getStatusLabel,
+  getStatusTone,
+  getTypeLabel,
+  openRecord,
+} from 'src/modules/ai-command-center/front-components/utils/ai-command-center-formatters';
 import { aiCommandCenterStyles as styles } from 'src/modules/ai-command-center/front-components/ai-command-center.styles';
 import {
-  type AiAction,
-  type AiRecordReference,
 } from 'src/modules/ai-command-center/front-components/ai-command-center.types';
 import { useAiCommandCenter } from 'src/modules/ai-command-center/front-components/use-ai-command-center';
 import {
@@ -43,183 +44,6 @@ import {
   Skeleton,
 } from 'src/ui/shadcn-twenty';
 
-type BadgeTone =
-  'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'turquoise' | 'gray';
-type QueueFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'HISTORY';
-type LinkedRecord = {
-  record: AiRecordReference;
-  label: string;
-  objectNameSingular: string;
-  icon: ReactNode;
-};
-
-const getRecordName = (record?: AiRecordReference | null): string => {
-  if (!record?.name) {
-    return '';
-  }
-
-  if (typeof record.name === 'string') {
-    return record.name;
-  }
-
-  return [record.name.firstName, record.name.lastName]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-};
-
-const getTypeLabel = (type: string): string =>
-  ({
-    QUALIFY: 'Qualificar',
-    REPLY: 'Responder',
-    FOLLOW_UP: 'Follow-up',
-    PIPELINE_UPDATE: 'Atualizar pipeline',
-    RISK_MITIGATION: 'Mitigar risco',
-    CS_INTERVENTION: 'Intervenção de CS',
-    EXPANSION: 'Expansão',
-  })[type] ?? type;
-
-const getStatusLabel = (status: string): string =>
-  ({
-    DRAFT: 'Rascunho',
-    PENDING_APPROVAL: 'Aguardando aprovação',
-    APPROVED: 'Aprovada',
-    REJECTED: 'Rejeitada',
-    EXECUTED: 'Executada',
-    FAILED: 'Falhou',
-  })[status] ?? status;
-
-const getStatusTone = (status: string): BadgeTone =>
-  (
-    ({
-      DRAFT: 'gray',
-      PENDING_APPROVAL: 'orange',
-      APPROVED: 'blue',
-      REJECTED: 'red',
-      EXECUTED: 'green',
-      FAILED: 'red',
-    }) as Record<string, BadgeTone>
-  )[status] ?? 'gray';
-
-const formatDateTime = (value?: string | null): string => {
-  if (!value) {
-    return 'sem data';
-  }
-
-  const date = new Date(value);
-
-  return Number.isFinite(date.getTime())
-    ? date.toLocaleString('pt-BR', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      })
-    : 'sem data';
-};
-
-const openRecord = async (
-  recordId: string,
-  objectNameSingular: string,
-): Promise<void> => {
-  try {
-    await openSidePanelPage({
-      page: SidePanelPages.ViewRecord,
-      recordId,
-      objectNameSingular,
-    });
-  } catch {
-    await enqueueSnackbar({
-      message: 'Não foi possível abrir este registro.',
-      variant: 'error',
-    });
-  }
-};
-
-const MetricCard = ({
-  label,
-  value,
-  tone,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  tone: BadgeTone;
-  icon: ReactNode;
-}) => (
-  <Card style={styles.metricCard}>
-    <div style={styles.queueTopLine}>
-      <p style={styles.metricLabel}>{label}</p>
-      <Badge tone={tone}>{icon}</Badge>
-    </div>
-    <p style={styles.metricValue}>{value}</p>
-  </Card>
-);
-
-const getLinkedRecords = (action: AiAction): LinkedRecord[] => {
-  const records: LinkedRecord[] = [];
-  const iconProps = {
-    size: themeCssVariables.icon.size.sm,
-    stroke: themeCssVariables.icon.stroke.md,
-  };
-
-  if (action.opportunity) {
-    records.push({
-      record: action.opportunity,
-      label: 'Oportunidade',
-      objectNameSingular: 'opportunity',
-      icon: <IconTarget {...iconProps} />,
-    });
-  }
-
-  if (action.commercialSignal) {
-    records.push({
-      record: action.commercialSignal,
-      label: 'Sinal comercial',
-      objectNameSingular: 'commercialSignal',
-      icon: <IconAlertTriangle {...iconProps} />,
-    });
-  }
-
-  if (action.successPlan) {
-    records.push({
-      record: action.successPlan,
-      label: 'Plano de sucesso',
-      objectNameSingular: 'successPlan',
-      icon: <IconShield {...iconProps} />,
-    });
-  }
-
-  if (action.customerRenewal) {
-    records.push({
-      record: action.customerRenewal,
-      label: 'Renovação',
-      objectNameSingular: 'customerRenewal',
-      icon: <IconRefreshDot {...iconProps} />,
-    });
-  }
-
-  if (action.inboxConversation) {
-    records.push({
-      record: action.inboxConversation,
-      label: 'Conversa',
-      objectNameSingular: 'inboxConversation',
-      icon: <IconInbox {...iconProps} />,
-    });
-  }
-
-  if (action.executionTask) {
-    records.push({
-      record: {
-        id: action.executionTask.id,
-        name: action.executionTask.title || 'Tarefa executada',
-      },
-      label: 'Tarefa executada',
-      objectNameSingular: 'task',
-      icon: <IconListCheck {...iconProps} />,
-    });
-  }
-
-  return records;
-};
 
 export const AiCommandCenterFrontComponent = () => {
   const {
