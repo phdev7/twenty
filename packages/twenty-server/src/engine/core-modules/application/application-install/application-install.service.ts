@@ -316,6 +316,29 @@ export class ApplicationInstallService {
     try {
       if (
         isVersionUpgrade &&
+        appRegistration.sourceType ===
+          ApplicationRegistrationSourceType.BUNDLED &&
+        application.version === incomingVersion
+      ) {
+        // Server and worker containers can use separate local-storage volumes.
+        // The first process to upgrade the shared application row must not
+        // prevent the other process from refreshing its local bundled files.
+        await this.writeFilesToStorage(
+          resolvedPackage.extractedDir,
+          resolvedPackage.manifest,
+          universalIdentifier,
+          params.workspaceId,
+        );
+
+        this.logger.log(
+          `Refreshed bundled app artifacts for ${universalIdentifier} v${incomingVersion}`,
+        );
+
+        return false;
+      }
+
+      if (
+        isVersionUpgrade &&
         isDefined(application.version) &&
         isDefined(incomingVersion)
       ) {
