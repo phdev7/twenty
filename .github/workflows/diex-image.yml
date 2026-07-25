@@ -54,3 +54,4 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             APP_VERSION=${{ steps.version.outputs.value }}
+            DIEX_CORE_BUILD_VERSION=${{ steps.version.outputs.value }}

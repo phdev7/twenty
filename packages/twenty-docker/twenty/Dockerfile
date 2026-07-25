@@ -41,6 +41,8 @@ FROM node:24.18.0-alpine3.23@sha256:595398b0081eacda8e1c4c5b97b76cd1020e4d58a8eb
 
 WORKDIR /app/diex-crm-core
 
+ARG DIEX_CORE_BUILD_VERSION=development
+
 COPY ./packages/twenty-apps/internal/diex/package.json ./
 COPY ./packages/twenty-apps/internal/diex/yarn.lock ./
 COPY ./packages/twenty-apps/internal/diex/.yarnrc.yml ./
@@ -52,7 +54,12 @@ COPY ./packages/twenty-apps/internal/diex/src ./src
 COPY ./packages/twenty-apps/internal/diex/tsconfig.json ./
 COPY ./packages/twenty-apps/internal/diex/README.md ./
 
-RUN yarn twenty dev:build .
+# The release version is intentionally consumed by this layer. It prevents
+# BuildKit from reusing an older precompiled Diex bundle when only app source
+# files changed between image tags.
+RUN rm -rf .twenty && \
+    echo "Building Diex CRM Core for image $DIEX_CORE_BUILD_VERSION" && \
+    yarn twenty dev:build .
 
 
 FROM server-deps AS twenty-server-build
