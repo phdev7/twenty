@@ -178,11 +178,11 @@ const openRecord = async (
 
 const getSignalPriority = (signal: CommercialSignal): number => {
   const typeWeight =
-    signal.type === 'CHURN_RISK' || signal.type === 'RISK'
+    signal.signalType === 'CHURN_RISK' || signal.signalType === 'RISK'
       ? 40
-      : signal.type === 'OBJECTION'
+      : signal.signalType === 'OBJECTION'
         ? 30
-        : signal.type === 'INTENT' || signal.type === 'EXPANSION'
+        : signal.signalType === 'INTENT' || signal.signalType === 'EXPANSION'
           ? 25
           : 10;
   const statusWeight = signal.status === 'NEW' ? 20 : 10;
@@ -285,11 +285,14 @@ export const CommercialIntelligenceFrontComponent = () => {
       ({ status }) => status === 'NEW' || status === 'IN_REVIEW',
     );
     const buyingSignals = activeSignals.filter(
-      ({ type }) => type === 'INTENT' || type === 'EXPANSION',
+      ({ signalType }) =>
+        signalType === 'INTENT' || signalType === 'EXPANSION',
     );
     const riskSignals = activeSignals.filter(
-      ({ type }) =>
-        type === 'RISK' || type === 'CHURN_RISK' || type === 'OBJECTION',
+      ({ signalType }) =>
+        signalType === 'RISK' ||
+        signalType === 'CHURN_RISK' ||
+        signalType === 'OBJECTION',
     );
     const overdueActions = opportunities.filter(
       ({ nextCommercialActionAt }) =>
@@ -506,10 +509,10 @@ export const CommercialIntelligenceFrontComponent = () => {
                           style={{
                             ...styles.signalDot,
                             background:
-                              signal.type === 'RISK' ||
-                              signal.type === 'CHURN_RISK'
+                              signal.signalType === 'RISK' ||
+                              signal.signalType === 'CHURN_RISK'
                                 ? themeCssVariables.color.red
-                                : signal.type === 'OBJECTION'
+                                : signal.signalType === 'OBJECTION'
                                   ? themeCssVariables.color.orange
                                   : themeCssVariables.accent.primary,
                           }}
@@ -517,8 +520,8 @@ export const CommercialIntelligenceFrontComponent = () => {
                         <div>
                           <p style={styles.signalTitle}>{signal.name}</p>
                           <div style={styles.signalMeta}>
-                            <Badge tone={getSignalTone(signal.type)}>
-                              {getSignalTypeLabel(signal.type)}
+                            <Badge tone={getSignalTone(signal.signalType)}>
+                              {getSignalTypeLabel(signal.signalType)}
                             </Badge>
                             <Badge tone={getStatusTone(signal.status)}>
                               {getStatusLabel(signal.status)}

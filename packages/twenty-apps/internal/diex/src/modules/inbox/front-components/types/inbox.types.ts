@@ -14,7 +14,7 @@ export type InboxWorkspaceMember = InboxRecordReference & {
 
 export type InboxTeamMembership = {
   id: string;
-  role: string;
+  memberRole: string;
   isActive: boolean;
   joinedAt?: string | null;
   workspaceMember?: InboxWorkspaceMember | null;
@@ -101,7 +101,7 @@ export type InboxMessage = {
   name: string;
   providerMessageKey: string;
   direction: string;
-  type: string;
+  messageType: string;
   body?: string | null;
   deliveryStatus: string;
   sentAt?: string | null;

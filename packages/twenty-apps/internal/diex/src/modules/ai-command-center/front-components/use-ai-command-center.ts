@@ -60,7 +60,7 @@ export const useAiCommandCenter = () => {
               node: {
                 id: true,
                 name: true,
-                type: true,
+                actionType: true,
                 status: true,
                 confidence: true,
                 requiresApproval: true,

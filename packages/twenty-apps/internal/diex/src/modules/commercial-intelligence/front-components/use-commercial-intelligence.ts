@@ -49,7 +49,7 @@ export const useCommercialIntelligence = () => {
               node: {
                 id: true,
                 name: true,
-                type: true,
+                signalType: true,
                 source: true,
                 status: true,
                 strength: true,

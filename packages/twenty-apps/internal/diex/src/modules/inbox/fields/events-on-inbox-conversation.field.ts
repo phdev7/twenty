@@ -12,7 +12,7 @@ export default defineField({
     INBOX_CONVERSATION_EVENT_RELATION_FIELD_IDS.eventsOnConversation,
   objectUniversalIdentifier: INBOX_CONVERSATION_UNIVERSAL_IDENTIFIER,
   type: FieldType.RELATION,
-  name: 'events',
+  name: 'conversationEvents',
   label: 'Eventos',
   icon: 'IconTimelineEvent',
   relationTargetObjectMetadataUniversalIdentifier:

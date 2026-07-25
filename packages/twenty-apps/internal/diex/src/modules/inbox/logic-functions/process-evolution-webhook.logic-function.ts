@@ -371,7 +371,7 @@ const resolveDefaultInboxTeam = async (
             edges: {
               node: {
                 id: true,
-                role: true,
+                memberRole: true,
                 isActive: true,
                 workspaceMemberId: true,
               },
@@ -685,7 +685,7 @@ const createInboxMessage = async (
             name: buildMessagePreview(message),
             providerMessageKey: message.providerMessageKey,
             direction: message.direction,
-            type: message.type,
+            messageType: message.type,
             body: message.body ?? undefined,
             deliveryStatus: message.deliveryStatus,
             sentAt: message.sentAt,

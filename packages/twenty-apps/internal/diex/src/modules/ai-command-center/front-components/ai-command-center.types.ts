@@ -16,7 +16,7 @@ export type AiRichText = {
 export type AiAction = {
   id: string;
   name: string;
-  type: string;
+  actionType: string;
   status: string;
   confidence?: number | null;
   requiresApproval: boolean;

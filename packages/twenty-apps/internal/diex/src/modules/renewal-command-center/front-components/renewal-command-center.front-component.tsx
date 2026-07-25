@@ -913,9 +913,9 @@ const RenewalCommandCenter = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {selectedRenewal?.events.length ? (
+            {selectedRenewal?.renewalEvents.length ? (
               <div style={styles.timeline}>
-                {selectedRenewal.events.map((event) => (
+                {selectedRenewal.renewalEvents.map((event) => (
                   <div key={event.id} style={styles.timelineItem}>
                     <span style={styles.timelineDot} />
                     <div>

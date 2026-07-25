@@ -15,7 +15,7 @@ export type RichTextValue = {
 export type CommercialSignal = {
   id: string;
   name: string;
-  type: string;
+  signalType: string;
   source: string;
   status: string;
   strength?: string | null;

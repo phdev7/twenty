@@ -50,7 +50,7 @@ export type CustomerRenewal = {
   successPlan?: RenewalRecordReference | null;
   company?: RenewalRecordReference | null;
   owner?: RenewalWorkspaceMember | null;
-  events: RenewalEvent[];
+  renewalEvents: RenewalEvent[];
 };
 
 export type RenewalSuccessPlan = {

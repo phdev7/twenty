@@ -35,7 +35,7 @@ export default defineObject({
     {
       universalIdentifier: INBOX_TEAM_MEMBER_FIELD_IDS.role,
       type: FieldType.SELECT,
-      name: 'role',
+      name: 'memberRole',
       label: 'Papel',
       icon: 'IconUserShield',
       defaultValue: `'${InboxTeamMemberRole.MEMBER}'`,

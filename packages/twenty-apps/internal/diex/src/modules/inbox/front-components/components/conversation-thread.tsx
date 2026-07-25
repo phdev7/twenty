@@ -574,7 +574,7 @@ export const ConversationThread = ({
                     {senderName}
                   </div>
                   <p style={inboxStyles.messageText}>
-                    {message.body || getMessageTypeLabel(message.type)}
+                    {message.body || getMessageTypeLabel(message.messageType)}
                   </p>
                   {messageMentions.length > 0 ? (
                     <div style={inboxStyles.mentionChips}>

@@ -73,7 +73,7 @@ type ConversationContext = {
 type MessageContext = {
   id: string;
   direction: string | null;
-  type: string | null;
+  messageType: string | null;
   body: string | null;
   sentAt: string | null;
   senderDisplayName: string | null;
@@ -132,7 +132,7 @@ const loadConversationContext = async (
           node: {
             id: true,
             direction: true,
-            type: true,
+            messageType: true,
             body: true,
             sentAt: true,
             senderDisplayName: true,
@@ -175,7 +175,7 @@ const buildAgentPrompt = ({
   const safeMessages = messages.map((message) => ({
     id: message.id,
     direction: message.direction,
-    type: message.type,
+    messageType: message.messageType,
     sentAt: message.sentAt,
     senderDisplayName: message.senderDisplayName,
     isInternalNote: message.isInternalNote,
@@ -237,7 +237,7 @@ const upsertCommercialSignal = async ({
       0,
       250,
     ),
-    type: signalType,
+    signalType,
     source:
       conversation.channel === 'WHATSAPP'
         ? CommercialSignalSource.WHATSAPP

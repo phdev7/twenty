@@ -115,7 +115,7 @@ export default defineObject({
     {
       universalIdentifier: AI_ACTION_TYPE_FIELD_UNIVERSAL_IDENTIFIER,
       type: FieldType.SELECT,
-      name: 'type',
+      name: 'actionType',
       label: 'Tipo',
       icon: 'IconCategory',
       options: [

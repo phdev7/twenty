@@ -356,7 +356,7 @@ export default defineObject({
     {
       universalIdentifier: INBOX_AUTOMATION_FIELD_IDS.position,
       type: FieldType.NUMBER,
-      name: 'position',
+      name: 'executionOrder',
       label: 'Ordem',
       icon: 'IconSortAscending',
       defaultValue: 100,

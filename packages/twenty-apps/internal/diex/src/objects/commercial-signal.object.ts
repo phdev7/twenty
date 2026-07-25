@@ -109,7 +109,7 @@ export default defineObject({
       universalIdentifier:
         COMMERCIAL_SIGNAL_TYPE_FIELD_UNIVERSAL_IDENTIFIER,
       type: FieldType.SELECT,
-      name: 'type',
+      name: 'signalType',
       label: 'Tipo',
       icon: 'IconCategory',
       options: [

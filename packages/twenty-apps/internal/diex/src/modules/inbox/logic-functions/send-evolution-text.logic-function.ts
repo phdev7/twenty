@@ -324,7 +324,7 @@ const createQueuedInboxMessage = async ({
           name: text.slice(0, 250),
           providerMessageKey,
           direction: InboxMessageDirection.OUTBOUND,
-          type: InboxMessageType.TEXT,
+          messageType: InboxMessageType.TEXT,
           body: text,
           deliveryStatus: InboxMessageDeliveryStatus.QUEUED,
           sentAt,

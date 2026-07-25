@@ -11,7 +11,7 @@ export default defineField({
   universalIdentifier: EVENTS_ON_CUSTOMER_RENEWAL_FIELD_UNIVERSAL_IDENTIFIER,
   objectUniversalIdentifier: CUSTOMER_RENEWAL_UNIVERSAL_IDENTIFIER,
   type: FieldType.RELATION,
-  name: 'events',
+  name: 'renewalEvents',
   label: 'Histórico',
   icon: 'IconTimelineEvent',
   relationTargetObjectMetadataUniversalIdentifier:

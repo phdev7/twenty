@@ -10,8 +10,8 @@ import {
   type RenewalWorkspaceMember,
 } from 'src/modules/renewal-command-center/front-components/renewal-command-center.types';
 
-type CustomerRenewalNode = Omit<CustomerRenewal, 'events'> & {
-  events?: {
+type CustomerRenewalNode = Omit<CustomerRenewal, 'renewalEvents'> & {
+  renewalEvents?: {
     edges?: Array<{
       node: RenewalEvent;
     }>;
@@ -156,7 +156,7 @@ export const useRenewalCommandCenter = () => {
                   lastName: true,
                 },
               },
-              events: {
+              renewalEvents: {
                 edges: {
                   node: {
                     id: true,
@@ -235,8 +235,8 @@ export const useRenewalCommandCenter = () => {
       setRenewals(
         result.customerRenewals?.edges?.map(({ node }) => ({
           ...node,
-          events:
-            node.events?.edges
+          renewalEvents:
+            node.renewalEvents?.edges
               ?.map(({ node: event }) => event)
               .sort(
                 (left, right) =>

@@ -319,7 +319,7 @@ const loadAutomationRules = async (
           taskDueDelayMinutes: true,
           internalNoteTemplate: true,
           stopAfterMatch: true,
-          position: true,
+          executionOrder: true,
           runCount: true,
           lastRunAt: true,
           inboxLabel: {
@@ -338,7 +338,7 @@ const loadAutomationRules = async (
               edges: {
                 node: {
                   id: true,
-                  role: true,
+                  memberRole: true,
                   isActive: true,
                   workspaceMemberId: true,
                 },
@@ -866,7 +866,7 @@ const createInternalNote = async ({
           name: body.length > 70 ? `${body.slice(0, 67)}...` : body,
           providerMessageKey: `INTERNAL:AUTOMATION:${automation.id}:${runHash}`,
           direction: 'OUTBOUND',
-          type: 'TEXT',
+          messageType: 'TEXT',
           body,
           deliveryStatus: 'SENT',
           sentAt: occurredAt,

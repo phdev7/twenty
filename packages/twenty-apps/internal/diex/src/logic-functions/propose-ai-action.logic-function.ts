@@ -86,7 +86,7 @@ export const proposeAiAction = async (
       __args: {
         data: {
           name,
-          type: input.type,
+          actionType: input.type,
           status: AiActionStatus.PENDING_APPROVAL,
           confidence:
             input.confidence === undefined

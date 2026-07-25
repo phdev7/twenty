@@ -288,7 +288,7 @@ const loadAiAction = async (
       __args: { filter: { id: { eq: actionId } } },
       id: true,
       name: true,
-      type: true,
+      actionType: true,
       status: true,
       confidence: true,
       requiresApproval: true,

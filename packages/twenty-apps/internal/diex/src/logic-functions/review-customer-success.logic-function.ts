@@ -248,7 +248,7 @@ const loadRelatedContext = async (
               edges: {
                 node: {
                   id: true,
-                  type: true,
+                  signalType: true,
                   status: true,
                   strength: true,
                   confidence: true,

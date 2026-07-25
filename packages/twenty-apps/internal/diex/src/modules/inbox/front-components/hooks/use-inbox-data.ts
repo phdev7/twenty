@@ -518,7 +518,7 @@ export const useInboxData = () => {
               name: true,
               providerMessageKey: true,
               direction: true,
-              type: true,
+              messageType: true,
               body: true,
               deliveryStatus: true,
               sentAt: true,
@@ -773,7 +773,7 @@ export const useInboxData = () => {
                   edges: {
                     node: {
                       id: true,
-                      role: true,
+                      memberRole: true,
                       isActive: true,
                       joinedAt: true,
                       workspaceMember: {
@@ -949,7 +949,7 @@ export const useInboxData = () => {
                 edges: {
                   node: {
                     id: true,
-                    role: true,
+                    memberRole: true,
                     isActive: true,
                     joinedAt: true,
                     workspaceMember: {

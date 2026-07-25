@@ -308,7 +308,7 @@ export const AiCommandCenterFrontComponent = () => {
   const executionPreview = selectedAction
     ? (executionPreviews[selectedAction.id] ?? null)
     : null;
-  const isPipelineAction = selectedAction?.type === 'PIPELINE_UPDATE';
+  const isPipelineAction = selectedAction?.actionType === 'PIPELINE_UPDATE';
   const pipelineTargetStage = selectedAction
     ? (pipelineTargets[selectedAction.id] ?? '')
     : '';
@@ -498,7 +498,7 @@ export const AiCommandCenterFrontComponent = () => {
                     </Badge>
                   </div>
                   <div style={styles.queueMeta}>
-                    <span>{getTypeLabel(action.type)}</span>
+                    <span>{getTypeLabel(action.actionType)}</span>
                     <span>·</span>
                     <span>{Math.round(action.confidence ?? 0)}% confiança</span>
                     <span>·</span>
@@ -522,7 +522,7 @@ export const AiCommandCenterFrontComponent = () => {
                   <Badge tone={getStatusTone(selectedAction.status)}>
                     {getStatusLabel(selectedAction.status)}
                   </Badge>
-                  <Badge tone="blue">{getTypeLabel(selectedAction.type)}</Badge>
+                  <Badge tone="blue">{getTypeLabel(selectedAction.actionType)}</Badge>
                   <Badge
                     tone={
                       (selectedAction.confidence ?? 0) >= 75

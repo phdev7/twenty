@@ -83,7 +83,7 @@ export default defineObject({
     {
       universalIdentifier: INBOX_MESSAGE_FIELD_IDS.type,
       type: FieldType.SELECT,
-      name: 'type',
+      name: 'messageType',
       label: 'Tipo',
       icon: 'IconCategory',
       defaultValue: `'${InboxMessageType.TEXT}'`,
