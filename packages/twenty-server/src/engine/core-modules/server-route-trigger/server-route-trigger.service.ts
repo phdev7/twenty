@@ -139,8 +139,18 @@ export class ServerRouteTriggerService {
           universalIdentifier: logicFunctionUniversalIdentifier,
         })
         .andWhere('logicFunction.serverRouteTriggerSettings IS NOT NULL')
+        // ownerWorkspaceId is null for bundled and catalog-synced registrations,
+        // which have no owning workspace by design. Comparing a workspace id to
+        // null is never true, so requiring the match outright made every
+        // pre-installed app unable to serve a server route at all — its
+        // functions exist and carry serverRouteTriggerSettings, and the lookup
+        // still answers 404. Keep the strict check where an owner exists, and
+        // accept the ownerless case. Such a registration can be installed in
+        // several workspaces, so the resolver it selects is not tenant-specific:
+        // resolvers for shared registrations are expected to derive the target
+        // workspace from the request itself, as the dispatch result requires.
         .andWhere(
-          'logicFunction.workspaceId = applicationRegistration.ownerWorkspaceId',
+          '(applicationRegistration.ownerWorkspaceId IS NULL OR logicFunction.workspaceId = applicationRegistration.ownerWorkspaceId)',
         )
         .getOne()) ?? null
     );

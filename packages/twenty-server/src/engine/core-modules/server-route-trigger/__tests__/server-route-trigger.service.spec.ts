@@ -183,14 +183,17 @@ describe('ServerRouteTriggerService', () => {
     );
   });
 
-  it('restricts the resolver query to server-route-exposed, owner-workspace functions', async () => {
+  it('restricts the resolver query to server-route-exposed functions owned by the workspace, or to ownerless registrations', async () => {
     await handle();
 
     expect(queryBuilder.andWhere).toHaveBeenCalledWith(
       'logicFunction.serverRouteTriggerSettings IS NOT NULL',
     );
+    // Bundled and catalog-synced registrations have no owning workspace, and
+    // requiring the match outright left every pre-installed app answering 404
+    // on its own server route.
     expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-      'logicFunction.workspaceId = applicationRegistration.ownerWorkspaceId',
+      '(applicationRegistration.ownerWorkspaceId IS NULL OR logicFunction.workspaceId = applicationRegistration.ownerWorkspaceId)',
     );
   });
 
