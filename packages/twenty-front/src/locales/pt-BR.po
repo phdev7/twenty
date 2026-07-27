@@ -20785,3 +20785,78 @@ msgstr "Seu workspace será desativado"
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
 msgid "Zed"
 msgstr "Zed"
+
+msgid "Add Diex CRM as a Streamable HTTP extension in Goose."
+msgstr "Adicione o Diex CRM como extensão Streamable HTTP no Goose."
+
+msgid "Add the Diex CRM MCP server as a remote context server in Zed."
+msgstr "Adicione o servidor MCP do Diex CRM como servidor de contexto remoto no Zed."
+
+msgid "Add the Diex CRM MCP server from Augment Code settings."
+msgstr "Adicione o servidor MCP do Diex CRM nas configurações do Augment Code."
+
+msgid "Add the Diex CRM MCP server from Raycast's MCP commands or settings."
+msgstr "Adicione o servidor MCP do Diex CRM pelos comandos MCP ou configurações do Raycast."
+
+msgid "Add the Diex CRM MCP server in Gemini CLI settings."
+msgstr "Adicione o servidor MCP do Diex CRM nas configurações do Gemini CLI."
+
+msgid "Add the Diex CRM MCP server to your LibreChat configuration file."
+msgstr "Adicione o servidor MCP do Diex CRM ao seu arquivo de configuração do LibreChat."
+
+msgid "Add the Diex CRM remote server with LM Studio's install link."
+msgstr "Adicione o servidor remoto do Diex CRM com o link de instalação do LM Studio."
+
+msgid "Billing portal session error. Please retry or contact Diex team"
+msgstr "Erro na sessão do portal de cobrança. Tente novamente ou fale com a equipe Diex"
+
+msgid "Checkout session error. Please retry or contact Diex team"
+msgstr "Erro na sessão de checkout. Tente novamente ou fale com a equipe Diex"
+
+msgid "Configure the Diex CRM MCP server manually in Cascade."
+msgstr "Configure o servidor MCP do Diex CRM manualmente no Cascade."
+
+msgid "Configure the Diex CRM MCP server manually in Cline."
+msgstr "Configure o servidor MCP do Diex CRM manualmente no Cline."
+
+msgid "Diex CRM MCP Server"
+msgstr "Servidor MCP do Diex CRM"
+
+msgid "Diex CRM MCP with scoped key"
+msgstr "MCP do Diex CRM com chave restrita"
+
+msgid "Diex CRM with API key"
+msgstr "Diex CRM com chave de API"
+
+msgid "Diex CRM with OAuth"
+msgstr "Diex CRM com OAuth"
+
+msgid "Diex fields"
+msgstr "Campos Diex"
+
+msgid "Error while ending trial period. Please contact Diex team."
+msgstr "Erro ao encerrar o período de teste. Fale com a equipe Diex."
+
+msgid "Live Streamable HTTP endpoint for this Diex CRM instance."
+msgstr "Endpoint Streamable HTTP ativo desta instância do Diex CRM."
+
+msgid "Open Claude with the Diex CRM connector name and MCP URL prefilled."
+msgstr "Abra o Claude com o nome do conector do Diex CRM e a URL do MCP preenchidos."
+
+msgid "Open Cursor's MCP installer with the Diex CRM remote server config."
+msgstr "Abra o instalador MCP do Cursor com a configuração do servidor remoto do Diex CRM."
+
+msgid "Open Replit with the Diex CRM remote server config."
+msgstr "Abra o Replit com a configuração do servidor remoto do Diex CRM."
+
+msgid "Page Not Found | Diex CRM"
+msgstr "Página não encontrada | Diex CRM"
+
+msgid "Subscription error. Please retry or contact Diex team"
+msgstr "Erro na assinatura. Tente novamente ou fale com a equipe Diex"
+
+msgid "The Diex CRM role limits this key to commercial, Inbox, AI and Customer Success operations without settings or deletion access."
+msgstr "O papel Diex CRM limita esta chave a operações de comercial, Inbox, IA e Customer Success, sem acesso a configurações ou exclusão."
+
+msgid "Welcome to Diex"
+msgstr "Bem-vindo à Diex"

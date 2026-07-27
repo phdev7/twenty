@@ -55,3 +55,107 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.version.outputs.value }}
             DIEX_CORE_BUILD_VERSION=${{ steps.version.outputs.value }}
+
+  # Pushing a diex-v* tag is the whole release. Nobody edits DIEX_IMAGE_TAG by
+  # hand in Coolify: the tag that produced the image is the tag that gets
+  # deployed, so the two can never drift.
+  deploy:
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/diex-v')
+    runs-on: ubuntu-latest
+    environment: homologation
+    concurrency:
+      group: diex-deploy-homologation
+      cancel-in-progress: false
+    env:
+      COOLIFY_URL: ${{ secrets.COOLIFY_API_URL }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+      SERVER_UUID: lzgjig7ausbrgdkzemopj4ng
+      WORKER_UUID: nes5rib9mpbv3f0y82wez8in
+      TARGET_URL: https://next-crm.bydiex.com
+    steps:
+      - name: Point server and worker at the new image
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for uuid in "$SERVER_UUID" "$WORKER_UUID"; do
+            curl --fail-with-body --silent --show-error \
+              -X PATCH "${COOLIFY_URL}/api/v1/applications/${uuid}/envs" \
+              -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+              -H 'Content-Type: application/json' \
+              -d "$(jq -nc --arg v "$GITHUB_REF_NAME" \
+                    '{key:"DIEX_IMAGE_TAG", value:$v, is_preview:false}')" \
+              >/dev/null
+            echo "::notice::${uuid} -> ${GITHUB_REF_NAME}"
+          done
+
+      - name: Trigger the deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl --fail-with-body --silent --show-error \
+            "${COOLIFY_URL}/api/v1/deploy?uuid=${SERVER_UUID},${WORKER_UUID}&force=false" \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            | jq -r '.deployments[].deployment_uuid' > deployments.txt
+
+          test -s deployments.txt
+
+      - name: Wait for Coolify to finish
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          while read -r deployment; do
+            for attempt in $(seq 1 120); do
+              status=$(curl --silent --show-error \
+                "${COOLIFY_URL}/api/v1/deployments/${deployment}" \
+                -H "Authorization: Bearer ${COOLIFY_TOKEN}" | jq -r '.status // "unknown"')
+
+              case "$status" in
+                finished)
+                  echo "::notice::${deployment} finished"
+                  break
+                  ;;
+                failed|cancelled-by-user)
+                  echo "::error::deployment ${deployment} ended as ${status}"
+                  exit 1
+                  ;;
+              esac
+
+              if [[ "$attempt" -eq 120 ]]; then
+                echo "::error::deployment ${deployment} still ${status} after 20 minutes"
+                exit 1
+              fi
+
+              sleep 10
+            done
+          done < deployments.txt
+
+      # Coolify reporting "finished" only means the container started. The boot
+      # runs metadata migrations and can take several minutes more, so the
+      # release is not green until the running instance answers with this
+      # version.
+      - name: Verify the running version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          expected="${GITHUB_REF_NAME#diex-v}"
+          actual=""
+
+          for _ in $(seq 1 60); do
+            actual=$(curl --silent --max-time 10 "${TARGET_URL}/client-config" \
+              | grep -o '"appVersion":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
+
+            if [[ "$actual" == "$expected" ]]; then
+              echo "::notice::${TARGET_URL} is serving ${actual}"
+              exit 0
+            fi
+
+            sleep 15
+          done
+
+          echo "::error::expected ${expected}, still serving '${actual:-unreachable}'"
+          exit 1

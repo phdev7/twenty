@@ -3,6 +3,11 @@ name: diex-crm
 x-diex-environment: &diex-environment
   NODE_ENV: production
   SERVER_URL: ${SERVER_URL}
+  # Logic functions call the API back from inside this network. Routing that
+  # hop through the public SERVER_URL requires the host to hairpin its own
+  # public IP, which this VPS does not do — every logic function using the
+  # API client then dies with "TypeError: fetch failed".
+  SERVER_INTERNAL_URL: ${SERVER_INTERNAL_URL:-http://server:3000}
   PG_DATABASE_URL: ${PG_DATABASE_URL}
   REDIS_URL: ${REDIS_URL}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY}

@@ -358,3 +358,68 @@ msgstr "Seu workspace foi excluído"
 #: src/emails/warn-suspended-workspace.email.tsx
 msgid "Your workspace is paused"
 msgstr "Seu workspace está em pausa"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Visit Diex's website"
+msgstr "Visite o site da Diex"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Support"
+msgstr "Suporte"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Contact Diex support"
+msgstr "Fale com o suporte da Diex"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Privacy"
+msgstr "Privacidade"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Read Diex's privacy policy"
+msgstr "Leia a política de privacidade da Diex"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Terms"
+msgstr "Termos"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Read Diex's terms of service"
+msgstr "Leia os termos de uso da Diex"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "Diex CRM"
+msgstr "Diex CRM"
+
+#. js-lingui-explicit-id
+#: src/components/Footer.tsx
+msgid "contato@bydiex.com"
+msgstr "contato@bydiex.com"
+
+#. js-lingui-explicit-id
+#: src/components/WhatIsTwenty.tsx
+msgid "What is Diex CRM?"
+msgstr "O que é o Diex CRM?"
+
+#. js-lingui-explicit-id
+#: src/components/WhatIsTwenty.tsx
+msgid "It's a commercial CRM with communication, automation, and artificial intelligence to help teams turn customer relationships into revenue."
+msgstr "É um CRM comercial com comunicação, automação e inteligência artificial para ajudar equipes a transformar relacionamento com clientes em receita."
+
+#. js-lingui-explicit-id
+#: src/emails/password-update-notify.email.tsx
+msgid "Connect to Diex CRM"
+msgstr "Acesse o Diex CRM"
+
+#. js-lingui-explicit-id
+#: src/emails/send-invite-link.email.tsx
+msgid "Join your team on Diex CRM"
+msgstr "Junte-se à sua equipe no Diex CRM"

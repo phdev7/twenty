@@ -1339,6 +1339,25 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.SERVER_CONFIG,
     description:
+      'Address the server reaches itself on from inside its own network, ' +
+      'used by logic functions calling back into the API. SERVER_URL is the ' +
+      'public address, and on hosts without NAT hairpinning a container ' +
+      'cannot route to it, which kills every logic function that talks to ' +
+      'the API. Set this to the internal service address (e.g. ' +
+      'http://server:3000) to keep that hop inside the network. Workspace ' +
+      'resolution is unaffected: application tokens carry workspaceId, so ' +
+      'the API never derives the tenant from the request host. Falls back ' +
+      'to SERVER_URL when unset.',
+    type: ConfigVariableType.STRING,
+    isEnvOnly: true,
+  })
+  @IsUrl({ require_tld: false, require_protocol: true })
+  @IsOptional()
+  SERVER_INTERNAL_URL: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
       'When enabled, the served frontend resolves the API base URL from ' +
       "the browser's current origin (window.location) instead of the " +
       'baked-in SERVER_URL. Useful for self-hosted deployments reachable ' +

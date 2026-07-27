@@ -350,7 +350,15 @@ export class LogicFunctionExecutorService {
         userWorkspaceId,
       });
 
-    const baseUrl = cleanServerUrl(this.twentyConfigService.get('SERVER_URL'));
+    // A logic function calls the API from inside the deployment's own network.
+    // Sending it to the public SERVER_URL means leaving the host and coming
+    // back through the proxy, which fails outright where NAT hairpinning is
+    // not available. Prefer the internal address when one is configured; the
+    // tenant still comes from the application token, not the request host.
+    const baseUrl = cleanServerUrl(
+      this.twentyConfigService.get('SERVER_INTERNAL_URL') ||
+        this.twentyConfigService.get('SERVER_URL'),
+    );
     const functionsBaseUrl = await this.buildFunctionsBaseUrl({
       workspaceId,
       flatApplication,
