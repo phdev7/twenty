@@ -86,10 +86,18 @@ jobs:
       # they run is the docker_registry_image_tag field on the application
       # itself — not an environment variable the container reads. Patching an
       # env var here would report success and deploy the previous image.
+      #
+      # APP_VERSION has to move with it. The Dockerfile bakes the version in at
+      # build time, but Coolify sets APP_VERSION as a runtime variable, and that
+      # override is what the instance reports on /client-config. Leave it behind
+      # and every release ships the new image while announcing the old version —
+      # which is also what the final step here checks.
       - name: Point server and worker at the new image
         shell: bash
         run: |
           set -euo pipefail
+
+          version="${GITHUB_REF_NAME#diex-v}"
 
           for uuid in "$SERVER_UUID" "$WORKER_UUID"; do
             curl --fail-with-body --silent --show-error \
@@ -98,6 +106,14 @@ jobs:
               -H 'Content-Type: application/json' \
               -d "$(jq -nc --arg v "$GITHUB_REF_NAME" \
                     '{docker_registry_image_tag:$v}')" \
+              >/dev/null
+
+            curl --fail-with-body --silent --show-error \
+              -X PATCH "${COOLIFY_URL}/api/v1/applications/${uuid}/envs" \
+              -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+              -H 'Content-Type: application/json' \
+              -d "$(jq -nc --arg v "$version" \
+                    '{key:"APP_VERSION", value:$v, is_preview:false}')" \
               >/dev/null
 
             applied=$(curl --fail-with-body --silent --show-error \
