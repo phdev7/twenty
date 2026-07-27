@@ -56,12 +56,20 @@ jobs:
             APP_VERSION=${{ steps.version.outputs.value }}
             DIEX_CORE_BUILD_VERSION=${{ steps.version.outputs.value }}
 
-  # Pushing a diex-v* tag is the whole release. Nobody edits DIEX_IMAGE_TAG by
+  # Pushing a diex-v* tag is the whole release. Nobody sets the image tag by
   # hand in Coolify: the tag that produced the image is the tag that gets
   # deployed, so the two can never drift.
+  #
+  # Gated on the DIEX_DEPLOY_FROM_CI variable because the Coolify API is only
+  # published on port 8000 behind an IP allowlist, and GitHub-hosted runners
+  # egress from a range too large and too volatile to allowlist. Until Coolify
+  # answers on a routable address, the tag builds and publishes the image and
+  # the deploy is driven by hand. Skipping keeps that fact visible instead of
+  # painting every release red. Set the variable to "true" once the API is
+  # reachable — the steps below need no other change.
   deploy:
     needs: publish
-    if: startsWith(github.ref, 'refs/tags/diex-v')
+    if: startsWith(github.ref, 'refs/tags/diex-v') && vars.DIEX_DEPLOY_FROM_CI == 'true'
     runs-on: ubuntu-latest
     environment: homologation
     concurrency:
@@ -74,6 +82,10 @@ jobs:
       WORKER_UUID: nes5rib9mpbv3f0y82wez8in
       TARGET_URL: https://next-crm.bydiex.com
     steps:
+      # Both applications are Coolify "dockerimage" resources, so the image
+      # they run is the docker_registry_image_tag field on the application
+      # itself — not an environment variable the container reads. Patching an
+      # env var here would report success and deploy the previous image.
       - name: Point server and worker at the new image
         shell: bash
         run: |
@@ -81,12 +93,23 @@ jobs:
 
           for uuid in "$SERVER_UUID" "$WORKER_UUID"; do
             curl --fail-with-body --silent --show-error \
-              -X PATCH "${COOLIFY_URL}/api/v1/applications/${uuid}/envs" \
+              -X PATCH "${COOLIFY_URL}/api/v1/applications/${uuid}" \
               -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
               -H 'Content-Type: application/json' \
               -d "$(jq -nc --arg v "$GITHUB_REF_NAME" \
-                    '{key:"DIEX_IMAGE_TAG", value:$v, is_preview:false}')" \
+                    '{docker_registry_image_tag:$v}')" \
               >/dev/null
+
+            applied=$(curl --fail-with-body --silent --show-error \
+              "${COOLIFY_URL}/api/v1/applications/${uuid}" \
+              -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+              | jq -r '.docker_registry_image_tag')
+
+            if [[ "$applied" != "$GITHUB_REF_NAME" ]]; then
+              echo "::error::${uuid} still pinned to '${applied}'"
+              exit 1
+            fi
+
             echo "::notice::${uuid} -> ${GITHUB_REF_NAME}"
           done
 

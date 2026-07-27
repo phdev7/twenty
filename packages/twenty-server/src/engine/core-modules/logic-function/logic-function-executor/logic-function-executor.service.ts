@@ -350,11 +350,13 @@ export class LogicFunctionExecutorService {
         userWorkspaceId,
       });
 
-    // A logic function calls the API from inside the deployment's own network.
-    // Sending it to the public SERVER_URL means leaving the host and coming
-    // back through the proxy, which fails outright where NAT hairpinning is
-    // not available. Prefer the internal address when one is configured; the
-    // tenant still comes from the application token, not the request host.
+    // A logic function calls the API from inside the deployment's own network,
+    // so the public SERVER_URL is the wrong address to hand it: what that
+    // hostname resolves to inside a container is up to the host's resolver,
+    // and when the host is named after the domain it serves it answers with
+    // the host-local loopback alias — a dead end from inside the container.
+    // Prefer the internal address when one is configured; the tenant still
+    // comes from the application token, not the request host.
     const baseUrl = cleanServerUrl(
       this.twentyConfigService.get('SERVER_INTERNAL_URL') ||
         this.twentyConfigService.get('SERVER_URL'),

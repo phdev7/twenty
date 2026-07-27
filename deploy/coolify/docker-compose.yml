@@ -3,10 +3,12 @@ name: diex-crm
 x-diex-environment: &diex-environment
   NODE_ENV: production
   SERVER_URL: ${SERVER_URL}
-  # Logic functions call the API back from inside this network. Routing that
-  # hop through the public SERVER_URL requires the host to hairpin its own
-  # public IP, which this VPS does not do — every logic function using the
-  # API client then dies with "TypeError: fetch failed".
+  # Logic functions call the API back from inside this network, and the public
+  # SERVER_URL does not survive that trip: the VPS hostname is the domain it
+  # serves, so the resolver answers next-crm.bydiex.com with the host-local
+  # 127.0.1.1 and every logic function using the API client dies on
+  # "TypeError: fetch failed" (ECONNREFUSED 127.0.1.1:443). Keep the hop on
+  # the compose service name.
   SERVER_INTERNAL_URL: ${SERVER_INTERNAL_URL:-http://server:3000}
   PG_DATABASE_URL: ${PG_DATABASE_URL}
   REDIS_URL: ${REDIS_URL}

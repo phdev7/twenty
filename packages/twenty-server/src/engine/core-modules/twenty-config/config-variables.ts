@@ -1341,9 +1341,11 @@ export class ConfigVariables {
     description:
       'Address the server reaches itself on from inside its own network, ' +
       'used by logic functions calling back into the API. SERVER_URL is the ' +
-      'public address, and on hosts without NAT hairpinning a container ' +
-      'cannot route to it, which kills every logic function that talks to ' +
-      'the API. Set this to the internal service address (e.g. ' +
+      'public address, and resolving it from inside a container is not ' +
+      'guaranteed to reach the deployment: where the host is named after the ' +
+      'same domain it serves, the resolver answers with the host-local ' +
+      'loopback alias and every logic function that talks to the API dies on ' +
+      'a refused connection. Set this to the internal service address (e.g. ' +
       'http://server:3000) to keep that hop inside the network. Workspace ' +
       'resolution is unaffected: application tokens carry workspaceId, so ' +
       'the API never derives the tenant from the request host. Falls back ' +
