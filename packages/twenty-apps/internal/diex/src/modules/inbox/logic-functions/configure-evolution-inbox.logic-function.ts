@@ -12,9 +12,9 @@ import {
   buildEvolutionWebhookUrl,
   getAuthenticatedRequestIdentity,
   getCurrentWorkspaceId,
-  getEvolutionConfiguration,
 } from 'src/modules/inbox/utils/evolution-environment';
 import { safeEvolutionFetch } from 'src/modules/inbox/utils/safe-evolution-fetch';
+import { resolveWhatsappProvisioning } from 'src/modules/inbox/utils/whatsapp-provisioning';
 import { appKeyValue } from 'src/utils/app-key-value';
 
 type ConfigureEvolutionResult = {
@@ -123,7 +123,7 @@ export const configureEvolutionInboxHandler = async (
   await assertCanConfigureApplications(routePayload.userWorkspaceId);
 
   const workspaceId = getCurrentWorkspaceId();
-  const configuration = getEvolutionConfiguration();
+  const configuration = resolveWhatsappProvisioning();
   const webhookUrl = buildEvolutionWebhookUrl();
   const secretClaimKey = buildEvolutionSecretClaimKey(
     configuration.webhookSecret,

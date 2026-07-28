@@ -19,12 +19,12 @@ import {
   type NormalizedEvolutionStatus,
 } from 'src/modules/inbox/utils/evolution-payload';
 import {
-  getEvolutionConfiguration,
   normalizeEvolutionInstanceName,
   readBooleanEnvironmentValue,
   readResponseSlaMinutes,
 } from 'src/modules/inbox/utils/evolution-environment';
 import { executeInboxAutomations } from 'src/modules/inbox/utils/inbox-automation';
+import { resolveWhatsappProvisioning } from 'src/modules/inbox/utils/whatsapp-provisioning';
 
 type PersonMatch = {
   id: string;
@@ -853,7 +853,7 @@ const updateDeliveryStatus = async (
 export const processEvolutionWebhookHandler = async (
   payload: Record<string, unknown>,
 ): Promise<ProcessEvolutionWebhookResult> => {
-  const configuration = getEvolutionConfiguration();
+  const configuration = resolveWhatsappProvisioning();
   const payloadInstanceName = extractEvolutionInstanceName(payload);
 
   if (

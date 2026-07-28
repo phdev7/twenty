@@ -26,10 +26,10 @@ import {
 import {
   getAuthenticatedRequestIdentity,
   getCurrentWorkspaceId,
-  getEvolutionConfiguration,
 } from 'src/modules/inbox/utils/evolution-environment';
 import { normalizePhone } from 'src/modules/inbox/utils/evolution-payload';
 import { safeEvolutionFetch } from 'src/modules/inbox/utils/safe-evolution-fetch';
+import { resolveWhatsappProvisioning } from 'src/modules/inbox/utils/whatsapp-provisioning';
 
 type SendTextRequest = {
   conversationId?: unknown;
@@ -400,7 +400,7 @@ const executeConfirmedSend = async ({
   text: string;
   confirmation: ConfirmationPayload;
 }): Promise<SendTextResult> => {
-  const configuration = getEvolutionConfiguration();
+  const configuration = resolveWhatsappProvisioning();
   const pendingProviderKey = `${configuration.instanceName}:pending:${confirmation.requestId}`;
   const existingAttempt = await findInboxMessageByProviderKey(
     client,
@@ -558,7 +558,7 @@ export const sendEvolutionTextHandler = async (
   const conversation = await loadConversationForSend(client, conversationId);
   const destination = assertConversationCanSend(conversation);
   const workspaceId = getCurrentWorkspaceId();
-  const configuration = getEvolutionConfiguration();
+  const configuration = resolveWhatsappProvisioning();
   const previewOnly = routePayload.body?.previewOnly !== false;
 
   if (previewOnly) {
