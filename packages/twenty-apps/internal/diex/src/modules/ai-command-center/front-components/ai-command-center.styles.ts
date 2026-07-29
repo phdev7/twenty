@@ -1,5 +1,6 @@
 import { type CSSProperties } from 'react';
 
+import { brand, radii } from 'src/ui/diex-tokens';
 import { safeThemeCssVariables as themeCssVariables } from 'src/ui/safe-theme-css-variables';
 
 const border = `1px solid ${themeCssVariables.border.color.light}`;
@@ -34,8 +35,8 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.transparent.blue,
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: themeCssVariables.border.radius.md,
-    color: themeCssVariables.accent.primary,
+    borderRadius: radii.control,
+    color: brand.accent,
     display: 'flex',
     height: 44,
     justifyContent: 'center',
@@ -60,7 +61,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   },
   pulse: {
     background: themeCssVariables.color.green,
-    borderRadius: '50%',
+    borderRadius: radii.circle,
     boxShadow: `0 0 0 4px ${themeCssVariables.tag.background.green}`,
     height: 8,
     width: 8,
@@ -124,8 +125,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
     width: '100%',
   },
   queueItemSelected: {
-    background: themeCssVariables.background.transparent.blue,
-    boxShadow: `inset 3px 0 0 ${themeCssVariables.accent.primary}`,
+    background: brand.tint,
   },
   queueTopLine: {
     alignItems: 'center',
@@ -181,7 +181,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   },
   narrativeBlock: {
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     padding: themeCssVariables.spacing[3],
   },
   narrativeLabel: {
@@ -213,7 +213,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     cursor: 'pointer',
     display: 'flex',
@@ -228,7 +228,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   reviewTextarea: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,
     fontFamily: themeCssVariables.font.family,
@@ -248,7 +248,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   blockedExecution: {
     background: themeCssVariables.background.transparent.danger,
     border: `1px solid ${themeCssVariables.border.color.danger}`,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     color: themeCssVariables.font.color.danger,
     display: 'flex',
     flexDirection: 'column',
@@ -260,7 +260,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   executionPreview: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     display: 'flex',
     flexDirection: 'column',
     gap: themeCssVariables.spacing[3],
@@ -276,8 +276,8 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.transparent.blue,
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: themeCssVariables.border.radius.sm,
-    color: themeCssVariables.accent.primary,
+    borderRadius: radii.control,
+    color: brand.accent,
     display: 'flex',
     height: 32,
     justifyContent: 'center',
@@ -311,7 +311,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   pipelineSelect: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,
     fontFamily: themeCssVariables.font.family,
@@ -325,7 +325,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.transparent.blue,
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     color: themeCssVariables.font.color.secondary,
     display: 'flex',
     fontSize: themeCssVariables.font.size.xs,

@@ -1,5 +1,6 @@
 import { type CSSProperties } from 'react';
 
+import { radii } from 'src/ui/diex-tokens';
 import { safeThemeCssVariables as themeCssVariables } from 'src/ui/safe-theme-css-variables';
 
 export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
@@ -33,12 +34,10 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
     zIndex: 1,
   },
   eyebrow: {
-    color: themeCssVariables.accent.primary,
-    fontSize: themeCssVariables.font.size.xxs,
-    fontWeight: themeCssVariables.font.weight.semiBold,
-    letterSpacing: '0.12em',
+    color: themeCssVariables.font.color.tertiary,
+    fontSize: themeCssVariables.font.size.xs,
+    fontWeight: themeCssVariables.font.weight.medium,
     margin: 0,
-    textTransform: 'uppercase',
   },
   heroTitle: {
     color: themeCssVariables.font.color.primary,
@@ -68,7 +67,7 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
   },
   radarRingOuter: {
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: '50%',
+    borderRadius: radii.circle,
     height: 154,
     opacity: 0.36,
     position: 'absolute',
@@ -76,7 +75,7 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
   },
   radarRingMiddle: {
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: '50%',
+    borderRadius: radii.circle,
     height: 110,
     opacity: 0.5,
     position: 'absolute',
@@ -85,7 +84,7 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
   radarRingInner: {
     background: themeCssVariables.background.transparent.blue,
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: '50%',
+    borderRadius: radii.circle,
     height: 70,
     position: 'absolute',
     width: 70,
@@ -144,7 +143,7 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
     padding: `${themeCssVariables.spacing[3]} 0`,
   },
   signalDot: {
-    borderRadius: '50%',
+    borderRadius: radii.circle,
     height: 8,
     marginTop: themeCssVariables.spacing[1],
     width: 8,

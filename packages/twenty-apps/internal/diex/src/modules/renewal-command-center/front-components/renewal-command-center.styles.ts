@@ -1,5 +1,6 @@
 import { type CSSProperties } from 'react';
 
+import { brand, radii } from 'src/ui/diex-tokens';
 import { safeThemeCssVariables as themeCssVariables } from 'src/ui/safe-theme-css-variables';
 
 const border = `1px solid ${themeCssVariables.border.color.light}`;
@@ -29,14 +30,12 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   },
   eyebrow: {
     alignItems: 'center',
-    color: themeCssVariables.accent.primary,
+    color: brand.accent,
     display: 'flex',
     fontSize: themeCssVariables.font.size.xxs,
     fontWeight: themeCssVariables.font.weight.semiBold,
     gap: themeCssVariables.spacing[1],
-    letterSpacing: '0.12em',
     margin: 0,
-    textTransform: 'uppercase',
   },
   title: {
     color: themeCssVariables.font.color.primary,
@@ -57,7 +56,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
     alignSelf: 'center',
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     boxShadow: themeCssVariables.boxShadow.light,
     display: 'flex',
     flexDirection: 'column',
@@ -78,7 +77,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   input: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,
     fontFamily: themeCssVariables.font.family,
@@ -91,7 +90,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   textarea: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,
     fontFamily: themeCssVariables.font.family,
@@ -120,7 +119,6 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
     fontSize: themeCssVariables.font.size.xxs,
     letterSpacing: '0.06em',
     margin: 0,
-    textTransform: 'uppercase',
   },
   metricValue: {
     color: themeCssVariables.font.color.primary,
@@ -162,7 +160,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     display: 'grid',
     gap: themeCssVariables.spacing[2],
     gridTemplateColumns: '24px minmax(0, 1fr) auto',
@@ -172,7 +170,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   stageNumber: {
     alignItems: 'center',
     background: themeCssVariables.background.tertiary,
-    borderRadius: themeCssVariables.border.radius.pill,
+    borderRadius: radii.pill,
     color: themeCssVariables.font.color.secondary,
     display: 'flex',
     fontSize: themeCssVariables.font.size.xxs,
@@ -204,7 +202,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   boardColumn: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     display: 'flex',
     flexDirection: 'column',
     gap: themeCssVariables.spacing[2],
@@ -225,7 +223,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   renewalCard: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     color: themeCssVariables.font.color.primary,
     cursor: 'pointer',
     display: 'flex',
@@ -328,8 +326,8 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
     gridTemplateColumns: '10px minmax(0, 1fr)',
   },
   timelineDot: {
-    background: themeCssVariables.accent.primary,
-    borderRadius: themeCssVariables.border.radius.pill,
+    background: brand.accent,
+    borderRadius: radii.pill,
     height: 8,
     marginTop: themeCssVariables.spacing[1],
     width: 8,

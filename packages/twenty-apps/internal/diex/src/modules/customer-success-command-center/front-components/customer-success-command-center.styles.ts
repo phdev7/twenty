@@ -1,5 +1,6 @@
 import { type CSSProperties } from 'react';
 
+import { brand, radii } from 'src/ui/diex-tokens';
 import { safeThemeCssVariables as themeCssVariables } from 'src/ui/safe-theme-css-variables';
 
 const border = `1px solid ${themeCssVariables.border.color.light}`;
@@ -34,15 +35,14 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     },
     eyebrow: {
       alignItems: 'center',
-      color: themeCssVariables.accent.primary,
+      color: brand.accent,
       display: 'flex',
       fontSize: themeCssVariables.font.size.xxs,
       fontWeight: themeCssVariables.font.weight.semiBold,
       gap: themeCssVariables.spacing[1],
       letterSpacing: '0.08em',
       margin: 0,
-      textTransform: 'uppercase',
-    },
+      },
     title: {
       fontSize: themeCssVariables.font.size.xxl,
       fontWeight: themeCssVariables.font.weight.semiBold,
@@ -75,7 +75,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     },
     healthRing: {
       alignItems: 'center',
-      borderRadius: '50%',
+      borderRadius: radii.circle,
       display: 'flex',
       height: 132,
       justifyContent: 'center',
@@ -86,7 +86,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       alignItems: 'center',
       background: themeCssVariables.background.primary,
       border: border,
-      borderRadius: '50%',
+      borderRadius: radii.circle,
       display: 'flex',
       flexDirection: 'column',
       height: 86,
@@ -124,8 +124,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       color: themeCssVariables.font.color.tertiary,
       fontSize: themeCssVariables.font.size.xxs,
       margin: 0,
-      textTransform: 'uppercase',
-    },
+      },
     metricValue: {
       fontSize: themeCssVariables.font.size.xl,
       fontWeight: themeCssVariables.font.weight.semiBold,
@@ -165,7 +164,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     handoffOpportunity: {
       background: themeCssVariables.background.secondary,
       border,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       color: themeCssVariables.font.color.primary,
       cursor: 'pointer',
       display: 'flex',
@@ -177,9 +176,8 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       width: '100%',
     },
     handoffOpportunitySelected: {
-      background: themeCssVariables.background.transparent.blue,
-      borderColor: themeCssVariables.border.color.blue,
-      boxShadow: `inset 3px 0 0 ${themeCssVariables.accent.primary}`,
+      background: brand.tint,
+      borderColor: brand.border,
     },
     handoffForm: {
       borderRight: border,
@@ -202,7 +200,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     handoffInput: {
       background: themeCssVariables.background.primary,
       border,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.control,
       boxSizing: 'border-box',
       color: themeCssVariables.font.color.primary,
       fontFamily: themeCssVariables.font.family,
@@ -215,7 +213,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     handoffTextarea: {
       background: themeCssVariables.background.primary,
       border,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.control,
       boxSizing: 'border-box',
       color: themeCssVariables.font.color.primary,
       fontFamily: themeCssVariables.font.family,
@@ -250,7 +248,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       alignItems: 'center',
       background: themeCssVariables.background.primary,
       border,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       display: 'grid',
       fontSize: themeCssVariables.font.size.xs,
       gap: themeCssVariables.spacing[2],
@@ -261,8 +259,8 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       alignItems: 'center',
       background: themeCssVariables.background.transparent.blue,
       border: `1px solid ${themeCssVariables.border.color.blue}`,
-      borderRadius: '50%',
-      color: themeCssVariables.accent.primary,
+      borderRadius: radii.circle,
+      color: brand.accent,
       display: 'flex',
       fontSize: themeCssVariables.font.size.xxs,
       fontWeight: themeCssVariables.font.weight.semiBold,
@@ -274,7 +272,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       alignItems: 'center',
       background: themeCssVariables.background.transparent.blue,
       border: `1px solid ${themeCssVariables.border.color.blue}`,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       display: 'flex',
       fontSize: themeCssVariables.font.size.xs,
       gap: themeCssVariables.spacing[2],
@@ -283,7 +281,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     handoffWarning: {
       background: themeCssVariables.background.transparent.danger,
       border: `1px solid ${themeCssVariables.border.color.danger}`,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       color: themeCssVariables.font.color.danger,
       fontSize: themeCssVariables.font.size.xxs,
       lineHeight: 1.4,
@@ -319,7 +317,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     journeyStage: {
       background: themeCssVariables.background.secondary,
       border,
-      borderRadius: themeCssVariables.border.radius.md,
+      borderRadius: radii.surface,
       color: themeCssVariables.font.color.primary,
       cursor: 'pointer',
       fontFamily: themeCssVariables.font.family,
@@ -331,7 +329,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     journeyStageSelected: {
       background: themeCssVariables.background.transparent.blue,
       borderColor: themeCssVariables.border.color.blue,
-      boxShadow: `inset 0 -3px 0 ${themeCssVariables.accent.primary}`,
+      boxShadow: `inset 0 -2px 0 ${brand.accent}`,
     },
     journeyCount: {
       fontSize: themeCssVariables.font.size.lg,
@@ -378,8 +376,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       width: '100%',
     },
     planButtonSelected: {
-      background: themeCssVariables.background.transparent.blue,
-      boxShadow: `inset 3px 0 0 ${themeCssVariables.accent.primary}`,
+      background: brand.tint,
     },
     planTop: {
       alignItems: 'center',
@@ -441,7 +438,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     fact: {
       background: themeCssVariables.background.secondary,
       border,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       padding: themeCssVariables.spacing[3],
     },
     factValue: {
@@ -465,7 +462,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       alignItems: 'center',
       background: themeCssVariables.background.secondary,
       border,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.control,
       color: themeCssVariables.font.color.primary,
       cursor: 'pointer',
       display: 'grid',
@@ -478,9 +475,8 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       width: '100%',
     },
     milestoneButtonSelected: {
-      background: themeCssVariables.background.transparent.blue,
-      borderColor: themeCssVariables.border.color.blue,
-      boxShadow: `inset 3px 0 0 ${themeCssVariables.accent.primary}`,
+      background: brand.tint,
+      borderColor: brand.border,
     },
     milestoneActionCard: {
       background: themeCssVariables.background.primary,
@@ -500,7 +496,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       alignItems: 'center',
       background: themeCssVariables.background.transparent.blue,
       border: `1px solid ${themeCssVariables.border.color.blue}`,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       display: 'flex',
       gap: themeCssVariables.spacing[3],
       padding: themeCssVariables.spacing[3],
@@ -509,7 +505,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       alignItems: 'center',
       background: themeCssVariables.background.transparent.danger,
       border: `1px solid ${themeCssVariables.border.color.danger}`,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       color: themeCssVariables.font.color.danger,
       display: 'flex',
       fontSize: themeCssVariables.font.size.xs,
@@ -519,7 +515,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     milestoneActionPreview: {
       background: themeCssVariables.background.secondary,
       border,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.surface,
       display: 'flex',
       flexDirection: 'column',
       gap: themeCssVariables.spacing[3],
@@ -537,7 +533,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       gap: themeCssVariables.spacing[3],
     },
     reviewBlock: {
-      borderLeft: `3px solid ${themeCssVariables.accent.primary}`,
+      border: `1px solid ${brand.border}`,
       paddingLeft: themeCssVariables.spacing[3],
     },
     reviewActions: {
@@ -556,12 +552,11 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       padding: themeCssVariables.spacing[3],
     },
     renewalDate: {
-      color: themeCssVariables.accent.primary,
+      color: brand.accent,
       fontSize: themeCssVariables.font.size.xs,
       fontWeight: themeCssVariables.font.weight.semiBold,
       margin: 0,
-      textTransform: 'uppercase',
-    },
+      },
     empty: {
       alignItems: 'center',
       color: themeCssVariables.font.color.tertiary,

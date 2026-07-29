@@ -1,6 +1,8 @@
 import { type CSSProperties } from 'react';
 import { themeCssVariables as importedThemeCssVariables } from 'twenty-ui/theme-constants';
 
+import { brand, motion, radii } from 'src/ui/diex-tokens';
+
 type ThemeFallback = Record<PropertyKey, unknown>;
 
 let themeFallback: ThemeFallback;
@@ -19,7 +21,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   root: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.container,
     boxShadow: themeCssVariables.boxShadow.light,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,
@@ -72,7 +74,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     cursor: 'pointer',
     display: 'inline-flex',
@@ -85,7 +87,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     display: 'flex',
     gap: themeCssVariables.spacing[2],
     marginTop: themeCssVariables.spacing[3],
@@ -110,7 +112,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   filterSelect: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     flex: 1,
     fontFamily: themeCssVariables.font.family,
@@ -138,16 +140,17 @@ export const inboxStyles: Record<string, CSSProperties> = {
     gap: themeCssVariables.spacing[3],
     padding: themeCssVariables.spacing[3],
     textAlign: 'left',
+    transition: motion.control,
     width: '100%',
   },
+  // Selection reads from the fill, not from a stripe glued to the edge.
   conversationButtonSelected: {
-    background: themeCssVariables.background.transparent.blue,
-    boxShadow: `inset 3px 0 0 ${themeCssVariables.accent.primary}`,
+    background: brand.tint,
   },
   avatar: {
     alignItems: 'center',
     background: themeCssVariables.background.tertiary,
-    borderRadius: themeCssVariables.border.radius.rounded,
+    borderRadius: radii.circle,
     color: themeCssVariables.font.color.secondary,
     display: 'flex',
     flexShrink: 0,
@@ -203,7 +206,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   unreadBadge: {
     alignItems: 'center',
     background: themeCssVariables.color.green,
-    borderRadius: themeCssVariables.border.radius.pill,
+    borderRadius: radii.pill,
     color: themeCssVariables.font.color.inverted,
     display: 'inline-flex',
     fontSize: themeCssVariables.font.size.xxs,
@@ -216,7 +219,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   mentionBadge: {
     alignItems: 'center',
     background: themeCssVariables.tag.background.blue,
-    borderRadius: themeCssVariables.border.radius.pill,
+    borderRadius: radii.pill,
     color: themeCssVariables.tag.text.blue,
     display: 'inline-flex',
     fontSize: themeCssVariables.font.size.xxs,
@@ -232,7 +235,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     marginTop: themeCssVariables.spacing[2],
   },
   statusChip: {
-    borderRadius: themeCssVariables.border.radius.pill,
+    borderRadius: radii.pill,
     display: 'inline-flex',
     fontSize: themeCssVariables.font.size.xxs,
     fontWeight: themeCssVariables.font.weight.medium,
@@ -275,7 +278,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     cursor: 'pointer',
     display: 'inline-flex',
@@ -286,13 +289,16 @@ export const inboxStyles: Record<string, CSSProperties> = {
     height: themeCssVariables.spacing[8],
     justifyContent: 'center',
     padding: `0 ${themeCssVariables.spacing[3]}`,
+    transition: motion.control,
   },
+  // The one place Diex indigo carries an action, so a primary button reads the
+  // same here as it does in every other Diex screen.
   primaryButton: {
     alignItems: 'center',
-    background: themeCssVariables.accent.primary,
+    background: brand.solid,
     border: '1px solid transparent',
-    borderRadius: themeCssVariables.border.radius.sm,
-    color: themeCssVariables.font.color.inverted,
+    borderRadius: radii.control,
+    color: brand.onSolid,
     cursor: 'pointer',
     display: 'inline-flex',
     fontFamily: themeCssVariables.font.family,
@@ -302,6 +308,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     height: themeCssVariables.spacing[8],
     justifyContent: 'center',
     padding: `0 ${themeCssVariables.spacing[3]}`,
+    transition: motion.control,
   },
   disabledButton: {
     cursor: 'not-allowed',
@@ -327,7 +334,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   },
   messageBubble: {
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     boxShadow: themeCssVariables.boxShadow.light,
     boxSizing: 'border-box',
     maxWidth: '76%',
@@ -337,9 +344,12 @@ export const inboxStyles: Record<string, CSSProperties> = {
     background: themeCssVariables.background.primary,
     marginRight: 'auto',
   },
+  // What the company said carries the brand; what the customer said stays on
+  // the neutral surface, so the side of the conversation is readable at a
+  // glance without reading a single word.
   outgoingBubble: {
-    background: themeCssVariables.background.transparent.blue,
-    borderColor: themeCssVariables.border.color.blue,
+    background: brand.tint,
+    borderColor: brand.border,
     marginLeft: 'auto',
   },
   internalBubble: {
@@ -381,7 +391,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'flex-start',
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.pill,
+    borderRadius: radii.pill,
     color: themeCssVariables.font.color.secondary,
     display: 'flex',
     gap: themeCssVariables.spacing[2],
@@ -391,8 +401,8 @@ export const inboxStyles: Record<string, CSSProperties> = {
   activityEventIcon: {
     alignItems: 'center',
     background: themeCssVariables.background.tertiary,
-    borderRadius: themeCssVariables.border.radius.rounded,
-    color: themeCssVariables.accent.primary,
+    borderRadius: radii.circle,
+    color: brand.accent,
     display: 'flex',
     flexShrink: 0,
     height: themeCssVariables.spacing[6],
@@ -431,7 +441,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.tag.background.gray,
     border: `1px solid ${themeCssVariables.border.color.light}`,
-    borderRadius: themeCssVariables.border.radius.pill,
+    borderRadius: radii.pill,
     color: themeCssVariables.tag.text.gray,
     display: 'inline-flex',
     fontSize: themeCssVariables.font.size.xxs,
@@ -491,7 +501,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'flex-end',
     background: themeCssVariables.background.transparent.blue,
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     display: 'flex',
     gap: themeCssVariables.spacing[3],
     justifyContent: 'space-between',
@@ -521,7 +531,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     display: 'flex',
     flexWrap: 'wrap',
@@ -543,7 +553,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   aiTriagePanel: {
     background: themeCssVariables.background.transparent.blue,
     border: `1px solid ${themeCssVariables.border.color.blue}`,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     marginBottom: themeCssVariables.spacing[3],
     padding: themeCssVariables.spacing[3],
   },
@@ -587,7 +597,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   aiDraftText: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.primary,
     flex: 1,
     fontSize: themeCssVariables.font.size.xs,
@@ -617,7 +627,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: 'transparent',
     border: 0,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.tertiary,
     cursor: 'pointer',
     display: 'inline-flex',
@@ -654,7 +664,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   savedReplySelect: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     flex: 1,
     fontFamily: themeCssVariables.font.family,
@@ -667,7 +677,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   savedReplyMatches: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     boxShadow: themeCssVariables.boxShadow.light,
     display: 'flex',
     flexDirection: 'column',
@@ -677,7 +687,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   mentionSuggestions: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     boxShadow: themeCssVariables.boxShadow.light,
     display: 'flex',
     flexDirection: 'column',
@@ -716,7 +726,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     width: '100%',
   },
   savedReplyShortcut: {
-    color: themeCssVariables.accent.primary,
+    color: brand.accent,
     fontSize: themeCssVariables.font.size.xs,
     fontWeight: themeCssVariables.font.weight.semiBold,
   },
@@ -741,7 +751,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   emailSubjectInput: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,
     fontFamily: themeCssVariables.font.family,
@@ -754,7 +764,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   textarea: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     boxSizing: 'border-box',
     color: themeCssVariables.font.color.primary,
     fontFamily: themeCssVariables.font.family,
@@ -769,7 +779,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   sendReview: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     padding: themeCssVariables.spacing[3],
   },
   sendReviewMeta: {
@@ -783,7 +793,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   sendReviewText: {
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.primary,
     fontSize: themeCssVariables.font.size.sm,
     lineHeight: 1.45,
@@ -848,7 +858,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     display: 'flex',
     gap: themeCssVariables.spacing[2],
     marginBottom: themeCssVariables.spacing[2],
@@ -858,7 +868,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   contextCardIcon: {
     alignItems: 'center',
     background: themeCssVariables.background.tertiary,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     display: 'flex',
     flexShrink: 0,
@@ -897,7 +907,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   contextPresetSelect: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     display: 'block',
     fontFamily: themeCssVariables.font.family,
@@ -923,7 +933,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   contextTextInput: {
     background: themeCssVariables.background.secondary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.primary,
     display: 'block',
     fontFamily: themeCssVariables.font.family,
@@ -946,7 +956,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   textButton: {
     background: 'transparent',
     border: 0,
-    color: themeCssVariables.accent.primary,
+    color: brand.accent,
     cursor: 'pointer',
     fontFamily: themeCssVariables.font.family,
     fontSize: themeCssVariables.font.size.xs,
@@ -969,7 +979,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   errorState: {
     background: themeCssVariables.background.transparent.danger,
     border: `1px solid ${themeCssVariables.border.color.danger}`,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     color: themeCssVariables.font.color.danger,
     fontSize: themeCssVariables.font.size.xs,
     margin: themeCssVariables.spacing[3],
@@ -977,7 +987,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   },
   skeleton: {
     background: themeCssVariables.background.tertiary,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     height: 52,
     margin: themeCssVariables.spacing[3],
   },
@@ -985,7 +995,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.surface,
     display: 'flex',
     gap: themeCssVariables.spacing[2],
     marginBottom: themeCssVariables.spacing[2],
@@ -994,7 +1004,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
   taskComposer: {
     background: themeCssVariables.background.tertiary,
     border,
-    borderRadius: themeCssVariables.border.radius.md,
+    borderRadius: radii.surface,
     display: 'grid',
     gap: themeCssVariables.spacing[2],
     marginBottom: themeCssVariables.spacing[2],
@@ -1004,7 +1014,7 @@ export const inboxStyles: Record<string, CSSProperties> = {
     alignItems: 'center',
     background: themeCssVariables.background.primary,
     border,
-    borderRadius: themeCssVariables.border.radius.sm,
+    borderRadius: radii.control,
     color: themeCssVariables.font.color.secondary,
     cursor: 'pointer',
     display: 'flex',

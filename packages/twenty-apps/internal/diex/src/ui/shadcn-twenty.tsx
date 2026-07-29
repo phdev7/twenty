@@ -1,10 +1,12 @@
 import {
+  useState,
   type ButtonHTMLAttributes,
   type CSSProperties,
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
 
+import { brand, motion, radii } from 'src/ui/diex-tokens';
 import { safeThemeCssVariables as themeCssVariables } from 'src/ui/safe-theme-css-variables';
 
 type SurfaceVariant = 'default' | 'muted' | 'accent' | 'danger';
@@ -72,7 +74,7 @@ export const Card = ({ variant = 'default', style, ...props }: CardProps) => (
     {...props}
     style={{
       ...surfaceStyles[variant],
-      borderRadius: themeCssVariables.border.radius.md,
+      borderRadius: radii.surface,
       boxShadow: themeCssVariables.boxShadow.light,
       boxSizing: 'border-box',
       color: themeCssVariables.font.color.primary,
@@ -155,7 +157,7 @@ export const Badge = ({
     style={{
       ...toneStyles[tone],
       alignItems: 'center',
-      borderRadius: themeCssVariables.border.radius.pill,
+      borderRadius: radii.pill,
       display: 'inline-flex',
       fontSize: themeCssVariables.font.size.xxs,
       fontWeight: themeCssVariables.font.weight.medium,
@@ -186,7 +188,7 @@ export const Progress = ({
       aria-label={`${Math.round(normalizedValue)}%`}
       style={{
         background: themeCssVariables.background.tertiary,
-        borderRadius: themeCssVariables.border.radius.pill,
+        borderRadius: radii.pill,
         height: themeCssVariables.spacing[1],
         overflow: 'hidden',
         width: '100%',
@@ -222,7 +224,7 @@ export const Skeleton = ({ style }: { style?: CSSProperties }) => (
     aria-hidden="true"
     style={{
       background: themeCssVariables.background.tertiary,
-      borderRadius: themeCssVariables.border.radius.sm,
+      borderRadius: radii.control,
       minHeight: themeCssVariables.spacing[8],
       ...style,
     }}
@@ -233,18 +235,38 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'default' | 'outline' | 'ghost' | 'danger';
 };
 
+// A front component renders through a worker, so there is no stylesheet to hold
+// :hover or :focus-visible. The states a button must have are tracked here
+// instead of being dropped.
 export const Button = ({
   variant = 'default',
   style,
   type = 'button',
+  onPointerEnter,
+  onPointerLeave,
+  onPointerDown,
+  onPointerUp,
+  onFocus,
+  onBlur,
   ...props
 }: ButtonProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const isInteractive = props.disabled !== true;
+  const isActive = isInteractive && isPressed;
+  const isHighlighted = isInteractive && isHovered;
+
   const variantStyle: CSSProperties =
     variant === 'default'
       ? {
-          background: themeCssVariables.accent.primary,
+          background: isActive
+            ? brand.solidActive
+            : isHighlighted
+              ? brand.solidHover
+              : brand.solid,
           border: '1px solid transparent',
-          color: themeCssVariables.font.color.inverted,
+          color: brand.onSolid,
         }
       : variant === 'danger'
         ? {
@@ -254,12 +276,16 @@ export const Button = ({
           }
         : variant === 'ghost'
           ? {
-              background: 'transparent',
+              background: isHighlighted
+                ? themeCssVariables.background.transparent.light
+                : 'transparent',
               border: '1px solid transparent',
               color: themeCssVariables.font.color.secondary,
             }
           : {
-              background: themeCssVariables.background.secondary,
+              background: isHighlighted
+                ? themeCssVariables.background.tertiary
+                : themeCssVariables.background.secondary,
               border,
               color: themeCssVariables.font.color.secondary,
             };
@@ -268,11 +294,37 @@ export const Button = ({
     <button
       {...props}
       type={type}
+      onPointerEnter={(event) => {
+        setIsHovered(true);
+        onPointerEnter?.(event);
+      }}
+      onPointerLeave={(event) => {
+        setIsHovered(false);
+        setIsPressed(false);
+        onPointerLeave?.(event);
+      }}
+      onPointerDown={(event) => {
+        setIsPressed(true);
+        onPointerDown?.(event);
+      }}
+      onPointerUp={(event) => {
+        setIsPressed(false);
+        onPointerUp?.(event);
+      }}
+      onFocus={(event) => {
+        setIsFocused(true);
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setIsFocused(false);
+        onBlur?.(event);
+      }}
       style={{
         ...variantStyle,
         alignItems: 'center',
-        borderRadius: themeCssVariables.border.radius.sm,
-        cursor: props.disabled ? 'not-allowed' : 'pointer',
+        borderRadius: radii.control,
+        boxShadow: isFocused && isInteractive ? brand.focusRing : 'none',
+        cursor: isInteractive ? 'pointer' : 'not-allowed',
         display: 'inline-flex',
         fontFamily: themeCssVariables.font.family,
         fontSize: themeCssVariables.font.size.xs,
@@ -280,8 +332,10 @@ export const Button = ({
         gap: themeCssVariables.spacing[1],
         height: themeCssVariables.spacing[8],
         justifyContent: 'center',
-        opacity: props.disabled ? 0.55 : 1,
+        opacity: isInteractive ? 1 : 0.55,
+        outline: 'none',
         padding: `0 ${themeCssVariables.spacing[3]}`,
+        transition: motion.control,
         ...style,
       }}
     />
