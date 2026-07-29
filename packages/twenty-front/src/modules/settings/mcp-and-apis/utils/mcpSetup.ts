@@ -62,6 +62,12 @@ export const buildClaudeInstallLink = (mcpServerUrl: string) => {
   return `https://claude.ai/customize/connectors?${params.toString()}`;
 };
 
+// ChatGPT has no prefill parameters for a custom connector: the URL is typed
+// into the connector dialog behind developer mode. The link opens that screen,
+// and the MCP URL to paste is the one shown right below these cards.
+export const buildChatGptConnectorLink = () =>
+  `${MCP_SETUP.chatGpt.appUrl}#settings/Connectors`;
+
 export const buildCursorInstallLink = (mcpServerUrl: string) => {
   const config = btoa(JSON.stringify(buildRemoteMcpServerConfig(mcpServerUrl)));
 

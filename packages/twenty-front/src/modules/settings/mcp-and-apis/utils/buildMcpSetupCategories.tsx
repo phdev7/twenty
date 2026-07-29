@@ -10,6 +10,7 @@ import GooseLogo from '@/settings/mcp-and-apis/assets/mcp-clients/goose.svg';
 import JetBrainsLogo from '@/settings/mcp-and-apis/assets/mcp-clients/jetbrains.svg';
 import LibreChatLogo from '@/settings/mcp-and-apis/assets/mcp-clients/librechat.svg';
 import LmStudioLogo from '@/settings/mcp-and-apis/assets/mcp-clients/lm-studio.svg';
+import OpenAiLogo from '@/settings/mcp-and-apis/assets/mcp-clients/openai.svg';
 import RaycastLogo from '@/settings/mcp-and-apis/assets/mcp-clients/raycast.svg';
 import ReplitLogo from '@/settings/mcp-and-apis/assets/mcp-clients/replit.svg';
 import VsCodeLogo from '@/settings/mcp-and-apis/assets/mcp-clients/vs-code.svg';
@@ -20,6 +21,7 @@ import { McpClientLogo } from '@/settings/mcp-and-apis/components/McpClientLogo'
 import { MCP_SETUP } from '@/settings/mcp-and-apis/constants/McpSetup';
 import { type McpSetupCategory } from '@/settings/mcp-and-apis/types/McpSetup';
 import {
+  buildChatGptConnectorLink,
   buildClaudeInstallLink,
   buildCursorInstallLink,
   buildGooseInstallLink,
@@ -54,6 +56,19 @@ export const buildMcpSetupCategories = ({
         isDisabled: !isHttpsInstallLinkEnabled,
         logo: <McpClientLogo src={ClaudeLogo} />,
         tooltipId: MCP_SETUP.tooltipIds.claudeInstallDisabled,
+      },
+      {
+        title: t`ChatGPT`,
+        badge: t`Connector`,
+        description: t`Turn on developer mode in ChatGPT settings, then paste the MCP URL below as a connector.`,
+        ctaLabel: t`Open`,
+        disabledTooltip: t`ChatGPT connectors require an HTTPS MCP URL.`,
+        href: isHttpsInstallLinkEnabled
+          ? buildChatGptConnectorLink()
+          : undefined,
+        isDisabled: !isHttpsInstallLinkEnabled,
+        logo: <McpClientLogo src={OpenAiLogo} invertInDarkMode />,
+        tooltipId: MCP_SETUP.tooltipIds.chatGptInstallDisabled,
       },
     ],
   },

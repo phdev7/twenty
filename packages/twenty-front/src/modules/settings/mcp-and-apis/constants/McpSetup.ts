@@ -5,6 +5,7 @@ export const MCP_SETUP = {
   },
   protocolVersion: '2025-06-18',
   tooltipIds: {
+    chatGptInstallDisabled: 'mcp-chatgpt-install-disabled',
     claudeInstallDisabled: 'mcp-claude-install-disabled',
     replitInstallDisabled: 'mcp-replit-install-disabled',
   },
@@ -15,6 +16,11 @@ export const MCP_SETUP = {
   server: {
     name: 'diex-crm',
     displayName: 'Diex CRM',
+  },
+  chatGpt: {
+    appUrl: 'https://chatgpt.com/',
+    docsUrl:
+      'https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt',
   },
   clientDocsUrls: {
     augment: 'https://docs.augmentcode.com/setup-augment/mcp',
