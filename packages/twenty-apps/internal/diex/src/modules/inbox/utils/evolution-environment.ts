@@ -171,12 +171,31 @@ export const getCurrentWorkspaceId = (): string => {
   throw new Error('The current workspace could not be resolved.');
 };
 
+// The Evolution calls this URL from outside the deployment, so it has to be
+// the public address. TWENTY_API_URL is the in-network one and resolves to
+// nothing from the provider's side.
 export const buildEvolutionWebhookUrl = (): string => {
-  const apiUrl = process.env.TWENTY_API_URL?.replace(/\/+$/, '');
+  const publicApiUrl = process.env.TWENTY_PUBLIC_API_URL?.replace(/\/+$/, '');
+  const apiUrl =
+    publicApiUrl || process.env.TWENTY_API_URL?.replace(/\/+$/, '');
 
   if (!apiUrl) {
     throw new Error(
-      'TWENTY_API_URL is not available to build the webhook URL.',
+      'TWENTY_PUBLIC_API_URL is not available to build the webhook URL.',
+    );
+  }
+
+  // A single-label hostname is a container name on some internal network, and
+  // the Evolution resolves it to nothing. Loopback stays allowed for a local
+  // Evolution running next to the developer's server.
+  const { hostname } = new URL(apiUrl);
+
+  if (
+    hostname.split('.').length < 2 &&
+    !['localhost', '127.0.0.1'].includes(hostname)
+  ) {
+    throw new Error(
+      `The webhook URL would point to "${hostname}", a hostname the Evolution cannot reach. Configure SERVER_URL with the public address.`,
     );
   }
 

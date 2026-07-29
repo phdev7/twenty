@@ -6,6 +6,7 @@ import {
   DEFAULT_API_URL_NAME,
   DEFAULT_APP_ACCESS_TOKEN_NAME,
   DEFAULT_FUNCTIONS_URL_NAME,
+  DEFAULT_PUBLIC_API_URL_NAME,
 } from 'twenty-shared/application';
 import { FeatureFlagKey } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
@@ -361,6 +362,12 @@ export class LogicFunctionExecutorService {
       this.twentyConfigService.get('SERVER_INTERNAL_URL') ||
         this.twentyConfigService.get('SERVER_URL'),
     );
+    // The internal address is unreachable from outside the deployment, so a
+    // function that hands an address to a third party (a provider webhook, a
+    // redirect target) needs the public one instead.
+    const publicBaseUrl = cleanServerUrl(
+      this.twentyConfigService.get('SERVER_URL'),
+    );
     const functionsBaseUrl = await this.buildFunctionsBaseUrl({
       workspaceId,
       flatApplication,
@@ -376,6 +383,7 @@ export class LogicFunctionExecutorService {
 
     return {
       [DEFAULT_API_URL_NAME]: baseUrl ?? '',
+      [DEFAULT_PUBLIC_API_URL_NAME]: publicBaseUrl ?? '',
       [DEFAULT_APP_ACCESS_TOKEN_NAME]: applicationAccessToken.token,
       [DEFAULT_API_KEY_NAME]: applicationAccessToken.token,
       [DEFAULT_FUNCTIONS_URL_NAME]: functionsBaseUrl ?? '',
