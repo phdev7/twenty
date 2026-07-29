@@ -9,6 +9,7 @@ import {
   type RenewalSuccessPlan,
   type RenewalWorkspaceMember,
 } from 'src/modules/renewal-command-center/front-components/renewal-command-center.types';
+import { getRouteErrorMessage } from 'src/utils/route-error-message';
 
 type CustomerRenewalNode = Omit<CustomerRenewal, 'renewalEvents'> & {
   renewalEvents?: {
@@ -81,9 +82,10 @@ const inferProbability = (health?: string | null): number =>
         : 55;
 
 const getErrorMessage = (error: unknown): string =>
-  error instanceof Error
-    ? error.message
-    : 'Não foi possível concluir a operação de renovação.';
+  getRouteErrorMessage(
+    error,
+    'Não foi possível concluir a operação de renovação.',
+  );
 
 export const useRenewalCommandCenter = () => {
   const userId = useUserId();

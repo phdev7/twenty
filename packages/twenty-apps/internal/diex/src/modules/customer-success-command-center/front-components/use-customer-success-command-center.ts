@@ -24,6 +24,7 @@ import {
   type CustomerSuccessReviewResult,
   type CustomerSuccessWorkspaceMember,
 } from 'src/modules/customer-success-command-center/front-components/customer-success-command-center.types';
+import { getRouteErrorMessage } from 'src/utils/route-error-message';
 
 type SuccessPlanNode = Omit<CustomerSuccessPlan, 'milestones' | 'aiActions'> & {
   milestones?: {
@@ -65,9 +66,7 @@ type WorkspaceMembersQueryResult = {
 };
 
 const getErrorMessage = (error: unknown): string =>
-  error instanceof Error
-    ? error.message
-    : 'Não foi possível carregar Customer Success.';
+  getRouteErrorMessage(error, 'Não foi possível carregar Customer Success.');
 
 export const useCustomerSuccessCommandCenter = () => {
   const userId = useUserId();

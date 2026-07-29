@@ -10,6 +10,7 @@ import {
   type AiActionExecutionResult,
   type CurrentReviewer,
 } from 'src/modules/ai-command-center/front-components/ai-command-center.types';
+import { getRouteErrorMessage } from 'src/utils/route-error-message';
 
 type AiActionsQueryResult = {
   aiActions?: {
@@ -346,10 +347,10 @@ export const useAiCommandCenter = () => {
         return true;
       } catch (error) {
         await enqueueSnackbar({
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Não foi possível operar o executor interno.',
+          message: getRouteErrorMessage(
+            error,
+            'Não foi possível operar o executor interno.',
+          ),
           variant: 'error',
         });
 
