@@ -37,9 +37,17 @@ export const INBOX_MESSAGE_FIELD_IDS = {
   isInternalNote: '1a74a4c8-1011-4d0f-bfb0-7dd599320865',
   metadata: 'd5b186f2-8c5d-42d4-93e7-15041a534364',
   providerPayloadFingerprint: 'e93d4f7a-68f3-458f-997f-6243e86a5415',
+  transcription: 'edd08bf7-ebe3-4a60-ae2d-c17fde469c8a',
+  transcriptionStatus: '2de5e977-37ad-4ec1-8114-8c690083d353',
 } as const;
 
 export const INBOX_OPTION_IDS = {
+  transcriptionStatus: {
+    pending: 'e618c038-c15c-4252-9831-5b38abba0757',
+    done: '64b3a750-6861-4ca5-b514-59ba044975a5',
+    failed: '8c3bad49-cbcc-48fe-b4a2-3e4d41517e7a',
+    unavailable: '8cb7a680-39d3-4c48-8626-5735c373302a',
+  },
   conversationChannel: {
     whatsapp: 'bb11d44f-1eae-4a89-9e20-c870f2b01d18',
     email: 'c3aa967f-9705-43bc-811c-e4a851d2d881',

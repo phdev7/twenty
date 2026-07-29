@@ -108,6 +108,8 @@ export type InboxMessage = {
   senderHandle?: string | null;
   senderDisplayName?: string | null;
   mediaUrl?: string | null;
+  transcription?: string | null;
+  transcriptionStatus?: string | null;
   isInternalNote: boolean;
   metadata?: unknown;
 };

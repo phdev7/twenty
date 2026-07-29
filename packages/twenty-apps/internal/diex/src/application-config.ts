@@ -92,6 +92,13 @@ export default defineApplication({
       isSecret: true,
       isRequired: false,
     },
+    DIEX_OPENAI_API_KEY: {
+      description:
+        'Chave da OpenAI usada para transcrever áudios recebidos no WhatsApp. Sem ela, o áudio continua na conversa mas não vira texto para a IA.',
+      type: FieldType.TEXT,
+      isSecret: true,
+      isRequired: false,
+    },
     DIEX_MIGRATION_API_ENABLED: {
       description:
         'Habilita temporariamente importação autenticada por API key. Mantenha desativado fora da janela controlada de migração.',

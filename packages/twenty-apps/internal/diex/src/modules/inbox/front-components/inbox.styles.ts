@@ -249,6 +249,21 @@ export const inboxStyles: Record<string, CSSProperties> = {
     transition: motion.control,
     width: '100%',
   },
+  // A voice note reads faster than it plays, so the transcript is text in the
+  // bubble rather than something hidden behind an expander.
+  transcription: {
+    borderLeft: 0,
+    color: themeCssVariables.font.color.secondary,
+    fontSize: themeCssVariables.font.size.xs,
+    fontStyle: 'italic',
+    lineHeight: 1.45,
+    margin: `${themeCssVariables.spacing[2]} 0 0`,
+  },
+  transcriptionPending: {
+    color: themeCssVariables.font.color.tertiary,
+    fontSize: themeCssVariables.font.size.xxs,
+    margin: `${themeCssVariables.spacing[2]} 0 0`,
+  },
   mediaButton: {
     alignItems: 'center',
     background: themeCssVariables.background.primary,

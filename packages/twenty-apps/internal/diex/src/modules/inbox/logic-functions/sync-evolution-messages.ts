@@ -7,6 +7,7 @@ import {
   EVOLUTION_SYNC_WATERMARK_KEY,
 } from 'src/modules/inbox/constants/evolution-sync.constants';
 import { ingestMessage } from 'src/modules/inbox/logic-functions/process-evolution-webhook';
+import { transcribePendingAudios } from 'src/modules/inbox/logic-functions/transcribe-pending-audios';
 import { normalizeEvolutionMessages } from 'src/modules/inbox/utils/evolution-payload';
 import { safeEvolutionFetch } from 'src/modules/inbox/utils/safe-evolution-fetch';
 import { resolveWhatsappProvisioning } from 'src/modules/inbox/utils/whatsapp-provisioning';
@@ -17,6 +18,7 @@ export type SyncEvolutionMessagesResult = {
   considered: number;
   createdMessages: number;
   duplicateMessages: number;
+  transcribedAudios: number;
   watermark: string;
   message: string;
 };
@@ -203,11 +205,21 @@ export const syncEvolutionMessages =
 
     await appKeyValue.set(EVOLUTION_SYNC_WATERMARK_KEY, nextWatermark);
 
+    // Audio arrives as sound and is useless to a reader and to the AI until it
+    // is text, so the same cycle that stores it also drains the transcription
+    // queue. A failure here must not fail the sync that already worked.
+    const transcription = await transcribePendingAudios().catch(() => ({
+      transcribed: 0,
+      unavailable: 0,
+      failed: 0,
+    }));
+
     return {
       fetched,
       considered: records.length,
       createdMessages,
       duplicateMessages,
+      transcribedAudios: transcription.transcribed,
       watermark: nextWatermark,
       message:
         createdMessages > 0

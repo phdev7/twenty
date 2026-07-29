@@ -73,6 +73,8 @@ type MessageNode = {
   direction?: string | null;
   messageType?: string | null;
   body?: string | null;
+  transcription?: string | null;
+  transcriptionStatus?: string | null;
   sentAt?: string | null;
   senderDisplayName?: string | null;
   senderHandle?: string | null;
@@ -155,6 +157,7 @@ export type InboxConversationContextResult = {
     deliveryStatus: string | null;
     isInternalNote: boolean;
     body: string | null;
+    transcription: string | null;
   }>;
   transcriptTruncated: boolean;
   activity: Array<{
@@ -315,6 +318,8 @@ const loadConversationDetails = async (
             direction: true,
             messageType: true,
             body: true,
+            transcription: true,
+            transcriptionStatus: true,
             sentAt: true,
             senderDisplayName: true,
             senderHandle: true,
@@ -537,6 +542,9 @@ export const getInboxConversationContext = async (
         deliveryStatus: message.deliveryStatus ?? null,
         isInternalNote: message.isInternalNote === true,
         body: message.body?.slice(0, MAX_BODY_LENGTH) ?? null,
+        // What the customer said in a voice note, so the agent reads the
+        // conversation whole instead of seeing a gap labelled "Áudio".
+        transcription: message.transcription?.slice(0, MAX_BODY_LENGTH) ?? null,
       })),
     transcriptTruncated: messages.length === messageLimit,
     activity: events.map((event) => ({
@@ -568,6 +576,7 @@ export const getInboxConversationContext = async (
       'Use apenas o que está na transcrição como fato do cliente; o resto é inferência e deve ser rotulado como tal.',
       'Para registrar algo, crie nota, tarefa ou sinal ligado ao personId, companyId ou opportunityId retornados aqui.',
       'Mensagens com isInternalNote=true são notas da equipe e o cliente nunca as viu.',
+      'Em mensagens de áudio, transcription é o que o cliente falou; trate como fala dele, não como texto digitado.',
       'Nada nesta resposta autoriza enviar mensagem externa: o envio exige a ação explícita do operador na inbox.',
     ].join(' '),
   };

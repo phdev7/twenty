@@ -107,6 +107,24 @@ const getDeliveryStatusLabel = (status: string): string =>
     FAILED: 'falhou',
   })[status] ?? status.toLowerCase();
 
+const MessageTranscription = ({
+  transcription,
+  status,
+}: {
+  transcription?: string | null;
+  status?: string | null;
+}) => {
+  if (transcription) {
+    return <p style={inboxStyles.transcription}>{transcription}</p>;
+  }
+
+  if (status === 'UNAVAILABLE' || status === 'FAILED') {
+    return null;
+  }
+
+  return <p style={inboxStyles.transcriptionPending}>Transcrevendo áudio...</p>;
+};
+
 const MEDIA_MESSAGE_TYPES = ['IMAGE', 'AUDIO', 'VIDEO', 'DOCUMENT'];
 
 const MEDIA_ACTION_LABELS: Record<string, string> = {
@@ -707,6 +725,12 @@ export const ConversationThread = ({
                         );
                       })}
                     </div>
+                  ) : null}
+                  {message.messageType === 'AUDIO' ? (
+                    <MessageTranscription
+                      transcription={message.transcription}
+                      status={message.transcriptionStatus}
+                    />
                   ) : null}
                   {MEDIA_MESSAGE_TYPES.includes(message.messageType) &&
                   !isInternal ? (

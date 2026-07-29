@@ -557,6 +557,8 @@ export const useInboxData = () => {
                 senderHandle: true,
                 senderDisplayName: true,
                 mediaUrl: true,
+                transcription: true,
+                transcriptionStatus: true,
                 isInternalNote: true,
                 metadata: true,
               },

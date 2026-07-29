@@ -17,6 +17,13 @@ export enum InboxMessageType {
   SYSTEM = 'SYSTEM',
 }
 
+export enum InboxTranscriptionStatus {
+  PENDING = 'PENDING',
+  DONE = 'DONE',
+  FAILED = 'FAILED',
+  UNAVAILABLE = 'UNAVAILABLE',
+}
+
 export enum InboxMessageDeliveryStatus {
   RECEIVED = 'RECEIVED',
   QUEUED = 'QUEUED',
@@ -232,6 +239,56 @@ export default defineObject({
         'URL já autorizada ou identificador seguro; nunca uma credencial do provedor.',
       icon: 'IconPaperclip',
       isNullable: true,
+    },
+    {
+      universalIdentifier: INBOX_MESSAGE_FIELD_IDS.transcription,
+      type: FieldType.TEXT,
+      name: 'transcription',
+      label: 'Transcrição',
+      description:
+        'Texto do áudio, para o histórico ser legível e a IA entender o que o cliente falou.',
+      icon: 'IconFileText',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: INBOX_MESSAGE_FIELD_IDS.transcriptionStatus,
+      type: FieldType.SELECT,
+      name: 'transcriptionStatus',
+      label: 'Status da transcrição',
+      description:
+        'Controla o que já foi transcrito, para o mesmo áudio não ser reenviado ao provedor a cada ciclo.',
+      icon: 'IconWaveSine',
+      isNullable: true,
+      options: [
+        {
+          id: INBOX_OPTION_IDS.transcriptionStatus.pending,
+          value: InboxTranscriptionStatus.PENDING,
+          label: 'Pendente',
+          position: 0,
+          color: 'gray',
+        },
+        {
+          id: INBOX_OPTION_IDS.transcriptionStatus.done,
+          value: InboxTranscriptionStatus.DONE,
+          label: 'Transcrito',
+          position: 1,
+          color: 'green',
+        },
+        {
+          id: INBOX_OPTION_IDS.transcriptionStatus.failed,
+          value: InboxTranscriptionStatus.FAILED,
+          label: 'Falhou',
+          position: 2,
+          color: 'red',
+        },
+        {
+          id: INBOX_OPTION_IDS.transcriptionStatus.unavailable,
+          value: InboxTranscriptionStatus.UNAVAILABLE,
+          label: 'Indisponível',
+          position: 3,
+          color: 'orange',
+        },
+      ],
     },
     {
       universalIdentifier: INBOX_MESSAGE_FIELD_IDS.isInternalNote,
