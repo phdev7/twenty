@@ -52,7 +52,7 @@ export default defineApplication({
       description:
         'Cria uma pessoa quando uma mensagem recebida não encontra telefone correspondente.',
       type: FieldType.BOOLEAN,
-      value: false,
+      value: true,
       isSecret: false,
     },
     DEFAULT_RESPONSE_SLA_MINUTES: {

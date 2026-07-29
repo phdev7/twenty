@@ -97,12 +97,51 @@ const splitDisplayName = (
   };
 };
 
-const buildPhonesValue = (normalizedPhone: string) => ({
-  primaryPhoneNumber: `+${normalizedPhone}`,
-  primaryPhoneCountryCode: '',
-  primaryPhoneCallingCode: '',
-  additionalPhones: null,
-});
+// WhatsApp hands over one string of international digits. The CRM phone field
+// stores the calling code apart from the national number, and a number saved
+// without that split is unusable for dialing, filtering and dedup.
+const CALLING_CODES: Array<{ callingCode: string; countryCode: string }> = [
+  { callingCode: '598', countryCode: 'UY' },
+  { callingCode: '595', countryCode: 'PY' },
+  { callingCode: '591', countryCode: 'BO' },
+  { callingCode: '351', countryCode: 'PT' },
+  { callingCode: '55', countryCode: 'BR' },
+  { callingCode: '54', countryCode: 'AR' },
+  { callingCode: '56', countryCode: 'CL' },
+  { callingCode: '57', countryCode: 'CO' },
+  { callingCode: '52', countryCode: 'MX' },
+  { callingCode: '51', countryCode: 'PE' },
+  { callingCode: '49', countryCode: 'DE' },
+  { callingCode: '44', countryCode: 'GB' },
+  { callingCode: '39', countryCode: 'IT' },
+  { callingCode: '34', countryCode: 'ES' },
+  { callingCode: '33', countryCode: 'FR' },
+  { callingCode: '1', countryCode: 'US' },
+];
+
+const buildPhonesValue = (normalizedPhone: string) => {
+  const match = CALLING_CODES.find(
+    ({ callingCode }) =>
+      normalizedPhone.startsWith(callingCode) &&
+      normalizedPhone.length - callingCode.length >= 8,
+  );
+
+  if (!match) {
+    return {
+      primaryPhoneNumber: normalizedPhone,
+      primaryPhoneCountryCode: '',
+      primaryPhoneCallingCode: '',
+      additionalPhones: null,
+    };
+  }
+
+  return {
+    primaryPhoneNumber: normalizedPhone.slice(match.callingCode.length),
+    primaryPhoneCountryCode: match.countryCode,
+    primaryPhoneCallingCode: `+${match.callingCode}`,
+    additionalPhones: null,
+  };
+};
 
 const readPersonMatch = (
   person:
@@ -185,11 +224,19 @@ const findPersonByNormalizedPhone = async (
       }>;
     };
   };
-  const fallbackPeople = getEdges(fallbackResult.people).filter(
-    (person) =>
-      normalizePhone(person.phones?.primaryPhoneNumber ?? undefined) ===
-      normalizedPhone,
-  );
+  // A stored number may or may not carry the calling code, so a national
+  // number is accepted as long as it is the tail of the WhatsApp one. An
+  // ambiguous suffix leaves more than one candidate and links nobody.
+  const fallbackPeople = getEdges(fallbackResult.people).filter((person) => {
+    const storedPhone = normalizePhone(
+      person.phones?.primaryPhoneNumber ?? undefined,
+    );
+
+    return (
+      storedPhone !== null &&
+      (storedPhone === normalizedPhone || normalizedPhone.endsWith(storedPhone))
+    );
+  });
 
   if (fallbackPeople.length !== 1) {
     return null;
@@ -264,7 +311,7 @@ const resolvePerson = async (
     return existingPerson;
   }
 
-  if (!readBooleanEnvironmentValue('AUTO_CREATE_WHATSAPP_CONTACTS', false)) {
+  if (!readBooleanEnvironmentValue('AUTO_CREATE_WHATSAPP_CONTACTS', true)) {
     return null;
   }
 
