@@ -1,6 +1,14 @@
 export const EVOLUTION_SYNC_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER =
   'd1e0c000-0000-4000-8000-000000000006';
 
+export const EVOLUTION_SYNC_ROUTE_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER =
+  'd1e0c000-0000-4000-8000-000000000007';
+
+// The cron guarantees messages arrive even with nobody watching. When somebody
+// *is* watching, waiting up to a minute for the next tick is the whole latency,
+// so the open inbox pulls the same reconciliation itself.
+export const EVOLUTION_SYNC_ROUTE = '/diex/inbox/evolution/sync';
+
 // Every minute. The webhook is still the fast path when the provider sends it;
 // this only has to be quicker than a person noticing a missing message.
 export const EVOLUTION_SYNC_CRON_PATTERN = '* * * * *';

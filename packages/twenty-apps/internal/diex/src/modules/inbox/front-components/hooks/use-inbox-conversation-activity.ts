@@ -61,7 +61,7 @@ export const useInboxConversationActivity = ({
                   eq: conversationId,
                 },
               },
-              first: 500,
+              first: 50,
               orderBy: [{ occurredAt: 'AscNullsLast' }],
             },
             edges: {

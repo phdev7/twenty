@@ -4,6 +4,8 @@ import { MetadataApiClient } from 'twenty-client-sdk/metadata';
 import { RestApiClient } from 'twenty-client-sdk/rest';
 import { enqueueSnackbar } from 'twenty-sdk/front-component';
 
+import { EVOLUTION_MEDIA_ROUTE } from 'src/modules/inbox/constants/evolution-media.constants';
+import { EVOLUTION_SYNC_ROUTE } from 'src/modules/inbox/constants/evolution-sync.constants';
 import {
   EVOLUTION_CONFIGURE_ROUTE,
   EVOLUTION_SEND_TEXT_ROUTE,
@@ -11,6 +13,7 @@ import {
 import { INBOX_TRIAGE_ROUTE } from 'src/modules/inbox/constants/inbox-ai.constants';
 import {
   type EvolutionConfigureReceipt,
+  type EvolutionMediaPayload,
   type InboxExternalMessagePreview,
   type EvolutionTextPreview,
   type EvolutionTextReceipt,
@@ -184,9 +187,18 @@ const macroPriorityLabels: Record<string, string> = {
   URGENT: 'Urgente',
 };
 
-const INBOX_POLL_INTERVAL_MS = 10_000;
+// The provider does not announce every message, so each tick pulls the
+// reconciliation itself before reading. That makes this interval the whole
+// latency between a customer writing and the operator seeing it, instead of the
+// scheduled job's minute.
+const INBOX_POLL_INTERVAL_MS = 6_000;
 
-type SilentLoadOptions = { silent?: boolean };
+// The inbox opens on what needs attention now, not on everything it has. Both
+// grow on demand rather than shipping a whole history nobody scrolled to.
+const INBOX_CONVERSATION_PAGE_SIZE = 25;
+const INBOX_MESSAGE_PAGE_SIZE = 30;
+
+type SilentLoadOptions = { silent?: boolean; pullProvider?: boolean };
 
 const getErrorMessage = (error: unknown): string =>
   getRouteErrorMessage(error, 'Não foi possível carregar a inbox.');
@@ -291,6 +303,12 @@ export const useInboxData = () => {
   const [triageResult, setTriageResult] = useState<InboxTriageResult | null>(
     null,
   );
+  const [conversationLimit, setConversationLimit] = useState(
+    INBOX_CONVERSATION_PAGE_SIZE,
+  );
+  const [hasMoreConversations, setHasMoreConversations] = useState(false);
+  const [messageLimit, setMessageLimit] = useState(INBOX_MESSAGE_PAGE_SIZE);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
   const messageRequestVersionRef = useRef(0);
   const mentionRequestVersionRef = useRef(0);
   const isPollingRef = useRef(false);
@@ -316,7 +334,7 @@ export const useInboxData = () => {
       const queryResult = (await client.query({
         inboxConversations: {
           __args: {
-            first: 100,
+            first: conversationLimit,
             orderBy: [{ lastMessageAt: 'DescNullsLast' }],
           },
           edges: {
@@ -484,6 +502,7 @@ export const useInboxData = () => {
           : conversation,
       );
 
+      setHasMoreConversations(loadedConversations.length >= conversationLimit);
       setConversations(nextConversations);
       setSelectedConversationId((currentId) => {
         if (
@@ -500,7 +519,7 @@ export const useInboxData = () => {
     } finally {
       setIsLoadingConversations(false);
     }
-  }, []);
+  }, [conversationLimit]);
 
   const loadMessages = useCallback(
     async (conversationId: string, options?: SilentLoadOptions) => {
@@ -522,8 +541,8 @@ export const useInboxData = () => {
                   eq: conversationId,
                 },
               },
-              first: 200,
-              orderBy: [{ sentAt: 'AscNullsLast' }],
+              first: messageLimit,
+              orderBy: [{ sentAt: 'DescNullsLast' }],
             },
             edges: {
               node: {
@@ -546,9 +565,11 @@ export const useInboxData = () => {
         } as never)) as unknown as MessageQueryResult;
 
         if (requestVersion === messageRequestVersionRef.current) {
-          setMessages(
-            queryResult.inboxMessages?.edges?.map(({ node }) => node) ?? [],
-          );
+          const newestFirst =
+            queryResult.inboxMessages?.edges?.map(({ node }) => node) ?? [];
+
+          setHasOlderMessages(newestFirst.length >= messageLimit);
+          setMessages([...newestFirst].reverse());
         }
       } catch (error) {
         if (requestVersion === messageRequestVersionRef.current) {
@@ -561,11 +582,27 @@ export const useInboxData = () => {
         }
       }
     },
-    [],
+    [messageLimit],
   );
+
+  // Provider reconciliation runs before the read so a message that arrived
+  // since the last tick is already stored by the time this tick queries. A
+  // failure here must not stop the refresh: the scheduled job is the fallback,
+  // and stale data beats no data.
+  const pullProviderMessages = useCallback(async (): Promise<void> => {
+    try {
+      await new RestApiClient().post(`/s${EVOLUTION_SYNC_ROUTE}`, {});
+    } catch {
+      // Intentionally silent: this is opportunistic, and the cron covers it.
+    }
+  }, []);
 
   const refreshInbox = useCallback(
     async (options?: SilentLoadOptions): Promise<void> => {
+      if (options?.pullProvider === true) {
+        await pullProviderMessages();
+      }
+
       await Promise.all([
         loadConversations(options),
         ...(selectedConversationId
@@ -580,6 +617,7 @@ export const useInboxData = () => {
       loadConversationEvents,
       loadConversations,
       loadMessages,
+      pullProviderMessages,
       selectedConversationId,
     ],
   );
@@ -1026,7 +1064,7 @@ export const useInboxData = () => {
 
       isPollingRef.current = true;
 
-      void refreshInbox({ silent: true }).finally(() => {
+      void refreshInbox({ silent: true, pullProvider: true }).finally(() => {
         isPollingRef.current = false;
       });
     }, INBOX_POLL_INTERVAL_MS);
@@ -1061,6 +1099,10 @@ export const useInboxData = () => {
   useEffect(() => {
     void loadMentions(selectedConversationId, currentWorkspaceMemberId);
   }, [currentWorkspaceMemberId, loadMentions, selectedConversationId]);
+
+  useEffect(() => {
+    setMessageLimit(INBOX_MESSAGE_PAGE_SIZE);
+  }, [selectedConversationId]);
 
   useEffect(() => {
     setTriageResult(null);
@@ -3549,8 +3591,44 @@ export const useInboxData = () => {
     }
   }, []);
 
+  // Media is fetched from the provider only when an operator asks to see it, so
+  // the server never keeps a copy of it.
+  const loadMessageMedia = useCallback(
+    async (inboxMessageId: string): Promise<EvolutionMediaPayload | null> => {
+      try {
+        return await new RestApiClient().post<EvolutionMediaPayload>(
+          `/s${EVOLUTION_MEDIA_ROUTE}`,
+          { inboxMessageId },
+        );
+      } catch (error) {
+        await enqueueSnackbar({
+          message: getErrorMessage(error),
+          variant: 'error',
+        });
+
+        return null;
+      }
+    },
+    [],
+  );
+
+  const loadMoreConversations = useCallback(() => {
+    setConversationLimit(
+      (currentLimit) => currentLimit + INBOX_CONVERSATION_PAGE_SIZE,
+    );
+  }, []);
+
+  const loadOlderMessages = useCallback(() => {
+    setMessageLimit((currentLimit) => currentLimit + INBOX_MESSAGE_PAGE_SIZE);
+  }, []);
+
   return {
     conversations,
+    hasMoreConversations,
+    loadMoreConversations,
+    hasOlderMessages,
+    loadOlderMessages,
+    loadMessageMedia,
     savedReplies,
     macros,
     labels,

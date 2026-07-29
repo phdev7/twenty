@@ -57,10 +57,14 @@ type ConversationListProps = {
   onSelect: (conversationId: string) => Promise<void>;
   onRefresh: () => Promise<void>;
   onSyncEmail: () => Promise<void>;
+  hasMore: boolean;
+  onLoadMore: () => void;
 };
 
 export const ConversationList = ({
   conversations,
+  hasMore,
+  onLoadMore,
   selectedConversationId,
   query,
   filter,
@@ -355,6 +359,15 @@ export const ConversationList = ({
           );
         })
       )}
+      {hasMore && !isLoading ? (
+        <button
+          type="button"
+          style={inboxStyles.loadMoreButton}
+          onClick={onLoadMore}
+        >
+          Carregar mais conversas
+        </button>
+      ) : null}
     </div>
   </aside>
 );

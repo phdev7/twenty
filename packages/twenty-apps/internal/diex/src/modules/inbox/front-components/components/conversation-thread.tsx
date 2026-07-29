@@ -20,6 +20,7 @@ import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import {
   type InboxConversation,
+  type EvolutionMediaPayload,
   type InboxConversationEvent,
   type InboxExternalMessagePreview,
   type InboxMacro,
@@ -57,6 +58,11 @@ type ConversationThreadProps = {
   macros: InboxMacro[];
   triageResult: InboxTriageResult | null;
   isLoading: boolean;
+  hasOlderMessages: boolean;
+  onLoadOlderMessages: () => void;
+  onLoadMessageMedia: (
+    inboxMessageId: string,
+  ) => Promise<EvolutionMediaPayload | null>;
   busyAction: string | null;
   onRunAiTriage: () => Promise<void>;
   onStatusChange: (status: string) => Promise<void>;
@@ -101,6 +107,77 @@ const getDeliveryStatusLabel = (status: string): string =>
     FAILED: 'falhou',
   })[status] ?? status.toLowerCase();
 
+const MEDIA_MESSAGE_TYPES = ['IMAGE', 'AUDIO', 'VIDEO', 'DOCUMENT'];
+
+const MEDIA_ACTION_LABELS: Record<string, string> = {
+  IMAGE: 'Ver imagem',
+  AUDIO: 'Ouvir áudio',
+  VIDEO: 'Ver vídeo',
+  DOCUMENT: 'Abrir documento',
+};
+
+// Audio and images render in place once loaded, because asking an operator to
+// leave the conversation to hear a voice note is what made media unusable here.
+const MessageMedia = ({
+  media,
+  messageType,
+  onLoad,
+}: {
+  media: EvolutionMediaPayload | 'loading' | undefined;
+  messageType: string;
+  onLoad: () => Promise<void>;
+}) => {
+  if (media === undefined) {
+    return (
+      <button
+        type="button"
+        style={inboxStyles.mediaButton}
+        onClick={() => void onLoad()}
+      >
+        <IconPaperclip
+          size={themeCssVariables.icon.size.sm}
+          stroke={themeCssVariables.icon.stroke.md}
+        />
+        {MEDIA_ACTION_LABELS[messageType] ?? 'Carregar mídia'}
+      </button>
+    );
+  }
+
+  if (media === 'loading') {
+    return <div style={inboxStyles.mediaLoading}>Carregando mídia...</div>;
+  }
+
+  if (messageType === 'IMAGE') {
+    return <img src={media.dataUri} alt="" style={inboxStyles.mediaImage} />;
+  }
+
+  if (messageType === 'AUDIO') {
+    return (
+      <audio controls src={media.dataUri} style={inboxStyles.mediaPlayer} />
+    );
+  }
+
+  if (messageType === 'VIDEO') {
+    return (
+      <video controls src={media.dataUri} style={inboxStyles.mediaImage} />
+    );
+  }
+
+  return (
+    <a
+      href={media.dataUri}
+      download={media.fileName ?? 'documento'}
+      style={inboxStyles.mediaButton}
+    >
+      <IconPaperclip
+        size={themeCssVariables.icon.size.sm}
+        stroke={themeCssVariables.icon.stroke.md}
+      />
+      Baixar {media.fileName ?? 'documento'}
+    </a>
+  );
+};
+
 export const ConversationThread = ({
   conversation,
   messages,
@@ -112,6 +189,9 @@ export const ConversationThread = ({
   macros,
   triageResult,
   isLoading,
+  hasOlderMessages,
+  onLoadOlderMessages,
+  onLoadMessageMedia,
   busyAction,
   onRunAiTriage,
   onStatusChange,
@@ -139,6 +219,10 @@ export const ConversationThread = ({
     useState<InboxMacroApplyResult | null>(null);
   const [sendPreview, setSendPreview] =
     useState<InboxExternalMessagePreview | null>(null);
+  const [isActivityVisible, setIsActivityVisible] = useState(false);
+  const [mediaByMessageId, setMediaByMessageId] = useState<
+    Record<string, EvolutionMediaPayload | 'loading'>
+  >({});
   const activeConversationIdRef = useRef<string | null>(
     conversation?.id ?? null,
   );
@@ -216,13 +300,15 @@ export const ConversationThread = ({
         message,
       }),
     ),
-    ...events.map(
-      (event): ConversationTimelineEntry => ({
-        kind: 'EVENT',
-        occurredAt: event.occurredAt,
-        event,
-      }),
-    ),
+    ...(isActivityVisible
+      ? events.map(
+          (event): ConversationTimelineEntry => ({
+            kind: 'EVENT',
+            occurredAt: event.occurredAt,
+            event,
+          }),
+        )
+      : []),
   ].sort((left, right) => {
     const timeDifference =
       new Date(left.occurredAt ?? 0).getTime() -
@@ -622,26 +708,32 @@ export const ConversationThread = ({
                       })}
                     </div>
                   ) : null}
-                  {message.mediaUrl ? (
-                    <a
-                      href={message.mediaUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        ...inboxStyles.textButton,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: themeCssVariables.spacing[1],
-                        marginTop: themeCssVariables.spacing[2],
-                        textDecoration: 'none',
+                  {MEDIA_MESSAGE_TYPES.includes(message.messageType) &&
+                  !isInternal ? (
+                    <MessageMedia
+                      media={mediaByMessageId[message.id]}
+                      messageType={message.messageType}
+                      onLoad={async () => {
+                        setMediaByMessageId((current) => ({
+                          ...current,
+                          [message.id]: 'loading',
+                        }));
+
+                        const loaded = await onLoadMessageMedia(message.id);
+
+                        setMediaByMessageId((current) => {
+                          const next = { ...current };
+
+                          if (loaded) {
+                            next[message.id] = loaded;
+                          } else {
+                            delete next[message.id];
+                          }
+
+                          return next;
+                        });
                       }}
-                    >
-                      <IconPaperclip
-                        size={themeCssVariables.icon.size.sm}
-                        stroke={themeCssVariables.icon.stroke.md}
-                      />
-                      Abrir mídia
-                    </a>
+                    />
                   ) : null}
                   <div style={inboxStyles.messageMeta}>
                     {formatMessageTime(message.sentAt)}
@@ -656,6 +748,30 @@ export const ConversationThread = ({
             );
           })
         )}
+        {hasOlderMessages && !isLoading ? (
+          <button
+            type="button"
+            style={inboxStyles.loadMoreButton}
+            onClick={onLoadOlderMessages}
+          >
+            Carregar mensagens anteriores
+          </button>
+        ) : null}
+        {events.length > 0 ? (
+          <button
+            type="button"
+            style={inboxStyles.activityToggle}
+            onClick={() => setIsActivityVisible(!isActivityVisible)}
+          >
+            <IconTimelineEvent
+              size={themeCssVariables.icon.size.sm}
+              stroke={themeCssVariables.icon.stroke.md}
+            />
+            {isActivityVisible
+              ? 'Ocultar atividade'
+              : `Mostrar atividade (${events.length})`}
+          </button>
+        ) : null}
       </div>
 
       <footer style={inboxStyles.composer}>

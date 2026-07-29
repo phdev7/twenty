@@ -39,6 +39,11 @@ export const InboxFrontComponent = () => {
     selectedConversationId,
     messages,
     conversationEvents,
+    hasMoreConversations,
+    loadMoreConversations,
+    hasOlderMessages,
+    loadOlderMessages,
+    loadMessageMedia,
     conversationMentions,
     pendingMentions,
     currentWorkspaceMemberId,
@@ -215,11 +220,16 @@ export const InboxFrontComponent = () => {
           onSelect={selectConversation}
           onRefresh={refreshInbox}
           onSyncEmail={syncTwentyEmail}
+          hasMore={hasMoreConversations}
+          onLoadMore={loadMoreConversations}
         />
         <ConversationThread
           conversation={selectedConversation}
           messages={messages}
           events={conversationEvents}
+          hasOlderMessages={hasOlderMessages}
+          onLoadOlderMessages={loadOlderMessages}
+          onLoadMessageMedia={loadMessageMedia}
           mentions={conversationMentions}
           workspaceMembers={workspaceMembers}
           currentWorkspaceMemberId={currentWorkspaceMemberId}

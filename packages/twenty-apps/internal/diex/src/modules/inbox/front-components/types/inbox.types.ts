@@ -229,6 +229,13 @@ export type InboxExternalMessagePreview =
       message: string;
     };
 
+export type EvolutionMediaPayload = {
+  inboxMessageId: string;
+  mimeType: string;
+  fileName?: string | null;
+  dataUri: string;
+};
+
 export type EvolutionConfigureReceipt = {
   configured: boolean;
   instanceName: string;
