@@ -1,8 +1,8 @@
 import { CoreApiClient } from 'twenty-client-sdk/core';
 
 import {
-  EVOLUTION_SYNC_INITIAL_WINDOW_MINUTES,
-  EVOLUTION_SYNC_MESSAGE_LIMIT,
+  EVOLUTION_SYNC_MAX_BACKFILL_DAYS,
+  EVOLUTION_SYNC_MAX_PAGES,
   EVOLUTION_SYNC_OVERLAP_SECONDS,
   EVOLUTION_SYNC_WATERMARK_KEY,
 } from 'src/modules/inbox/constants/evolution-sync.constants';
@@ -64,34 +64,56 @@ const asWebhookPayload = (
   data: record,
 });
 
-// The provider stores every message it receives but does not always announce
-// it: a chat addressed by LID goes silent on the webhook while landing in
-// storage all the same. Reading storage on a schedule turns delivery into
-// something the inbox can rely on, and deduplication keeps it free when the
-// webhook did its job.
-export const syncEvolutionMessages =
-  async (): Promise<SyncEvolutionMessagesResult> => {
-    const configuration = resolveWhatsappProvisioning();
-    const now = Date.now();
-    const storedWatermark = await appKeyValue.get<string>(
-      EVOLUTION_SYNC_WATERMARK_KEY,
-    );
-    const parsedWatermark = storedWatermark ? Date.parse(storedWatermark) : NaN;
-    const watermark = Number.isFinite(parsedWatermark)
-      ? parsedWatermark
-      : now - EVOLUTION_SYNC_INITIAL_WINDOW_MINUTES * 60_000;
-    const floor = watermark - EVOLUTION_SYNC_OVERLAP_SECONDS * 1_000;
+// Where to resume from on a workspace that has never synced: the newest message
+// the inbox already holds. Whatever the provider stored after that is exactly
+// the gap, however long the webhook stayed quiet.
+const readNewestStoredMessageAt = async (
+  client: CoreApiClient,
+): Promise<number | null> => {
+  const result = (await client.query({
+    inboxMessages: {
+      __args: {
+        first: 1,
+        orderBy: [{ sentAt: 'DescNullsLast' }],
+      },
+      edges: { node: { sentAt: true } },
+    },
+  })) as {
+    inboxMessages?: {
+      edges?: Array<{ node?: { sentAt?: string | null } | null }>;
+    };
+  };
+  const sentAt = result.inboxMessages?.edges?.[0]?.node?.sentAt;
+  const parsed = sentAt ? Date.parse(sentAt) : NaN;
 
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const fetchRecordsSince = async ({
+  baseUrl,
+  apiKey,
+  instanceName,
+  floor,
+}: {
+  baseUrl: string;
+  apiKey: string;
+  instanceName: string;
+  floor: number;
+}): Promise<{ records: ProviderMessageRecord[]; fetched: number }> => {
+  const collected: ProviderMessageRecord[] = [];
+  let fetched = 0;
+
+  for (let page = 1; page <= EVOLUTION_SYNC_MAX_PAGES; page += 1) {
     const response = await safeEvolutionFetch({
-      baseUrl: configuration.baseUrl,
-      path: `/chat/findMessages/${encodeURIComponent(configuration.instanceName)}`,
+      baseUrl,
+      path: `/chat/findMessages/${encodeURIComponent(instanceName)}`,
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        apikey: configuration.apiKey,
+        apikey: apiKey,
       },
-      body: JSON.stringify({ limit: EVOLUTION_SYNC_MESSAGE_LIMIT }),
+      body: JSON.stringify({ page }),
     });
 
     if (!response.ok) {
@@ -101,17 +123,61 @@ export const syncEvolutionMessages =
     }
 
     const records = readProviderRecords(await response.json());
-    const recent = records.filter(
-      (record) => readRecordTimestamp(record) >= floor,
-    );
+
+    fetched += records.length;
+    collected.push(...records.filter((record) => readRecordTimestamp(record) >= floor));
+
+    // Records come newest first, so the first page that ends before the floor
+    // is the last one worth reading.
+    const reachedFloor =
+      records.length === 0 ||
+      records.some((record) => readRecordTimestamp(record) < floor);
+
+    if (reachedFloor) {
+      break;
+    }
+  }
+
+  return { records: collected, fetched };
+};
+
+// The provider stores every message it receives but does not always announce
+// it: a chat addressed by LID goes silent on the webhook while landing in
+// storage all the same. Reading storage on a schedule turns delivery into
+// something the inbox can rely on, and deduplication keeps it free when the
+// webhook did its job.
+export const syncEvolutionMessages =
+  async (): Promise<SyncEvolutionMessagesResult> => {
+    const configuration = resolveWhatsappProvisioning();
     const client = new CoreApiClient();
+    const now = Date.now();
+    const oldestAllowed = now - EVOLUTION_SYNC_MAX_BACKFILL_DAYS * 86_400_000;
+    const storedWatermark = await appKeyValue.get<string>(
+      EVOLUTION_SYNC_WATERMARK_KEY,
+    );
+    const parsedWatermark = storedWatermark ? Date.parse(storedWatermark) : NaN;
+    const watermark = Number.isFinite(parsedWatermark)
+      ? parsedWatermark
+      : Math.max(
+          (await readNewestStoredMessageAt(client)) ?? oldestAllowed,
+          oldestAllowed,
+        );
+    const floor = watermark - EVOLUTION_SYNC_OVERLAP_SECONDS * 1_000;
+
+    const { records, fetched } = await fetchRecordsSince({
+      baseUrl: configuration.baseUrl,
+      apiKey: configuration.apiKey,
+      instanceName: configuration.instanceName,
+      floor,
+    });
+
     let createdMessages = 0;
     let duplicateMessages = 0;
     let newestTimestamp = watermark;
 
     // Oldest first, so a conversation is created by the message that actually
     // opened it and the thread reads in the order it happened.
-    for (const record of [...recent].sort(
+    for (const record of [...records].sort(
       (left, right) => readRecordTimestamp(left) - readRecordTimestamp(right),
     )) {
       const [message] = normalizeEvolutionMessages(
@@ -130,10 +196,7 @@ export const syncEvolutionMessages =
         duplicateMessages += 1;
       }
 
-      newestTimestamp = Math.max(
-        newestTimestamp,
-        readRecordTimestamp(record),
-      );
+      newestTimestamp = Math.max(newestTimestamp, readRecordTimestamp(record));
     }
 
     const nextWatermark = new Date(newestTimestamp).toISOString();
@@ -141,8 +204,8 @@ export const syncEvolutionMessages =
     await appKeyValue.set(EVOLUTION_SYNC_WATERMARK_KEY, nextWatermark);
 
     return {
-      fetched: records.length,
-      considered: recent.length,
+      fetched,
+      considered: records.length,
       createdMessages,
       duplicateMessages,
       watermark: nextWatermark,

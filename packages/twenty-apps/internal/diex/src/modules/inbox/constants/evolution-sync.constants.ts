@@ -7,14 +7,16 @@ export const EVOLUTION_SYNC_CRON_PATTERN = '* * * * *';
 
 export const EVOLUTION_SYNC_WATERMARK_KEY = 'evolution:sync:last-message-at';
 
-// How far back the very first run reaches. The provider keeps months of history
-// for every chat the number ever had, and importing all of it would fill the
-// commercial inbox with verification codes and old broadcasts.
-export const EVOLUTION_SYNC_INITIAL_WINDOW_MINUTES = 90;
+// With no watermark yet, the gap to close is everything since the newest
+// message the inbox already holds — however long the webhook has been silent.
+// This only caps how far back that reach can go on a workspace whose inbox is
+// empty, so a first run never drags months of unrelated history into it.
+export const EVOLUTION_SYNC_MAX_BACKFILL_DAYS = 7;
 
-// Enough to cover a provider outage of a few minutes at normal volume, small
-// enough that a run stays well inside the function timeout.
-export const EVOLUTION_SYNC_MESSAGE_LIMIT = 40;
+// The provider ignores the requested page size and answers with 50 records, so
+// reaching further back means walking pages. Five is far more than a normal gap
+// and keeps a run inside the function timeout.
+export const EVOLUTION_SYNC_MAX_PAGES = 5;
 
 // A message can reach the provider's storage slightly after its own timestamp,
 // so the window reaches a little behind the watermark. Deduplication makes the
