@@ -127,7 +127,9 @@ const fetchRecordsSince = async ({
     const records = readProviderRecords(await response.json());
 
     fetched += records.length;
-    collected.push(...records.filter((record) => readRecordTimestamp(record) >= floor));
+    collected.push(
+      ...records.filter((record) => readRecordTimestamp(record) >= floor),
+    );
 
     // Records come newest first, so the first page that ends before the floor
     // is the last one worth reading.

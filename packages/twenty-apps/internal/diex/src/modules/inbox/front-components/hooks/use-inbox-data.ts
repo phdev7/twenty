@@ -341,268 +341,271 @@ export const useInboxData = () => {
     currentWorkspaceMemberId,
   });
 
-  const loadConversations = useCallback(async (options?: SilentLoadOptions) => {
-    if (options?.silent !== true) {
-      setIsLoadingConversations(true);
-    }
+  const loadConversations = useCallback(
+    async (options?: SilentLoadOptions) => {
+      if (options?.silent !== true) {
+        setIsLoadingConversations(true);
+      }
 
-    setErrorMessage(null);
+      setErrorMessage(null);
 
-    const searchTerm = debouncedQuery.trim();
-    const serverFilters: Array<Record<string, unknown>> = [
-      filter === 'ACTIVE'
-        ? { status: { in: ['OPEN', 'PENDING'] } }
-        : { status: { eq: filter } },
-    ];
+      const searchTerm = debouncedQuery.trim();
+      const serverFilters: Array<Record<string, unknown>> = [
+        filter === 'ACTIVE'
+          ? { status: { in: ['OPEN', 'PENDING'] } }
+          : { status: { eq: filter } },
+      ];
 
-    if (searchTerm.length > 0) {
-      serverFilters.push({
-        or: [
-          { name: { ilike: `%${searchTerm}%` } },
-          { contactHandle: { ilike: `%${searchTerm}%` } },
-          { lastMessagePreview: { ilike: `%${searchTerm}%` } },
-        ],
-      });
-    }
+      if (searchTerm.length > 0) {
+        serverFilters.push({
+          or: [
+            { name: { ilike: `%${searchTerm}%` } },
+            { contactHandle: { ilike: `%${searchTerm}%` } },
+            { lastMessagePreview: { ilike: `%${searchTerm}%` } },
+          ],
+        });
+      }
 
-    if (assigneeFilterId !== 'ALL') {
-      serverFilters.push(
-        assigneeFilterId === 'UNASSIGNED'
-          ? { assigneeId: { is: 'NULL' } }
-          : { assigneeId: { eq: assigneeFilterId } },
-      );
-    }
+      if (assigneeFilterId !== 'ALL') {
+        serverFilters.push(
+          assigneeFilterId === 'UNASSIGNED'
+            ? { assigneeId: { is: 'NULL' } }
+            : { assigneeId: { eq: assigneeFilterId } },
+        );
+      }
 
-    if (teamFilterId !== 'ALL') {
-      serverFilters.push(
-        teamFilterId === 'UNASSIGNED'
-          ? { inboxTeamId: { is: 'NULL' } }
-          : { inboxTeamId: { eq: teamFilterId } },
-      );
-    }
+      if (teamFilterId !== 'ALL') {
+        serverFilters.push(
+          teamFilterId === 'UNASSIGNED'
+            ? { inboxTeamId: { is: 'NULL' } }
+            : { inboxTeamId: { eq: teamFilterId } },
+        );
+      }
 
-    if (attentionFilter === 'UNREAD') {
-      serverFilters.push({ unreadCount: { gt: 0 } });
-    }
+      if (attentionFilter === 'UNREAD') {
+        serverFilters.push({ unreadCount: { gt: 0 } });
+      }
 
-    if (attentionFilter === 'SLA_BREACHED') {
-      serverFilters.push({ slaBreachedAt: { is: 'NOT_NULL' } });
-    }
+      if (attentionFilter === 'SLA_BREACHED') {
+        serverFilters.push({ slaBreachedAt: { is: 'NOT_NULL' } });
+      }
 
-    if (attentionFilter === 'URGENT') {
-      serverFilters.push({ priority: { in: ['HIGH', 'URGENT'] } });
-    }
+      if (attentionFilter === 'URGENT') {
+        serverFilters.push({ priority: { in: ['HIGH', 'URGENT'] } });
+      }
 
-    if (attentionFilter === 'FOLLOW_UP_DUE') {
-      serverFilters.push({
-        followUpDueAt: { lte: new Date().toISOString() },
-      });
-    }
+      if (attentionFilter === 'FOLLOW_UP_DUE') {
+        serverFilters.push({
+          followUpDueAt: { lte: new Date().toISOString() },
+        });
+      }
 
-    try {
-      const client = new CoreApiClient();
-      const queryResult = (await client.query({
-        inboxConversations: {
-          __args: {
-            filter: { and: serverFilters },
-            first:
-              searchTerm.length > 0
-                ? INBOX_SEARCH_PAGE_SIZE
-                : conversationLimit,
-            orderBy: [{ lastMessageAt: 'DescNullsLast' }],
-          },
-          totalCount: true,
-          edges: {
-            node: {
-              id: true,
-              name: true,
-              providerThreadKey: true,
-              channel: true,
-              provider: true,
-              status: true,
-              priority: true,
-              contactHandle: true,
-              unreadCount: true,
-              lastMessagePreview: true,
-              lastMessageDirection: true,
-              lastMessageAt: true,
-              firstResponseDueAt: true,
-              firstRespondedAt: true,
-              followUpDueAt: true,
-              snoozedUntil: true,
-              slaBreachedAt: true,
-              metadata: true,
-              person: {
-                id: true,
-                name: {
-                  firstName: true,
-                  lastName: true,
-                },
-              },
-              company: {
+      try {
+        const client = new CoreApiClient();
+        const queryResult = (await client.query({
+          inboxConversations: {
+            __args: {
+              filter: { and: serverFilters },
+              first:
+                searchTerm.length > 0
+                  ? INBOX_SEARCH_PAGE_SIZE
+                  : conversationLimit,
+              orderBy: [{ lastMessageAt: 'DescNullsLast' }],
+            },
+            totalCount: true,
+            edges: {
+              node: {
                 id: true,
                 name: true,
-              },
-              opportunity: {
-                id: true,
-                name: true,
-                stage: true,
-              },
-              inboxTeam: {
-                id: true,
-                name: true,
-                key: true,
-                description: true,
+                providerThreadKey: true,
+                channel: true,
+                provider: true,
                 status: true,
-                routingStrategy: true,
-                defaultResponseSlaMinutes: true,
-                isDefault: true,
-              },
-              assignee: {
-                id: true,
-                name: {
-                  firstName: true,
-                  lastName: true,
+                priority: true,
+                contactHandle: true,
+                unreadCount: true,
+                lastMessagePreview: true,
+                lastMessageDirection: true,
+                lastMessageAt: true,
+                firstResponseDueAt: true,
+                firstRespondedAt: true,
+                followUpDueAt: true,
+                snoozedUntil: true,
+                slaBreachedAt: true,
+                metadata: true,
+                person: {
+                  id: true,
+                  name: {
+                    firstName: true,
+                    lastName: true,
+                  },
                 },
-                avatarUrl: true,
-              },
-              tasks: {
-                edges: {
-                  node: {
-                    id: true,
-                    title: true,
-                    status: true,
-                    dueAt: true,
-                    assignee: {
+                company: {
+                  id: true,
+                  name: true,
+                },
+                opportunity: {
+                  id: true,
+                  name: true,
+                  stage: true,
+                },
+                inboxTeam: {
+                  id: true,
+                  name: true,
+                  key: true,
+                  description: true,
+                  status: true,
+                  routingStrategy: true,
+                  defaultResponseSlaMinutes: true,
+                  isDefault: true,
+                },
+                assignee: {
+                  id: true,
+                  name: {
+                    firstName: true,
+                    lastName: true,
+                  },
+                  avatarUrl: true,
+                },
+                tasks: {
+                  edges: {
+                    node: {
                       id: true,
-                      name: {
-                        firstName: true,
-                        lastName: true,
+                      title: true,
+                      status: true,
+                      dueAt: true,
+                      assignee: {
+                        id: true,
+                        name: {
+                          firstName: true,
+                          lastName: true,
+                        },
+                        avatarUrl: true,
                       },
-                      avatarUrl: true,
                     },
                   },
                 },
-              },
-              labelAssignments: {
-                edges: {
-                  node: {
-                    id: true,
-                    isActive: true,
-                    assignedAt: true,
-                    removedAt: true,
-                    inboxLabel: {
+                labelAssignments: {
+                  edges: {
+                    node: {
                       id: true,
-                      name: true,
-                      slug: true,
-                      color: true,
-                      description: true,
-                      status: true,
-                      usageCount: true,
+                      isActive: true,
+                      assignedAt: true,
+                      removedAt: true,
+                      inboxLabel: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        color: true,
+                        description: true,
+                        status: true,
+                        usageCount: true,
+                      },
                     },
                   },
                 },
               },
             },
           },
-        },
-      } as never)) as unknown as ConversationQueryResult;
+        } as never)) as unknown as ConversationQueryResult;
 
-      const loadedConversations =
-        queryResult.inboxConversations?.edges?.map(({ node }) => {
-          const { tasks, labelAssignments, ...conversation } = node;
+        const loadedConversations =
+          queryResult.inboxConversations?.edges?.map(({ node }) => {
+            const { tasks, labelAssignments, ...conversation } = node;
 
-          return {
-            ...conversation,
-            unreadCount: conversation.unreadCount ?? 0,
-            tasks: tasks?.edges?.map(({ node: task }) => task) ?? [],
-            labelAssignments:
-              labelAssignments?.edges?.flatMap(({ node: assignment }) =>
-                assignment.inboxLabel
-                  ? [
-                      {
-                        id: assignment.id,
-                        isActive: assignment.isActive,
-                        assignedAt: assignment.assignedAt,
-                        removedAt: assignment.removedAt,
-                        label: {
-                          ...assignment.inboxLabel,
-                          usageCount: assignment.inboxLabel.usageCount ?? 0,
+            return {
+              ...conversation,
+              unreadCount: conversation.unreadCount ?? 0,
+              tasks: tasks?.edges?.map(({ node: task }) => task) ?? [],
+              labelAssignments:
+                labelAssignments?.edges?.flatMap(({ node: assignment }) =>
+                  assignment.inboxLabel
+                    ? [
+                        {
+                          id: assignment.id,
+                          isActive: assignment.isActive,
+                          assignedAt: assignment.assignedAt,
+                          removedAt: assignment.removedAt,
+                          label: {
+                            ...assignment.inboxLabel,
+                            usageCount: assignment.inboxLabel.usageCount ?? 0,
+                          },
+                        },
+                      ]
+                    : [],
+                ) ?? [],
+            };
+          }) ?? [];
+        const expiredSnoozes = loadedConversations.filter(
+          (conversation) =>
+            conversation.status === 'SNOOZED' &&
+            typeof conversation.snoozedUntil === 'string' &&
+            new Date(conversation.snoozedUntil).getTime() <= Date.now(),
+        );
+        const reopenedConversationIds = new Set(
+          (
+            await Promise.all(
+              expiredSnoozes.map(async (conversation) => {
+                try {
+                  await client.mutation({
+                    updateInboxConversation: {
+                      __args: {
+                        id: conversation.id,
+                        data: {
+                          status: 'OPEN',
+                          snoozedUntil: null,
                         },
                       },
-                    ]
-                  : [],
-              ) ?? [],
-          };
-        }) ?? [];
-      const expiredSnoozes = loadedConversations.filter(
-        (conversation) =>
-          conversation.status === 'SNOOZED' &&
-          typeof conversation.snoozedUntil === 'string' &&
-          new Date(conversation.snoozedUntil).getTime() <= Date.now(),
-      );
-      const reopenedConversationIds = new Set(
-        (
-          await Promise.all(
-            expiredSnoozes.map(async (conversation) => {
-              try {
-                await client.mutation({
-                  updateInboxConversation: {
-                    __args: {
-                      id: conversation.id,
-                      data: {
-                        status: 'OPEN',
-                        snoozedUntil: null,
-                      },
+                      id: true,
                     },
-                    id: true,
-                  },
-                } as never);
+                  } as never);
 
-                return conversation.id;
-              } catch {
-                return null;
+                  return conversation.id;
+                } catch {
+                  return null;
+                }
+              }),
+            )
+          ).filter((id): id is string => typeof id === 'string'),
+        );
+        const nextConversations = loadedConversations.map((conversation) =>
+          reopenedConversationIds.has(conversation.id)
+            ? {
+                ...conversation,
+                status: 'OPEN',
+                snoozedUntil: null,
               }
-            }),
-          )
-        ).filter((id): id is string => typeof id === 'string'),
-      );
-      const nextConversations = loadedConversations.map((conversation) =>
-        reopenedConversationIds.has(conversation.id)
-          ? {
-              ...conversation,
-              status: 'OPEN',
-              snoozedUntil: null,
-            }
-          : conversation,
-      );
+            : conversation,
+        );
 
-      const matchingCount =
-        queryResult.inboxConversations?.totalCount ??
-        loadedConversations.length;
+        const matchingCount =
+          queryResult.inboxConversations?.totalCount ??
+          loadedConversations.length;
 
-      setConversationTotalCount(matchingCount);
-      setHasMoreConversations(loadedConversations.length < matchingCount);
-      setConversations(nextConversations);
-      // Only ever fill an empty selection. A conversation an operator opened
-      // stays open even when a filter or a page no longer contains it —
-      // otherwise every refresh yanks them out of what they were reading.
-      setSelectedConversationId((currentId) =>
-        currentId !== null ? currentId : (nextConversations[0]?.id ?? null),
-      );
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setIsLoadingConversations(false);
-    }
-  }, [
-    assigneeFilterId,
-    attentionFilter,
-    conversationLimit,
-    debouncedQuery,
-    filter,
-    teamFilterId,
-  ]);
+        setConversationTotalCount(matchingCount);
+        setHasMoreConversations(loadedConversations.length < matchingCount);
+        setConversations(nextConversations);
+        // Only ever fill an empty selection. A conversation an operator opened
+        // stays open even when a filter or a page no longer contains it —
+        // otherwise every refresh yanks them out of what they were reading.
+        setSelectedConversationId((currentId) =>
+          currentId !== null ? currentId : (nextConversations[0]?.id ?? null),
+        );
+      } catch (error) {
+        setErrorMessage(getErrorMessage(error));
+      } finally {
+        setIsLoadingConversations(false);
+      }
+    },
+    [
+      assigneeFilterId,
+      attentionFilter,
+      conversationLimit,
+      debouncedQuery,
+      filter,
+      teamFilterId,
+    ],
+  );
 
   const loadMessages = useCallback(
     async (conversationId: string, options?: SilentLoadOptions) => {

@@ -117,127 +117,132 @@ export const getCommercialPriorities = async (
     assignee: { name: { firstName: true, lastName: true } },
   };
 
-  const [waitingResult, followUpResult, taskResult, opportunityResult, renewalResult] =
-    await Promise.all([
-      // The customer wrote last and nobody answered: the only queue where every
-      // extra minute is visible to the person waiting.
-      client.query({
-        inboxConversations: {
-          __args: {
-            filter: {
-              and: [
-                { status: { in: ['OPEN', 'PENDING'] } },
-                { lastMessageDirection: { eq: 'INBOUND' } },
-                ...assigneeFilter,
-              ],
-            },
-            first: limit,
-            orderBy: [{ lastMessageAt: 'AscNullsLast' }],
+  const [
+    waitingResult,
+    followUpResult,
+    taskResult,
+    opportunityResult,
+    renewalResult,
+  ] = await Promise.all([
+    // The customer wrote last and nobody answered: the only queue where every
+    // extra minute is visible to the person waiting.
+    client.query({
+      inboxConversations: {
+        __args: {
+          filter: {
+            and: [
+              { status: { in: ['OPEN', 'PENDING'] } },
+              { lastMessageDirection: { eq: 'INBOUND' } },
+              ...assigneeFilter,
+            ],
           },
-          edges: { node: conversationSelection },
+          first: limit,
+          orderBy: [{ lastMessageAt: 'AscNullsLast' }],
         },
-      } as never) as Promise<unknown>,
-      client.query({
-        inboxConversations: {
-          __args: {
-            filter: {
-              and: [
-                { status: { in: ['OPEN', 'PENDING'] } },
-                { followUpDueAt: { lte: now } },
-                ...assigneeFilter,
-              ],
-            },
-            first: limit,
-            orderBy: [{ followUpDueAt: 'AscNullsLast' }],
+        edges: { node: conversationSelection },
+      },
+    } as never) as Promise<unknown>,
+    client.query({
+      inboxConversations: {
+        __args: {
+          filter: {
+            and: [
+              { status: { in: ['OPEN', 'PENDING'] } },
+              { followUpDueAt: { lte: now } },
+              ...assigneeFilter,
+            ],
           },
-          edges: { node: conversationSelection },
+          first: limit,
+          orderBy: [{ followUpDueAt: 'AscNullsLast' }],
         },
-      } as never) as Promise<unknown>,
-      client.query({
-        tasks: {
-          __args: {
-            filter: {
-              and: [
-                { status: { neq: 'DONE' } },
-                { dueAt: { lte: now } },
-                ...(input.assigneeId?.trim()
-                  ? [{ assigneeId: { eq: input.assigneeId.trim() } }]
-                  : []),
-              ],
-            },
-            first: limit,
-            orderBy: [{ dueAt: 'AscNullsLast' }],
+        edges: { node: conversationSelection },
+      },
+    } as never) as Promise<unknown>,
+    client.query({
+      tasks: {
+        __args: {
+          filter: {
+            and: [
+              { status: { neq: 'DONE' } },
+              { dueAt: { lte: now } },
+              ...(input.assigneeId?.trim()
+                ? [{ assigneeId: { eq: input.assigneeId.trim() } }]
+                : []),
+            ],
           },
-          edges: {
-            node: {
-              id: true,
-              title: true,
-              dueAt: true,
-              assignee: { name: { firstName: true, lastName: true } },
-            },
-          },
+          first: limit,
+          orderBy: [{ dueAt: 'AscNullsLast' }],
         },
-      } as never) as Promise<unknown>,
-      // A deal whose own next step is past due, or one already flagged risky.
-      client.query({
-        opportunities: {
-          __args: {
-            filter: {
-              and: [
-                { stage: { neq: 'WON' } },
-                { stage: { neq: 'LOST' } },
-                {
-                  or: [
-                    { nextCommercialActionAt: { lte: now } },
-                    { dealRisk: { in: ['HIGH', 'CRITICAL'] } },
-                  ],
-                },
-              ],
-            },
-            first: limit,
-            orderBy: [{ nextCommercialActionAt: 'AscNullsLast' }],
-          },
-          edges: {
-            node: {
-              id: true,
-              name: true,
-              stage: true,
-              closeDate: true,
-              dealRisk: true,
-              nextCommercialAction: true,
-              nextCommercialActionAt: true,
-              amount: { amountMicros: true },
-            },
+        edges: {
+          node: {
+            id: true,
+            title: true,
+            dueAt: true,
+            assignee: { name: { firstName: true, lastName: true } },
           },
         },
-      } as never) as Promise<unknown>,
-      client.query({
-        customerRenewals: {
-          __args: {
-            filter: {
-              and: [
-                { stage: { neq: 'RENEWED' } },
-                { stage: { neq: 'CHURNED' } },
-                { risk: { in: ['HIGH', 'CRITICAL'] } },
-              ],
-            },
-            first: limit,
-            orderBy: [{ targetDate: 'AscNullsLast' }],
+      },
+    } as never) as Promise<unknown>,
+    // A deal whose own next step is past due, or one already flagged risky.
+    client.query({
+      opportunities: {
+        __args: {
+          filter: {
+            and: [
+              { stage: { neq: 'WON' } },
+              { stage: { neq: 'LOST' } },
+              {
+                or: [
+                  { nextCommercialActionAt: { lte: now } },
+                  { dealRisk: { in: ['HIGH', 'CRITICAL'] } },
+                ],
+              },
+            ],
           },
-          edges: {
-            node: {
-              id: true,
-              name: true,
-              stage: true,
-              risk: true,
-              riskReason: true,
-              targetDate: true,
-              nextAction: true,
-            },
+          first: limit,
+          orderBy: [{ nextCommercialActionAt: 'AscNullsLast' }],
+        },
+        edges: {
+          node: {
+            id: true,
+            name: true,
+            stage: true,
+            closeDate: true,
+            dealRisk: true,
+            nextCommercialAction: true,
+            nextCommercialActionAt: true,
+            amount: { amountMicros: true },
           },
         },
-      } as never) as Promise<unknown>,
-    ]);
+      },
+    } as never) as Promise<unknown>,
+    client.query({
+      customerRenewals: {
+        __args: {
+          filter: {
+            and: [
+              { stage: { neq: 'RENEWED' } },
+              { stage: { neq: 'CHURNED' } },
+              { risk: { in: ['HIGH', 'CRITICAL'] } },
+            ],
+          },
+          first: limit,
+          orderBy: [{ targetDate: 'AscNullsLast' }],
+        },
+        edges: {
+          node: {
+            id: true,
+            name: true,
+            stage: true,
+            risk: true,
+            riskReason: true,
+            targetDate: true,
+            nextAction: true,
+          },
+        },
+      },
+    } as never) as Promise<unknown>,
+  ]);
 
   const readConversations = (result: unknown): WaitingConversation[] =>
     getEdges(
@@ -254,7 +259,10 @@ export const getCommercialPriorities = async (
                 lastMessagePreview?: string | null;
                 slaBreachedAt?: string | null;
                 assignee?: {
-                  name?: { firstName?: string | null; lastName?: string | null };
+                  name?: {
+                    firstName?: string | null;
+                    lastName?: string | null;
+                  };
                 } | null;
               };
             }>;

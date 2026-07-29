@@ -42,7 +42,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       gap: themeCssVariables.spacing[1],
       letterSpacing: '0.08em',
       margin: 0,
-      },
+    },
     title: {
       fontSize: themeCssVariables.font.size.xxl,
       fontWeight: themeCssVariables.font.weight.semiBold,
@@ -124,7 +124,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       color: themeCssVariables.font.color.tertiary,
       fontSize: themeCssVariables.font.size.xxs,
       margin: 0,
-      },
+    },
     metricValue: {
       fontSize: themeCssVariables.font.size.xl,
       fontWeight: themeCssVariables.font.weight.semiBold,
@@ -556,7 +556,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       fontSize: themeCssVariables.font.size.xs,
       fontWeight: themeCssVariables.font.weight.semiBold,
       margin: 0,
-      },
+    },
     empty: {
       alignItems: 'center',
       color: themeCssVariables.font.color.tertiary,
