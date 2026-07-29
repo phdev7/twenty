@@ -53,6 +53,16 @@ type ConversationForSend = {
   } | null;
 };
 
+type SendableConversation = {
+  destination: string;
+  lastInboundAt: string | null;
+};
+
+// WhatsApp's customer service window. Answering someone who wrote first is a
+// reply, not outreach, and asking an operator to register consent before they
+// can answer a live customer would make the inbox unusable.
+const SERVICE_WINDOW_MS = 24 * 60 * 60_000;
+
 type ConfirmationPayload = {
   conversationId: string;
   textHash: string;
@@ -163,73 +173,106 @@ const decodeConfirmationToken = (
   }
 };
 
+// Both reads answer the same question — may this text be sent — so they go out
+// together instead of adding a round trip to every send and every preview.
 const loadConversationForSend = async (
   client: CoreApiClient,
   conversationId: string,
-): Promise<ConversationForSend> => {
-  const result = (await client.query({
-    inboxConversation: {
-      __args: { filter: { id: { eq: conversationId } } },
-      id: true,
-      provider: true,
-      channel: true,
-      contactHandle: true,
-      unreadCount: true,
-      firstRespondedAt: true,
-      person: {
+): Promise<{
+  conversation: ConversationForSend;
+  lastInboundAt: string | null;
+}> => {
+  const [conversationResult, inboundResult] = await Promise.all([
+    client.query({
+      inboxConversation: {
+        __args: { filter: { id: { eq: conversationId } } },
         id: true,
-        whatsappConsentStatus: true,
-        doNotContact: true,
+        provider: true,
+        channel: true,
+        contactHandle: true,
+        unreadCount: true,
+        firstRespondedAt: true,
+        person: {
+          id: true,
+          whatsappConsentStatus: true,
+          doNotContact: true,
+        },
       },
-    },
-  })) as {
-    inboxConversation?: ConversationForSend | null;
-  };
+    }) as Promise<{ inboxConversation?: ConversationForSend | null }>,
+    client.query({
+      inboxMessages: {
+        __args: {
+          filter: {
+            inboxConversationId: { eq: conversationId },
+            direction: { eq: InboxMessageDirection.INBOUND },
+          },
+          first: 1,
+          orderBy: [{ sentAt: 'DescNullsLast' }],
+        },
+        edges: { node: { sentAt: true } },
+      },
+    }) as Promise<{
+      inboxMessages?: {
+        edges?: Array<{ node?: { sentAt?: string | null } | null }>;
+      };
+    }>,
+  ]);
 
-  if (!result.inboxConversation?.id) {
-    throw new Error('Inbox conversation was not found.');
+  if (!conversationResult.inboxConversation?.id) {
+    throw new Error('A conversa da inbox não foi encontrada.');
   }
 
-  return result.inboxConversation;
+  return {
+    conversation: conversationResult.inboxConversation,
+    lastInboundAt:
+      inboundResult.inboxMessages?.edges?.[0]?.node?.sentAt ?? null,
+  };
 };
 
-const assertConversationCanSend = (
-  conversation: ConversationForSend,
-): string => {
+const assertConversationCanSend = ({
+  conversation,
+  lastInboundAt,
+}: {
+  conversation: ConversationForSend;
+  lastInboundAt: string | null;
+}): SendableConversation => {
   if (
     conversation.provider !== InboxConversationProvider.EVOLUTION ||
     conversation.channel !== InboxConversationChannel.WHATSAPP
   ) {
+    throw new Error('Esta conversa não está conectada ao WhatsApp.');
+  }
+
+  if (conversation.person?.doNotContact) {
     throw new Error(
-      'This conversation is not connected to Evolution WhatsApp.',
+      'Este contato está marcado como "não contatar" e não pode receber mensagens.',
     );
   }
 
-  if (!conversation.person) {
-    throw new Error(
-      'Link this conversation to a person before sending an external message.',
-    );
-  }
-
-  if (conversation.person.doNotContact) {
-    throw new Error('This person is marked as do not contact.');
-  }
+  const lastInboundTime = lastInboundAt
+    ? Date.parse(lastInboundAt)
+    : Number.NaN;
+  const isWithinServiceWindow =
+    Number.isFinite(lastInboundTime) &&
+    Date.now() - lastInboundTime <= SERVICE_WINDOW_MS;
 
   if (
-    conversation.person.whatsappConsentStatus !== WhatsAppConsentStatus.OPTED_IN
+    !isWithinServiceWindow &&
+    conversation.person?.whatsappConsentStatus !==
+      WhatsAppConsentStatus.OPTED_IN
   ) {
     throw new Error(
-      'WhatsApp consent must be explicitly marked as authorized before sending.',
+      'O contato não escreve há mais de 24 horas. Para reabrir a conversa, marque o consentimento de WhatsApp como autorizado no cadastro da pessoa.',
     );
   }
 
   const destination = normalizePhone(conversation.contactHandle ?? undefined);
 
   if (!destination) {
-    throw new Error('The conversation does not have a valid WhatsApp number.');
+    throw new Error('A conversa não possui um número de WhatsApp válido.');
   }
 
-  return destination;
+  return { destination, lastInboundAt };
 };
 
 const findInboxMessageByProviderKey = async (
@@ -343,7 +386,7 @@ const createQueuedInboxMessage = async ({
   });
 
   if (!createInboxMessage?.id) {
-    throw new Error('The outbound message could not be queued.');
+    throw new Error('A mensagem de saída não pôde ser registrada na inbox.');
   }
 
   return createInboxMessage.id;
@@ -415,7 +458,7 @@ const executeConfirmedSend = async ({
       inboxMessageId: existingAttempt.id,
       providerMessageKey: pendingProviderKey,
       message:
-        'This confirmation was already processed. No duplicate message was sent.',
+        'Esta confirmação já foi processada. Nenhuma mensagem duplicada foi enviada.',
     };
   }
 
@@ -458,7 +501,7 @@ const executeConfirmedSend = async ({
     });
 
     throw new Error(
-      'Evolution could not be reached through the approved infrastructure route.',
+      'O WhatsApp não respondeu pela rota de infraestrutura aprovada.',
     );
   }
   const responseText = await response.text().catch(() => '');
@@ -483,7 +526,7 @@ const executeConfirmedSend = async ({
     });
 
     throw new Error(
-      `Evolution rejected the message (${response.status}). Review the channel status before retrying.`,
+      `O WhatsApp recusou a mensagem (HTTP ${response.status}). Verifique o status do canal antes de tentar de novo.`,
     );
   }
 
@@ -492,32 +535,35 @@ const executeConfirmedSend = async ({
     ? `${configuration.instanceName}:${externalMessageId}`
     : pendingProviderKey;
 
-  await updateOutboundInboxMessage({
-    client,
-    inboxMessageId,
-    providerMessageKey,
-    deliveryStatus: InboxMessageDeliveryStatus.SENT,
-    requestId: confirmation.requestId,
-    providerStatus: response.status,
-  });
-
-  await client.mutation({
-    updateInboxConversation: {
-      __args: {
-        id: conversation.id,
-        data: {
-          status: InboxConversationStatus.OPEN,
-          snoozedUntil: null,
-          unreadCount: 0,
-          lastMessagePreview: text.slice(0, 250),
-          lastMessageDirection: InboxMessageDirection.OUTBOUND,
-          lastMessageAt: sentAt,
-          firstRespondedAt: conversation.firstRespondedAt ?? sentAt,
+  // The provider already accepted the text, so the receipt and the conversation
+  // header describe the same settled fact and neither has to wait for the other.
+  await Promise.all([
+    updateOutboundInboxMessage({
+      client,
+      inboxMessageId,
+      providerMessageKey,
+      deliveryStatus: InboxMessageDeliveryStatus.SENT,
+      requestId: confirmation.requestId,
+      providerStatus: response.status,
+    }),
+    client.mutation({
+      updateInboxConversation: {
+        __args: {
+          id: conversation.id,
+          data: {
+            status: InboxConversationStatus.OPEN,
+            snoozedUntil: null,
+            unreadCount: 0,
+            lastMessagePreview: text.slice(0, 250),
+            lastMessageDirection: InboxMessageDirection.OUTBOUND,
+            lastMessageAt: sentAt,
+            firstRespondedAt: conversation.firstRespondedAt ?? sentAt,
+          },
         },
+        id: true,
       },
-      id: true,
-    },
-  });
+    }),
+  ]);
 
   return {
     previewOnly: false,
@@ -526,7 +572,7 @@ const executeConfirmedSend = async ({
     inboxMessageId,
     providerMessageKey,
     sentAt,
-    message: 'Message accepted by Evolution and recorded in the CRM inbox.',
+    message: 'Mensagem aceita pelo WhatsApp e registrada na inbox.',
   };
 };
 
@@ -547,16 +593,24 @@ export const sendEvolutionTextHandler = async (
       : '';
 
   if (!conversationId || !text) {
-    throw new Error('Conversation and message text are required.');
+    throw new Error('Informe a conversa e o texto da mensagem.');
   }
 
   if (text.length > 4_096) {
-    throw new Error('WhatsApp text messages are limited to 4096 characters.');
+    throw new Error(
+      'Mensagens de texto do WhatsApp são limitadas a 4096 caracteres.',
+    );
   }
 
   const client = new CoreApiClient();
-  const conversation = await loadConversationForSend(client, conversationId);
-  const destination = assertConversationCanSend(conversation);
+  const { conversation, lastInboundAt } = await loadConversationForSend(
+    client,
+    conversationId,
+  );
+  const { destination } = assertConversationCanSend({
+    conversation,
+    lastInboundAt,
+  });
   const workspaceId = getCurrentWorkspaceId();
   const configuration = resolveWhatsappProvisioning();
   const previewOnly = routePayload.body?.previewOnly !== false;
@@ -582,8 +636,7 @@ export const sendEvolutionTextHandler = async (
         confirmation,
         configuration.webhookSecret,
       ),
-      message:
-        'Review the exact text and explicitly confirm before the message is sent.',
+      message: 'Revise o texto exato e confirme explicitamente antes do envio.',
     };
   }
 
@@ -591,7 +644,7 @@ export const sendEvolutionTextHandler = async (
     routePayload.body?.confirmSend !== true ||
     typeof routePayload.body.confirmationToken !== 'string'
   ) {
-    throw new Error('Explicit send confirmation and token are required.');
+    throw new Error('A confirmação explícita de envio é obrigatória.');
   }
 
   const confirmation = decodeConfirmationToken(
@@ -608,7 +661,7 @@ export const sendEvolutionTextHandler = async (
     confirmation.userWorkspaceId !== requestIdentity.userWorkspaceId ||
     new Date(confirmation.expiresAt).getTime() <= Date.now()
   ) {
-    throw new Error('The send confirmation is invalid or expired.');
+    throw new Error('A confirmação de envio é inválida ou expirou.');
   }
 
   return executeConfirmedSend({

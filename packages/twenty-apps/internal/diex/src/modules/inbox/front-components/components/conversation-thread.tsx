@@ -1161,8 +1161,9 @@ export const ConversationThread = ({
               </>
             ) : (
               <>
-                O envio exige opt-in válido. Primeiro gere a prévia; depois
-                confirme explicitamente o texto exato.
+                Você pode responder enquanto o contato escreveu nas últimas 24
+                horas. Depois disso, o envio exige consentimento registrado.
+                Gere a prévia e confirme o texto exato.
               </>
             )
           ) : (
