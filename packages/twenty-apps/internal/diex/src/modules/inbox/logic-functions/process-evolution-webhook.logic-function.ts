@@ -576,9 +576,13 @@ const createInboxConversation = async (
   client: CoreApiClient,
   message: NormalizedEvolutionMessage,
 ): Promise<InboxConversationRecord> => {
-  const person = await resolvePerson(client, message);
+  // Routing does not depend on who the contact is, so it is resolved alongside
+  // the person instead of after it — the webhook has a timeout to respect.
+  const [person, teamAssignment] = await Promise.all([
+    resolvePerson(client, message),
+    resolveInboxTeamAssignment(client),
+  ]);
   const opportunityId = await resolveUniqueOpportunityId(client, person);
-  const teamAssignment = await resolveInboxTeamAssignment(client);
   const firstResponseDueAt =
     message.direction === 'INBOUND'
       ? new Date(
@@ -649,6 +653,50 @@ const createInboxConversation = async (
   };
 };
 
+// A conversation that started before the contact existed in the CRM would stay
+// orphaned forever, since only creation ever looked for a person. Every inbound
+// message is another chance to attach it to a lead.
+const linkConversationToPerson = async (
+  client: CoreApiClient,
+  conversation: InboxConversationRecord,
+  message: NormalizedEvolutionMessage,
+): Promise<InboxConversationRecord> => {
+  if (conversation.personId || message.direction !== 'INBOUND') {
+    return conversation;
+  }
+
+  const person = await resolvePerson(client, message);
+
+  if (!person) {
+    return conversation;
+  }
+
+  const opportunityId =
+    conversation.opportunityId ??
+    (await resolveUniqueOpportunityId(client, person));
+
+  await client.mutation({
+    updateInboxConversation: {
+      __args: {
+        id: conversation.id,
+        data: {
+          personId: person.id,
+          companyId: conversation.companyId ?? person.companyId ?? undefined,
+          opportunityId: opportunityId ?? undefined,
+        },
+      },
+      id: true,
+    },
+  });
+
+  return {
+    ...conversation,
+    personId: person.id,
+    companyId: conversation.companyId ?? person.companyId,
+    opportunityId,
+  };
+};
+
 const resolveConversation = async (
   client: CoreApiClient,
   message: NormalizedEvolutionMessage,
@@ -663,7 +711,11 @@ const resolveConversation = async (
 
   if (existingConversation) {
     return {
-      conversation: existingConversation,
+      conversation: await linkConversationToPerson(
+        client,
+        existingConversation,
+        message,
+      ),
       created: false,
     };
   }
