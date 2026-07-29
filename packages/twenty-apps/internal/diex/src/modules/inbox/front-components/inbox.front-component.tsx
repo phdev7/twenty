@@ -6,10 +6,6 @@ import { ConversationThread } from 'src/modules/inbox/front-components/component
 import { CrmContext } from 'src/modules/inbox/front-components/components/crm-context';
 import { useInboxData } from 'src/modules/inbox/front-components/hooks/use-inbox-data';
 import { inboxStyles } from 'src/modules/inbox/front-components/inbox.styles';
-import {
-  type InboxAttentionFilter,
-  type InboxConversationFilter,
-} from 'src/modules/inbox/front-components/types/inbox.types';
 import { getRecordName } from 'src/modules/inbox/front-components/utils/inbox-formatters';
 import { INBOX_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/inbox/constants/inbox-universal-identifiers';
 
@@ -21,13 +17,7 @@ const normalizeSearchTerm = (value: string): string =>
     .trim();
 
 export const InboxFrontComponent = () => {
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
   const [labelFilterId, setLabelFilterId] = useState('ALL');
-  const [assigneeFilterId, setAssigneeFilterId] = useState('ALL');
-  const [teamFilterId, setTeamFilterId] = useState('ALL');
-  const [attentionFilter, setAttentionFilter] =
-    useState<InboxAttentionFilter>('ALL');
   const {
     conversations,
     savedReplies,
@@ -39,7 +29,19 @@ export const InboxFrontComponent = () => {
     selectedConversationId,
     messages,
     conversationEvents,
+    query,
+    setQuery,
+    filter,
+    setFilter,
+    isSearching,
+    assigneeFilterId,
+    setAssigneeFilterId,
+    teamFilterId,
+    setTeamFilterId,
+    attentionFilter,
+    setAttentionFilter,
     hasMoreConversations,
+    conversationTotalCount,
     loadMoreConversations,
     hasOlderMessages,
     loadOlderMessages,
@@ -91,16 +93,10 @@ export const InboxFrontComponent = () => {
   const visibleConversations = useMemo(() => {
     const normalizedQuery = normalizeSearchTerm(query);
 
+    // Status, search, assignee, team and the attention filters are answered by
+    // the query. What is left here is what the database cannot express: a label
+    // lives in a child table, and a pending mention is counted per member.
     return conversations.filter((conversation) => {
-      const matchesStatus =
-        filter === 'ACTIVE'
-          ? conversation.status === 'OPEN' || conversation.status === 'PENDING'
-          : conversation.status === filter;
-
-      if (!matchesStatus) {
-        return false;
-      }
-
       const matchesLabel =
         labelFilterId === 'ALL' ||
         conversation.labelAssignments.some(
@@ -112,42 +108,10 @@ export const InboxFrontComponent = () => {
         return false;
       }
 
-      const matchesTeam =
-        teamFilterId === 'ALL' ||
-        (teamFilterId === 'UNASSIGNED'
-          ? !conversation.inboxTeam?.id
-          : conversation.inboxTeam?.id === teamFilterId);
-
-      if (!matchesTeam) {
-        return false;
-      }
-
-      const matchesAssignee =
-        assigneeFilterId === 'ALL' ||
-        (assigneeFilterId === 'UNASSIGNED'
-          ? !conversation.assignee?.id
-          : conversation.assignee?.id === assigneeFilterId);
-
-      if (!matchesAssignee) {
-        return false;
-      }
-
-      const now = Date.now();
-      const matchesAttention =
-        attentionFilter === 'ALL' ||
-        (attentionFilter === 'UNREAD' && conversation.unreadCount > 0) ||
-        (attentionFilter === 'MENTIONED' &&
-          (pendingMentionCounts[conversation.id] ?? 0) > 0) ||
-        (attentionFilter === 'SLA_BREACHED' &&
-          Boolean(conversation.slaBreachedAt)) ||
-        (attentionFilter === 'URGENT' &&
-          (conversation.priority === 'HIGH' ||
-            conversation.priority === 'URGENT')) ||
-        (attentionFilter === 'FOLLOW_UP_DUE' &&
-          Boolean(conversation.followUpDueAt) &&
-          new Date(conversation.followUpDueAt as string).getTime() <= now);
-
-      if (!matchesAttention) {
+      if (
+        attentionFilter === 'MENTIONED' &&
+        (pendingMentionCounts[conversation.id] ?? 0) === 0
+      ) {
         return false;
       }
 
@@ -155,6 +119,8 @@ export const InboxFrontComponent = () => {
         return true;
       }
 
+      // The query matched the conversation's own columns; this widens the same
+      // term to the records around it, which the operator also types.
       const searchableContent = [
         conversation.name,
         conversation.contactHandle,
@@ -174,14 +140,11 @@ export const InboxFrontComponent = () => {
       return normalizeSearchTerm(searchableContent).includes(normalizedQuery);
     });
   }, [
-    assigneeFilterId,
     attentionFilter,
     conversations,
-    filter,
     labelFilterId,
     pendingMentionCounts,
     query,
-    teamFilterId,
   ]);
 
   return (
@@ -208,7 +171,7 @@ export const InboxFrontComponent = () => {
           teamFilterId={teamFilterId}
           attentionFilter={attentionFilter}
           pendingMentionCounts={pendingMentionCounts}
-          isLoading={isLoadingConversations}
+          isLoading={isLoadingConversations || isSearching}
           isEmailSyncing={busyAction === 'email-sync'}
           errorMessage={errorMessage}
           onQueryChange={setQuery}
@@ -221,6 +184,7 @@ export const InboxFrontComponent = () => {
           onRefresh={refreshInbox}
           onSyncEmail={syncTwentyEmail}
           hasMore={hasMoreConversations}
+          totalCount={conversationTotalCount}
           onLoadMore={loadMoreConversations}
         />
         <ConversationThread

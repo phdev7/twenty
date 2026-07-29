@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import {
   IconArrowDown,
   IconArrowUpRight,
   IconAt,
+  IconFilter,
   IconInbox,
   IconMail,
   IconMessage,
@@ -58,12 +60,14 @@ type ConversationListProps = {
   onRefresh: () => Promise<void>;
   onSyncEmail: () => Promise<void>;
   hasMore: boolean;
+  totalCount: number;
   onLoadMore: () => void;
 };
 
 export const ConversationList = ({
   conversations,
   hasMore,
+  totalCount,
   onLoadMore,
   selectedConversationId,
   query,
@@ -88,7 +92,16 @@ export const ConversationList = ({
   onSelect,
   onRefresh,
   onSyncEmail,
-}: ConversationListProps) => (
+}: ConversationListProps) => {
+  const [areFiltersOpen, setAreFiltersOpen] = useState(false);
+  const activeFilterCount = [
+    labelFilterId !== 'ALL',
+    teamFilterId !== 'ALL',
+    assigneeFilterId !== 'ALL',
+    attentionFilter !== 'ALL',
+  ].filter(Boolean).length;
+
+  return (
   <aside
     style={{
       ...inboxStyles.panel,
@@ -100,8 +113,8 @@ export const ConversationList = ({
         <div>
           <h2 style={inboxStyles.title}>Inbox</h2>
           <p style={inboxStyles.subtitle}>
-            {conversations.length} conversa
-            {conversations.length === 1 ? '' : 's'} no filtro atual
+            {totalCount} conversa{totalCount === 1 ? '' : 's'} no filtro
+            {hasMore ? ` · ${conversations.length} carregadas` : ''}
           </p>
         </div>
         <div style={inboxStyles.headerActions}>
@@ -169,65 +182,96 @@ export const ConversationList = ({
           <option value="SNOOZED">Adiadas</option>
           <option value="RESOLVED">Resolvidas</option>
         </select>
-        <select
-          aria-label="Filtrar conversas por etiqueta"
-          value={labelFilterId}
-          onChange={(event) => onLabelFilterChange(event.target.value)}
-          style={inboxStyles.filterSelect}
+        <button
+          type="button"
+          aria-expanded={areFiltersOpen}
+          style={{
+            ...inboxStyles.filterToggle,
+            ...(activeFilterCount > 0 ? inboxStyles.filterToggleActive : {}),
+          }}
+          onClick={() => setAreFiltersOpen(!areFiltersOpen)}
         >
-          <option value="ALL">Todas as etiquetas</option>
-          {labels.map((label) => (
-            <option key={label.id} value={label.id}>
-              {label.name}
-            </option>
-          ))}
-        </select>
+          <IconFilter
+            size={themeCssVariables.icon.size.sm}
+            stroke={themeCssVariables.icon.stroke.md}
+          />
+          {activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : 'Filtros'}
+        </button>
       </div>
-      <div style={inboxStyles.filterRow}>
-        <select
-          aria-label="Filtrar conversas por equipe"
-          value={teamFilterId}
-          onChange={(event) => onTeamFilterChange(event.target.value)}
-          style={inboxStyles.filterSelect}
-        >
-          <option value="ALL">Todas as equipes</option>
-          <option value="UNASSIGNED">Sem equipe</option>
-          {teams.map((team) => (
-            <option key={team.id} value={team.id}>
-              {team.name}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filtrar conversas por responsável"
-          value={assigneeFilterId}
-          onChange={(event) => onAssigneeFilterChange(event.target.value)}
-          style={inboxStyles.filterSelect}
-        >
-          <option value="ALL">Todos os responsáveis</option>
-          <option value="UNASSIGNED">Sem responsável</option>
-          {workspaceMembers.map((workspaceMember) => (
-            <option key={workspaceMember.id} value={workspaceMember.id}>
-              {getRecordName(workspaceMember) || 'Usuário sem nome'}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filtrar conversas que exigem atenção"
-          value={attentionFilter}
-          onChange={(event) =>
-            onAttentionFilterChange(event.target.value as InboxAttentionFilter)
-          }
-          style={inboxStyles.filterSelect}
-        >
-          <option value="ALL">Toda atenção</option>
-          <option value="UNREAD">Não lidas</option>
-          <option value="MENTIONED">Minhas menções</option>
-          <option value="SLA_BREACHED">SLA estourado</option>
-          <option value="URGENT">Alta ou urgente</option>
-          <option value="FOLLOW_UP_DUE">Follow-up vencido</option>
-        </select>
-      </div>
+      {areFiltersOpen ? (
+        <div style={inboxStyles.filterPanel}>
+          <select
+            aria-label="Filtrar conversas que exigem atenção"
+            value={attentionFilter}
+            onChange={(event) =>
+              onAttentionFilterChange(event.target.value as InboxAttentionFilter)
+            }
+            style={inboxStyles.filterSelect}
+          >
+            <option value="ALL">Toda atenção</option>
+            <option value="UNREAD">Não lidas</option>
+            <option value="MENTIONED">Minhas menções</option>
+            <option value="SLA_BREACHED">SLA estourado</option>
+            <option value="URGENT">Alta ou urgente</option>
+            <option value="FOLLOW_UP_DUE">Follow-up vencido</option>
+          </select>
+          <select
+            aria-label="Filtrar conversas por responsável"
+            value={assigneeFilterId}
+            onChange={(event) => onAssigneeFilterChange(event.target.value)}
+            style={inboxStyles.filterSelect}
+          >
+            <option value="ALL">Todos os responsáveis</option>
+            <option value="UNASSIGNED">Sem responsável</option>
+            {workspaceMembers.map((workspaceMember) => (
+              <option key={workspaceMember.id} value={workspaceMember.id}>
+                {getRecordName(workspaceMember) || 'Usuário sem nome'}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filtrar conversas por equipe"
+            value={teamFilterId}
+            onChange={(event) => onTeamFilterChange(event.target.value)}
+            style={inboxStyles.filterSelect}
+          >
+            <option value="ALL">Todas as equipes</option>
+            <option value="UNASSIGNED">Sem equipe</option>
+            {teams.map((team) => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filtrar conversas por etiqueta"
+            value={labelFilterId}
+            onChange={(event) => onLabelFilterChange(event.target.value)}
+            style={inboxStyles.filterSelect}
+          >
+            <option value="ALL">Todas as etiquetas</option>
+            {labels.map((label) => (
+              <option key={label.id} value={label.id}>
+                {label.name}
+              </option>
+            ))}
+          </select>
+          {activeFilterCount > 0 ? (
+            <button
+              type="button"
+              style={inboxStyles.filterClearButton}
+              onClick={() => {
+                onAttentionFilterChange('ALL');
+                onAssigneeFilterChange('ALL');
+                onTeamFilterChange('ALL');
+                onLabelFilterChange('ALL');
+              }}
+            >
+              Limpar filtros
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </header>
 
     {errorMessage ? (
@@ -370,4 +414,5 @@ export const ConversationList = ({
       ) : null}
     </div>
   </aside>
-);
+  );
+};

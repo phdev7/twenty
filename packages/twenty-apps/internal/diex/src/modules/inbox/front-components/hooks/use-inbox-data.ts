@@ -18,6 +18,8 @@ import {
   type EvolutionTextPreview,
   type EvolutionTextReceipt,
   type InboxConversation,
+  type InboxAttentionFilter,
+  type InboxConversationFilter,
   type InboxConversationLabelAssignment,
   type InboxLabel,
   type InboxMacro,
@@ -67,6 +69,7 @@ type ConversationNode = Omit<
 
 type ConversationQueryResult = {
   inboxConversations?: {
+    totalCount?: number;
     edges?: Array<{
       node: ConversationNode;
     }>;
@@ -198,6 +201,14 @@ const INBOX_POLL_INTERVAL_MS = 6_000;
 const INBOX_CONVERSATION_PAGE_SIZE = 25;
 const INBOX_MESSAGE_PAGE_SIZE = 30;
 
+// A search has to reach past the page an operator happens to be looking at, so
+// searching asks the server for a wider window than idle browsing does.
+const INBOX_SEARCH_PAGE_SIZE = 100;
+
+// Long enough that typing a customer's name is one request, short enough that
+// the list feels like it reacts to the keyboard.
+const INBOX_SEARCH_DEBOUNCE_MS = 350;
+
 type SilentLoadOptions = { silent?: boolean; pullProvider?: boolean };
 
 const getErrorMessage = (error: unknown): string =>
@@ -303,10 +314,18 @@ export const useInboxData = () => {
   const [triageResult, setTriageResult] = useState<InboxTriageResult | null>(
     null,
   );
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
+  const [assigneeFilterId, setAssigneeFilterId] = useState('ALL');
+  const [teamFilterId, setTeamFilterId] = useState('ALL');
+  const [attentionFilter, setAttentionFilter] =
+    useState<InboxAttentionFilter>('ALL');
   const [conversationLimit, setConversationLimit] = useState(
     INBOX_CONVERSATION_PAGE_SIZE,
   );
   const [hasMoreConversations, setHasMoreConversations] = useState(false);
+  const [conversationTotalCount, setConversationTotalCount] = useState(0);
   const [messageLimit, setMessageLimit] = useState(INBOX_MESSAGE_PAGE_SIZE);
   const [hasOlderMessages, setHasOlderMessages] = useState(false);
   const messageRequestVersionRef = useRef(0);
@@ -329,14 +348,70 @@ export const useInboxData = () => {
 
     setErrorMessage(null);
 
+    const searchTerm = debouncedQuery.trim();
+    const serverFilters: Array<Record<string, unknown>> = [
+      filter === 'ACTIVE'
+        ? { status: { in: ['OPEN', 'PENDING'] } }
+        : { status: { eq: filter } },
+    ];
+
+    if (searchTerm.length > 0) {
+      serverFilters.push({
+        or: [
+          { name: { ilike: `%${searchTerm}%` } },
+          { contactHandle: { ilike: `%${searchTerm}%` } },
+          { lastMessagePreview: { ilike: `%${searchTerm}%` } },
+        ],
+      });
+    }
+
+    if (assigneeFilterId !== 'ALL') {
+      serverFilters.push(
+        assigneeFilterId === 'UNASSIGNED'
+          ? { assigneeId: { is: 'NULL' } }
+          : { assigneeId: { eq: assigneeFilterId } },
+      );
+    }
+
+    if (teamFilterId !== 'ALL') {
+      serverFilters.push(
+        teamFilterId === 'UNASSIGNED'
+          ? { inboxTeamId: { is: 'NULL' } }
+          : { inboxTeamId: { eq: teamFilterId } },
+      );
+    }
+
+    if (attentionFilter === 'UNREAD') {
+      serverFilters.push({ unreadCount: { gt: 0 } });
+    }
+
+    if (attentionFilter === 'SLA_BREACHED') {
+      serverFilters.push({ slaBreachedAt: { is: 'NOT_NULL' } });
+    }
+
+    if (attentionFilter === 'URGENT') {
+      serverFilters.push({ priority: { in: ['HIGH', 'URGENT'] } });
+    }
+
+    if (attentionFilter === 'FOLLOW_UP_DUE') {
+      serverFilters.push({
+        followUpDueAt: { lte: new Date().toISOString() },
+      });
+    }
+
     try {
       const client = new CoreApiClient();
       const queryResult = (await client.query({
         inboxConversations: {
           __args: {
-            first: conversationLimit,
+            filter: { and: serverFilters },
+            first:
+              searchTerm.length > 0
+                ? INBOX_SEARCH_PAGE_SIZE
+                : conversationLimit,
             orderBy: [{ lastMessageAt: 'DescNullsLast' }],
           },
+          totalCount: true,
           edges: {
             node: {
               id: true,
@@ -502,24 +577,32 @@ export const useInboxData = () => {
           : conversation,
       );
 
-      setHasMoreConversations(loadedConversations.length >= conversationLimit);
-      setConversations(nextConversations);
-      setSelectedConversationId((currentId) => {
-        if (
-          currentId !== null &&
-          nextConversations.some(({ id }) => id === currentId)
-        ) {
-          return currentId;
-        }
+      const matchingCount =
+        queryResult.inboxConversations?.totalCount ??
+        loadedConversations.length;
 
-        return nextConversations[0]?.id ?? null;
-      });
+      setConversationTotalCount(matchingCount);
+      setHasMoreConversations(loadedConversations.length < matchingCount);
+      setConversations(nextConversations);
+      // Only ever fill an empty selection. A conversation an operator opened
+      // stays open even when a filter or a page no longer contains it —
+      // otherwise every refresh yanks them out of what they were reading.
+      setSelectedConversationId((currentId) =>
+        currentId !== null ? currentId : (nextConversations[0]?.id ?? null),
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [conversationLimit]);
+  }, [
+    assigneeFilterId,
+    attentionFilter,
+    conversationLimit,
+    debouncedQuery,
+    filter,
+    teamFilterId,
+  ]);
 
   const loadMessages = useCallback(
     async (conversationId: string, options?: SilentLoadOptions) => {
@@ -1052,6 +1135,19 @@ export const useInboxData = () => {
   }, []);
 
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, INBOX_SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [query]);
+
+  // A new search or status starts from the first page again.
+  useEffect(() => {
+    setConversationLimit(INBOX_CONVERSATION_PAGE_SIZE);
+  }, [assigneeFilterId, attentionFilter, debouncedQuery, filter, teamFilterId]);
+
+  useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
 
@@ -1174,10 +1270,31 @@ export const useInboxData = () => {
     }
   }, [recordConversationEvent, selectedConversationId]);
 
-  const selectedConversation = useMemo(
-    () => conversations.find(({ id }) => id === selectedConversationId) ?? null,
-    [conversations, selectedConversationId],
-  );
+  // The open conversation has to survive a filter change, a search and a page
+  // that no longer lists it: the last loaded copy is kept so the thread keeps
+  // rendering what the operator is working on.
+  const openConversationRef = useRef<InboxConversation | null>(null);
+
+  const selectedConversation = useMemo(() => {
+    const fromCurrentPage =
+      conversations.find(({ id }) => id === selectedConversationId) ?? null;
+
+    if (fromCurrentPage) {
+      openConversationRef.current = fromCurrentPage;
+
+      return fromCurrentPage;
+    }
+
+    if (selectedConversationId === null) {
+      openConversationRef.current = null;
+
+      return null;
+    }
+
+    return openConversationRef.current?.id === selectedConversationId
+      ? openConversationRef.current
+      : null;
+  }, [conversations, selectedConversationId]);
 
   const applySavedReply = useCallback(
     async (
@@ -3626,7 +3743,19 @@ export const useInboxData = () => {
 
   return {
     conversations,
+    query,
+    setQuery,
+    filter,
+    setFilter,
+    assigneeFilterId,
+    setAssigneeFilterId,
+    teamFilterId,
+    setTeamFilterId,
+    attentionFilter,
+    setAttentionFilter,
+    isSearching: query.trim() !== debouncedQuery.trim(),
     hasMoreConversations,
+    conversationTotalCount,
     loadMoreConversations,
     hasOlderMessages,
     loadOlderMessages,
