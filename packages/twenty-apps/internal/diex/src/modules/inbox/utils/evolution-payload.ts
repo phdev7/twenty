@@ -90,17 +90,40 @@ const normalizeEventName = (eventName: string | undefined): string =>
     .toLowerCase()
     .replace(/[.\s-]+/g, '_');
 
-// A LID is WhatsApp's privacy handle for a contact. Its digits look like a
-// phone number and are not one: reading them as such invents a contact, and
-// keying a thread by them splits one person into two conversations the moment
-// WhatsApp switches addressing mode mid-chat.
+// Only these two address a human by their number. Every other WhatsApp JID —
+// the LID privacy handle, a group, a channel, a status post — carries digits
+// that look like a phone and are not one, and dialing or deduplicating on them
+// invents a contact that does not exist.
+const PERSON_JID_SUFFIXES = ['@s.whatsapp.net', '@c.us'];
 const LID_JID_SUFFIX = '@lid';
+const IGNORED_JID_SUFFIXES = ['@broadcast', '@newsletter'];
+
+const readJidSuffix = (value: string): string | null => {
+  const normalized = value.trim().toLowerCase();
+  const separatorIndex = normalized.indexOf('@');
+
+  return separatorIndex === -1 ? null : normalized.slice(separatorIndex);
+};
 
 const isLidJid = (value: string): boolean =>
-  value.trim().toLowerCase().endsWith(LID_JID_SUFFIX);
+  readJidSuffix(value) === LID_JID_SUFFIX;
+
+// A status post or a channel broadcast is not somebody writing to the company,
+// and an inbox that fills up with them stops being an inbox.
+export const isIgnorableJid = (value: string): boolean => {
+  const suffix = readJidSuffix(value);
+
+  return suffix !== null && IGNORED_JID_SUFFIXES.includes(suffix);
+};
 
 export const normalizePhone = (value: string | undefined): string | null => {
-  if (!value || isLidJid(value)) {
+  if (!value) {
+    return null;
+  }
+
+  const suffix = readJidSuffix(value);
+
+  if (suffix !== null && !PERSON_JID_SUFFIXES.includes(suffix)) {
     return null;
   }
 
@@ -288,7 +311,12 @@ export const normalizeEvolutionMessages = (
     const externalMessageId =
       firstString(item, ['key.id', 'id', 'messageId']) ?? fingerprint(item);
 
-    if (!remoteJid || !externalMessageId || !instanceName) {
+    if (
+      !remoteJid ||
+      !externalMessageId ||
+      !instanceName ||
+      isIgnorableJid(remoteJid)
+    ) {
       return [];
     }
 
