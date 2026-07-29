@@ -4,18 +4,13 @@ import { defineLogicFunction, type RoutePayload } from 'twenty-sdk/define';
 import {
   EVOLUTION_CONFIGURE_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
   EVOLUTION_CONFIGURE_ROUTE,
-  EVOLUTION_EVENTS,
 } from 'src/modules/inbox/constants/evolution.constants';
 import {
-  buildEvolutionInstanceClaimKey,
-  buildEvolutionSecretClaimKey,
-  buildEvolutionWebhookUrl,
   getAuthenticatedRequestIdentity,
   getCurrentWorkspaceId,
 } from 'src/modules/inbox/utils/evolution-environment';
-import { safeEvolutionFetch } from 'src/modules/inbox/utils/safe-evolution-fetch';
+import { registerEvolutionWebhook } from 'src/modules/inbox/utils/evolution-webhook-registration';
 import { resolveWhatsappProvisioning } from 'src/modules/inbox/utils/whatsapp-provisioning';
-import { appKeyValue } from 'src/utils/app-key-value';
 
 type ConfigureEvolutionResult = {
   configured: boolean;
@@ -24,9 +19,6 @@ type ConfigureEvolutionResult = {
   providerStatus: number;
   events: readonly string[];
 };
-
-const ACTIVE_SECRET_CLAIM_KEY = 'evolution:active-secret-claim';
-const ACTIVE_INSTANCE_CLAIM_KEY = 'evolution:active-instance-claim';
 
 const assertCanConfigureApplications = async (
   routeUserWorkspaceId: string | null,
@@ -55,166 +47,20 @@ const assertCanConfigureApplications = async (
   }
 };
 
-const postEvolutionWebhookConfiguration = async ({
-  baseUrl,
-  instanceName,
-  apiKey,
-  webhookSecret,
-  webhookUrl,
-}: {
-  baseUrl: string;
-  instanceName: string;
-  apiKey: string;
-  webhookSecret: string;
-  webhookUrl: string;
-}): Promise<Response> => {
-  const headers = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-    apikey: apiKey,
-  };
-  const nestedPayload = {
-    webhook: {
-      enabled: true,
-      url: webhookUrl,
-      byEvents: false,
-      base64: true,
-      events: EVOLUTION_EVENTS,
-      headers: {
-        'X-Diex-Webhook-Secret': webhookSecret,
-      },
-    },
-  };
-  const nestedBody = JSON.stringify(nestedPayload);
-  let response = await safeEvolutionFetch({
-    baseUrl,
-    path: `/webhook/set/${encodeURIComponent(instanceName)}`,
-    method: 'POST',
-    headers,
-    body: nestedBody,
-  });
-
-  if (response.status === 400) {
-    response = await safeEvolutionFetch({
-      baseUrl,
-      path: `/webhook/set/${encodeURIComponent(instanceName)}`,
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        enabled: true,
-        url: webhookUrl,
-        webhookByEvents: false,
-        webhookBase64: true,
-        base64: true,
-        events: EVOLUTION_EVENTS,
-        headers: {
-          'X-Diex-Webhook-Secret': webhookSecret,
-        },
-      }),
-    });
-  }
-
-  return response;
-};
-
 export const configureEvolutionInboxHandler = async (
   routePayload: RoutePayload<Record<string, unknown>>,
 ): Promise<ConfigureEvolutionResult> => {
   await assertCanConfigureApplications(routePayload.userWorkspaceId);
 
-  const workspaceId = getCurrentWorkspaceId();
-  const configuration = resolveWhatsappProvisioning();
-  const webhookUrl = buildEvolutionWebhookUrl();
-  const secretClaimKey = buildEvolutionSecretClaimKey(
-    configuration.webhookSecret,
-  );
-  const instanceClaimKey = buildEvolutionInstanceClaimKey(
-    configuration.instanceName,
-  );
-  const [
-    previousSecretOwner,
-    previousInstanceOwner,
-    previousActiveSecretClaim,
-    previousActiveInstanceClaim,
-  ] = await Promise.all([
-    appKeyValue.get<string>(secretClaimKey, { scope: 'SERVER' }),
-    appKeyValue.get<string>(instanceClaimKey, { scope: 'SERVER' }),
-    appKeyValue.get<string>(ACTIVE_SECRET_CLAIM_KEY),
-    appKeyValue.get<string>(ACTIVE_INSTANCE_CLAIM_KEY),
-  ]);
-  const claimedSecretDuringThisAttempt = previousSecretOwner === null;
-  const claimedInstanceDuringThisAttempt = previousInstanceOwner === null;
+  const registration = await registerEvolutionWebhook({
+    workspaceId: getCurrentWorkspaceId(),
+    configuration: resolveWhatsappProvisioning(),
+  });
 
-  if (previousSecretOwner && previousSecretOwner !== workspaceId) {
-    throw new Error(
-      'This Evolution webhook secret is already assigned to another workspace.',
-    );
-  }
-
-  if (previousInstanceOwner && previousInstanceOwner !== workspaceId) {
-    throw new Error(
-      'This Evolution instance is already assigned to another workspace.',
-    );
-  }
-
-  try {
-    await appKeyValue.set(secretClaimKey, workspaceId, { scope: 'SERVER' });
-    await appKeyValue.set(instanceClaimKey, workspaceId, { scope: 'SERVER' });
-
-    const response = await postEvolutionWebhookConfiguration({
-      ...configuration,
-      webhookUrl,
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Evolution rejected the webhook configuration (${response.status}).`,
-      );
-    }
-
-    await appKeyValue.set(ACTIVE_SECRET_CLAIM_KEY, secretClaimKey);
-    await appKeyValue.set(ACTIVE_INSTANCE_CLAIM_KEY, instanceClaimKey);
-
-    if (
-      previousActiveSecretClaim &&
-      previousActiveSecretClaim !== secretClaimKey
-    ) {
-      await appKeyValue
-        .delete(previousActiveSecretClaim, { scope: 'SERVER' })
-        .catch(() => false);
-    }
-
-    if (
-      previousActiveInstanceClaim &&
-      previousActiveInstanceClaim !== instanceClaimKey
-    ) {
-      await appKeyValue
-        .delete(previousActiveInstanceClaim, { scope: 'SERVER' })
-        .catch(() => false);
-    }
-
-    return {
-      configured: true,
-      instanceName: configuration.instanceName,
-      webhookUrl,
-      providerStatus: response.status,
-      events: EVOLUTION_EVENTS,
-    };
-  } catch (error) {
-    if (claimedInstanceDuringThisAttempt) {
-      await appKeyValue
-        .delete(instanceClaimKey, { scope: 'SERVER' })
-        .catch(() => false);
-    }
-
-    if (claimedSecretDuringThisAttempt) {
-      await appKeyValue
-        .delete(secretClaimKey, { scope: 'SERVER' })
-        .catch(() => false);
-    }
-
-    throw error;
-  }
+  return {
+    configured: true,
+    ...registration,
+  };
 };
 
 export default defineLogicFunction({

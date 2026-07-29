@@ -8,7 +8,11 @@ import {
   WHATSAPP_CONNECTION_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER,
   WHATSAPP_CONNECTION_ROUTE,
 } from 'src/modules/inbox/constants/whatsapp-connection.constants';
-import { buildEvolutionWebhookUrl } from 'src/modules/inbox/utils/evolution-environment';
+import {
+  buildEvolutionWebhookUrl,
+  getCurrentWorkspaceId,
+} from 'src/modules/inbox/utils/evolution-environment';
+import { registerEvolutionWebhook } from 'src/modules/inbox/utils/evolution-webhook-registration';
 import { resolveWhatsappProvisioning } from 'src/modules/inbox/utils/whatsapp-provisioning';
 import { safeEvolutionFetch } from 'src/modules/inbox/utils/safe-evolution-fetch';
 
@@ -36,7 +40,9 @@ const jsonHeaders = (apiKey: string) => ({
   apikey: apiKey,
 });
 
-const readJson = async (response: Response): Promise<Record<string, unknown>> => {
+const readJson = async (
+  response: Response,
+): Promise<Record<string, unknown>> => {
   try {
     return (await response.json()) as Record<string, unknown>;
   } catch {
@@ -51,7 +57,9 @@ const extractQrCode = (payload: Record<string, unknown>): string | null => {
   const direct = asString(payload.base64);
 
   if (direct) {
-    return direct.startsWith('data:') ? direct : `data:image/png;base64,${direct}`;
+    return direct.startsWith('data:')
+      ? direct
+      : `data:image/png;base64,${direct}`;
   }
 
   const nested = payload.qrcode;
@@ -69,7 +77,9 @@ const extractQrCode = (payload: Record<string, unknown>): string | null => {
   return null;
 };
 
-const readConnectionState = (payload: Record<string, unknown>): string | null => {
+const readConnectionState = (
+  payload: Record<string, unknown>,
+): string | null => {
   const instance = payload.instance;
 
   if (instance && typeof instance === 'object') {
@@ -85,9 +95,25 @@ const readConnectionState = (payload: Record<string, unknown>): string | null =>
 export const whatsappConnectionHandler = async (
   _routePayload: RoutePayload<Record<string, unknown>>,
 ): Promise<WhatsappConnectionResult> => {
-  const { baseUrl, instanceName, apiKey, webhookSecret } =
-    resolveWhatsappProvisioning();
+  const configuration = resolveWhatsappProvisioning();
+  const { baseUrl, instanceName, apiKey, webhookSecret } = configuration;
+  const workspaceId = getCurrentWorkspaceId();
   const headers = jsonHeaders(apiKey);
+
+  // An instance created before this workspace claimed it, or one whose webhook
+  // was configured against a stale address, delivers nothing. Re-registering on
+  // every call keeps scanning the QR enough to get a working inbox.
+  const ensureWebhookRegistration = async (): Promise<string | null> => {
+    try {
+      await registerEvolutionWebhook({ workspaceId, configuration });
+
+      return null;
+    } catch (error) {
+      return error instanceof Error
+        ? error.message
+        : 'A configuração do webhook da Evolution falhou.';
+    }
+  };
 
   const stateResponse = await safeEvolutionFetch({
     baseUrl,
@@ -101,12 +127,16 @@ export const whatsappConnectionHandler = async (
     const state = readConnectionState(payload);
 
     if (state === 'open') {
+      const registrationError = await ensureWebhookRegistration();
+
       return {
         state: 'CONNECTED',
         instanceName,
         phone: null,
         qrCodeDataUri: null,
-        message: 'WhatsApp conectado. As mensagens chegam no Inbox Comercial.',
+        message: registrationError
+          ? `WhatsApp conectado, mas o webhook não pôde ser configurado: ${registrationError}`
+          : 'WhatsApp conectado. As mensagens chegam no Inbox Comercial.',
       };
     }
   }
@@ -145,6 +175,8 @@ export const whatsappConnectionHandler = async (
     const created = await readJson(createResponse);
     const qrCodeDataUri = extractQrCode(created);
 
+    await ensureWebhookRegistration();
+
     return {
       state: qrCodeDataUri ? 'AWAITING_SCAN' : 'CONNECTING',
       instanceName,
@@ -175,6 +207,8 @@ export const whatsappConnectionHandler = async (
 
   const connectPayload = await readJson(connectResponse);
   const qrCodeDataUri = extractQrCode(connectPayload);
+
+  await ensureWebhookRegistration();
 
   return {
     state: qrCodeDataUri ? 'AWAITING_SCAN' : 'CONNECTING',
