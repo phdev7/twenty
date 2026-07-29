@@ -297,6 +297,11 @@ export const CrmContext = ({
   const openTasks = conversation.tasks.filter(
     ({ status }) => status !== 'DONE',
   );
+  const missingRelations = [
+    conversation.person ? null : 'pessoa',
+    conversation.company ? null : 'empresa',
+    conversation.opportunity ? null : 'oportunidade',
+  ].filter((relation): relation is string => relation !== null);
   const activeLabelIds = new Set(
     conversation.labelAssignments
       .filter(({ isActive }) => isActive)
@@ -361,6 +366,8 @@ export const CrmContext = ({
         </div>
       </header>
 
+      {/* Three cards reading "Não vinculado" told the operator nothing three
+          times. What is missing is worth one quiet line. */}
       <div style={inboxStyles.contextScroll}>
         <section style={inboxStyles.contextSection}>
           <h3 style={inboxStyles.contextSectionTitle}>
@@ -411,48 +418,56 @@ export const CrmContext = ({
 
         <section style={inboxStyles.contextSection}>
           <h3 style={inboxStyles.contextSectionTitle}>Relacionamentos</h3>
-          <RecordCard
-            icon={
-              <IconUser
-                size={themeCssVariables.icon.size.sm}
-                stroke={themeCssVariables.icon.stroke.md}
-              />
-            }
-            label="Pessoa"
-            objectNameSingular="person"
-            record={conversation.person}
-          />
-          <RecordCard
-            icon={
-              <IconBuildingSkyscraper
-                size={themeCssVariables.icon.size.sm}
-                stroke={themeCssVariables.icon.stroke.md}
-              />
-            }
-            label="Empresa"
-            objectNameSingular="company"
-            record={conversation.company}
-          />
-          <RecordCard
-            icon={
-              <IconBriefcase
-                size={themeCssVariables.icon.size.sm}
-                stroke={themeCssVariables.icon.stroke.md}
-              />
-            }
-            label="Oportunidade"
-            objectNameSingular="opportunity"
-            record={conversation.opportunity}
-            value={
-              conversation.opportunity
-                ? `${getRecordName(conversation.opportunity)}${
-                    conversation.opportunity.stage
-                      ? ` · ${conversation.opportunity.stage}`
-                      : ''
-                  }`
-                : undefined
-            }
-          />
+          {conversation.person ? (
+            <RecordCard
+              icon={
+                <IconUser
+                  size={themeCssVariables.icon.size.sm}
+                  stroke={themeCssVariables.icon.stroke.md}
+                />
+              }
+              label="Pessoa"
+              objectNameSingular="person"
+              record={conversation.person}
+            />
+          ) : null}
+          {conversation.company ? (
+            <RecordCard
+              icon={
+                <IconBuildingSkyscraper
+                  size={themeCssVariables.icon.size.sm}
+                  stroke={themeCssVariables.icon.stroke.md}
+                />
+              }
+              label="Empresa"
+              objectNameSingular="company"
+              record={conversation.company}
+            />
+          ) : null}
+          {conversation.opportunity ? (
+            <RecordCard
+              icon={
+                <IconBriefcase
+                  size={themeCssVariables.icon.size.sm}
+                  stroke={themeCssVariables.icon.stroke.md}
+                />
+              }
+              label="Oportunidade"
+              objectNameSingular="opportunity"
+              record={conversation.opportunity}
+              value={`${getRecordName(conversation.opportunity)}${
+                conversation.opportunity.stage
+                  ? ` · ${conversation.opportunity.stage}`
+                  : ''
+              }`}
+            />
+          ) : null}
+          {missingRelations.length > 0 ? (
+            <p style={inboxStyles.contextMissingHint}>
+              Sem {missingRelations.join(', ')} vinculada
+              {missingRelations.length > 1 ? 's' : ''} a esta conversa.
+            </p>
+          ) : null}
           <div style={inboxStyles.contextCard}>
             <span style={inboxStyles.contextCardIcon}>
               <IconUsers

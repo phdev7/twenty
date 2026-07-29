@@ -1201,13 +1201,15 @@ export const useInboxData = () => {
     void loadMentions(selectedConversationId, currentWorkspaceMemberId);
   }, [currentWorkspaceMemberId, loadMentions, selectedConversationId]);
 
+  // Changing conversation starts the thread at its newest page and drops the
+  // previous AI analysis. Loading older messages does neither: the operator
+  // asked for more history, not for a reset.
   useEffect(() => {
     setMessageLimit(INBOX_MESSAGE_PAGE_SIZE);
+    setTriageResult(null);
   }, [selectedConversationId]);
 
   useEffect(() => {
-    setTriageResult(null);
-
     if (selectedConversationId === null) {
       messageRequestVersionRef.current += 1;
       setMessages([]);

@@ -1008,6 +1008,12 @@ export const inboxStyles: Record<string, CSSProperties> = {
     color: themeCssVariables.font.color.tertiary,
     fontSize: themeCssVariables.font.size.xxs,
   },
+  contextMissingHint: {
+    color: themeCssVariables.font.color.tertiary,
+    fontSize: themeCssVariables.font.size.xs,
+    lineHeight: 1.45,
+    margin: 0,
+  },
   contextSelect: {
     background: 'transparent',
     border: 0,

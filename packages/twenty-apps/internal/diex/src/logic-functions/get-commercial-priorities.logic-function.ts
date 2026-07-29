@@ -4,6 +4,17 @@ import { jsonSchemaToInputSchema } from 'twenty-sdk/logic-function';
 
 const SECTION_LIMIT = 10;
 
+// This workspace's pipeline, not Twenty's defaults: CUSTOMER is the won stage
+// and LOST closes the other way, so "still open" is everything before them.
+const OPEN_OPPORTUNITY_STAGES = [
+  'NEW',
+  'SCREENING',
+  'MEETING',
+  'DIAGNOSIS_COMPLETE',
+  'PROPOSAL',
+  'NEGOTIATION',
+];
+
 type PriorityInput = {
   assigneeId?: string;
   limit?: number;
@@ -189,12 +200,11 @@ export const getCommercialPriorities = async (
         __args: {
           filter: {
             and: [
-              { stage: { neq: 'WON' } },
-              { stage: { neq: 'LOST' } },
+              { stage: { in: OPEN_OPPORTUNITY_STAGES } },
               {
                 or: [
                   { nextCommercialActionAt: { lte: now } },
-                  { dealRisk: { in: ['HIGH', 'CRITICAL'] } },
+                  { dealRisk: { eq: 'HIGH' } },
                 ],
               },
             ],

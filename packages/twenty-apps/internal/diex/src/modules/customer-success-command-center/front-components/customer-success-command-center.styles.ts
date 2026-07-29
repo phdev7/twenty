@@ -19,10 +19,15 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       padding: themeCssVariables.spacing[4],
       width: '100%',
     },
+    // Sections of the page root never shrink. The root is a fixed-height scrolling
+    // flex column, so its children are shrinkable by default and a section that
+    // also opted out of its min-content floor collapsed to zero and painted its
+    // content over the rest of the page.
     hero: {
       alignItems: 'stretch',
       background: `linear-gradient(125deg, ${themeCssVariables.background.primary} 0%, ${themeCssVariables.background.transparent.blue} 100%)`,
       display: 'grid',
+      flexShrink: 0,
       gap: themeCssVariables.spacing[5],
       gridTemplateColumns: 'minmax(0, 1fr) 280px',
       padding: themeCssVariables.spacing[5],
@@ -107,6 +112,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     },
     metricGrid: {
       display: 'grid',
+      flexShrink: 0,
       gap: themeCssVariables.spacing[2],
       gridTemplateColumns: 'repeat(4, minmax(150px, 1fr))',
     },
@@ -133,7 +139,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     handoffCard: {
       display: 'flex',
       flexDirection: 'column',
-      minHeight: 0,
+      flexShrink: 0,
     },
     handoffHeader: {
       borderBottom: border,
@@ -300,6 +306,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       textAlign: 'center',
     },
     journeyCard: {
+      flexShrink: 0,
       padding: themeCssVariables.spacing[4],
     },
     sectionHeading: {
@@ -339,6 +346,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
     workspaceGrid: {
       alignItems: 'stretch',
       display: 'grid',
+      flexShrink: 0,
       gap: themeCssVariables.spacing[4],
       gridTemplateColumns: 'minmax(300px, 0.78fr) minmax(0, 1.42fr)',
       minHeight: 610,

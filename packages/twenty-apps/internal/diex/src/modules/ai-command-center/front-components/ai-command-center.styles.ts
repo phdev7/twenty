@@ -18,10 +18,15 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
     padding: themeCssVariables.spacing[4],
     width: '100%',
   },
+  // Sections of the page root never shrink. The root is a fixed-height scrolling
+  // flex column, so its children are shrinkable by default and a section that
+  // also opted out of its min-content floor collapsed to zero and painted its
+  // content over the rest of the page.
   consoleHeader: {
     alignItems: 'center',
     background: themeCssVariables.background.secondary,
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[4],
     gridTemplateColumns: 'minmax(0, 1fr) auto',
     padding: `${themeCssVariables.spacing[4]} ${themeCssVariables.spacing[5]}`,
@@ -68,6 +73,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   },
   metricStrip: {
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[2],
     gridTemplateColumns: 'repeat(4, minmax(150px, 1fr))',
   },
@@ -88,6 +94,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
   consoleGrid: {
     alignItems: 'stretch',
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[4],
     gridTemplateColumns: 'minmax(280px, 0.72fr) minmax(0, 1.28fr)',
     minHeight: 520,

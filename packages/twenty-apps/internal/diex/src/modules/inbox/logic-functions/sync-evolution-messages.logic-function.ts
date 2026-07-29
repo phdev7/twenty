@@ -12,7 +12,7 @@ export default defineLogicFunction({
   description:
     'Reconcilia a inbox com o histórico da Evolution e recupera mensagens que o webhook não entregou.',
   timeoutSeconds: 120,
-  handler: syncEvolutionMessages,
+  handler: () => syncEvolutionMessages({ transcribeAudios: true }),
   cronTriggerSettings: {
     pattern: EVOLUTION_SYNC_CRON_PATTERN,
   },

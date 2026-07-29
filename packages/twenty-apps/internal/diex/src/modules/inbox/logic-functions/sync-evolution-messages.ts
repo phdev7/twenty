@@ -101,7 +101,11 @@ const fetchRecordsSince = async ({
   apiKey: string;
   instanceName: string;
   floor: number;
-}): Promise<{ records: ProviderMessageRecord[]; fetched: number }> => {
+}): Promise<{
+  records: ProviderMessageRecord[];
+  fetched: number;
+  isProvisioned: boolean;
+}> => {
   const collected: ProviderMessageRecord[] = [];
   let fetched = 0;
 
@@ -117,6 +121,11 @@ const fetchRecordsSince = async ({
       },
       body: JSON.stringify({ page }),
     });
+
+    if (response.status === 404) {
+      // No instance for this workspace yet — nobody connected WhatsApp here.
+      return { records: [], fetched: 0, isProvisioned: false };
+    }
 
     if (!response.ok) {
       throw new Error(
@@ -142,7 +151,7 @@ const fetchRecordsSince = async ({
     }
   }
 
-  return { records: collected, fetched };
+  return { records: collected, fetched, isProvisioned: true };
 };
 
 // The provider stores every message it receives but does not always announce
@@ -150,82 +159,99 @@ const fetchRecordsSince = async ({
 // storage all the same. Reading storage on a schedule turns delivery into
 // something the inbox can rely on, and deduplication keeps it free when the
 // webhook did its job.
-export const syncEvolutionMessages =
-  async (): Promise<SyncEvolutionMessagesResult> => {
-    const configuration = resolveWhatsappProvisioning();
-    const client = new CoreApiClient();
-    const now = Date.now();
-    const oldestAllowed = now - EVOLUTION_SYNC_MAX_BACKFILL_DAYS * 86_400_000;
-    const storedWatermark = await appKeyValue.get<string>(
-      EVOLUTION_SYNC_WATERMARK_KEY,
-    );
-    const parsedWatermark = storedWatermark ? Date.parse(storedWatermark) : NaN;
-    const watermark = Number.isFinite(parsedWatermark)
-      ? parsedWatermark
-      : Math.max(
-          (await readNewestStoredMessageAt(client)) ?? oldestAllowed,
-          oldestAllowed,
-        );
-    const floor = watermark - EVOLUTION_SYNC_OVERLAP_SECONDS * 1_000;
-
-    const { records, fetched } = await fetchRecordsSince({
-      baseUrl: configuration.baseUrl,
-      apiKey: configuration.apiKey,
-      instanceName: configuration.instanceName,
-      floor,
-    });
-
-    let createdMessages = 0;
-    let duplicateMessages = 0;
-    let newestTimestamp = watermark;
-
-    // Oldest first, so a conversation is created by the message that actually
-    // opened it and the thread reads in the order it happened.
-    for (const record of [...records].sort(
-      (left, right) => readRecordTimestamp(left) - readRecordTimestamp(right),
-    )) {
-      const [message] = normalizeEvolutionMessages(
-        asWebhookPayload(record, configuration.instanceName),
+export const syncEvolutionMessages = async (options?: {
+  transcribeAudios?: boolean;
+}): Promise<SyncEvolutionMessagesResult> => {
+  const configuration = resolveWhatsappProvisioning();
+  const client = new CoreApiClient();
+  const now = Date.now();
+  const oldestAllowed = now - EVOLUTION_SYNC_MAX_BACKFILL_DAYS * 86_400_000;
+  const storedWatermark = await appKeyValue.get<string>(
+    EVOLUTION_SYNC_WATERMARK_KEY,
+  );
+  const parsedWatermark = storedWatermark ? Date.parse(storedWatermark) : NaN;
+  const watermark = Number.isFinite(parsedWatermark)
+    ? parsedWatermark
+    : Math.max(
+        (await readNewestStoredMessageAt(client)) ?? oldestAllowed,
+        oldestAllowed,
       );
+  const floor = watermark - EVOLUTION_SYNC_OVERLAP_SECONDS * 1_000;
 
-      if (!message) {
-        continue;
-      }
+  const { records, fetched, isProvisioned } = await fetchRecordsSince({
+    baseUrl: configuration.baseUrl,
+    apiKey: configuration.apiKey,
+    instanceName: configuration.instanceName,
+    floor,
+  });
 
-      const result = await ingestMessage(client, message);
+  if (!isProvisioned) {
+    return {
+      fetched: 0,
+      considered: 0,
+      createdMessages: 0,
+      duplicateMessages: 0,
+      transcribedAudios: 0,
+      watermark: new Date(watermark).toISOString(),
+      message:
+        'Nenhuma instância de WhatsApp conectada nesta workspace: nada a sincronizar.',
+    };
+  }
 
-      if (result.status === 'CREATED') {
-        createdMessages += 1;
-      } else {
-        duplicateMessages += 1;
-      }
+  let createdMessages = 0;
+  let duplicateMessages = 0;
+  let newestTimestamp = watermark;
 
-      newestTimestamp = Math.max(newestTimestamp, readRecordTimestamp(record));
+  // Oldest first, so a conversation is created by the message that actually
+  // opened it and the thread reads in the order it happened.
+  for (const record of [...records].sort(
+    (left, right) => readRecordTimestamp(left) - readRecordTimestamp(right),
+  )) {
+    const [message] = normalizeEvolutionMessages(
+      asWebhookPayload(record, configuration.instanceName),
+    );
+
+    if (!message) {
+      continue;
     }
 
-    const nextWatermark = new Date(newestTimestamp).toISOString();
+    const result = await ingestMessage(client, message);
 
-    await appKeyValue.set(EVOLUTION_SYNC_WATERMARK_KEY, nextWatermark);
+    if (result.status === 'CREATED') {
+      createdMessages += 1;
+    } else {
+      duplicateMessages += 1;
+    }
 
-    // Audio arrives as sound and is useless to a reader and to the AI until it
-    // is text, so the same cycle that stores it also drains the transcription
-    // queue. A failure here must not fail the sync that already worked.
-    const transcription = await transcribePendingAudios().catch(() => ({
-      transcribed: 0,
-      unavailable: 0,
-      failed: 0,
-    }));
+    newestTimestamp = Math.max(newestTimestamp, readRecordTimestamp(record));
+  }
 
-    return {
-      fetched,
-      considered: records.length,
-      createdMessages,
-      duplicateMessages,
-      transcribedAudios: transcription.transcribed,
-      watermark: nextWatermark,
-      message:
-        createdMessages > 0
-          ? `${createdMessages} mensagem(ns) que o webhook não entregou foram recuperadas.`
-          : 'Nenhuma mensagem pendente: o webhook está entregando.',
-    };
+  const nextWatermark = new Date(newestTimestamp).toISOString();
+
+  await appKeyValue.set(EVOLUTION_SYNC_WATERMARK_KEY, nextWatermark);
+
+  // Audio arrives as sound and is useless to a reader and to the AI until it
+  // is text, so the same cycle that stores it also drains the transcription
+  // queue. A failure here must not fail the sync that already worked.
+  const transcription =
+    options?.transcribeAudios === true
+      ? await transcribePendingAudios().catch(() => ({
+          transcribed: 0,
+          unavailable: 0,
+          failed: 0,
+        }))
+      : { transcribed: 0, unavailable: 0, failed: 0 };
+
+  return {
+    fetched,
+    considered: records.length,
+    createdMessages,
+    duplicateMessages,
+    transcribedAudios: transcription.transcribed,
+    watermark: nextWatermark,
+    message:
+      createdMessages > 0
+        ? `${createdMessages} mensagem(ns) que o webhook não entregou foram recuperadas.`
+        : 'Nenhuma mensagem pendente: o webhook está entregando.',
   };
+};

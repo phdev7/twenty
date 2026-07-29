@@ -16,10 +16,15 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
     padding: themeCssVariables.spacing[4],
     width: '100%',
   },
+  // Sections of the page root never shrink. The root is a fixed-height scrolling
+  // flex column, so its children are shrinkable by default and a section that
+  // also opted out of its min-content floor collapsed to zero and painted its
+  // content over the rest of the page.
   hero: {
     alignItems: 'stretch',
     background: `linear-gradient(135deg, ${themeCssVariables.background.transparent.blue}, ${themeCssVariables.background.primary})`,
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[4],
     gridTemplateColumns: 'minmax(0, 1.5fr) minmax(220px, 0.5fr)',
     minHeight: 190,
@@ -106,6 +111,7 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
   },
   kpiGrid: {
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[3],
     gridTemplateColumns: 'repeat(4, minmax(150px, 1fr))',
   },
@@ -123,6 +129,7 @@ export const commercialIntelligenceStyles: Record<string, CSSProperties> = {
   mainGrid: {
     alignItems: 'start',
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[4],
     gridTemplateColumns: 'minmax(0, 1.35fr) minmax(300px, 0.65fr)',
   },

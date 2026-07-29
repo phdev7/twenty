@@ -18,10 +18,15 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
     padding: themeCssVariables.spacing[4],
     width: '100%',
   },
+  // Sections of the page root never shrink. The root is a fixed-height scrolling
+  // flex column, so its children are shrinkable by default and a section that
+  // also opted out of its min-content floor collapsed to zero and painted its
+  // content over the rest of the page.
   controlHeader: {
     alignItems: 'stretch',
     background: `linear-gradient(120deg, ${themeCssVariables.background.transparent.success}, ${themeCssVariables.background.primary} 58%, ${themeCssVariables.background.transparent.blue})`,
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[5],
     gridTemplateColumns: 'minmax(0, 1fr) minmax(310px, 0.42fr)',
     minHeight: 164,
@@ -104,6 +109,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   },
   metricLedger: {
     display: 'grid',
+    flexShrink: 0,
     gap: 1,
     gridTemplateColumns: 'repeat(5, minmax(140px, 1fr))',
     overflowX: 'auto',
@@ -267,6 +273,7 @@ export const renewalCommandCenterStyles: Record<string, CSSProperties> = {
   },
   workbench: {
     display: 'grid',
+    flexShrink: 0,
     gap: themeCssVariables.spacing[4],
     gridTemplateColumns: 'minmax(0, 1.35fr) minmax(300px, 0.65fr)',
   },
