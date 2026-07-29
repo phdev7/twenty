@@ -36,6 +36,7 @@ import {
   renderSavedReplyTemplate,
 } from 'src/modules/inbox/front-components/utils/saved-reply-template';
 import { getRecordName } from 'src/modules/inbox/front-components/utils/inbox-formatters';
+import { getRouteErrorMessage } from 'src/utils/route-error-message';
 import { useInboxConversationActivity } from 'src/modules/inbox/front-components/hooks/use-inbox-conversation-activity';
 import {
   loadEligibleTwentyEmailChannels,
@@ -188,7 +189,7 @@ const INBOX_POLL_INTERVAL_MS = 10_000;
 type SilentLoadOptions = { silent?: boolean };
 
 const getErrorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
+  getRouteErrorMessage(error, 'Não foi possível carregar a inbox.');
 
 const createInternalMessageKey = (): string => {
   const randomPart =
@@ -3401,7 +3402,31 @@ export const useInboxData = () => {
             );
           }
 
-          await refreshInbox();
+          // The provider already accepted the text, so the operator sees it in
+          // the thread now instead of after another round trip. The reconcile
+          // that follows replaces it with the stored record.
+          const sentText = preview.textPreview.trim();
+          const sentMessageId = response.inboxMessageId;
+
+          if (sentMessageId) {
+            setMessages((currentMessages) => [
+              ...currentMessages,
+              {
+                id: sentMessageId,
+                name: sentText.slice(0, 70),
+                providerMessageKey:
+                  response.providerMessageKey ?? createInternalMessageKey(),
+                direction: 'OUTBOUND',
+                messageType: 'TEXT',
+                body: sentText,
+                deliveryStatus: 'SENT',
+                sentAt: response.sentAt ?? new Date().toISOString(),
+                isInternalNote: false,
+              },
+            ]);
+          }
+
+          void refreshInbox({ silent: true });
           await enqueueSnackbar({
             message: 'Mensagem aceita pelo WhatsApp e registrada na inbox.',
             variant: 'success',
