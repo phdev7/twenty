@@ -862,6 +862,20 @@ const ingestMessage = async (
   message: NormalizedEvolutionMessage,
 ): Promise<IngestMessageResult> => {
   if (await inboxMessageExists(client, message.providerMessageKey)) {
+    // A conversation stored while the contact could not be resolved would stay
+    // orphaned forever, since the message that could repair it is now a
+    // duplicate. A redelivery is the second chance.
+    if (message.direction === 'INBOUND') {
+      const existingConversation = await findInboxConversation(
+        client,
+        message.providerThreadKey,
+      );
+
+      if (existingConversation && !existingConversation.personId) {
+        await linkConversationToPerson(client, existingConversation, message);
+      }
+    }
+
     return {
       status: 'DUPLICATE',
       automationsApplied: 0,
