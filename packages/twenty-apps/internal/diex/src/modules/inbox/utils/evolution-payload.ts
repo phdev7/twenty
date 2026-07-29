@@ -90,8 +90,17 @@ const normalizeEventName = (eventName: string | undefined): string =>
     .toLowerCase()
     .replace(/[.\s-]+/g, '_');
 
+// A LID is WhatsApp's privacy handle for a contact. Its digits look like a
+// phone number and are not one: reading them as such invents a contact, and
+// keying a thread by them splits one person into two conversations the moment
+// WhatsApp switches addressing mode mid-chat.
+const LID_JID_SUFFIX = '@lid';
+
+const isLidJid = (value: string): boolean =>
+  value.trim().toLowerCase().endsWith(LID_JID_SUFFIX);
+
 export const normalizePhone = (value: string | undefined): string | null => {
-  if (!value) {
+  if (!value || isLidJid(value)) {
     return null;
   }
 
@@ -217,6 +226,26 @@ const getEvolutionDataItems = (payload: JsonRecord): JsonRecord[] => {
   return dataRecord ? [dataRecord] : [payload];
 };
 
+// When the chat is addressed by LID, the phone travels beside it in
+// remoteJidAlt. The phone is the identity the CRM already knows the person by,
+// so it wins whenever the provider sends it.
+const readContactJid = (item: JsonRecord): string => {
+  const phoneCandidate = firstString(item, [
+    'key.remoteJidAlt',
+    'key.senderPn',
+    'key.participantAlt',
+    'key.participantPn',
+  ]);
+
+  if (phoneCandidate && !isLidJid(phoneCandidate)) {
+    return phoneCandidate;
+  }
+
+  return (
+    firstString(item, ['key.remoteJid', 'remoteJid', 'chatId', 'sender']) ?? ''
+  );
+};
+
 export const extractEvolutionInstanceName = (
   payload: unknown,
 ): string | null => {
@@ -255,14 +284,7 @@ export const normalizeEvolutionMessages = (
   const instanceName = extractEvolutionInstanceName(payloadRecord) ?? '';
 
   return getEvolutionDataItems(payloadRecord).flatMap((item) => {
-    const remoteJid =
-      firstString(item, [
-        'key.remoteJid',
-        'remoteJid',
-        'chatId',
-        'key.remoteJidAlt',
-        'sender',
-      ]) ?? '';
+    const remoteJid = readContactJid(item);
     const externalMessageId =
       firstString(item, ['key.id', 'id', 'messageId']) ?? fingerprint(item);
 
