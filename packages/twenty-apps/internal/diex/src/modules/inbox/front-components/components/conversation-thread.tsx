@@ -139,7 +139,6 @@ export const ConversationThread = ({
     useState<InboxMacroApplyResult | null>(null);
   const [sendPreview, setSendPreview] =
     useState<InboxExternalMessagePreview | null>(null);
-  const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
   const activeConversationIdRef = useRef<string | null>(
     conversation?.id ?? null,
   );
@@ -174,13 +173,6 @@ export const ConversationThread = ({
     setMacroReceipt(null);
     setSendPreview(null);
   }, [conversation?.channel, conversation?.id, conversation?.provider]);
-
-  useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({
-      block: 'end',
-      behavior: 'smooth',
-    });
-  }, [events, messages]);
 
   if (conversation === null) {
     return (
@@ -217,16 +209,20 @@ export const ConversationThread = ({
       macro.channel === 'ALL' || macro.channel === conversation.channel,
   );
   const timelineEntries: ConversationTimelineEntry[] = [
-    ...messages.map((message): ConversationTimelineEntry => ({
-      kind: 'MESSAGE',
-      occurredAt: message.sentAt,
-      message,
-    })),
-    ...events.map((event): ConversationTimelineEntry => ({
-      kind: 'EVENT',
-      occurredAt: event.occurredAt,
-      event,
-    })),
+    ...messages.map(
+      (message): ConversationTimelineEntry => ({
+        kind: 'MESSAGE',
+        occurredAt: message.sentAt,
+        message,
+      }),
+    ),
+    ...events.map(
+      (event): ConversationTimelineEntry => ({
+        kind: 'EVENT',
+        occurredAt: event.occurredAt,
+        event,
+      }),
+    ),
   ].sort((left, right) => {
     const timeDifference =
       new Date(left.occurredAt ?? 0).getTime() -
@@ -501,7 +497,7 @@ export const ConversationThread = ({
             Esta conversa ainda não possui mensagens ou eventos.
           </div>
         ) : (
-          timelineEntries.map((entry) => {
+          [...timelineEntries].reverse().map((entry) => {
             if (entry.kind === 'EVENT') {
               const event = entry.event;
 
@@ -660,7 +656,6 @@ export const ConversationThread = ({
             );
           })
         )}
-        <div ref={endOfMessagesRef} />
       </div>
 
       <footer style={inboxStyles.composer}>

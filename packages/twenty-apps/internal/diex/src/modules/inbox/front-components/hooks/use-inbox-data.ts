@@ -183,6 +183,10 @@ const macroPriorityLabels: Record<string, string> = {
   URGENT: 'Urgente',
 };
 
+const INBOX_POLL_INTERVAL_MS = 10_000;
+
+type SilentLoadOptions = { silent?: boolean };
+
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Não foi possível carregar a inbox.';
 
@@ -288,6 +292,7 @@ export const useInboxData = () => {
   );
   const messageRequestVersionRef = useRef(0);
   const mentionRequestVersionRef = useRef(0);
+  const isPollingRef = useRef(false);
   const consumedEmailConfirmationTokensRef = useRef(new Set<string>());
   const {
     conversationEvents,
@@ -298,8 +303,11 @@ export const useInboxData = () => {
     currentWorkspaceMemberId,
   });
 
-  const loadConversations = useCallback(async () => {
-    setIsLoadingConversations(true);
+  const loadConversations = useCallback(async (options?: SilentLoadOptions) => {
+    if (options?.silent !== true) {
+      setIsLoadingConversations(true);
+    }
+
     setErrorMessage(null);
 
     try {
@@ -493,78 +501,87 @@ export const useInboxData = () => {
     }
   }, []);
 
-  const loadMessages = useCallback(async (conversationId: string) => {
-    const requestVersion = messageRequestVersionRef.current + 1;
+  const loadMessages = useCallback(
+    async (conversationId: string, options?: SilentLoadOptions) => {
+      const requestVersion = messageRequestVersionRef.current + 1;
 
-    messageRequestVersionRef.current = requestVersion;
-    setIsLoadingMessages(true);
+      messageRequestVersionRef.current = requestVersion;
 
-    try {
-      const client = new CoreApiClient();
-      const queryResult = (await client.query({
-        inboxMessages: {
-          __args: {
-            filter: {
-              inboxConversationId: {
-                eq: conversationId,
+      if (options?.silent !== true) {
+        setIsLoadingMessages(true);
+      }
+
+      try {
+        const client = new CoreApiClient();
+        const queryResult = (await client.query({
+          inboxMessages: {
+            __args: {
+              filter: {
+                inboxConversationId: {
+                  eq: conversationId,
+                },
+              },
+              first: 200,
+              orderBy: [{ sentAt: 'AscNullsLast' }],
+            },
+            edges: {
+              node: {
+                id: true,
+                name: true,
+                providerMessageKey: true,
+                direction: true,
+                messageType: true,
+                body: true,
+                deliveryStatus: true,
+                sentAt: true,
+                senderHandle: true,
+                senderDisplayName: true,
+                mediaUrl: true,
+                isInternalNote: true,
+                metadata: true,
               },
             },
-            first: 200,
-            orderBy: [{ sentAt: 'AscNullsLast' }],
           },
-          edges: {
-            node: {
-              id: true,
-              name: true,
-              providerMessageKey: true,
-              direction: true,
-              messageType: true,
-              body: true,
-              deliveryStatus: true,
-              sentAt: true,
-              senderHandle: true,
-              senderDisplayName: true,
-              mediaUrl: true,
-              isInternalNote: true,
-              metadata: true,
-            },
-          },
-        },
-      } as never)) as unknown as MessageQueryResult;
+        } as never)) as unknown as MessageQueryResult;
 
-      if (requestVersion === messageRequestVersionRef.current) {
-        setMessages(
-          queryResult.inboxMessages?.edges?.map(({ node }) => node) ?? [],
-        );
+        if (requestVersion === messageRequestVersionRef.current) {
+          setMessages(
+            queryResult.inboxMessages?.edges?.map(({ node }) => node) ?? [],
+          );
+        }
+      } catch (error) {
+        if (requestVersion === messageRequestVersionRef.current) {
+          setErrorMessage(getErrorMessage(error));
+          setMessages([]);
+        }
+      } finally {
+        if (requestVersion === messageRequestVersionRef.current) {
+          setIsLoadingMessages(false);
+        }
       }
-    } catch (error) {
-      if (requestVersion === messageRequestVersionRef.current) {
-        setErrorMessage(getErrorMessage(error));
-        setMessages([]);
-      }
-    } finally {
-      if (requestVersion === messageRequestVersionRef.current) {
-        setIsLoadingMessages(false);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
 
-  const refreshInbox = useCallback(async (): Promise<void> => {
-    await Promise.all([
-      loadConversations(),
-      ...(selectedConversationId
-        ? [
-            loadMessages(selectedConversationId),
-            loadConversationEvents(selectedConversationId),
-          ]
-        : []),
-    ]);
-  }, [
-    loadConversationEvents,
-    loadConversations,
-    loadMessages,
-    selectedConversationId,
-  ]);
+  const refreshInbox = useCallback(
+    async (options?: SilentLoadOptions): Promise<void> => {
+      await Promise.all([
+        loadConversations(options),
+        ...(selectedConversationId
+          ? [
+              loadMessages(selectedConversationId, options),
+              loadConversationEvents(selectedConversationId),
+            ]
+          : []),
+      ]);
+    },
+    [
+      loadConversationEvents,
+      loadConversations,
+      loadMessages,
+      selectedConversationId,
+    ],
+  );
 
   const loadCurrentWorkspaceMember = useCallback(async () => {
     try {
@@ -996,6 +1013,25 @@ export const useInboxData = () => {
   useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
+
+  // Nothing pushes provider messages down to a front component, so a live
+  // conversation only stays live if the inbox re-reads on its own. One request
+  // at a time, otherwise a slow round trip stacks up behind the next tick.
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (isPollingRef.current) {
+        return;
+      }
+
+      isPollingRef.current = true;
+
+      void refreshInbox({ silent: true }).finally(() => {
+        isPollingRef.current = false;
+      });
+    }, INBOX_POLL_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, [refreshInbox]);
 
   useEffect(() => {
     void loadSavedReplies();

@@ -307,11 +307,14 @@ export const inboxStyles: Record<string, CSSProperties> = {
     cursor: 'not-allowed',
     opacity: 0.55,
   },
+  // Reversed so the newest message stays pinned to the bottom as messages
+  // arrive. A front component runs in a worker and its refs are not DOM nodes,
+  // so scrollIntoView is not available to do this imperatively.
   messageList: {
     background: themeCssVariables.background.secondary,
     display: 'flex',
     flex: 1,
-    flexDirection: 'column',
+    flexDirection: 'column-reverse',
     gap: themeCssVariables.spacing[3],
     minHeight: 0,
     overflowY: 'auto',
