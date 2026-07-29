@@ -47,14 +47,6 @@ export default defineApplication({
       type: FieldType.TEXT,
       isSecret: true,
     },
-    AUTO_CREATE_WHATSAPP_CONTACTS: {
-      universalIdentifier: 'd1e09100-0000-4000-8000-000000000006',
-      description:
-        'Cria uma pessoa quando uma mensagem recebida não encontra telefone correspondente.',
-      type: FieldType.BOOLEAN,
-      value: true,
-      isSecret: false,
-    },
     DEFAULT_RESPONSE_SLA_MINUTES: {
       universalIdentifier: 'd1e09100-0000-4000-8000-000000000007',
       description:

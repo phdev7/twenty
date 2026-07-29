@@ -20,7 +20,6 @@ import {
 } from 'src/modules/inbox/utils/evolution-payload';
 import {
   normalizeEvolutionInstanceName,
-  readBooleanEnvironmentValue,
   readResponseSlaMinutes,
 } from 'src/modules/inbox/utils/evolution-environment';
 import { executeInboxAutomations } from 'src/modules/inbox/utils/inbox-automation';
@@ -311,13 +310,23 @@ const resolvePerson = async (
     return existingPerson;
   }
 
-  if (!readBooleanEnvironmentValue('AUTO_CREATE_WHATSAPP_CONTACTS', true)) {
-    return null;
-  }
-
+  // A customer who writes is a lead, and the inbox is worth nothing if their
+  // conversation hangs off nobody. This used to sit behind a setting whose
+  // stored value no screen could change, so an install that started with it off
+  // stayed off forever.
   try {
     return await createPersonFromInboundMessage(client, message);
-  } catch {
+  } catch (error) {
+    // Losing the contact silently is how a conversation ends up orphaned with
+    // nothing to explain it. Say so, then check whether a concurrent delivery
+    // already created the person.
+    // eslint-disable-next-line no-console
+    console.error(
+      `[diex-inbox] could not create the contact for ${message.normalizedPhone}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+
     return findPersonByNormalizedPhone(client, message.normalizedPhone);
   }
 };
