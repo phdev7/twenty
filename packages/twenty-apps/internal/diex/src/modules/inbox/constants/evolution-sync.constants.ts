@@ -1,5 +1,5 @@
 export const EVOLUTION_SYNC_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER =
-  'd1e0c000-0000-4000-8000-000000000005';
+  'd1e0c000-0000-4000-8000-000000000006';
 
 // Every minute. The webhook is still the fast path when the provider sends it;
 // this only has to be quicker than a person noticing a missing message.
