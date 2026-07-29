@@ -97,7 +97,7 @@ export const aiCommandCenterStyles: Record<string, CSSProperties> = {
     flexShrink: 0,
     gap: themeCssVariables.spacing[4],
     gridTemplateColumns: 'minmax(280px, 0.72fr) minmax(0, 1.28fr)',
-    minHeight: 520,
+    minHeight: 360,
   },
   queueCard: {
     display: 'flex',

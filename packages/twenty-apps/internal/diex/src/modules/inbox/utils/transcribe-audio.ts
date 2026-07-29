@@ -15,10 +15,19 @@ export type TranscriptionOutcome =
   | { status: 'UNAVAILABLE'; reason: string }
   | { status: 'FAILED'; reason: string };
 
+// The dedicated variable wins so transcription can be pointed at its own key
+// or budget, but a workspace that already gave the CRM an OpenAI key should not
+// have to paste it twice to get audio turned into text.
 export const readOpenAiApiKey = (): string | null => {
-  const key = process.env.DIEX_OPENAI_API_KEY?.trim();
+  for (const name of ['DIEX_OPENAI_API_KEY', 'OPENAI_API_KEY']) {
+    const key = process.env[name]?.trim();
 
-  return key && key.length > 0 ? key : null;
+    if (key !== undefined && key.length > 0) {
+      return key;
+    }
+  }
+
+  return null;
 };
 
 const base64ToBlobPart = (base64: string): ArrayBuffer => {
@@ -68,7 +77,7 @@ export const transcribeAudio = async ({
     return {
       status: 'UNAVAILABLE',
       reason:
-        'DIEX_OPENAI_API_KEY não está configurada no servidor, então áudios não podem ser transcritos.',
+        'Nenhuma chave da OpenAI configurada no servidor (DIEX_OPENAI_API_KEY ou OPENAI_API_KEY), então áudios não podem ser transcritos.',
     };
   }
 
@@ -118,10 +127,12 @@ export const transcribeAudio = async ({
     return {
       // An invalid key or an exhausted quota will not fix itself on the next
       // cycle, so it is reported as unavailable rather than retried forever.
-      status: response.status === 401 || response.status === 429
-        ? 'UNAVAILABLE'
-        : 'FAILED',
-      reason: `A OpenAI recusou a transcrição (HTTP ${response.status}) ${detail.slice(0, 160)}`.trim(),
+      status:
+        response.status === 401 || response.status === 429
+          ? 'UNAVAILABLE'
+          : 'FAILED',
+      reason:
+        `A OpenAI recusou a transcrição (HTTP ${response.status}) ${detail.slice(0, 160)}`.trim(),
     };
   }
 
@@ -129,5 +140,8 @@ export const transcribeAudio = async ({
 
   return text.length > 0
     ? { status: 'DONE', text }
-    : { status: 'UNAVAILABLE', reason: 'A OpenAI devolveu uma transcrição vazia.' };
+    : {
+        status: 'UNAVAILABLE',
+        reason: 'A OpenAI devolveu uma transcrição vazia.',
+      };
 };

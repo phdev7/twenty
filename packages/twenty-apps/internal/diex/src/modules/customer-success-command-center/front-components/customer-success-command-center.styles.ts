@@ -349,7 +349,7 @@ export const customerSuccessCommandCenterStyles: Record<string, CSSProperties> =
       flexShrink: 0,
       gap: themeCssVariables.spacing[4],
       gridTemplateColumns: 'minmax(300px, 0.78fr) minmax(0, 1.42fr)',
-      minHeight: 610,
+      minHeight: 360,
     },
     portfolioCard: {
       display: 'flex',

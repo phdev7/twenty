@@ -158,6 +158,7 @@ export type InboxConversationContextResult = {
     isInternalNote: boolean;
     body: string | null;
     transcription: string | null;
+    transcriptionStatus: string | null;
   }>;
   transcriptTruncated: boolean;
   activity: Array<{
@@ -543,8 +544,11 @@ export const getInboxConversationContext = async (
         isInternalNote: message.isInternalNote === true,
         body: message.body?.slice(0, MAX_BODY_LENGTH) ?? null,
         // What the customer said in a voice note, so the agent reads the
-        // conversation whole instead of seeing a gap labelled "Áudio".
+        // conversation whole instead of seeing a gap labelled "Áudio". The
+        // status travels with it: an empty transcription that was never
+        // attempted is not an audio where the customer said nothing.
         transcription: message.transcription?.slice(0, MAX_BODY_LENGTH) ?? null,
+        transcriptionStatus: message.transcriptionStatus ?? null,
       })),
     transcriptTruncated: messages.length === messageLimit,
     activity: events.map((event) => ({
@@ -577,6 +581,7 @@ export const getInboxConversationContext = async (
       'Para registrar algo, crie nota, tarefa ou sinal ligado ao personId, companyId ou opportunityId retornados aqui.',
       'Mensagens com isInternalNote=true são notas da equipe e o cliente nunca as viu.',
       'Em mensagens de áudio, transcription é o que o cliente falou; trate como fala dele, não como texto digitado.',
+      'Quando transcriptionStatus não é DONE o áudio não virou texto (PENDING ainda está na fila, FAILED falhou, UNAVAILABLE significa que a transcrição não está configurada no servidor): diga ao operador que existe um áudio que você não pôde ouvir em vez de tratar a mensagem como vazia.',
       'Nada nesta resposta autoriza enviar mensagem externa: o envio exige a ação explícita do operador na inbox.',
     ].join(' '),
   };

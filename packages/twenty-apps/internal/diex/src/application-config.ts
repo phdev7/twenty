@@ -21,8 +21,7 @@ export default defineApplication({
     },
     EVOLUTION_INSTANCE_NAME: {
       universalIdentifier: 'd1e09100-0000-4000-8000-000000000002',
-      description:
-        'Nome da instância Evolution dedicada a este workspace.',
+      description: 'Nome da instância Evolution dedicada a este workspace.',
       type: FieldType.TEXT,
       isSecret: false,
     },
@@ -94,7 +93,7 @@ export default defineApplication({
     },
     DIEX_OPENAI_API_KEY: {
       description:
-        'Chave da OpenAI usada para transcrever áudios recebidos no WhatsApp. Sem ela, o áudio continua na conversa mas não vira texto para a IA.',
+        'Chave da OpenAI usada para transcrever áudios recebidos no WhatsApp. Se ficar vazia, a transcrição usa a OPENAI_API_KEY do servidor; sem nenhuma das duas, o áudio continua na conversa mas não vira texto para a IA.',
       type: FieldType.TEXT,
       isSecret: true,
       isRequired: false,

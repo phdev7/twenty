@@ -13,9 +13,7 @@ import {
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { RENEWAL_COMMAND_CENTER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from 'src/modules/renewal-command-center/constants/renewal-command-center.constants';
-import {
-  MetricCell,
-} from 'src/modules/renewal-command-center/front-components/components/renewal-primitives';
+import { MetricCell } from 'src/modules/renewal-command-center/front-components/components/renewal-primitives';
 import { RenewalWorkbench } from 'src/modules/renewal-command-center/front-components/components/renewal-workbench';
 import {
   STAGES,
@@ -28,9 +26,7 @@ import {
   getRisk,
 } from 'src/modules/renewal-command-center/front-components/utils/renewal-formatters';
 import { renewalCommandCenterStyles as styles } from 'src/modules/renewal-command-center/front-components/renewal-command-center.styles';
-import {
-  type RenewalDraft,
-} from 'src/modules/renewal-command-center/front-components/renewal-command-center.types';
+import { type RenewalDraft } from 'src/modules/renewal-command-center/front-components/renewal-command-center.types';
 import { useRenewalCommandCenter } from 'src/modules/renewal-command-center/front-components/use-renewal-command-center';
 import {
   Badge,
@@ -43,7 +39,6 @@ import {
   Separator,
   Skeleton,
 } from 'src/ui/shadcn-twenty';
-
 
 const RenewalCommandCenter = () => {
   const {
@@ -289,31 +284,6 @@ const RenewalCommandCenter = () => {
           </Button>
         </div>
 
-        <div style={styles.stageRail}>
-          {STAGES.map((stage, index) => {
-            const stageRenewals = renewals.filter(
-              (renewal) => renewal.stage === stage.value,
-            );
-            const value = stageRenewals.reduce(
-              (total, renewal) => total + getAmountMicros(renewal.renewalValue),
-              0,
-            );
-
-            return (
-              <div key={stage.value} style={styles.stageRailItem}>
-                <span style={styles.stageNumber}>{index + 1}</span>
-                <p style={styles.stageName}>{stage.label}</p>
-                <div>
-                  <p style={styles.stageValue}>{stageRenewals.length} casos</p>
-                  <p style={styles.stageValue}>
-                    {formatMoney(value, metrics.primaryCurrency, true)}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
         <Separator />
 
         <div style={styles.board}>
@@ -321,12 +291,19 @@ const RenewalCommandCenter = () => {
             const stageRenewals = renewals.filter(
               (renewal) => renewal.stage === stage.value,
             );
+            const stageValue = stageRenewals.reduce(
+              (total, renewal) => total + getAmountMicros(renewal.renewalValue),
+              0,
+            );
 
             return (
               <section key={stage.value} style={styles.boardColumn}>
                 <div style={styles.columnHeader}>
                   <Badge tone={stage.tone}>{stage.label}</Badge>
-                  <span style={styles.metricNote}>{stageRenewals.length}</span>
+                  <span style={styles.metricNote}>
+                    {stageRenewals.length} ·{' '}
+                    {formatMoney(stageValue, metrics.primaryCurrency, true)}
+                  </span>
                 </div>
                 <div style={styles.columnCards}>
                   {stageRenewals.length === 0 ? (

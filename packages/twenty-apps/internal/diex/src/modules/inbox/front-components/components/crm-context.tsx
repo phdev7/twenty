@@ -66,6 +66,12 @@ type RecordCardProps = {
   value?: string;
 };
 
+// "Sem empresa, oportunidade" is not Portuguese: the last item takes "nem".
+const listRelations = (relations: string[]): string =>
+  relations.length < 2
+    ? relations.join('')
+    : `${relations.slice(0, -1).join(', ')} nem ${relations[relations.length - 1]}`;
+
 const openRecord = async (recordId: string, objectNameSingular: string) => {
   try {
     await openSidePanelPage({
@@ -464,7 +470,7 @@ export const CrmContext = ({
           ) : null}
           {missingRelations.length > 0 ? (
             <p style={inboxStyles.contextMissingHint}>
-              Sem {missingRelations.join(', ')} vinculada
+              Sem {listRelations(missingRelations)} vinculada
               {missingRelations.length > 1 ? 's' : ''} a esta conversa.
             </p>
           ) : null}
