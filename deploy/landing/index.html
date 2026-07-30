@@ -1,25 +1,25 @@
 <!doctype html>
-<html lang="pt-BR" class="scroll-smooth">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#FDFCFF" />
     <meta
       name="description"
-      content="Diex CRM organiza conversas, oportunidades, Customer Success, renovações e IA comercial em uma única operação."
+      content="Diex CRM transforma conversas, oportunidades, Customer Success, renovações e IA em uma operação comercial única."
     />
     <meta
       name="keywords"
-      content="CRM, CRM comercial, WhatsApp, Customer Success, inteligência comercial, automação de vendas, MCP, Diex"
+      content="CRM comercial, WhatsApp, Customer Success, inteligência comercial, automação de vendas, MCP, Diex"
     />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Diex CRM" />
-    <meta property="og:title" content="Diex CRM — operação comercial com contexto" />
+    <meta property="og:title" content="Diex CRM — toda conversa vira movimento de receita" />
     <meta
       property="og:description"
-      content="Transforme cada conversa em próxima ação e cada próxima ação em receita."
+      content="Conversa, contexto, próxima ação e receita no mesmo sistema."
     />
     <meta property="og:url" content="https://crm.bydiex.com/" />
     <meta property="og:image" content="https://app.crm.bydiex.com/images/brand/diex-logo.svg" />
@@ -31,26 +31,32 @@
     />
     <link rel="canonical" href="https://crm.bydiex.com/" />
     <link rel="icon" href="https://app.crm.bydiex.com/images/brand/favicon.svg" type="image/svg+xml" />
-    <title>Diex CRM — operação comercial com contexto</title>
+    <title>Diex CRM — toda conversa vira movimento de receita</title>
 
     <style>
       :root {
         color-scheme: light;
         --ink: #0e0929;
-        --ink-soft: #514d67;
+        --ink-2: #29243f;
+        --muted: #68647b;
         --surface: #fdfcff;
-        --surface-alt: #f4f6ff;
-        --line: #e3e6f2;
-        --line-strong: #d2d8eb;
+        --surface-2: #f4f6ff;
+        --surface-3: #ecefff;
+        --line: #e2e4ef;
+        --line-strong: #cfd4e7;
         --primary: #5f7dff;
-        --primary-strong: #3f5ee4;
-        --primary-soft: #e9edff;
-        --accent: #92acff;
+        --primary-2: #92acff;
+        --primary-soft: #e8edff;
         --success: #0c9b72;
+        --warning: #d48722;
+        --danger: #db5f71;
         --dark: #02000f;
         --radius: 10px;
-        --container: 1084px;
-        --shadow: 0 22px 60px rgba(14, 9, 41, 0.1);
+        --container: 1160px;
+        --display:
+          "Arial Rounded MT Bold", "SF Pro Rounded", "Segoe UI", ui-sans-serif, system-ui,
+          sans-serif;
+        --body: Inter, "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       * {
@@ -63,10 +69,10 @@
 
       body {
         margin: 0;
+        overflow-x: hidden;
         background: var(--surface);
         color: var(--ink);
-        font-family:
-          Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: var(--body);
         font-size: 16px;
         line-height: 1.55;
         -webkit-font-smoothing: antialiased;
@@ -82,6 +88,10 @@
       button,
       a {
         -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        color: inherit;
       }
 
       a {
@@ -101,7 +111,7 @@
 
       .skip-link {
         position: fixed;
-        z-index: 100;
+        z-index: 200;
         top: 10px;
         left: 10px;
         padding: 10px 14px;
@@ -117,71 +127,97 @@
 
       .site-header {
         position: fixed;
-        z-index: 50;
+        z-index: 100;
         top: 0;
         right: 0;
         left: 0;
-        border-bottom: 1px solid transparent;
-        background: rgba(253, 252, 255, 0.86);
-        backdrop-filter: blur(16px);
-        transition:
-          border-color 180ms ease,
-          box-shadow 180ms ease;
+        padding: 14px 0;
+        pointer-events: none;
       }
 
-      .site-header.is-scrolled {
-        border-color: var(--line);
-        box-shadow: 0 10px 30px rgba(14, 9, 41, 0.04);
-      }
-
-      .nav {
-        display: flex;
-        min-height: 72px;
+      .nav-shell {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        min-height: 58px;
         align-items: center;
-        justify-content: space-between;
         gap: 24px;
+        border: 1px solid rgba(207, 212, 231, 0.86);
+        border-radius: 14px;
+        padding: 0 12px 0 17px;
+        background: rgba(253, 252, 255, 0.82);
+        box-shadow: 0 8px 30px rgba(14, 9, 41, 0.05);
+        backdrop-filter: blur(18px) saturate(150%);
+        pointer-events: auto;
+        transition:
+          box-shadow 180ms ease,
+          background 180ms ease,
+          transform 180ms ease;
+      }
+
+      .site-header.is-scrolled .nav-shell {
+        background: rgba(253, 252, 255, 0.94);
+        box-shadow: 0 12px 40px rgba(14, 9, 41, 0.09);
+        transform: translateY(-3px);
       }
 
       .brand {
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        font-size: 15px;
+        justify-self: start;
+        font-size: 14px;
         font-weight: 760;
         letter-spacing: -0.02em;
       }
 
       .brand img {
-        width: 29px;
-        height: 29px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .brand span {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.05;
       }
 
       .brand small {
-        display: block;
-        color: var(--ink-soft);
-        font-size: 10px;
-        font-weight: 650;
-        letter-spacing: 0.08em;
-        line-height: 1;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
       }
 
-      .nav-links,
-      .nav-actions {
+      .nav-links {
         display: flex;
         align-items: center;
-        gap: 24px;
+        gap: 5px;
+        justify-self: center;
       }
 
       .nav-links a {
-        color: var(--ink-soft);
-        font-size: 14px;
-        font-weight: 600;
+        border-radius: 8px;
+        padding: 8px 11px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+        transition:
+          background 160ms ease,
+          color 160ms ease;
       }
 
-      .nav-links a:hover,
-      .text-link:hover {
-        color: var(--primary-strong);
+      .nav-links a:hover {
+        background: var(--surface-2);
+        color: var(--ink);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-self: end;
       }
 
       .button {
@@ -192,55 +228,80 @@
         gap: 9px;
         border: 1px solid transparent;
         border-radius: var(--radius);
-        padding: 0 18px;
+        padding: 0 17px;
         cursor: pointer;
-        font-weight: 720;
+        font-size: 14px;
+        font-weight: 740;
         line-height: 1;
         transition:
           transform 160ms ease,
           background 160ms ease,
-          border-color 160ms ease;
+          border-color 160ms ease,
+          box-shadow 160ms ease;
       }
 
       .button:hover {
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+      }
+
+      .button-dark {
+        background: var(--ink);
+        color: white;
+        box-shadow: 0 8px 20px rgba(14, 9, 41, 0.15);
+      }
+
+      .button-dark:hover {
+        background: var(--primary);
+        box-shadow: 0 10px 24px rgba(95, 125, 255, 0.24);
       }
 
       .button-primary {
-        background: var(--ink);
+        background: var(--primary);
         color: white;
+        box-shadow: 0 9px 24px rgba(95, 125, 255, 0.24);
       }
 
       .button-primary:hover {
-        background: var(--primary-strong);
+        background: #4968ed;
       }
 
-      .button-secondary {
+      .button-outline {
         border-color: var(--line-strong);
         background: white;
-        color: var(--ink);
       }
 
-      .button-secondary:hover {
-        border-color: var(--accent);
-        background: var(--surface-alt);
+      .button-outline:hover {
+        border-color: var(--primary-2);
+        background: var(--surface-2);
       }
 
-      .button-light {
+      .button-white {
         background: white;
         color: var(--ink);
+      }
+
+      .text-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .text-link:hover {
+        color: var(--primary);
       }
 
       .menu-toggle {
         display: none;
-        width: 44px;
-        height: 44px;
+        width: 42px;
+        height: 42px;
         align-items: center;
         justify-content: center;
         border: 1px solid var(--line);
         border-radius: var(--radius);
         background: white;
-        color: var(--ink);
       }
 
       .mobile-menu {
@@ -250,819 +311,2032 @@
       .hero {
         position: relative;
         overflow: hidden;
-        padding: 146px 0 92px;
+        padding: 158px 0 0;
+        background:
+          linear-gradient(rgba(14, 9, 41, 0.028) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(14, 9, 41, 0.028) 1px, transparent 1px);
+        background-size: 48px 48px;
       }
 
       .hero::before {
         position: absolute;
-        z-index: -1;
-        top: 40px;
+        top: -380px;
         left: 50%;
-        width: 940px;
-        height: 560px;
-        background:
-          radial-gradient(circle at 78% 26%, rgba(146, 172, 255, 0.32), transparent 36%),
-          radial-gradient(circle at 22% 48%, rgba(95, 125, 255, 0.14), transparent 34%);
+        width: 900px;
+        height: 720px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(146, 172, 255, 0.3), transparent 66%);
         content: "";
         transform: translateX(-50%);
+        pointer-events: none;
       }
 
-      .hero-grid {
-        display: grid;
-        align-items: center;
-        gap: 52px;
-        grid-template-columns: minmax(0, 0.86fr) minmax(510px, 1.14fr);
+      .hero::after {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, rgba(253, 252, 255, 0) 60%, var(--surface) 100%);
+        content: "";
+        pointer-events: none;
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 2;
+        max-width: 900px;
+        margin: 0 auto;
+        text-align: center;
       }
 
       .eyebrow {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 18px;
-        color: var(--primary-strong);
-        font-size: 12px;
+        gap: 9px;
+        border: 1px solid var(--line-strong);
+        border-radius: 99px;
+        padding: 6px 11px 6px 7px;
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--ink-2);
+        font-size: 11px;
         font-weight: 760;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.05em;
         text-transform: uppercase;
+        backdrop-filter: blur(10px);
       }
 
-      .eyebrow::before {
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: var(--primary);
-        box-shadow: 0 0 0 5px var(--primary-soft);
+      .eyebrow-dot {
+        display: grid;
+        width: 23px;
+        height: 23px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .eyebrow-dot svg {
+        width: 12px;
+        height: 12px;
+      }
+
+      .hero h1 {
+        max-width: 920px;
+        margin: 26px auto 0;
+        font-family: var(--display);
+        font-size: clamp(48px, 7vw, 86px);
+        font-weight: 800;
+        letter-spacing: -0.065em;
+        line-height: 0.97;
+        text-wrap: balance;
+      }
+
+      .hero h1 .soft {
+        color: #6f6b81;
+        font-weight: 520;
+      }
+
+      .hero h1 .accent {
+        position: relative;
+        color: var(--primary);
+        white-space: nowrap;
+      }
+
+      .hero h1 .accent::after {
+        position: absolute;
+        right: 2%;
+        bottom: -5px;
+        left: 2%;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--primary-2);
         content: "";
+        opacity: 0.26;
+        transform: rotate(-1deg);
       }
 
-      h1,
-      h2,
-      h3,
-      p {
-        margin-top: 0;
-      }
-
-      h1 {
-        max-width: 640px;
-        margin-bottom: 22px;
-        font-size: clamp(46px, 6vw, 72px);
-        letter-spacing: -0.062em;
-        line-height: 0.98;
-      }
-
-      h1 span {
-        color: var(--primary-strong);
-      }
-
-      .hero-copy > p {
-        max-width: 570px;
-        margin-bottom: 28px;
-        color: var(--ink-soft);
-        font-size: clamp(18px, 2vw, 20px);
+      .hero-lead {
+        max-width: 650px;
+        margin: 27px auto 0;
+        color: var(--muted);
+        font-size: clamp(17px, 2vw, 20px);
+        line-height: 1.55;
+        text-wrap: balance;
       }
 
       .hero-actions {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .hero-proof {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 18px;
-        margin: 24px 0 0;
-        padding: 0;
-        color: var(--ink-soft);
-        font-size: 13px;
-        font-weight: 620;
-        list-style: none;
-      }
-
-      .hero-proof li {
-        display: inline-flex;
         align-items: center;
-        gap: 7px;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 31px;
       }
 
-      .hero-proof svg {
-        width: 16px;
+      .hero-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 620;
+      }
+
+      .hero-note svg {
+        width: 14px;
+        height: 14px;
         color: var(--success);
       }
 
-      .product-stage {
+      .product-theatre {
         position: relative;
-        min-width: 0;
-        perspective: 1200px;
+        z-index: 3;
+        width: min(calc(100% - 28px), 1320px);
+        margin: 82px auto 0;
+        padding: 0 46px 54px;
       }
 
-      .product-shell {
+      .product-theatre::before {
+        position: absolute;
+        z-index: -2;
+        inset: 80px 0 0;
+        border-radius: 34px 34px 0 0;
+        background: var(--dark);
+        content: "";
+      }
+
+      .product-theatre::after {
+        position: absolute;
+        z-index: -1;
+        right: 14%;
+        bottom: -100px;
+        width: 600px;
+        height: 360px;
+        border-radius: 50%;
+        background: rgba(95, 125, 255, 0.2);
+        filter: blur(110px);
+        content: "";
+        pointer-events: none;
+      }
+
+      .theatre-tabs {
+        display: flex;
+        max-width: 820px;
+        margin: 0 auto 18px;
+        align-items: stretch;
+        border-bottom: 1px solid var(--line-strong);
+      }
+
+      .theatre-tab {
+        position: relative;
+        flex: 1;
+        border: 0;
+        padding: 14px 10px 16px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 690;
+      }
+
+      .theatre-tab::after {
+        position: absolute;
+        right: 12%;
+        bottom: -1px;
+        left: 12%;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--primary);
+        content: "";
+        opacity: 0;
+        transform: scaleX(0.5);
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
+      }
+
+      .theatre-tab[aria-selected="true"] {
+        color: var(--ink);
+      }
+
+      .theatre-tab[aria-selected="true"]::after {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+
+      .crm-window {
         position: relative;
         overflow: hidden;
-        min-height: 510px;
-        border: 1px solid rgba(146, 172, 255, 0.36);
+        min-height: 670px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 16px;
-        background: #11111a;
-        box-shadow: var(--shadow);
-        color: #e9e9f2;
-        transform: rotateY(-1.7deg) rotateX(1.2deg);
-        transform-origin: center center;
-        transition: transform 240ms ease;
+        background: #111018;
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.25) inset,
+          0 35px 90px rgba(2, 0, 15, 0.36);
+        color: #eeedf5;
+        transform: perspective(1800px) rotateX(0.7deg);
+        transform-origin: center bottom;
       }
 
-      .product-topbar {
-        display: flex;
+      .window-bar {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         height: 46px;
         align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid #292936;
-        padding: 0 14px;
-        background: #15151d;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 0 15px;
+        background: #181720;
       }
 
-      .traffic-lights {
+      .window-dots {
         display: flex;
         gap: 6px;
       }
 
-      .traffic-lights span {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: #3b3b47;
+      .window-dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #3c3a47;
       }
 
-      .product-search {
+      .window-address {
+        min-width: 225px;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 7px;
+        padding: 5px 14px;
+        background: rgba(255, 255, 255, 0.035);
+        color: #8f8c9b;
+        font-size: 10px;
+        text-align: center;
+      }
+
+      .window-status {
         display: flex;
-        width: 170px;
-        height: 26px;
         align-items: center;
         gap: 7px;
-        border: 1px solid #31313d;
-        border-radius: 6px;
-        padding: 0 9px;
-        color: #777786;
+        justify-self: end;
+        color: #9d9aaa;
         font-size: 10px;
       }
 
-      .product-search svg {
-        width: 12px;
+      .window-status::before {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #47c69c;
+        box-shadow: 0 0 0 4px rgba(71, 198, 156, 0.1);
+        content: "";
       }
 
-      .product-body {
+      .crm-body {
         display: grid;
-        min-height: 464px;
-        grid-template-columns: 142px minmax(0, 1fr);
+        grid-template-columns: 184px minmax(0, 1fr);
+        min-height: 624px;
       }
 
-      .product-sidebar {
-        border-right: 1px solid #292936;
-        padding: 14px 10px;
-        background: #14141c;
+      .crm-sidebar {
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 14px 11px;
+        background: #14131b;
       }
 
-      .product-brand {
+      .crm-brand {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin: 2px 5px 17px;
-        font-size: 11px;
-        font-weight: 760;
+        padding: 6px 8px 15px;
+        font-size: 12px;
+        font-weight: 720;
       }
 
-      .product-brand img {
-        width: 20px;
-        height: 20px;
+      .crm-brand-mark {
+        display: grid;
+        width: 23px;
+        height: 23px;
+        place-items: center;
+        border-radius: 6px;
+        background: var(--primary);
+        color: white;
+        font-size: 10px;
+        font-weight: 850;
       }
 
-      .product-nav {
+      .crm-search {
+        display: flex;
+        height: 29px;
+        align-items: center;
+        gap: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 7px;
+        padding: 0 8px;
+        background: rgba(255, 255, 255, 0.025);
+        color: #777482;
+        font-size: 9px;
+      }
+
+      .crm-search svg {
+        width: 11px;
+      }
+
+      .crm-nav-label {
+        margin: 19px 9px 7px;
+        color: #646170;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      .crm-nav {
         display: grid;
         gap: 3px;
       }
 
-      .product-nav-item {
+      .crm-nav-item {
         display: flex;
-        height: 31px;
+        height: 32px;
         align-items: center;
-        gap: 8px;
-        border-radius: 6px;
+        gap: 9px;
+        border-radius: 7px;
         padding: 0 8px;
-        color: #8f8f9d;
+        color: #918e9c;
         font-size: 10px;
-        font-weight: 580;
+        font-weight: 590;
+        transition:
+          background 180ms ease,
+          color 180ms ease;
       }
 
-      .product-nav-item.is-active {
-        background: #262635;
-        color: #fff;
+      .crm-nav-item svg {
+        width: 13px;
+        height: 13px;
       }
 
-      .product-nav-item svg {
-        width: 14px;
-        color: #8ba3ff;
-      }
-
-      .product-main {
-        min-width: 0;
-        padding: 17px;
-      }
-
-      .product-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        margin-bottom: 14px;
-      }
-
-      .product-heading strong {
-        display: block;
-        margin-bottom: 2px;
-        color: white;
-        font-size: 14px;
-      }
-
-      .product-heading span {
-        color: #858592;
-        font-size: 9px;
-      }
-
-      .product-heading button {
-        height: 29px;
-        border: 0;
-        border-radius: 6px;
-        padding: 0 10px;
-        background: #5978ff;
-        color: white;
-        font-size: 9px;
-        font-weight: 700;
-      }
-
-      .product-tabs {
-        display: flex;
-        gap: 4px;
-        overflow: auto;
-        margin: 0 0 12px;
-        padding: 0;
-        list-style: none;
-        scrollbar-width: none;
-      }
-
-      .product-tabs button {
-        height: 28px;
-        white-space: nowrap;
-        border: 1px solid #30303d;
-        border-radius: 6px;
-        padding: 0 9px;
-        background: #1a1a23;
-        color: #9696a4;
-        cursor: pointer;
-        font-size: 9px;
-      }
-
-      .product-tabs button[aria-selected="true"] {
-        border-color: #607cff;
-        background: #222c58;
+      .crm-nav-item.is-active {
+        background: rgba(95, 125, 255, 0.14);
         color: #dce3ff;
       }
 
-      .product-panel {
-        display: none;
-        animation: panel-in 260ms ease both;
+      .crm-nav-item.is-active svg {
+        color: #92acff;
       }
 
-      .product-panel.is-active {
-        display: block;
-      }
-
-      @keyframes panel-in {
-        from {
-          opacity: 0;
-          transform: translateY(5px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .inbox-layout {
-        display: grid;
-        min-height: 323px;
-        gap: 9px;
-        grid-template-columns: 0.8fr 1.2fr;
-      }
-
-      .conversation-list,
-      .conversation-view,
-      .metric-card,
-      .health-card,
-      .governance-card {
-        border: 1px solid #2d2d39;
-        border-radius: 8px;
-        background: #181820;
-      }
-
-      .conversation-list {
-        overflow: hidden;
-      }
-
-      .conversation {
-        display: grid;
-        gap: 2px;
-        border-bottom: 1px solid #292934;
-        padding: 10px;
-      }
-
-      .conversation.is-current {
-        background: #232332;
-      }
-
-      .conversation strong,
-      .message strong {
-        color: #eeeef5;
-        font-size: 9px;
-      }
-
-      .conversation span,
-      .message span {
-        color: #82828e;
+      .crm-nav-badge {
+        min-width: 16px;
+        margin-left: auto;
+        border-radius: 99px;
+        padding: 1px 5px;
+        background: rgba(255, 255, 255, 0.08);
         font-size: 8px;
+        text-align: center;
       }
 
-      .conversation-view {
-        display: flex;
-        flex-direction: column;
-        padding: 12px;
-      }
-
-      .contact-line {
+      .crm-user {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #2a2a35;
+        margin-top: auto;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 13px 7px 1px;
+        color: #8c8997;
+        font-size: 9px;
       }
 
       .avatar {
         display: grid;
-        width: 27px;
-        height: 27px;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 auto;
         place-items: center;
-        border-radius: 8px;
-        background: #d8dfff;
-        color: #24336d;
-        font-size: 9px;
-        font-weight: 800;
-      }
-
-      .message {
-        max-width: 82%;
-        margin-top: 13px;
-        border-radius: 8px 8px 8px 2px;
-        padding: 9px;
-        background: #24242e;
-      }
-
-      .message.reply {
-        align-self: flex-end;
-        border-radius: 8px 8px 2px;
-        background: #314895;
-      }
-
-      .message.reply span {
-        color: #dce3ff;
-      }
-
-      .next-action {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-top: auto;
-        border: 1px solid #40549f;
-        border-radius: 7px;
-        padding: 8px;
-        background: rgba(68, 91, 177, 0.16);
-        color: #bac7ff;
+        border-radius: 50%;
+        background: #2d2a3d;
+        color: #ccd5ff;
         font-size: 8px;
+        font-weight: 750;
       }
 
-      .metrics-grid,
-      .health-grid,
-      .governance-grid {
+      .crm-stage {
+        position: relative;
+        min-width: 0;
+        background: #111018;
+      }
+
+      .crm-panel {
+        position: absolute;
+        inset: 0;
         display: grid;
-        gap: 9px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition:
+          opacity 260ms ease,
+          transform 260ms ease;
       }
 
-      .metric-card,
-      .health-card,
-      .governance-card {
-        min-height: 128px;
-        padding: 13px;
+      .crm-panel.is-active {
+        position: relative;
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
       }
 
-      .metric-card small,
-      .health-card small,
-      .governance-card small {
-        color: #858592;
-        font-size: 8px;
-      }
-
-      .metric-card strong,
-      .health-card strong,
-      .governance-card strong {
-        display: block;
-        margin: 8px 0 10px;
-        color: white;
-        font-size: 20px;
-        letter-spacing: -0.04em;
-      }
-
-      .sparkline {
-        width: 100%;
-        height: 42px;
-      }
-
-      .sparkline path {
-        fill: none;
-        stroke: #7891ff;
-        stroke-width: 2;
-      }
-
-      .health-row,
-      .policy-row {
+      .panel-top {
         display: flex;
+        height: 58px;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
-        margin-top: 8px;
-        color: #acacb8;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 0 19px;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13px;
+        font-weight: 680;
+      }
+
+      .panel-title-icon {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        place-items: center;
+        border-radius: 7px;
+        background: rgba(95, 125, 255, 0.13);
+        color: #9eb4ff;
+      }
+
+      .panel-title-icon svg {
+        width: 13px;
+      }
+
+      .mini-button {
+        display: inline-flex;
+        height: 29px;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 7px;
+        padding: 0 10px;
+        background: rgba(255, 255, 255, 0.035);
+        color: #b9b6c3;
+        font-size: 9px;
+      }
+
+      .mini-button.primary {
+        border-color: transparent;
+        background: var(--primary);
+        color: white;
+      }
+
+      .inbox-grid {
+        display: grid;
+        grid-template-columns: 245px minmax(280px, 1fr) 255px;
+        min-height: 566px;
+      }
+
+      .conversation-list {
+        border-right: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 11px;
+      }
+
+      .conversation-tools {
+        display: flex;
+        gap: 6px;
+        padding-bottom: 9px;
+      }
+
+      .mini-input {
+        display: flex;
+        height: 27px;
+        flex: 1;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 6px;
+        padding: 0 7px;
+        color: #6f6c78;
         font-size: 8px;
       }
 
-      .progress {
-        overflow: hidden;
-        height: 5px;
-        margin-top: 9px;
-        border-radius: 999px;
-        background: #30303b;
+      .conversation {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 8px;
+        border-radius: 8px;
+        padding: 10px 8px;
+        color: #a8a5b2;
       }
 
-      .progress span {
+      .conversation + .conversation {
+        margin-top: 3px;
+      }
+
+      .conversation.is-selected {
+        background: rgba(95, 125, 255, 0.11);
+      }
+
+      .conversation strong {
         display: block;
-        height: 100%;
-        border-radius: inherit;
-        background: #5f7dff;
+        overflow: hidden;
+        color: #e1dfe7;
+        font-size: 9px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .status {
-        border-radius: 999px;
-        padding: 3px 6px;
-        background: rgba(20, 168, 123, 0.15);
-        color: #68d8b6;
+      .conversation p {
+        overflow: hidden;
+        max-width: 122px;
+        margin: 3px 0 0;
+        font-size: 8px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .conversation time {
+        color: #66636f;
         font-size: 7px;
       }
 
-      .floating-chip {
-        position: absolute;
-        z-index: 3;
+      .conversation .avatar {
+        width: 25px;
+        height: 25px;
+      }
+
+      .chat {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+      }
+
+      .chat-contact {
+        display: flex;
+        height: 44px;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 0 13px;
+      }
+
+      .chat-contact strong {
+        font-size: 9px;
+      }
+
+      .chat-contact span {
+        display: block;
+        color: #777481;
+        font-size: 7px;
+      }
+
+      .messages {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 7px;
+        padding: 18px;
+        background:
+          radial-gradient(circle at 80% 10%, rgba(95, 125, 255, 0.06), transparent 34%),
+          #0f0e15;
+      }
+
+      .message {
+        max-width: 76%;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 8px 8px 8px 2px;
+        padding: 8px 10px;
+        background: #1c1a24;
+        color: #c9c7d0;
+        font-size: 8px;
+        line-height: 1.45;
+      }
+
+      .message.out {
+        align-self: flex-end;
+        border-color: rgba(95, 125, 255, 0.17);
+        border-radius: 8px 8px 2px;
+        background: rgba(95, 125, 255, 0.15);
+        color: #e3e8ff;
+      }
+
+      .message small {
+        display: block;
+        margin-top: 3px;
+        color: #777481;
+        font-size: 6px;
+        text-align: right;
+      }
+
+      .composer {
+        margin: 0 12px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 8px;
+        background: #181720;
+        color: #696674;
+        font-size: 8px;
+      }
+
+      .context-panel {
+        border-left: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 14px;
+        background: #13121a;
+      }
+
+      .context-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #d8d5df;
+        font-size: 9px;
+        font-weight: 680;
+      }
+
+      .ai-pulse {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #9db3ff;
+        font-size: 7px;
+      }
+
+      .ai-pulse::before {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #92acff;
+        box-shadow: 0 0 0 4px rgba(146, 172, 255, 0.08);
+        content: "";
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .context-company {
+        margin-top: 13px;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 8px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .context-company strong {
+        display: block;
+        font-size: 9px;
+      }
+
+      .context-company span {
+        color: #777481;
+        font-size: 7px;
+      }
+
+      .context-label {
+        margin-top: 15px;
+        color: #64616e;
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .next-action {
+        margin-top: 6px;
+        border-left: 2px solid var(--primary);
+        border-radius: 0 7px 7px 0;
+        padding: 8px 9px;
+        background: rgba(95, 125, 255, 0.09);
+        color: #d7ddfa;
+        font-size: 8px;
+      }
+
+      .context-facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 7px;
+      }
+
+      .context-fact {
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 7px;
+        padding: 7px;
+      }
+
+      .context-fact span {
+        display: block;
+        color: #6e6b77;
+        font-size: 6px;
+      }
+
+      .context-fact strong {
+        display: block;
+        margin-top: 2px;
+        color: #c7c4cf;
+        font-size: 8px;
+      }
+
+      .pipeline-board {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(140px, 1fr));
+        gap: 8px;
+        overflow: hidden;
+        padding: 13px;
+      }
+
+      .pipe-column {
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 9px;
+        padding: 9px;
+        background: rgba(255, 255, 255, 0.018);
+      }
+
+      .pipe-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 9px;
+        color: #9c99a6;
+        font-size: 8px;
+        font-weight: 650;
+      }
+
+      .pipe-head i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--primary);
+      }
+
+      .deal-card {
+        border: 1px solid rgba(255, 255, 255, 0.065);
+        border-radius: 8px;
+        padding: 9px;
+        background: #1a1921;
+      }
+
+      .deal-card + .deal-card {
+        margin-top: 7px;
+      }
+
+      .deal-card strong {
+        display: block;
+        color: #dad7e1;
+        font-size: 8px;
+      }
+
+      .deal-card p {
+        margin: 4px 0 9px;
+        color: #777481;
+        font-size: 7px;
+      }
+
+      .deal-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #aaa6b2;
+        font-size: 7px;
+      }
+
+      .deal-meta .avatar {
+        width: 18px;
+        height: 18px;
+        font-size: 6px;
+      }
+
+      .success-grid {
+        display: grid;
+        grid-template-columns: 1.25fr 0.75fr;
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .health-card,
+      .governance-card {
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 10px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.022);
+      }
+
+      .health-card h4,
+      .governance-card h4 {
+        margin: 0;
+        color: #d9d6df;
+        font-size: 9px;
+      }
+
+      .health-score {
+        display: flex;
+        align-items: end;
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .health-score strong {
+        color: #87dbbe;
+        font-size: 42px;
+        line-height: 1;
+      }
+
+      .health-score span {
+        padding-bottom: 5px;
+        color: #777481;
+        font-size: 8px;
+      }
+
+      .health-bars {
+        display: grid;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .health-bar {
+        display: grid;
+        grid-template-columns: 90px 1fr 24px;
+        align-items: center;
+        gap: 8px;
+        color: #858290;
+        font-size: 7px;
+      }
+
+      .health-bar i {
+        position: relative;
+        overflow: hidden;
+        height: 5px;
+        border-radius: 99px;
+        background: #2a2832;
+      }
+
+      .health-bar i::after {
+        width: var(--value);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--bar, #5f7dff);
+        content: "";
+        display: block;
+      }
+
+      .renewal-list {
+        display: grid;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .renewal-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: 7px;
+        padding: 8px;
+        color: #bbb8c2;
+        font-size: 7px;
+      }
+
+      .renewal-row i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--warning);
+      }
+
+      .governance-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 0.8fr;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .policy-list {
+        display: grid;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .policy {
         display: flex;
         align-items: center;
         gap: 8px;
-        border: 1px solid var(--line);
-        border-radius: 9px;
-        padding: 9px 12px;
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: 0 12px 30px rgba(14, 9, 41, 0.1);
-        color: var(--ink);
-        font-size: 11px;
-        font-weight: 690;
-        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: 7px;
+        padding: 8px;
+        color: #aba8b4;
+        font-size: 7px;
       }
 
-      .floating-chip svg {
-        width: 16px;
+      .policy svg {
+        width: 11px;
+        color: #8ea7ff;
+      }
+
+      .activity-chart {
+        display: flex;
+        height: 100px;
+        align-items: end;
+        gap: 5px;
+        margin-top: 17px;
+      }
+
+      .activity-chart i {
+        flex: 1;
+        height: var(--h);
+        border-radius: 3px 3px 1px 1px;
+        background: linear-gradient(to top, rgba(95, 125, 255, 0.35), #7d98ff);
+      }
+
+      .theatre-caption {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 21px 5px 0;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 11px;
+      }
+
+      .theatre-caption strong {
+        color: white;
+        font-weight: 670;
+      }
+
+      .capability-strip {
+        position: relative;
+        z-index: 4;
+        border-bottom: 1px solid var(--line);
+        padding: 24px 0 38px;
+        background: var(--surface);
+      }
+
+      .capability-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .capability-row span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 18px;
+      }
+
+      .capability-row span + span {
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .capability-row svg {
+        width: 14px;
         color: var(--primary);
       }
 
-      .chip-top {
-        top: -18px;
-        right: 28px;
-      }
-
-      .chip-bottom {
-        bottom: -18px;
-        left: 38px;
-      }
-
       .section {
-        padding: 94px 0;
+        padding: 118px 0;
       }
 
-      .section-alt {
-        border-block: 1px solid var(--line);
-        background: var(--surface-alt);
+      .section-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 21px;
+        color: var(--primary);
+        font-size: 11px;
+        font-weight: 770;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
       }
 
-      .section-dark {
+      .section-label::before {
+        width: 25px;
+        height: 1px;
+        background: currentColor;
+        content: "";
+      }
+
+      .section-heading {
+        max-width: 790px;
+        margin: 0;
+        font-family: var(--display);
+        font-size: clamp(38px, 5.2vw, 64px);
+        font-weight: 760;
+        letter-spacing: -0.055em;
+        line-height: 1.02;
+        text-wrap: balance;
+      }
+
+      .section-heading .muted {
+        color: #848092;
+        font-weight: 500;
+      }
+
+      .section-lead {
+        max-width: 620px;
+        margin: 24px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      .manifesto {
         position: relative;
         overflow: hidden;
+        padding: 130px 0;
         background: var(--dark);
         color: white;
       }
 
-      .section-dark::before {
+      .manifesto::before {
         position: absolute;
-        inset: 0;
-        background:
-          linear-gradient(rgba(146, 172, 255, 0.06) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(146, 172, 255, 0.06) 1px, transparent 1px);
-        background-size: 48px 48px;
+        top: -250px;
+        right: -150px;
+        width: 700px;
+        height: 700px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(95, 125, 255, 0.18), transparent 64%);
         content: "";
-        mask-image: linear-gradient(to bottom, black, transparent 92%);
       }
 
-      .section-heading {
-        max-width: 720px;
-        margin-bottom: 42px;
+      .manifesto-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: 0.72fr 1.28fr;
+        gap: 100px;
+        align-items: start;
       }
 
-      .section-heading h2 {
-        margin-bottom: 16px;
-        font-size: clamp(34px, 4.6vw, 52px);
-        letter-spacing: -0.052em;
+      .manifesto .section-label {
+        color: #92acff;
+      }
+
+      .manifesto-copy {
+        font-family: var(--display);
+        font-size: clamp(38px, 5.3vw, 67px);
+        font-weight: 720;
+        letter-spacing: -0.055em;
         line-height: 1.04;
       }
 
-      .section-heading p {
-        margin-bottom: 0;
-        color: var(--ink-soft);
-        font-size: 18px;
+      .manifesto-copy .dim {
+        color: #696674;
+        font-weight: 490;
       }
 
-      .section-dark .section-heading p {
-        color: #aaa8bb;
-      }
-
-      .flow-grid {
+      .manifesto-points {
         display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        margin-top: 70px;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        background: rgba(255, 255, 255, 0.11);
       }
 
-      .flow-card {
-        position: relative;
+      .manifesto-point {
         min-height: 190px;
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        padding: 22px;
-        background: white;
+        padding: 25px;
+        background: var(--dark);
       }
 
-      .flow-card:not(:last-child)::after {
-        position: absolute;
-        z-index: 2;
-        top: 35px;
-        right: -21px;
-        display: grid;
-        width: 28px;
-        height: 28px;
-        place-items: center;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: var(--surface);
-        color: var(--primary);
-        content: "→";
-        font-size: 13px;
+      .manifesto-point span {
+        color: #767281;
+        font-family: var(--display);
+        font-size: 12px;
       }
 
-      .flow-card small {
-        color: var(--primary-strong);
-        font-size: 11px;
-        font-weight: 780;
-        letter-spacing: 0.08em;
-      }
-
-      .flow-card h3 {
-        margin: 16px 0 8px;
-        font-size: 19px;
+      .manifesto-point h3 {
+        margin: 37px 0 10px;
+        font-family: var(--display);
+        font-size: 21px;
         letter-spacing: -0.025em;
       }
 
-      .flow-card p {
+      .manifesto-point p {
         margin: 0;
-        color: var(--ink-soft);
-        font-size: 14px;
+        color: #95919f;
+        font-size: 13px;
+        line-height: 1.6;
       }
 
-      .modules-grid {
+      .story {
+        background: var(--surface);
+      }
+
+      .story-grid {
         display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: 0.75fr 1.25fr;
+        gap: 74px;
+        margin-top: 72px;
+        align-items: start;
       }
 
-      .module-card {
-        min-height: 250px;
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        padding: 24px;
-        background: white;
-        transition:
-          transform 180ms ease,
-          border-color 180ms ease;
-      }
-
-      .module-card:hover {
-        border-color: var(--accent);
-        transform: translateY(-3px);
-      }
-
-      .module-icon {
+      .story-steps {
         display: grid;
-        width: 42px;
-        height: 42px;
+      }
+
+      .story-step {
+        position: relative;
+        border-top: 1px solid var(--line);
+        padding: 24px 10px 27px 48px;
+        cursor: pointer;
+        opacity: 0.44;
+        transition: opacity 220ms ease;
+      }
+
+      .story-step::before {
+        position: absolute;
+        top: 26px;
+        left: 2px;
+        width: 25px;
+        height: 25px;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        color: var(--muted);
+        content: attr(data-index);
+        display: grid;
+        font-size: 9px;
+        font-weight: 760;
         place-items: center;
-        border-radius: 9px;
-        background: var(--primary-soft);
-        color: var(--primary-strong);
+        transition:
+          background 220ms ease,
+          color 220ms ease,
+          border-color 220ms ease;
       }
 
-      .module-icon svg {
-        width: 20px;
+      .story-step.is-active {
+        opacity: 1;
       }
 
-      .module-card h3 {
-        margin: 24px 0 10px;
-        font-size: 20px;
-        letter-spacing: -0.028em;
+      .story-step.is-active::before {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
       }
 
-      .module-card p {
-        margin-bottom: 18px;
-        color: var(--ink-soft);
-        font-size: 14px;
-      }
-
-      .module-card ul {
-        display: grid;
-        gap: 7px;
+      .story-step h3 {
         margin: 0;
-        padding: 0;
-        color: var(--ink-soft);
-        font-size: 12px;
-        list-style: none;
+        font-family: var(--display);
+        font-size: 21px;
+        letter-spacing: -0.025em;
       }
 
-      .module-card li::before {
-        margin-right: 7px;
-        color: var(--primary);
-        content: "•";
-      }
-
-      .architecture-grid {
-        position: relative;
-        display: grid;
-        align-items: center;
-        gap: 56px;
-        grid-template-columns: 0.84fr 1.16fr;
-      }
-
-      .architecture-copy {
-        position: relative;
-        z-index: 1;
-      }
-
-      .architecture-copy h2 {
-        margin-bottom: 18px;
-        font-size: clamp(36px, 4.8vw, 54px);
-        letter-spacing: -0.055em;
-        line-height: 1.02;
-      }
-
-      .architecture-copy p {
-        color: #aaa8bb;
-        font-size: 17px;
-      }
-
-      .architecture-map {
-        position: relative;
-        z-index: 1;
-        display: grid;
-        gap: 12px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .architecture-node {
-        min-height: 152px;
-        border: 1px solid #28243e;
-        border-radius: var(--radius);
-        padding: 20px;
-        background: rgba(18, 15, 37, 0.8);
-      }
-
-      .architecture-node strong {
-        display: block;
-        margin-bottom: 8px;
-        color: #fff;
-        font-size: 16px;
-      }
-
-      .architecture-node span {
-        color: #aaa8bb;
+      .story-step p {
+        margin: 7px 0 0;
+        color: var(--muted);
         font-size: 13px;
       }
 
-      .architecture-node em {
-        display: inline-block;
-        margin-bottom: 15px;
-        border-radius: 999px;
+      .story-visual {
+        position: sticky;
+        top: 110px;
+        overflow: hidden;
+        min-height: 520px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background:
+          linear-gradient(rgba(14, 9, 41, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(14, 9, 41, 0.035) 1px, transparent 1px),
+          var(--surface-2);
+        background-size: 32px 32px;
+      }
+
+      .story-scene {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        padding: 42px;
+        pointer-events: none;
+        transform: translateY(12px) scale(0.985);
+        transition:
+          opacity 300ms ease,
+          transform 300ms ease;
+      }
+
+      .story-scene.is-active {
+        opacity: 1;
+        transform: none;
+      }
+
+      .event-flow {
+        position: relative;
+        width: 100%;
+        max-width: 520px;
+      }
+
+      .event-line {
+        position: absolute;
+        top: 50%;
+        right: 8%;
+        left: 8%;
+        height: 1px;
+        background: var(--line-strong);
+      }
+
+      .event-line::after {
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 46%;
+        height: 5px;
+        border-radius: 99px;
+        background: var(--primary);
+        content: "";
+        animation: flow 2.6s ease-in-out infinite;
+      }
+
+      .event-nodes {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .event-node {
+        display: grid;
+        width: 92px;
+        height: 92px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 18px;
+        background: white;
+        box-shadow: 0 14px 35px rgba(14, 9, 41, 0.08);
+        text-align: center;
+      }
+
+      .event-node svg {
+        width: 22px;
+        margin: 0 auto 8px;
+        color: var(--primary);
+      }
+
+      .event-node span {
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .event-node.is-core {
+        border-color: var(--primary-2);
+        background: var(--ink);
+        color: white;
+        transform: scale(1.12);
+      }
+
+      .context-card {
+        width: min(100%, 500px);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+        background: white;
+        box-shadow: 0 20px 50px rgba(14, 9, 41, 0.1);
+      }
+
+      .context-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .context-card-head strong {
+        font-size: 13px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border-radius: 99px;
         padding: 4px 8px;
-        background: rgba(95, 125, 255, 0.16);
-        color: #aebdff;
-        font-size: 9px;
-        font-style: normal;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-size: 8px;
         font-weight: 750;
-        letter-spacing: 0.07em;
+      }
+
+      .context-lines {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .context-line {
+        display: grid;
+        grid-template-columns: 88px 1fr;
+        gap: 12px;
+        border-top: 1px solid var(--line);
+        padding-top: 9px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .context-line strong {
+        color: var(--ink);
+        font-weight: 650;
+      }
+
+      .action-stack {
+        width: min(100%, 510px);
+      }
+
+      .action-command {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        padding: 13px 15px;
+        background: white;
+        box-shadow: 0 16px 40px rgba(14, 9, 41, 0.09);
+        font-size: 11px;
+      }
+
+      .command-key {
+        margin-left: auto;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 2px 6px;
+        color: var(--muted);
+        font-size: 8px;
+      }
+
+      .action-results {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .action-result {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 13px;
+        background: rgba(255, 255, 255, 0.86);
+      }
+
+      .action-result span {
+        color: var(--muted);
+        font-size: 8px;
+      }
+
+      .action-result strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 10px;
+      }
+
+      .revenue-visual {
+        width: min(100%, 500px);
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        padding: 22px;
+        background: var(--ink);
+        box-shadow: 0 24px 55px rgba(14, 9, 41, 0.18);
+        color: white;
+      }
+
+      .revenue-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .revenue-top span {
+        color: #9691a4;
+        font-size: 9px;
+      }
+
+      .revenue-top strong {
+        font-size: 12px;
+      }
+
+      .revenue-chart {
+        position: relative;
+        height: 170px;
+        margin-top: 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .revenue-chart svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .revenue-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 15px;
+      }
+
+      .revenue-metric {
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+        padding-left: 10px;
+      }
+
+      .revenue-metric:first-child {
+        border: 0;
+        padding: 0;
+      }
+
+      .revenue-metric span {
+        display: block;
+        color: #7f7a8c;
+        font-size: 7px;
+      }
+
+      .revenue-metric strong {
+        font-size: 11px;
+      }
+
+      .modules {
+        background: var(--surface-2);
+      }
+
+      .modules-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 40px;
+      }
+
+      .modules-head .section-lead {
+        max-width: 390px;
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+
+      .module-layout {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 12px;
+        margin-top: 62px;
+      }
+
+      .module-feature {
+        position: relative;
+        overflow: hidden;
+        min-height: 500px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 30px;
+        background: white;
+      }
+
+      .module-feature.dark {
+        border-color: var(--dark);
+        background: var(--dark);
+        color: white;
+      }
+
+      .module-feature h3 {
+        max-width: 420px;
+        margin: 11px 0 9px;
+        font-family: var(--display);
+        font-size: 28px;
+        letter-spacing: -0.04em;
+      }
+
+      .module-feature > p {
+        max-width: 430px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .module-feature.dark > p {
+        color: #918d9c;
+      }
+
+      .module-kicker {
+        color: var(--primary);
+        font-size: 10px;
+        font-weight: 760;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
       }
 
-      .diagnostic-grid {
+      .module-canvas {
+        position: absolute;
+        right: 28px;
+        bottom: -24px;
+        left: 28px;
+        min-height: 280px;
+        border: 1px solid var(--line);
+        border-radius: 13px 13px 0 0;
+        background: var(--surface-2);
+        box-shadow: 0 22px 50px rgba(14, 9, 41, 0.1);
+      }
+
+      .module-feature.dark .module-canvas {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #14131b;
+        box-shadow: none;
+      }
+
+      .mini-inbox {
         display: grid;
-        align-items: stretch;
-        gap: 48px;
-        grid-template-columns: 0.82fr 1.18fr;
+        grid-template-columns: 0.62fr 1fr;
+        height: 100%;
+        min-height: 280px;
       }
 
-      .diagnostic-copy {
-        padding: 18px 0;
+      .mini-list {
+        border-right: 1px solid var(--line);
+        padding: 12px;
       }
 
-      .diagnostic-copy h2 {
-        margin-bottom: 18px;
-        font-size: clamp(36px, 4.8vw, 52px);
-        letter-spacing: -0.052em;
-        line-height: 1.03;
-      }
-
-      .diagnostic-copy > p {
-        color: var(--ink-soft);
-        font-size: 17px;
-      }
-
-      .diagnostic-points {
-        display: grid;
-        gap: 15px;
-        margin-top: 26px;
-      }
-
-      .diagnostic-point {
+      .mini-thread {
         display: flex;
-        gap: 12px;
-        color: var(--ink-soft);
+        gap: 8px;
+        border-radius: 7px;
+        padding: 9px 7px;
+      }
+
+      .mini-thread.is-active {
+        background: var(--primary-soft);
+      }
+
+      .mini-thread-lines {
+        flex: 1;
+      }
+
+      .line {
+        height: 6px;
+        border-radius: 99px;
+        background: #d9ddeb;
+      }
+
+      .line + .line {
+        margin-top: 6px;
+      }
+
+      .line.short {
+        width: 62%;
+      }
+
+      .mini-chat {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 18px;
+      }
+
+      .mini-bubble {
+        width: 70%;
+        height: 34px;
+        border-radius: 8px 8px 8px 2px;
+        background: #e5e7f0;
+      }
+
+      .mini-bubble.out {
+        align-self: flex-end;
+        border-radius: 8px 8px 2px;
+        background: var(--primary-soft);
+      }
+
+      .intelligence-canvas {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 16px;
+      }
+
+      .metric-cell {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 9px;
+        padding: 12px;
+      }
+
+      .metric-cell span {
+        color: #7c7888;
+        font-size: 7px;
+      }
+
+      .metric-cell strong {
+        display: block;
+        margin-top: 3px;
+        color: white;
         font-size: 14px;
       }
 
-      .diagnostic-point span {
+      .metric-cell.chart-cell {
+        grid-column: 1 / -1;
+        min-height: 145px;
+      }
+
+      .metric-cell svg {
+        width: 100%;
+        height: 105px;
+        margin-top: 10px;
+      }
+
+      .module-minis {
         display: grid;
-        flex: 0 0 25px;
-        height: 25px;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        grid-column: 1 / -1;
+      }
+
+      .module-mini {
+        position: relative;
+        overflow: hidden;
+        min-height: 270px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 25px;
+        background: white;
+      }
+
+      .module-mini h3 {
+        margin: 10px 0 8px;
+        font-family: var(--display);
+        font-size: 21px;
+        letter-spacing: -0.03em;
+      }
+
+      .module-mini p {
+        max-width: 360px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .mini-art {
+        position: absolute;
+        right: 22px;
+        bottom: 20px;
+        left: 22px;
+        height: 85px;
+      }
+
+      .health-line {
+        display: grid;
+        grid-template-columns: 80px 1fr 25px;
+        gap: 8px;
+        align-items: center;
+        margin-top: 9px;
+        color: var(--muted);
+        font-size: 8px;
+      }
+
+      .health-line i {
+        height: 6px;
+        border-radius: 99px;
+        background: var(--line);
+      }
+
+      .health-line i::after {
+        display: block;
+        width: var(--value);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--color, var(--primary));
+        content: "";
+      }
+
+      .governance-art {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .agent-chip {
+        flex: 1;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 11px;
+        color: var(--muted);
+        font-size: 8px;
+      }
+
+      .agent-chip strong {
+        display: block;
+        margin-top: 3px;
+        color: var(--ink);
+        font-size: 10px;
+      }
+
+      .infra {
+        position: relative;
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      .infra-grid {
+        display: grid;
+        grid-template-columns: 0.78fr 1.22fr;
+        gap: 78px;
+        align-items: center;
+      }
+
+      .infra-visual {
+        position: relative;
+        min-height: 550px;
+      }
+
+      .infra-core {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 3;
+        display: grid;
+        width: 170px;
+        height: 170px;
         place-items: center;
-        border-radius: 7px;
-        background: var(--primary-soft);
-        color: var(--primary-strong);
-        font-size: 11px;
-        font-weight: 800;
+        border: 1px solid var(--primary-2);
+        border-radius: 30px;
+        background: var(--ink);
+        box-shadow:
+          0 0 0 18px rgba(95, 125, 255, 0.05),
+          0 26px 60px rgba(14, 9, 41, 0.18);
+        color: white;
+        text-align: center;
+        transform: translate(-50%, -50%) rotate(6deg);
+      }
+
+      .infra-core > div {
+        transform: rotate(-6deg);
+      }
+
+      .infra-core svg {
+        width: 31px;
+        margin: 0 auto 10px;
+        color: var(--primary-2);
+      }
+
+      .infra-core strong {
+        display: block;
+        font-family: var(--display);
+        font-size: 18px;
+      }
+
+      .infra-core span {
+        color: #8f8b9a;
+        font-size: 8px;
+      }
+
+      .infra-orbit {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 470px;
+        height: 470px;
+        border: 1px dashed var(--line-strong);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        animation: orbit 38s linear infinite;
+      }
+
+      .infra-orbit::before {
+        position: absolute;
+        inset: 64px;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .orbit-node {
+        position: absolute;
+        display: grid;
+        min-width: 100px;
+        height: 54px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0 12px;
+        background: white;
+        box-shadow: 0 12px 30px rgba(14, 9, 41, 0.07);
+        color: var(--ink);
+        font-size: 10px;
+        font-weight: 700;
+        animation: counter-orbit 38s linear infinite;
+      }
+
+      .orbit-node:nth-child(1) {
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .orbit-node:nth-child(2) {
+        top: 50%;
+        right: -42px;
+        transform: translateY(-50%);
+      }
+
+      .orbit-node:nth-child(3) {
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .orbit-node:nth-child(4) {
+        top: 50%;
+        left: -42px;
+        transform: translateY(-50%);
+      }
+
+      .infra-list {
+        display: grid;
+        gap: 0;
+        margin-top: 45px;
+        border-top: 1px solid var(--line);
+      }
+
+      .infra-item {
+        display: grid;
+        grid-template-columns: 35px 1fr;
+        gap: 14px;
+        border-bottom: 1px solid var(--line);
+        padding: 18px 0;
+      }
+
+      .infra-item span {
+        color: var(--primary);
+        font-family: var(--display);
+        font-size: 12px;
+      }
+
+      .infra-item strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .infra-item p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .implementation {
+        background: var(--dark);
+        color: white;
+      }
+
+      .implementation-head {
+        display: grid;
+        grid-template-columns: 1fr 0.8fr;
+        gap: 70px;
+        align-items: end;
+      }
+
+      .implementation .section-label {
+        color: var(--primary-2);
+      }
+
+      .implementation .section-lead {
+        margin: 0 0 5px;
+        color: #9995a3;
+        font-size: 16px;
+      }
+
+      .implementation-steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin-top: 70px;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+      }
+
+      .implementation-step {
+        position: relative;
+        min-height: 230px;
+        padding: 25px 22px 0 0;
+      }
+
+      .implementation-step + .implementation-step {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        padding-left: 22px;
+      }
+
+      .implementation-step::before {
+        position: absolute;
+        top: -4px;
+        left: 0;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--primary-2);
+        box-shadow: 0 0 0 5px rgba(146, 172, 255, 0.09);
+        content: "";
+      }
+
+      .implementation-step + .implementation-step::before {
+        left: 22px;
+      }
+
+      .implementation-step span {
+        color: #777280;
+        font-size: 10px;
+        font-weight: 760;
+        letter-spacing: 0.09em;
+      }
+
+      .implementation-step h3 {
+        margin: 35px 0 10px;
+        font-family: var(--display);
+        font-size: 21px;
+        letter-spacing: -0.03em;
+      }
+
+      .implementation-step p {
+        margin: 0;
+        color: #8f8a99;
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      .diagnostic {
+        background: var(--surface-2);
+      }
+
+      .diagnostic-shell {
+        display: grid;
+        grid-template-columns: 0.85fr 1.15fr;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 35px 80px rgba(14, 9, 41, 0.08);
+      }
+
+      .diagnostic-copy {
+        position: relative;
+        overflow: hidden;
+        padding: 54px;
+        background: var(--ink);
+        color: white;
+      }
+
+      .diagnostic-copy::after {
+        position: absolute;
+        right: -180px;
+        bottom: -220px;
+        width: 520px;
+        height: 520px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(95, 125, 255, 0.35), transparent 65%);
+        content: "";
+      }
+
+      .diagnostic-copy .section-label {
+        color: var(--primary-2);
+      }
+
+      .diagnostic-copy h2 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        font-family: var(--display);
+        font-size: clamp(36px, 4.6vw, 55px);
+        letter-spacing: -0.055em;
+        line-height: 1.03;
+      }
+
+      .diagnostic-copy p {
+        position: relative;
+        z-index: 1;
+        max-width: 400px;
+        margin: 22px 0 0;
+        color: #aaa5b2;
+        font-size: 14px;
+      }
+
+      .diagnostic-proof {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+        margin-top: 45px;
+      }
+
+      .diagnostic-proof span {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #ccc8d2;
+        font-size: 12px;
+      }
+
+      .diagnostic-proof svg {
+        width: 14px;
+        color: var(--primary-2);
       }
 
       .lead-form {
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 28px;
-        background: white;
-        box-shadow: 0 18px 50px rgba(14, 9, 41, 0.07);
-      }
-
-      .form-heading {
-        margin-bottom: 22px;
-      }
-
-      .form-heading strong {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 20px;
-      }
-
-      .form-heading span {
-        color: var(--ink-soft);
-        font-size: 13px;
-      }
-
-      .form-grid {
         display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr 1fr;
+        gap: 17px;
+        padding: 54px;
       }
 
       .field {
@@ -1070,13 +2344,13 @@
         gap: 7px;
       }
 
-      .field-full {
+      .field.full {
         grid-column: 1 / -1;
       }
 
       .field label {
-        color: var(--ink);
-        font-size: 12px;
+        color: var(--ink-2);
+        font-size: 11px;
         font-weight: 700;
       }
 
@@ -1085,24 +2359,19 @@
       .field textarea {
         width: 100%;
         border: 1px solid var(--line-strong);
-        border-radius: 8px;
+        border-radius: var(--radius);
         outline: 0;
+        padding: 12px 13px;
         background: var(--surface);
         color: var(--ink);
+        font-size: 13px;
         transition:
           border-color 160ms ease,
           box-shadow 160ms ease;
       }
 
-      .field input,
-      .field select {
-        height: 46px;
-        padding: 0 12px;
-      }
-
       .field textarea {
         min-height: 92px;
-        padding: 12px;
         resize: vertical;
       }
 
@@ -1110,25 +2379,35 @@
       .field select:focus,
       .field textarea:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(95, 125, 255, 0.14);
+        box-shadow: 0 0 0 3px rgba(95, 125, 255, 0.12);
       }
 
-      .form-footer {
+      .form-action {
         display: flex;
+        grid-column: 1 / -1;
         align-items: center;
-        justify-content: space-between;
-        gap: 18px;
-        margin-top: 18px;
+        gap: 14px;
+        margin-top: 4px;
       }
 
-      .form-footer small {
-        max-width: 280px;
-        color: var(--ink-soft);
+      .form-action small {
+        color: var(--muted);
         font-size: 10px;
       }
 
+      .faq {
+        background: var(--surface);
+      }
+
+      .faq-grid {
+        display: grid;
+        grid-template-columns: 0.72fr 1.28fr;
+        gap: 90px;
+        align-items: start;
+      }
+
       .faq-list {
-        max-width: 860px;
+        border-top: 1px solid var(--line);
       }
 
       .faq-item {
@@ -1136,14 +2415,12 @@
       }
 
       .faq-item summary {
-        display: flex;
-        min-height: 72px;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
+        position: relative;
+        padding: 22px 42px 22px 0;
         cursor: pointer;
+        font-family: var(--display);
         font-size: 17px;
-        font-weight: 720;
+        font-weight: 680;
         list-style: none;
       }
 
@@ -1152,10 +2429,19 @@
       }
 
       .faq-item summary::after {
-        color: var(--primary);
+        position: absolute;
+        top: 22px;
+        right: 2px;
+        display: grid;
+        width: 25px;
+        height: 25px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        color: var(--muted);
         content: "+";
-        font-size: 22px;
-        font-weight: 400;
+        font-family: var(--body);
+        font-size: 15px;
       }
 
       .faq-item[open] summary::after {
@@ -1163,216 +2449,608 @@
       }
 
       .faq-item p {
-        max-width: 740px;
-        padding: 0 0 24px;
-        color: var(--ink-soft);
+        max-width: 650px;
+        margin: -5px 0 22px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
       }
 
       .final-cta {
-        padding: 32px 0 94px;
+        padding: 0 0 42px;
       }
 
-      .cta-box {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 36px;
-        border-radius: 16px;
-        padding: 46px;
-        background: var(--ink);
+      .final-shell {
+        position: relative;
+        overflow: hidden;
+        min-height: 430px;
+        border-radius: 24px;
+        padding: 74px;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+          var(--dark);
+        background-size: 44px 44px;
         color: white;
       }
 
-      .cta-box h2 {
-        max-width: 670px;
-        margin-bottom: 10px;
-        font-size: clamp(32px, 4vw, 46px);
-        letter-spacing: -0.05em;
-        line-height: 1.03;
+      .final-shell::after {
+        position: absolute;
+        top: -260px;
+        right: -100px;
+        width: 700px;
+        height: 700px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(95, 125, 255, 0.3), transparent 65%);
+        content: "";
       }
 
-      .cta-box p {
+      .final-shell h2 {
+        position: relative;
+        z-index: 1;
+        max-width: 750px;
         margin: 0;
-        color: #b9b5ca;
+        font-family: var(--display);
+        font-size: clamp(42px, 6vw, 72px);
+        letter-spacing: -0.06em;
+        line-height: 0.98;
       }
 
-      .footer {
-        border-top: 1px solid var(--line);
-        padding: 34px 0;
+      .final-shell p {
+        position: relative;
+        z-index: 1;
+        max-width: 520px;
+        margin: 24px 0 30px;
+        color: #9e9aa8;
+        font-size: 16px;
+      }
+
+      .final-actions {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        gap: 10px;
+      }
+
+      footer {
+        padding: 38px 0 30px;
       }
 
       .footer-grid {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-        color: var(--ink-soft);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 30px;
+        align-items: end;
+      }
+
+      .footer-copy {
+        max-width: 360px;
+        margin-top: 15px;
+        color: var(--muted);
         font-size: 12px;
       }
 
       .footer-links {
         display: flex;
-        flex-wrap: wrap;
-        gap: 18px;
+        align-items: center;
+        gap: 20px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .footer-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 35px;
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+        color: #8a8797;
+        font-size: 10px;
       }
 
       [data-reveal] {
         opacity: 0;
-        transform: translateY(18px);
+        transform: translateY(22px);
+        transition:
+          opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: var(--delay, 0ms);
       }
 
       [data-reveal].is-visible {
         opacity: 1;
-        transform: translateY(0);
-        transition:
-          opacity 560ms cubic-bezier(0.2, 0.8, 0.2, 1),
-          transform 560ms cubic-bezier(0.2, 0.8, 0.2, 1);
-        transition-delay: var(--reveal-delay, 0ms);
+        transform: none;
       }
 
-      @media (max-width: 980px) {
-        .nav-links {
-          display: none;
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.55;
+          transform: scale(0.9);
         }
-
-        .hero-grid,
-        .architecture-grid,
-        .diagnostic-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .hero-copy {
-          max-width: 760px;
-        }
-
-        .product-stage {
-          width: min(100%, 720px);
-        }
-
-        .flow-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .flow-card:nth-child(2)::after {
-          display: none;
-        }
-
-        .modules-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+        50% {
+          opacity: 1;
+          transform: scale(1.05);
         }
       }
 
-      @media (max-width: 700px) {
-        .container {
-          width: min(calc(100% - 28px), var(--container));
+      @keyframes flow {
+        0% {
+          transform: translateX(0) scaleX(0.15);
+        }
+        50% {
+          transform: translateX(95%) scaleX(1);
+        }
+        100% {
+          transform: translateX(190%) scaleX(0.15);
+        }
+      }
+
+      @keyframes orbit {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      @keyframes counter-orbit {
+        to {
+          rotate: -360deg;
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .crm-window {
+          min-height: 620px;
+        }
+
+        .crm-body {
+          grid-template-columns: 160px minmax(0, 1fr);
+          min-height: 574px;
+        }
+
+        .inbox-grid {
+          grid-template-columns: 210px 1fr;
+          min-height: 516px;
+        }
+
+        .context-panel {
+          display: none;
+        }
+
+        .pipeline-board {
+          grid-template-columns: repeat(4, 180px);
+          overflow-x: auto;
+        }
+
+        .success-grid,
+        .governance-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .governance-grid .governance-card:last-child {
+          display: none;
+        }
+
+        .manifesto-grid,
+        .infra-grid {
+          gap: 55px;
+        }
+
+        .product-theatre {
+          padding-inline: 28px;
+        }
+      }
+
+      @media (max-width: 880px) {
+        .nav-shell {
+          grid-template-columns: 1fr auto;
+        }
+
+        .nav-links,
+        .nav-actions .text-link {
+          display: none;
         }
 
         .nav-actions {
-          display: none;
+          gap: 6px;
         }
 
         .menu-toggle {
           display: inline-flex;
         }
 
-        .mobile-menu {
-          display: none;
-          padding: 0 0 16px;
-        }
-
         .mobile-menu.is-open {
           display: grid;
-          gap: 7px;
+          gap: 3px;
+          grid-column: 1 / -1;
+          border-top: 1px solid var(--line);
+          padding: 9px 0 11px;
         }
 
         .mobile-menu a {
           border-radius: 8px;
-          padding: 10px 12px;
-          background: var(--surface-alt);
-          font-size: 14px;
+          padding: 9px 10px;
+          color: var(--muted);
+          font-size: 13px;
           font-weight: 650;
         }
 
         .hero {
-          padding: 120px 0 70px;
+          padding-top: 140px;
         }
 
-        .hero-grid {
-          gap: 38px;
+        .hero h1 {
+          font-size: clamp(45px, 10vw, 72px);
         }
 
-        h1 {
-          font-size: clamp(43px, 13vw, 62px);
+        .product-theatre {
+          width: 100%;
+          padding: 0 15px 38px;
         }
 
-        .product-shell {
-          min-height: 485px;
-          transform: none;
+        .product-theatre::before {
+          border-radius: 26px 26px 0 0;
         }
 
-        .product-body {
-          min-height: 439px;
-          grid-template-columns: 1fr;
-        }
-
-        .product-sidebar {
+        .crm-sidebar {
           display: none;
         }
 
-        .product-main {
-          padding: 13px;
-        }
-
-        .floating-chip {
-          display: none;
-        }
-
-        .section {
-          padding: 70px 0;
-        }
-
-        .flow-grid,
-        .modules-grid,
-        .architecture-map,
-        .form-grid {
+        .crm-body {
           grid-template-columns: 1fr;
         }
 
-        .flow-card::after {
-          display: none !important;
+        .manifesto-grid,
+        .story-grid,
+        .infra-grid,
+        .implementation-head,
+        .diagnostic-shell,
+        .faq-grid {
+          grid-template-columns: 1fr;
         }
 
-        .module-card {
-          min-height: 0;
+        .manifesto-grid {
+          gap: 44px;
         }
 
-        .inbox-layout {
-          grid-template-columns: 0.75fr 1.25fr;
+        .story-grid {
+          gap: 36px;
         }
 
+        .story-visual {
+          position: relative;
+          top: auto;
+          min-height: 470px;
+          order: -1;
+        }
+
+        .modules-head {
+          display: block;
+        }
+
+        .modules-head .section-lead {
+          max-width: 620px;
+          margin-top: 20px;
+        }
+
+        .module-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .module-minis {
+          grid-column: auto;
+        }
+
+        .infra-visual {
+          min-height: 510px;
+          order: -1;
+        }
+
+        .implementation-steps {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .implementation-step:nth-child(3) {
+          border-left: 0;
+        }
+
+        .diagnostic-copy,
         .lead-form {
-          padding: 20px;
+          padding: 44px;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .container {
+          width: min(calc(100% - 28px), var(--container));
         }
 
-        .form-footer,
-        .cta-box,
-        .footer-grid {
+        .site-header {
+          padding-top: 9px;
+        }
+
+        .nav-shell {
+          min-height: 54px;
+          padding-left: 12px;
+        }
+
+        .brand small,
+        .nav-actions .button {
+          display: none;
+        }
+
+        .hero {
+          padding-top: 118px;
+          background-size: 32px 32px;
+        }
+
+        .hero-copy {
+          padding-inline: 5px;
+        }
+
+        .hero h1 {
+          margin-top: 20px;
+          font-size: clamp(42px, 13vw, 58px);
+          line-height: 0.98;
+        }
+
+        .hero h1 .accent {
+          white-space: normal;
+        }
+
+        .hero-lead {
+          font-size: 16px;
+        }
+
+        .hero-actions,
+        .final-actions {
           align-items: stretch;
           flex-direction: column;
         }
 
-        .cta-box {
-          padding: 30px 24px;
+        .hero-actions .button,
+        .final-actions .button {
+          width: 100%;
+        }
+
+        .product-theatre {
+          margin-top: 56px;
+          padding-inline: 8px;
+        }
+
+        .theatre-tabs {
+          overflow-x: auto;
+          justify-content: flex-start;
+        }
+
+        .theatre-tab {
+          min-width: 108px;
+        }
+
+        .crm-window {
+          min-height: 540px;
+          border-radius: 12px;
+          transform: none;
+        }
+
+        .window-address {
+          min-width: 140px;
+        }
+
+        .window-status,
+        .window-dots {
+          visibility: hidden;
+        }
+
+        .crm-body {
+          min-height: 494px;
+        }
+
+        .inbox-grid {
+          grid-template-columns: 120px 1fr;
+          min-height: 436px;
+        }
+
+        .conversation-list {
+          padding: 6px;
+        }
+
+        .conversation {
+          grid-template-columns: auto 1fr;
+          padding: 8px 5px;
+        }
+
+        .conversation time,
+        .conversation p,
+        .conversation-tools {
+          display: none;
+        }
+
+        .messages {
+          padding: 10px;
+        }
+
+        .message {
+          max-width: 92%;
+        }
+
+        .pipeline-board {
+          min-height: 436px;
+        }
+
+        .success-grid,
+        .governance-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .success-grid .health-card:nth-child(n + 2),
+        .governance-grid .governance-card:nth-child(n + 2) {
+          display: none;
+        }
+
+        .theatre-caption {
+          display: block;
+          line-height: 1.7;
+          text-align: center;
+        }
+
+        .capability-row {
+          overflow: hidden;
+          justify-content: flex-start;
+        }
+
+        .capability-row span {
+          flex: 0 0 auto;
+          padding-inline: 13px;
+        }
+
+        .section {
+          padding: 82px 0;
+        }
+
+        .manifesto {
+          padding: 88px 0;
+        }
+
+        .manifesto-points,
+        .module-minis {
+          grid-template-columns: 1fr;
+        }
+
+        .manifesto-point {
+          min-height: 165px;
+        }
+
+        .story-scene {
+          padding: 22px;
+        }
+
+        .event-node {
+          width: 72px;
+          height: 72px;
+        }
+
+        .event-node span {
+          font-size: 8px;
+        }
+
+        .module-feature {
+          min-height: 470px;
+          padding: 24px;
+        }
+
+        .module-canvas {
+          right: 18px;
+          left: 18px;
+        }
+
+        .mini-inbox {
+          grid-template-columns: 1fr;
+        }
+
+        .mini-list {
+          display: none;
+        }
+
+        .infra-visual {
+          min-height: 390px;
+        }
+
+        .infra-orbit {
+          width: 330px;
+          height: 330px;
+        }
+
+        .infra-orbit::before {
+          inset: 48px;
+        }
+
+        .infra-core {
+          width: 140px;
+          height: 140px;
+        }
+
+        .orbit-node {
+          min-width: 78px;
+          height: 44px;
+          font-size: 8px;
+        }
+
+        .implementation-steps {
+          grid-template-columns: 1fr;
+        }
+
+        .implementation-step,
+        .implementation-step + .implementation-step {
+          min-height: auto;
+          border-left: 0;
+          padding: 24px 0 34px 35px;
+        }
+
+        .implementation-step::before,
+        .implementation-step + .implementation-step::before {
+          top: 28px;
+          left: 0;
+        }
+
+        .implementation-step h3 {
+          margin-top: 12px;
+        }
+
+        .diagnostic-copy,
+        .lead-form {
+          padding: 31px 24px;
+        }
+
+        .lead-form {
+          grid-template-columns: 1fr;
+        }
+
+        .field.full,
+        .form-action {
+          grid-column: auto;
+        }
+
+        .form-action {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .final-shell {
+          min-height: 470px;
+          border-radius: 18px;
+          padding: 48px 28px;
+        }
+
+        .footer-grid,
+        .footer-bottom {
+          display: block;
+        }
+
+        .footer-links {
+          flex-wrap: wrap;
+          margin-top: 24px;
+        }
+
+        .footer-bottom span {
+          display: block;
+          margin-top: 5px;
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
         *,
         *::before,
         *::after {
-          scroll-behavior: auto !important;
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
           transition-duration: 0.01ms !important;
         }
 
@@ -1380,56 +3058,23 @@
           opacity: 1;
           transform: none;
         }
-
-        .product-shell {
-          transform: none !important;
-        }
       }
     </style>
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "SoftwareApplication",
-            "name": "Diex CRM",
-            "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web",
-            "url": "https://crm.bydiex.com/",
-            "description": "CRM para vendas, atendimento, Customer Success, renovações e governança de IA.",
-            "publisher": { "@type": "Organization", "name": "Diex", "url": "https://bydiex.com/" }
-          },
-          {
-            "@type": "FAQPage",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "O Diex CRM substitui planilhas e ferramentas isoladas?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Sim. A implantação organiza empresas, pessoas, oportunidades, tarefas, conversas, Customer Success e renovações em um mesmo contexto comercial."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "É possível migrar dados de outro CRM?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Sim. A migração é planejada conforme a estrutura, qualidade e volume dos dados existentes."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Como a inteligência artificial é controlada?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "O Diex CRM reúne contexto, permissões, ferramentas MCP e governança para que agentes executem apenas ações autorizadas e rastreáveis."
-                }
-              }
-            ]
-          }
-        ]
+        "@type": "SoftwareApplication",
+        "name": "Diex CRM",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "https://crm.bydiex.com/",
+        "description": "CRM comercial com Inbox, inteligência comercial, Customer Success, renovações e governança de IA.",
+        "provider": {
+          "@type": "Organization",
+          "name": "Diex",
+          "url": "https://bydiex.com"
+        }
       }
     </script>
   </head>
@@ -1439,499 +3084,775 @@
 
     <header class="site-header" id="site-header">
       <div class="container">
-        <nav class="nav" aria-label="Navegação principal">
-          <a class="brand" href="/" aria-label="Diex CRM, início">
+        <nav class="nav-shell" aria-label="Navegação principal">
+          <a class="brand" href="#inicio" aria-label="Diex CRM — início">
             <img src="https://app.crm.bydiex.com/images/brand/diex-logo.svg" alt="" />
-            <span>Diex CRM <small>Commercial OS</small></span>
+            <span>Diex CRM <small>Operação comercial</small></span>
           </a>
 
           <div class="nav-links">
-            <a href="#operacao">Operação</a>
+            <a href="#produto">Produto</a>
+            <a href="#como-funciona">Como funciona</a>
             <a href="#modulos">Módulos</a>
             <a href="#infraestrutura">Infraestrutura</a>
-            <a href="#faq">Dúvidas</a>
           </div>
 
           <div class="nav-actions">
             <a class="text-link" href="https://app.crm.bydiex.com/welcome">Entrar</a>
-            <a class="button button-primary" href="#diagnostico">Agendar diagnóstico</a>
+            <a class="button button-dark" href="#diagnostico">Agendar demonstração</a>
+            <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-label="Abrir menu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
           </div>
 
-          <button
-            class="menu-toggle"
-            id="menu-toggle"
-            type="button"
-            aria-expanded="false"
-            aria-controls="mobile-menu"
-            aria-label="Abrir menu"
-          >
-            <svg viewBox="0 0 24 24" width="20" aria-hidden="true">
-              <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.8" />
-            </svg>
-          </button>
+          <div class="mobile-menu" id="mobile-menu">
+            <a href="#produto">Produto</a>
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#modulos">Módulos</a>
+            <a href="#infraestrutura">Infraestrutura</a>
+            <a href="https://app.crm.bydiex.com/welcome">Entrar no CRM</a>
+          </div>
         </nav>
-
-        <div class="mobile-menu" id="mobile-menu">
-          <a href="#operacao">Operação</a>
-          <a href="#modulos">Módulos</a>
-          <a href="#infraestrutura">Infraestrutura</a>
-          <a href="#diagnostico">Agendar diagnóstico</a>
-          <a href="https://app.crm.bydiex.com/welcome">Entrar no CRM</a>
-        </div>
       </div>
     </header>
 
     <main id="conteudo">
-      <section class="hero">
-        <div class="container hero-grid">
-          <div class="hero-copy" data-reveal>
-            <span class="eyebrow">CRM comercial orientado à próxima ação</span>
-            <h1>Conversa com contexto. <span>Operação que vende.</span></h1>
-            <p>
-              Inbox, pipeline, inteligência comercial, Customer Success, renovações e IA conectados
-              para sua equipe agir no momento certo.
+      <section class="hero" id="inicio">
+        <div class="container">
+          <div class="hero-copy">
+            <div class="eyebrow" data-hero-item>
+              <span class="eyebrow-dot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12" />
+                  <circle cx="12" cy="12" r="3.5" />
+                </svg>
+              </span>
+              Sistema operacional comercial da Diex
+            </div>
+
+            <h1 data-hero-item>
+              Toda conversa vira <span class="soft">contexto.</span><br />
+              Todo contexto vira <span class="accent">receita.</span>
+            </h1>
+
+            <p class="hero-lead" data-hero-item>
+              WhatsApp, e-mail, pipeline, Customer Success e IA trabalhando sobre a mesma operação —
+              do primeiro contato à renovação.
             </p>
 
-            <div class="hero-actions">
-              <a class="button button-primary" href="#diagnostico">
-                Diagnosticar minha operação
-                <svg viewBox="0 0 24 24" width="17" aria-hidden="true">
-                  <path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <div class="hero-actions" data-hero-item>
+              <a class="button button-dark" href="#diagnostico">
+                Ver o CRM aplicado ao meu negócio
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m9 18 6-6-6-6" />
                 </svg>
               </a>
-              <a class="button button-secondary" href="#produto">Ver o produto</a>
+              <a class="button button-outline" href="#produto">Explorar o produto</a>
             </div>
 
-            <ul class="hero-proof">
-              <li>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2" />
-                </svg>
-                Implantação orientada ao processo
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2" />
-                </svg>
-                Arquitetura multiempresa
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2" />
-                </svg>
-                Integração com IA e MCP
-              </li>
-            </ul>
+            <div class="hero-note" data-hero-item>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg>
+              Implantado de acordo com a sua operação — sem CRM engessado.
+            </div>
+          </div>
+        </div>
+
+        <div class="product-theatre" id="produto" data-hero-product>
+          <div class="theatre-tabs" role="tablist" aria-label="Experiências do Diex CRM">
+            <button class="theatre-tab" type="button" role="tab" aria-selected="true" data-crm-tab="inbox">
+              Inbox comercial
+            </button>
+            <button class="theatre-tab" type="button" role="tab" aria-selected="false" data-crm-tab="pipeline">
+              Inteligência
+            </button>
+            <button class="theatre-tab" type="button" role="tab" aria-selected="false" data-crm-tab="success">
+              Customer Success
+            </button>
+            <button class="theatre-tab" type="button" role="tab" aria-selected="false" data-crm-tab="governance">
+              Governança de IA
+            </button>
           </div>
 
-          <div class="product-stage" id="produto" data-reveal style="--reveal-delay: 120ms">
-            <div class="floating-chip chip-top">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 5h16v12H7l-3 3V5Z" fill="none" stroke="currentColor" stroke-width="1.8" />
-              </svg>
-              Lead identificado no WhatsApp
+          <div class="crm-window" id="crm-window">
+            <div class="window-bar">
+              <div class="window-dots"><i></i><i></i><i></i></div>
+              <div class="window-address">app.crm.bydiex.com</div>
+              <div class="window-status">Operação conectada</div>
             </div>
 
-            <div class="product-shell" id="product-shell">
-              <div class="product-topbar">
-                <div class="traffic-lights"><span></span><span></span><span></span></div>
-                <div class="product-search">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8" />
-                    <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <div class="crm-body">
+              <aside class="crm-sidebar" aria-label="Menu simulado do CRM">
+                <div class="crm-brand">
+                  <span class="crm-brand-mark">DX</span>
+                  <span>Diex</span>
+                </div>
+                <div class="crm-search">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m20 20-3.5-3.5" />
                   </svg>
-                  Buscar no CRM
+                  Pesquisar na operação
                 </div>
-                <span style="font-size: 9px; color: #777786">Diex Workspace</span>
-              </div>
+                <div class="crm-nav-label">Workspace</div>
+                <div class="crm-nav">
+                  <span class="crm-nav-item is-active" data-nav-scene="inbox">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <path d="M4 5h16v14H4z" /><path d="m4 14 4-4h8l4 4" />
+                    </svg>
+                    Inbox Comercial <span class="crm-nav-badge">3</span>
+                  </span>
+                  <span class="crm-nav-item" data-nav-scene="pipeline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <path d="M4 19V9M10 19V5M16 19v-7M22 19V3" />
+                    </svg>
+                    Inteligência
+                  </span>
+                  <span class="crm-nav-item" data-nav-scene="success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <path d="M20 13c0 5-3.5 8-8 8s-8-3-8-8 3.5-9 8-9c2.2 0 4.1 1 5.5 2.6" />
+                      <path d="m15 10 2 2 4-5" />
+                    </svg>
+                    Customer Success
+                  </span>
+                  <span class="crm-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <path d="M7 3v4M17 3v4M4 9h16M5 5h14v16H5z" />
+                    </svg>
+                    Renovações <span class="crm-nav-badge">6</span>
+                  </span>
+                  <span class="crm-nav-item" data-nav-scene="governance">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <path d="m12 3 8 4v5c0 5-3.4 8.2-8 9-4.6-.8-8-4-8-9V7z" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                    Governança de IA
+                  </span>
+                </div>
+                <div class="crm-nav-label">CRM</div>
+                <div class="crm-nav">
+                  <span class="crm-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <path d="M4 20V8l8-5 8 5v12z" /><path d="M9 20v-6h6v6" />
+                    </svg>
+                    Empresas
+                  </span>
+                  <span class="crm-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+                    </svg>
+                    Pessoas
+                  </span>
+                  <span class="crm-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" />
+                    </svg>
+                    Oportunidades
+                  </span>
+                </div>
+                <div class="crm-user">
+                  <span class="avatar">PA</span>
+                  <span>Operação Diex<br /><small>Workspace seguro</small></span>
+                </div>
+              </aside>
 
-              <div class="product-body">
-                <aside class="product-sidebar">
-                  <div class="product-brand">
-                    <img src="https://app.crm.bydiex.com/images/brand/diex-logo.svg" alt="" />
-                    Diex
-                  </div>
-                  <div class="product-nav">
-                    <span class="product-nav-item is-active">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M4 5h16v12H7l-3 3V5Z" fill="none" stroke="currentColor" stroke-width="1.7" />
-                      </svg>
-                      Inbox Comercial
-                    </span>
-                    <span class="product-nav-item">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M5 19V9m7 10V5m7 14v-7" fill="none" stroke="currentColor" stroke-width="1.7" />
-                      </svg>
-                      Inteligência
-                    </span>
-                    <span class="product-nav-item">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.7" />
-                        <path d="M8 12.5 11 15l5-6" fill="none" stroke="currentColor" stroke-width="1.7" />
-                      </svg>
-                      Customer Success
-                    </span>
-                    <span class="product-nav-item">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M5 8h14M7 4h10v16H7z" fill="none" stroke="currentColor" stroke-width="1.7" />
-                      </svg>
-                      Renovações
-                    </span>
-                    <span class="product-nav-item">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 3 5 7v5c0 4 3 7 7 9 4-2 7-5 7-9V7l-7-4Z" fill="none" stroke="currentColor" stroke-width="1.7" />
-                      </svg>
-                      Governança de IA
-                    </span>
-                  </div>
-                </aside>
-
-                <div class="product-main">
-                  <div class="product-heading">
-                    <div>
-                      <strong id="product-title">Inbox Comercial</strong>
-                      <span id="product-subtitle">Conversas com contexto e próxima ação</span>
-                    </div>
-                    <button type="button">+ Nova oportunidade</button>
-                  </div>
-
-                  <div class="product-tabs" role="tablist" aria-label="Módulos do produto">
-                    <button type="button" role="tab" aria-selected="true" data-product-tab="inbox">
-                      Inbox
-                    </button>
-                    <button type="button" role="tab" aria-selected="false" data-product-tab="intelligence">
-                      Inteligência
-                    </button>
-                    <button type="button" role="tab" aria-selected="false" data-product-tab="success">
-                      Customer Success
-                    </button>
-                    <button type="button" role="tab" aria-selected="false" data-product-tab="governance">
-                      Governança de IA
-                    </button>
-                  </div>
-
-                  <div class="product-panel is-active" data-product-panel="inbox">
-                    <div class="inbox-layout">
-                      <div class="conversation-list">
-                        <div class="conversation is-current">
-                          <strong>Marina · Grupo Horizonte</strong>
-                          <span>Precisamos rever a proposta...</span>
-                        </div>
-                        <div class="conversation">
-                          <strong>Rafael · Vale Engenharia</strong>
-                          <span>Vocês integram com nosso fluxo?</span>
-                        </div>
-                        <div class="conversation">
-                          <strong>Carla · Novatech</strong>
-                          <span>Podemos marcar uma demonstração?</span>
-                        </div>
-                      </div>
-                      <div class="conversation-view">
-                        <div class="contact-line">
-                          <div class="avatar">MH</div>
-                          <div>
-                            <strong style="display:block; font-size:9px">Marina Helena</strong>
-                            <span style="font-size:8px; color:#858592">Decisora · Oportunidade aberta</span>
-                          </div>
-                        </div>
-                        <div class="message">
-                          <strong>Marina</strong>
-                          <span style="display:block; margin-top:3px">Precisamos rever a proposta com o financeiro.</span>
-                        </div>
-                        <div class="message reply">
-                          <strong>Você</strong>
-                          <span style="display:block; margin-top:3px">Preparei o cenário e posso apresentar amanhã às 10h.</span>
-                        </div>
-                        <div class="next-action">
-                          <span>Próxima ação sugerida: agendar reunião com decisores</span>
-                          <strong>Hoje</strong>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="product-panel" data-product-panel="intelligence">
-                    <div class="metrics-grid">
-                      <article class="metric-card">
-                        <small>Pipeline ponderado</small>
-                        <strong>R$ 428 mil</strong>
-                        <svg class="sparkline" viewBox="0 0 180 42" preserveAspectRatio="none" aria-hidden="true">
-                          <path d="M0 36 C22 30, 30 33, 48 25 S78 30, 96 18 S130 22, 146 11 S166 14, 180 4" />
+              <div class="crm-stage">
+                <section class="crm-panel is-active" data-crm-panel="inbox" aria-label="Prévia do Inbox Comercial">
+                  <div class="panel-top">
+                    <div class="panel-title">
+                      <span class="panel-title-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="M4 5h16v14H4z" /><path d="m4 14 4-4h8l4 4" />
                         </svg>
-                      </article>
-                      <article class="metric-card">
-                        <small>Oportunidades sem ação</small>
-                        <strong>7</strong>
-                        <div class="health-row"><span>Risco alto</span><span class="status">agir hoje</span></div>
-                        <div class="progress"><span style="width: 71%"></span></div>
-                      </article>
-                      <article class="metric-card">
-                        <small>Conversão por origem</small>
-                        <strong>28%</strong>
-                        <div class="health-row"><span>Indicação</span><span>+8,4%</span></div>
-                        <div class="progress"><span style="width: 82%"></span></div>
-                      </article>
-                      <article class="metric-card">
-                        <small>Tempo médio de resposta</small>
-                        <strong>12 min</strong>
-                        <div class="health-row"><span>Meta da operação</span><span class="status">saudável</span></div>
-                        <div class="progress"><span style="width: 88%"></span></div>
-                      </article>
+                      </span>
+                      Inbox Comercial
+                    </div>
+                    <div>
+                      <span class="mini-button">Todas as equipes</span>
+                      <span class="mini-button primary">+ Nova conversa</span>
                     </div>
                   </div>
 
-                  <div class="product-panel" data-product-panel="success">
-                    <div class="health-grid">
-                      <article class="health-card">
-                        <small>Saúde da carteira</small>
-                        <strong>84%</strong>
-                        <div class="progress"><span style="width: 84%"></span></div>
-                        <div class="health-row"><span>31 contas saudáveis</span><span class="status">estável</span></div>
-                      </article>
-                      <article class="health-card">
-                        <small>Renovações em 60 dias</small>
-                        <strong>R$ 96 mil</strong>
-                        <div class="progress"><span style="width: 68%"></span></div>
-                        <div class="health-row"><span>8 contratos</span><span>2 em risco</span></div>
-                      </article>
-                      <article class="health-card">
-                        <small>Próximo marco</small>
-                        <strong style="font-size:14px">Reunião de valor</strong>
-                        <div class="health-row"><span>Grupo Horizonte</span><span>Amanhã</span></div>
-                        <div class="health-row"><span>Responsável</span><span>Ana Souza</span></div>
-                      </article>
-                      <article class="health-card">
-                        <small>Expansão identificada</small>
-                        <strong style="font-size:14px">+ 12 licenças</strong>
-                        <div class="health-row"><span>Vale Engenharia</span><span class="status">oportunidade</span></div>
-                        <div class="health-row"><span>Potencial</span><span>R$ 18 mil</span></div>
-                      </article>
+                  <div class="inbox-grid">
+                    <div class="conversation-list">
+                      <div class="conversation-tools">
+                        <div class="mini-input">⌕ Buscar conversa</div>
+                        <span class="mini-button">↻</span>
+                      </div>
+                      <div class="conversation is-selected">
+                        <span class="avatar">MS</span>
+                        <div><strong>Marina Souza</strong><p>Podemos avançar com a proposta...</p></div>
+                        <time>agora</time>
+                      </div>
+                      <div class="conversation">
+                        <span class="avatar">RC</span>
+                        <div><strong>Rafael Costa</strong><p>Preciso incluir outra unidade</p></div>
+                        <time>8m</time>
+                      </div>
+                      <div class="conversation">
+                        <span class="avatar">CL</span>
+                        <div><strong>Clínica Lumina</strong><p>Qual o prazo de implantação?</p></div>
+                        <time>24m</time>
+                      </div>
+                      <div class="conversation">
+                        <span class="avatar">AT</span>
+                        <div><strong>Ativa Engenharia</strong><p>Recebemos o contrato</p></div>
+                        <time>1h</time>
+                      </div>
+                    </div>
+
+                    <div class="chat">
+                      <div class="chat-contact">
+                        <span class="avatar">MS</span>
+                        <div><strong>Marina Souza</strong><span>WhatsApp · Online</span></div>
+                      </div>
+                      <div class="messages">
+                        <div class="message">Gostei da demonstração. Podemos avançar com a proposta para as duas unidades?<small>14:32</small></div>
+                        <div class="message out">Sim. Vou ajustar o escopo e enviar a proposta ainda hoje.<small>14:34 ✓✓</small></div>
+                        <div class="message">Perfeito. Nosso decisor entra na conversa amanhã às 10h.<small>14:35</small></div>
+                      </div>
+                      <div class="composer">Escreva uma mensagem ou peça ajuda à IA…</div>
+                    </div>
+
+                    <aside class="context-panel">
+                      <div class="context-head">
+                        Contexto comercial
+                        <span class="ai-pulse">IA ativa</span>
+                      </div>
+                      <div class="context-company">
+                        <strong>Clínica Horizonte</strong>
+                        <span>Saúde · 2 unidades · Oportunidade aberta</span>
+                      </div>
+                      <div class="context-label">Próxima melhor ação</div>
+                      <div class="next-action">Preparar proposta multiunidade e agendar decisão para amanhã, 10h.</div>
+                      <div class="context-label">Dados relacionados</div>
+                      <div class="context-facts">
+                        <div class="context-fact"><span>Responsável</span><strong>Ana Lima</strong></div>
+                        <div class="context-fact"><span>Etapa</span><strong>Proposta</strong></div>
+                        <div class="context-fact"><span>Origem</span><strong>Indicação</strong></div>
+                        <div class="context-fact"><span>Último contato</span><strong>Agora</strong></div>
+                      </div>
+                    </aside>
+                  </div>
+                </section>
+
+                <section class="crm-panel" data-crm-panel="pipeline" aria-label="Prévia da Inteligência Comercial">
+                  <div class="panel-top">
+                    <div class="panel-title">
+                      <span class="panel-title-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="M4 19V9M10 19V5M16 19v-7M22 19V3" />
+                        </svg>
+                      </span>
+                      Inteligência Comercial
+                    </div>
+                    <span class="mini-button primary">+ Nova oportunidade</span>
+                  </div>
+                  <div class="pipeline-board">
+                    <div class="pipe-column">
+                      <div class="pipe-head"><span>Novos leads</span><i></i></div>
+                      <div class="deal-card"><strong>Grupo Vert</strong><p>Expansão de unidade</p><div class="deal-meta"><span>R$ 18 mil</span><span class="avatar">AL</span></div></div>
+                      <div class="deal-card"><strong>Studio Movimento</strong><p>CRM + atendimento</p><div class="deal-meta"><span>R$ 9 mil</span><span class="avatar">PC</span></div></div>
+                    </div>
+                    <div class="pipe-column">
+                      <div class="pipe-head"><span>Qualificação</span><i style="background:#92acff"></i></div>
+                      <div class="deal-card"><strong>Ativa Engenharia</strong><p>Integração comercial</p><div class="deal-meta"><span>R$ 24 mil</span><span class="avatar">MS</span></div></div>
+                    </div>
+                    <div class="pipe-column">
+                      <div class="pipe-head"><span>Proposta</span><i style="background:#d8a65c"></i></div>
+                      <div class="deal-card"><strong>Clínica Horizonte</strong><p>Proposta multiunidade</p><div class="deal-meta"><span>R$ 32 mil</span><span class="avatar">AL</span></div></div>
+                      <div class="deal-card"><strong>Lumi Educação</strong><p>Automação de vendas</p><div class="deal-meta"><span>R$ 16 mil</span><span class="avatar">PC</span></div></div>
+                    </div>
+                    <div class="pipe-column">
+                      <div class="pipe-head"><span>Negociação</span><i style="background:#47c69c"></i></div>
+                      <div class="deal-card"><strong>Rede Ápice</strong><p>Revisão de contrato</p><div class="deal-meta"><span>R$ 41 mil</span><span class="avatar">MS</span></div></div>
                     </div>
                   </div>
+                </section>
 
-                  <div class="product-panel" data-product-panel="governance">
-                    <div class="governance-grid">
-                      <article class="governance-card">
-                        <small>Agentes conectados</small>
-                        <strong>4</strong>
-                        <div class="policy-row"><span>Assistente comercial</span><span class="status">ativo</span></div>
-                        <div class="policy-row"><span>Analista de carteira</span><span class="status">ativo</span></div>
-                      </article>
-                      <article class="governance-card">
-                        <small>Ferramentas MCP</small>
-                        <strong>32</strong>
-                        <div class="policy-row"><span>Leitura contextual</span><span>permitida</span></div>
-                        <div class="policy-row"><span>Escrita no CRM</span><span>controlada</span></div>
-                      </article>
-                      <article class="governance-card">
-                        <small>Ações hoje</small>
-                        <strong>146</strong>
-                        <div class="policy-row"><span>Com rastreabilidade</span><span class="status">100%</span></div>
-                        <div class="progress"><span style="width: 100%"></span></div>
-                      </article>
-                      <article class="governance-card">
-                        <small>Política aplicada</small>
-                        <strong style="font-size:14px">Operação comercial</strong>
-                        <div class="policy-row"><span>Segredos protegidos</span><span class="status">ativo</span></div>
-                        <div class="policy-row"><span>Escopo por workspace</span><span>ativo</span></div>
-                      </article>
+                <section class="crm-panel" data-crm-panel="success" aria-label="Prévia de Customer Success">
+                  <div class="panel-top">
+                    <div class="panel-title">
+                      <span class="panel-title-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="M20 13c0 5-3.5 8-8 8s-8-3-8-8 3.5-9 8-9c2.2 0 4.1 1 5.5 2.6" />
+                          <path d="m15 10 2 2 4-5" />
+                        </svg>
+                      </span>
+                      Customer Success
+                    </div>
+                    <span class="mini-button">Carteira completa</span>
+                  </div>
+                  <div class="success-grid">
+                    <div class="health-card">
+                      <h4>Saúde da carteira</h4>
+                      <div class="health-score"><strong>84</strong><span>operação saudável</span></div>
+                      <div class="health-bars">
+                        <div class="health-bar"><span>Engajamento</span><i style="--value:88%;--bar:#47c69c"></i><b>88</b></div>
+                        <div class="health-bar"><span>Entrega</span><i style="--value:79%"></i><b>79</b></div>
+                        <div class="health-bar"><span>Relacionamento</span><i style="--value:86%;--bar:#92acff"></i><b>86</b></div>
+                        <div class="health-bar"><span>Risco</span><i style="--value:22%;--bar:#d48722"></i><b>22</b></div>
+                      </div>
+                    </div>
+                    <div class="health-card">
+                      <h4>Renovações próximas</h4>
+                      <div class="renewal-list">
+                        <div class="renewal-row"><i></i><span>Clínica Horizonte</span><strong>12d</strong></div>
+                        <div class="renewal-row"><i style="background:#47c69c"></i><span>Grupo Vert</span><strong>21d</strong></div>
+                        <div class="renewal-row"><i style="background:#db5f71"></i><span>Lumi Educação</span><strong>7d</strong></div>
+                        <div class="renewal-row"><i style="background:#92acff"></i><span>Rede Ápice</span><strong>35d</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="crm-panel" data-crm-panel="governance" aria-label="Prévia da Governança de IA">
+                  <div class="panel-top">
+                    <div class="panel-title">
+                      <span class="panel-title-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="m12 3 8 4v5c0 5-3.4 8.2-8 9-4.6-.8-8-4-8-9V7z" />
+                          <path d="m9 12 2 2 4-4" />
+                        </svg>
+                      </span>
+                      Governança de IA
+                    </div>
+                    <span class="mini-button primary">Conectar agente</span>
+                  </div>
+                  <div class="governance-grid">
+                    <div class="governance-card">
+                      <h4>Políticas em vigor</h4>
+                      <div class="policy-list">
+                        <div class="policy">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" /></svg>
+                          Permissão por workspace
+                        </div>
+                        <div class="policy">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" /></svg>
+                          Ações com rastreabilidade
+                        </div>
+                        <div class="policy">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" /></svg>
+                          Segredos fora do MCP
+                        </div>
+                      </div>
+                    </div>
+                    <div class="governance-card">
+                      <h4>Atividade dos agentes</h4>
+                      <div class="activity-chart">
+                        <i style="--h:38%"></i><i style="--h:61%"></i><i style="--h:48%"></i><i style="--h:76%"></i>
+                        <i style="--h:58%"></i><i style="--h:91%"></i><i style="--h:68%"></i><i style="--h:84%"></i>
+                      </div>
+                    </div>
+                    <div class="governance-card">
+                      <h4>Conexões</h4>
+                      <div class="policy-list">
+                        <div class="policy">MCP · Operacional</div>
+                        <div class="policy">API · Ativa</div>
+                        <div class="policy">Workflows · 8 fluxos</div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <div class="theatre-caption">
+            <strong>Um produto. Uma base de dados. Toda a jornada comercial.</strong>
+            <span>Interface adaptada sobre a infraestrutura flexível do Twenty.</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="capability-strip" aria-label="Canais e capacidades">
+        <div class="container capability-row">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z" /><path d="m4 7 8 6 8-6" /></svg>
+            E-mail
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11.5a8 8 0 0 1-12.2 6.8L4 20l1.3-3.6A8 8 0 1 1 20 11.5z" /></svg>
+            WhatsApp
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 8h8v8H8z" /><path d="M4 12h4M16 12h4M12 4v4M12 16v4" /></svg>
+            Workflows
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7h10v10H7z" /><path d="m4 4 3 3M20 4l-3 3M4 20l3-3M20 20l-3-3" /></svg>
+            MCP
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 4v5c0 5-3.4 8.2-8 9-4.6-.8-8-4-8-9V7z" /></svg>
+            IA governada
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z" /><path d="M9 9h6v6H9z" /></svg>
+            API
+          </span>
+        </div>
+      </div>
+
+      <section class="manifesto">
+        <div class="container">
+          <div class="manifesto-grid">
+            <div data-reveal>
+              <div class="section-label">A diferença está no fluxo</div>
+              <p class="section-lead" style="color:#95919f">
+                A Diex não entrega uma tela para sua equipe alimentar. Entrega uma operação que devolve direção.
+              </p>
+            </div>
+            <div class="manifesto-copy" data-reveal style="--delay:80ms">
+              CRM não é cadastro. <span class="dim">É o sistema que conecta o que foi dito, o que precisa acontecer e o que pode virar receita.</span>
+            </div>
+          </div>
+
+          <div class="manifesto-points">
+            <article class="manifesto-point" data-reveal>
+              <span>01 / Entrada</span>
+              <h3>Conversas chegam organizadas.</h3>
+              <p>WhatsApp e e-mail entram no mesmo Inbox, ligados à pessoa, à empresa e à oportunidade.</p>
+            </article>
+            <article class="manifesto-point" data-reveal style="--delay:60ms">
+              <span>02 / Entendimento</span>
+              <h3>Contexto aparece antes da resposta.</h3>
+              <p>Histórico, etapa, responsável, tarefas e risco ficam visíveis no momento da conversa.</p>
+            </article>
+            <article class="manifesto-point" data-reveal>
+              <span>03 / Execução</span>
+              <h3>A próxima ação nasce no fluxo.</h3>
+              <p>A equipe cria oportunidade, agenda retorno ou aciona automação sem abandonar o atendimento.</p>
+            </article>
+            <article class="manifesto-point" data-reveal style="--delay:60ms">
+              <span>04 / Aprendizado</span>
+              <h3>A operação melhora com os próprios dados.</h3>
+              <p>Inteligência comercial e agentes conectados transformam histórico em priorização e decisão.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section story" id="como-funciona">
+        <div class="container">
+          <div class="section-label" data-reveal>Do contato à decisão</div>
+          <h2 class="section-heading" data-reveal>
+            O trabalho comercial acontece em sequência. <span class="muted">O CRM também.</span>
+          </h2>
+
+          <div class="story-grid">
+            <div class="story-steps">
+              <article class="story-step is-active" data-story-step="entry" data-index="01">
+                <h3>A conversa entra</h3>
+                <p>O canal é identificado e o contato é ligado automaticamente ao cadastro certo.</p>
+              </article>
+              <article class="story-step" data-story-step="context" data-index="02">
+                <h3>O contexto aparece</h3>
+                <p>A equipe vê histórico, oportunidade, pendências e sinais relevantes antes de agir.</p>
+              </article>
+              <article class="story-step" data-story-step="action" data-index="03">
+                <h3>A próxima ação é criada</h3>
+                <p>Retorno, proposta, tarefa ou fluxo são acionados sem retrabalho entre ferramentas.</p>
+              </article>
+              <article class="story-step" data-story-step="revenue" data-index="04">
+                <h3>A gestão aprende</h3>
+                <p>O que aconteceu vira leitura de pipeline, carteira, conversão e risco de renovação.</p>
+              </article>
+            </div>
+
+            <div class="story-visual" data-reveal>
+              <div class="story-scene is-active" data-story-scene="entry">
+                <div class="event-flow">
+                  <div class="event-line"></div>
+                  <div class="event-nodes">
+                    <div class="event-node">
+                      <div>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11.5a8 8 0 0 1-12.2 6.8L4 20l1.3-3.6A8 8 0 1 1 20 11.5z" /></svg>
+                        <span>WhatsApp</span>
+                      </div>
+                    </div>
+                    <div class="event-node is-core">
+                      <div>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z" /><path d="m4 14 4-4h8l4 4" /></svg>
+                        <span>Inbox Diex</span>
+                      </div>
+                    </div>
+                    <div class="event-node">
+                      <div>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+                        <span>Contato</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="floating-chip chip-bottom">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3 5 7v5c0 4 3 7 7 9 4-2 7-5 7-9V7l-7-4Z" fill="none" stroke="currentColor" stroke-width="1.8" />
-              </svg>
-              Ação registrada com governança
+              <div class="story-scene" data-story-scene="context">
+                <div class="context-card">
+                  <div class="context-card-head">
+                    <strong>Contexto de Marina Souza</strong>
+                    <span class="tag">Atualizado agora</span>
+                  </div>
+                  <div class="context-lines">
+                    <div class="context-line"><span>Empresa</span><strong>Clínica Horizonte · 2 unidades</strong></div>
+                    <div class="context-line"><span>Oportunidade</span><strong>Implantação multiunidade · Proposta</strong></div>
+                    <div class="context-line"><span>Última interação</span><strong>Demonstração concluída ontem</strong></div>
+                    <div class="context-line"><span>Próxima ação</span><strong>Enviar proposta e envolver decisor</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="story-scene" data-story-scene="action">
+                <div class="action-stack">
+                  <div class="action-command">
+                    <span style="color:var(--primary)">✦</span>
+                    Criar proposta e retorno para Marina
+                    <span class="command-key">↵ executar</span>
+                  </div>
+                  <div class="action-results">
+                    <div class="action-result"><span>Tarefa criada</span><strong>Enviar proposta até 17h</strong></div>
+                    <div class="action-result"><span>Oportunidade atualizada</span><strong>Etapa: Proposta</strong></div>
+                    <div class="action-result"><span>Responsável</span><strong>Ana Lima</strong></div>
+                    <div class="action-result"><span>Automação</span><strong>Follow-up em 2 dias</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="story-scene" data-story-scene="revenue">
+                <div class="revenue-visual">
+                  <div class="revenue-top"><strong>Movimento do pipeline</strong><span>Últimos 30 dias</span></div>
+                  <div class="revenue-chart">
+                    <svg viewBox="0 0 450 150" preserveAspectRatio="none" aria-hidden="true">
+                      <defs>
+                        <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0" stop-color="#5F7DFF" stop-opacity=".38" />
+                          <stop offset="1" stop-color="#5F7DFF" stop-opacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M0 130 C45 125 58 102 95 108 S150 120 185 80 S240 94 277 60 S333 72 365 38 S415 46 450 17 L450 150 L0 150Z" fill="url(#chartFill)" />
+                      <path d="M0 130 C45 125 58 102 95 108 S150 120 185 80 S240 94 277 60 S333 72 365 38 S415 46 450 17" fill="none" stroke="#92ACFF" stroke-width="3" />
+                    </svg>
+                  </div>
+                  <div class="revenue-metrics">
+                    <div class="revenue-metric"><span>Conversas ativas</span><strong>Em acompanhamento</strong></div>
+                    <div class="revenue-metric"><span>Próximas ações</span><strong>Priorizadas</strong></div>
+                    <div class="revenue-metric"><span>Gestão</span><strong>Visão em tempo real</strong></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="section section-alt" id="operacao">
+      <section class="section modules" id="modulos">
         <div class="container">
-          <div class="section-heading" data-reveal>
-            <span class="eyebrow">Do sinal à receita</span>
-            <h2>O CRM organiza o trabalho que acontece entre uma conversa e o fechamento.</h2>
-            <p>Menos repasse manual, menos oportunidade esquecida e mais clareza sobre o que fazer agora.</p>
+          <div class="modules-head">
+            <div>
+              <div class="section-label" data-reveal>Produto modular</div>
+              <h2 class="section-heading" data-reveal>
+                Módulos que compartilham <span class="muted">a mesma verdade.</span>
+              </h2>
+            </div>
+            <p class="section-lead" data-reveal>
+              Cada área recebe uma visão própria, mas todos trabalham sobre pessoas, empresas, conversas e oportunidades conectadas.
+            </p>
           </div>
 
-          <div class="flow-grid">
-            <article class="flow-card" data-reveal>
-              <small>01 · ENTRADA</small>
-              <h3>Centralize os sinais</h3>
-              <p>WhatsApp, e-mail, formulários e cadastros chegam à mesma operação comercial.</p>
-            </article>
-            <article class="flow-card" data-reveal style="--reveal-delay: 70ms">
-              <small>02 · CONTEXTO</small>
-              <h3>Entenda a conta</h3>
-              <p>Pessoa, empresa, histórico, oportunidade e relacionamento deixam de ficar dispersos.</p>
-            </article>
-            <article class="flow-card" data-reveal style="--reveal-delay: 140ms">
-              <small>03 · AÇÃO</small>
-              <h3>Execute o próximo passo</h3>
-              <p>Tarefas, responsáveis, cadências e agentes de IA trabalham com o mesmo contexto.</p>
-            </article>
-            <article class="flow-card" data-reveal style="--reveal-delay: 210ms">
-              <small>04 · RECEITA</small>
-              <h3>Meça e evolua</h3>
-              <p>Pipeline, conversão, saúde da carteira e renovações orientam a gestão.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="modulos">
-        <div class="container">
-          <div class="section-heading" data-reveal>
-            <span class="eyebrow">Módulos Diex</span>
-            <h2>Uma infraestrutura de CRM adaptada ao seu processo comercial.</h2>
-            <p>O núcleo do Twenty ganha uma camada operacional específica para vendas, relacionamento e IA.</p>
-          </div>
-
-          <div class="modules-grid">
-            <article class="module-card" data-reveal>
-              <span class="module-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 5h16v12H7l-3 3V5Z" fill="none" stroke="currentColor" stroke-width="1.8" />
-                </svg>
-              </span>
+          <div class="module-layout">
+            <article class="module-feature" data-reveal>
+              <span class="module-kicker">Atendimento + vendas</span>
               <h3>Inbox Comercial</h3>
-              <p>Atendimento que já nasce conectado ao cadastro, à oportunidade e à próxima ação.</p>
-              <ul><li>WhatsApp e e-mail</li><li>Fila, equipe e responsável</li><li>Contexto comercial lateral</li></ul>
+              <p>Converse com contexto e transforme atendimento em próxima ação comercial.</p>
+              <div class="module-canvas">
+                <div class="mini-inbox">
+                  <div class="mini-list">
+                    <div class="mini-thread is-active"><span class="avatar">MS</span><div class="mini-thread-lines"><div class="line"></div><div class="line short"></div></div></div>
+                    <div class="mini-thread"><span class="avatar">RC</span><div class="mini-thread-lines"><div class="line"></div><div class="line short"></div></div></div>
+                    <div class="mini-thread"><span class="avatar">AL</span><div class="mini-thread-lines"><div class="line"></div><div class="line short"></div></div></div>
+                  </div>
+                  <div class="mini-chat">
+                    <div class="mini-bubble"></div>
+                    <div class="mini-bubble out"></div>
+                    <div class="mini-bubble" style="width:54%"></div>
+                  </div>
+                </div>
+              </div>
             </article>
 
-            <article class="module-card" data-reveal style="--reveal-delay: 60ms">
-              <span class="module-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 19V9m7 10V5m7 14v-7" fill="none" stroke="currentColor" stroke-width="1.8" />
-                </svg>
-              </span>
+            <article class="module-feature dark" data-reveal style="--delay:60ms">
+              <span class="module-kicker">Gestão + decisão</span>
               <h3>Inteligência Comercial</h3>
-              <p>Visão operacional do pipeline com risco, prioridade e potencial de receita.</p>
-              <ul><li>Indicadores acionáveis</li><li>Oportunidades sem movimento</li><li>Qualidade da operação</li></ul>
+              <p>Pipeline, cadência e leitura operacional para mostrar onde agir primeiro.</p>
+              <div class="module-canvas intelligence-canvas">
+                <div class="metric-cell"><span>Pipeline</span><strong>Em movimento</strong></div>
+                <div class="metric-cell"><span>Conversão</span><strong>Por etapa</strong></div>
+                <div class="metric-cell"><span>Prioridade</span><strong>Atualizada</strong></div>
+                <div class="metric-cell chart-cell">
+                  <span>Evolução comercial</span>
+                  <svg viewBox="0 0 420 100" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M0 85 C55 78 65 65 105 70 S165 90 205 48 S270 62 310 32 S370 42 420 10" fill="none" stroke="#92ACFF" stroke-width="2.5" />
+                    <path d="M0 85 C55 78 65 65 105 70 S165 90 205 48 S270 62 310 32 S370 42 420 10 L420 100 L0 100Z" fill="rgba(95,125,255,.12)" />
+                  </svg>
+                </div>
+              </div>
             </article>
 
-            <article class="module-card" data-reveal style="--reveal-delay: 120ms">
-              <span class="module-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8" />
-                  <path d="M8 12.5 11 15l5-6" fill="none" stroke="currentColor" stroke-width="1.8" />
-                </svg>
-              </span>
-              <h3>Customer Success</h3>
-              <p>Carteira, saúde, marcos e expansão organizados depois da venda.</p>
-              <ul><li>Planos de sucesso</li><li>Risco e engajamento</li><li>Oportunidades de expansão</li></ul>
-            </article>
+            <div class="module-minis">
+              <article class="module-mini" data-reveal>
+                <span class="module-kicker">Retenção</span>
+                <h3>Customer Success + Renovações</h3>
+                <p>Saúde da carteira, riscos, compromissos e expansão visíveis antes do vencimento.</p>
+                <div class="mini-art">
+                  <div class="health-line"><span>Engajamento</span><i style="--value:88%;--color:#0c9b72"></i><b>88</b></div>
+                  <div class="health-line"><span>Relacionamento</span><i style="--value:79%"></i><b>79</b></div>
+                  <div class="health-line"><span>Risco</span><i style="--value:24%;--color:#d48722"></i><b>24</b></div>
+                </div>
+              </article>
+              <article class="module-mini" data-reveal style="--delay:60ms">
+                <span class="module-kicker">Controle</span>
+                <h3>Governança de IA</h3>
+                <p>Agentes internos e externos com acesso controlado, ações rastreáveis e MCP seguro.</p>
+                <div class="mini-art governance-art">
+                  <div class="agent-chip">Agente interno<strong>Contexto CRM</strong></div>
+                  <div style="color:var(--primary)">→</div>
+                  <div class="agent-chip">MCP seguro<strong>Ações permitidas</strong></div>
+                  <div style="color:var(--primary)">→</div>
+                  <div class="agent-chip">Operação<strong>Registro auditável</strong></div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <article class="module-card" data-reveal>
-              <span class="module-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 4h10v16H7zM5 8h14" fill="none" stroke="currentColor" stroke-width="1.8" />
+      <section class="section infra" id="infraestrutura">
+        <div class="container infra-grid">
+          <div class="infra-visual" data-reveal>
+            <div class="infra-orbit" aria-hidden="true">
+              <span class="orbit-node">WhatsApp</span>
+              <span class="orbit-node">E-mail</span>
+              <span class="orbit-node">Agentes IA</span>
+              <span class="orbit-node">Sistemas</span>
+            </div>
+            <div class="infra-core">
+              <div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path d="M4 6h16M4 12h16M4 18h16" /><circle cx="8" cy="6" r="2" fill="currentColor" /><circle cx="16" cy="12" r="2" fill="currentColor" /><circle cx="10" cy="18" r="2" fill="currentColor" />
                 </svg>
-              </span>
-              <h3>Renovações</h3>
-              <p>Contratos e receita recorrente deixam de depender de lembretes isolados.</p>
-              <ul><li>Calendário de vencimentos</li><li>Risco de renovação</li><li>Cadências preventivas</li></ul>
-            </article>
+                <strong>Diex CRM</strong>
+                <span>núcleo operacional</span>
+              </div>
+            </div>
+          </div>
 
-            <article class="module-card" data-reveal style="--reveal-delay: 60ms">
-              <span class="module-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3 5 7v5c0 4 3 7 7 9 4-2 7-5 7-9V7l-7-4Z" fill="none" stroke="currentColor" stroke-width="1.8" />
-                </svg>
-              </span>
-              <h3>Governança de IA</h3>
-              <p>Agentes usam o contexto do CRM com permissões, limites e rastreabilidade.</p>
-              <ul><li>Ferramentas MCP</li><li>Escopo por workspace</li><li>Políticas por agente</li></ul>
-            </article>
+          <div>
+            <div class="section-label" data-reveal>Infraestrutura que não limita</div>
+            <h2 class="section-heading" data-reveal>
+              A flexibilidade do Twenty. <span class="muted">A operação da Diex.</span>
+            </h2>
+            <p class="section-lead" data-reveal>
+              Um CRM construído sobre uma base moderna e extensível, adaptado para vendas, atendimento e relacionamento sem perder capacidade técnica.
+            </p>
+            <div class="infra-list">
+              <article class="infra-item" data-reveal>
+                <span>01</span>
+                <div><strong>Modelo de dados adaptável</strong><p>Objetos, campos, relações e visualizações configurados ao processo real da empresa.</p></div>
+              </article>
+              <article class="infra-item" data-reveal>
+                <span>02</span>
+                <div><strong>Workflows e conectores</strong><p>Automação ligada a eventos do CRM, canais e sistemas externos.</p></div>
+              </article>
+              <article class="infra-item" data-reveal>
+                <span>03</span>
+                <div><strong>MCP e API com governança</strong><p>Assistentes podem consultar e agir sobre o CRM respeitando contexto e permissões.</p></div>
+              </article>
+              <article class="infra-item" data-reveal>
+                <span>04</span>
+                <div><strong>Workspaces isolados</strong><p>Estrutura preparada para separar operações, equipes e dados por organização.</p></div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <article class="module-card" data-reveal style="--reveal-delay: 120ms">
-              <span class="module-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 7h16M4 12h10M4 17h16" fill="none" stroke="currentColor" stroke-width="1.8" />
-                  <path d="m17 10 3 2-3 2" fill="none" stroke="currentColor" stroke-width="1.8" />
-                </svg>
-              </span>
-              <h3>Migração do legado</h3>
-              <p>Dados antigos entram em uma estrutura mais forte sem perder o histórico comercial útil.</p>
-              <ul><li>Mapeamento de campos</li><li>Normalização de cadastros</li><li>Plano de transição</li></ul>
+      <section class="section implementation">
+        <div class="container">
+          <div class="implementation-head">
+            <div>
+              <div class="section-label" data-reveal>Implantação com método</div>
+              <h2 class="section-heading" data-reveal>O software entra depois que a operação faz sentido.</h2>
+            </div>
+            <p class="section-lead" data-reveal>
+              Migramos o que importa, eliminamos ruído e configuramos o CRM para sustentar o próximo estágio comercial.
+            </p>
+          </div>
+
+          <div class="implementation-steps">
+            <article class="implementation-step" data-reveal>
+              <span>ETAPA 01</span>
+              <h3>Diagnóstico</h3>
+              <p>Canais, funil, equipe, metas, gargalos e informações críticas são mapeados.</p>
+            </article>
+            <article class="implementation-step" data-reveal style="--delay:60ms">
+              <span>ETAPA 02</span>
+              <h3>Arquitetura</h3>
+              <p>Objetos, campos, permissões, automações e indicadores ganham desenho operacional.</p>
+            </article>
+            <article class="implementation-step" data-reveal style="--delay:120ms">
+              <span>ETAPA 03</span>
+              <h3>Migração</h3>
+              <p>Empresas, pessoas, tarefas e histórico útil entram na nova estrutura com critério.</p>
+            </article>
+            <article class="implementation-step" data-reveal style="--delay:180ms">
+              <span>ETAPA 04</span>
+              <h3>Evolução</h3>
+              <p>A operação é acompanhada para transformar uso real em melhoria contínua do CRM.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section section-dark" id="infraestrutura">
-        <div class="container architecture-grid">
-          <div class="architecture-copy" data-reveal>
-            <span class="eyebrow" style="color: #aebdff">Infraestrutura Twenty. Operação Diex.</span>
-            <h2>Flexível para adaptar. Sólido para crescer.</h2>
-            <p>
-              O Diex CRM preserva o núcleo extensível do Twenty e o transforma em uma plataforma
-              comercial com identidade, módulos e automações próprios.
-            </p>
-            <a class="button button-light" href="#diagnostico">Planejar minha implantação</a>
-          </div>
-
-          <div class="architecture-map">
-            <article class="architecture-node" data-reveal>
-              <em>Dados</em>
-              <strong>Modelo extensível</strong>
-              <span>Objetos, campos, views, relacionamentos e workflows adaptáveis à operação.</span>
-            </article>
-            <article class="architecture-node" data-reveal style="--reveal-delay: 70ms">
-              <em>Integrações</em>
-              <strong>Conectores e APIs</strong>
-              <span>Arquitetura preparada para canais, sistemas internos e automações externas.</span>
-            </article>
-            <article class="architecture-node" data-reveal style="--reveal-delay: 140ms">
-              <em>IA</em>
-              <strong>MCP com governança</strong>
-              <span>Contexto comercial disponível para agentes dentro de limites definidos.</span>
-            </article>
-            <article class="architecture-node" data-reveal style="--reveal-delay: 210ms">
-              <em>Escala</em>
-              <strong>Multiworkspace</strong>
-              <span>Isolamento de dados, papéis, permissões e operação por ambiente de negócio.</span>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section section-alt" id="diagnostico">
-        <div class="container diagnostic-grid">
-          <div class="diagnostic-copy" data-reveal>
-            <span class="eyebrow">Diagnóstico comercial</span>
-            <h2>Antes de instalar CRM, desenhamos a operação que ele precisa sustentar.</h2>
-            <p>
-              Em uma conversa objetiva, identificamos gargalos, fontes de lead, etapas, responsáveis,
-              integrações e o primeiro ganho que precisa aparecer.
-            </p>
-
-            <div class="diagnostic-points">
-              <div class="diagnostic-point"><span>1</span> Mapeamento do processo atual e dos vazamentos de receita.</div>
-              <div class="diagnostic-point"><span>2</span> Priorização de módulos, integrações e automações.</div>
-              <div class="diagnostic-point"><span>3</span> Plano de implantação e migração com fases claras.</div>
-            </div>
-          </div>
-
-          <form class="lead-form" id="diagnostic-form" data-reveal style="--reveal-delay: 100ms">
-            <div class="form-heading">
-              <strong>Solicite o diagnóstico</strong>
-              <span>Você será direcionado ao WhatsApp da Diex com o contexto preenchido.</span>
+      <section class="section diagnostic" id="diagnostico">
+        <div class="container">
+          <div class="diagnostic-shell">
+            <div class="diagnostic-copy">
+              <div class="section-label">Diagnóstico comercial</div>
+              <h2>Veja o Diex CRM aplicado à sua operação.</h2>
+              <p>
+                A demonstração parte do seu cenário: canais, equipe, processo e o resultado que precisa melhorar.
+              </p>
+              <div class="diagnostic-proof">
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" /></svg>
+                  Sem demonstração genérica de funcionalidades
+                </span>
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" /></svg>
+                  Leitura dos gargalos comerciais atuais
+                </span>
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" /></svg>
+                  Caminho de implantação e migração
+                </span>
+              </div>
             </div>
 
-            <div class="form-grid">
+            <form class="lead-form" id="diagnostic-form">
               <div class="field">
                 <label for="name">Seu nome</label>
-                <input id="name" name="name" type="text" autocomplete="name" required />
+                <input id="name" name="name" type="text" autocomplete="name" placeholder="Como podemos chamar você?" required />
               </div>
               <div class="field">
                 <label for="company">Empresa</label>
-                <input id="company" name="company" type="text" autocomplete="organization" required />
+                <input id="company" name="company" type="text" autocomplete="organization" placeholder="Nome da empresa" required />
+              </div>
+              <div class="field">
+                <label for="whatsapp">WhatsApp</label>
+                <input id="whatsapp" name="whatsapp" type="tel" autocomplete="tel" placeholder="(00) 00000-0000" required />
               </div>
               <div class="field">
                 <label for="team">Tamanho da equipe comercial</label>
@@ -1943,76 +3864,49 @@
                   <option>Mais de 30 pessoas</option>
                 </select>
               </div>
-              <div class="field">
-                <label for="current-crm">CRM atual</label>
-                <input id="current-crm" name="currentCrm" type="text" placeholder="Planilha, sistema ou nenhum" />
+              <div class="field full">
+                <label for="challenge">Qual é o principal gargalo hoje?</label>
+                <textarea id="challenge" name="challenge" placeholder="Ex.: leads sem retorno, informações espalhadas, baixa visão do pipeline..."></textarea>
               </div>
-              <div class="field field-full">
-                <label for="problem">Principal gargalo comercial</label>
-                <textarea
-                  id="problem"
-                  name="problem"
-                  placeholder="Ex.: leads sem retorno, pipeline sem visibilidade, conversas fora do CRM..."
-                  required
-                ></textarea>
+              <div class="form-action">
+                <button class="button button-primary" type="submit">Solicitar diagnóstico</button>
+                <small>Você será direcionado para falar com a equipe Diex no WhatsApp.</small>
               </div>
-            </div>
-
-            <div class="form-footer">
-              <small>Ao continuar, você inicia uma conversa com a equipe Diex. Seus dados não são publicados.</small>
-              <button class="button button-primary" type="submit">
-                Falar com um especialista
-                <svg viewBox="0 0 24 24" width="17" aria-hidden="true">
-                  <path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" />
-                </svg>
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </section>
 
-      <section class="section" id="faq">
-        <div class="container">
-          <div class="section-heading" data-reveal>
-            <span class="eyebrow">Dúvidas frequentes</span>
-            <h2>O que importa antes de mudar sua operação.</h2>
+      <section class="section faq" id="faq">
+        <div class="container faq-grid">
+          <div>
+            <div class="section-label" data-reveal>Perguntas importantes</div>
+            <h2 class="section-heading" data-reveal>Antes de mudar sua operação.</h2>
+            <p class="section-lead" data-reveal>
+              O Diex CRM é uma implantação orientada ao processo, não apenas uma assinatura de software.
+            </p>
           </div>
 
           <div class="faq-list" data-reveal>
             <details class="faq-item">
-              <summary>O Diex CRM substitui planilhas e ferramentas isoladas?</summary>
-              <p>
-                Sim. A implantação organiza empresas, pessoas, oportunidades, tarefas, conversas,
-                Customer Success e renovações em um mesmo contexto comercial.
-              </p>
+              <summary>O Diex CRM é o Twenty com outra identidade visual?</summary>
+              <p>Não. O Twenty fornece a infraestrutura extensível. A Diex transforma essa base com módulos, objetos, automações, canais, governança e experiência voltados à operação comercial.</p>
             </details>
             <details class="faq-item">
-              <summary>É possível migrar dados de outro CRM?</summary>
-              <p>
-                Sim. Primeiro mapeamos campos, histórico e qualidade dos dados. Depois definimos a
-                transição para preservar o que ajuda a vender e evitar carregar inconsistências.
-              </p>
+              <summary>É possível migrar dados do CRM atual?</summary>
+              <p>Sim. A migração é planejada por tipo de registro e relevância: empresas, pessoas, oportunidades, tarefas, etapas e histórico útil podem ser reorganizados na nova estrutura.</p>
             </details>
             <details class="faq-item">
-              <summary>O sistema se adapta ao processo da minha empresa?</summary>
-              <p>
-                O núcleo extensível permite configurar objetos, campos, views, workflows, permissões
-                e integrações sem transformar o CRM em um conjunto desconectado de customizações.
-              </p>
+              <summary>WhatsApp e e-mail aparecem no mesmo Inbox?</summary>
+              <p>O Inbox Comercial foi desenhado para reunir os canais e ligar cada conversa ao contexto do CRM, reduzindo a troca entre sistemas durante o atendimento.</p>
             </details>
             <details class="faq-item">
-              <summary>Como a inteligência artificial é controlada?</summary>
-              <p>
-                Agentes recebem somente o contexto e as ferramentas autorizadas. Permissões,
-                políticas e rastreabilidade fazem parte da camada de governança.
-              </p>
+              <summary>Agentes de IA podem acessar o CRM?</summary>
+              <p>Sim, por MCP e APIs controladas. O acesso respeita permissões e contexto; segredos e credenciais permanecem fora da camada exposta a agentes externos.</p>
             </details>
             <details class="faq-item">
-              <summary>Quanto tempo leva a implantação?</summary>
-              <p>
-                Depende do processo, das integrações e da migração. O diagnóstico inicial define fases
-                e coloca primeiro em produção o fluxo com maior impacto comercial.
-              </p>
+              <summary>Consigo adaptar etapas, campos e módulos?</summary>
+              <p>Sim. O modelo de dados e as visualizações são configuráveis para representar o processo comercial da empresa sem depender de um funil genérico.</p>
             </details>
           </div>
         </div>
@@ -2020,28 +3914,39 @@
 
       <section class="final-cta">
         <div class="container">
-          <div class="cta-box" data-reveal>
-            <div>
-              <h2>Seu CRM precisa mostrar a próxima ação, não apenas guardar dados.</h2>
-              <p>Converse com a Diex e desenhe uma operação que transforma contexto em receita.</p>
+          <div class="final-shell" data-reveal>
+            <h2>Não instale outro CRM. Estruture uma operação que vende.</h2>
+            <p>Mostre seu processo para a Diex e veja como ele pode funcionar dentro de um sistema único, conectado e evolutivo.</p>
+            <div class="final-actions">
+              <a class="button button-white" href="#diagnostico">Agendar demonstração</a>
+              <a class="button button-outline" style="border-color:rgba(255,255,255,.2);background:transparent;color:white" href="https://wa.me/5532984618531" target="_blank" rel="noopener">Falar pelo WhatsApp</a>
             </div>
-            <a class="button button-light" href="#diagnostico">Agendar diagnóstico</a>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="footer">
-      <div class="container footer-grid">
-        <a class="brand" href="/">
-          <img src="https://app.crm.bydiex.com/images/brand/diex-logo.svg" alt="" />
-          <span>Diex CRM <small>Commercial OS</small></span>
-        </a>
-        <span>© <span id="year"></span> Diex. Tecnologia aplicada à operação comercial.</span>
-        <div class="footer-links">
-          <a href="https://bydiex.com/">Conheça a Diex</a>
-          <a href="mailto:contato@bydiex.com">contato@bydiex.com</a>
-          <a href="https://app.crm.bydiex.com/welcome">Entrar</a>
+    <footer>
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <a class="brand" href="#inicio">
+              <img src="https://app.crm.bydiex.com/images/brand/diex-logo.svg" alt="" />
+              <span>Diex CRM <small>Operação comercial</small></span>
+            </a>
+            <p class="footer-copy">CRM, canais, Customer Success, automação e inteligência sobre a mesma operação.</p>
+          </div>
+          <div class="footer-links">
+            <a href="#produto">Produto</a>
+            <a href="#modulos">Módulos</a>
+            <a href="#infraestrutura">Infraestrutura</a>
+            <a href="https://app.crm.bydiex.com/welcome">Entrar</a>
+            <a href="https://bydiex.com">Diex</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© <span id="year"></span> Diex. Todos os direitos reservados.</span>
+          <span>Produto e implantação comercial pela Diex.</span>
         </div>
       </div>
     </footer>
@@ -2050,95 +3955,83 @@
       (() => {
         const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const header = document.getElementById("site-header");
-        const menuButton = document.getElementById("menu-toggle");
+        const menuToggle = document.getElementById("menu-toggle");
         const mobileMenu = document.getElementById("mobile-menu");
-        const productShell = document.getElementById("product-shell");
-        const productTabs = [...document.querySelectorAll("[data-product-tab]")];
-        const productPanels = [...document.querySelectorAll("[data-product-panel]")];
-        const title = document.getElementById("product-title");
-        const subtitle = document.getElementById("product-subtitle");
-        const moduleCopy = {
-          inbox: ["Inbox Comercial", "Conversas com contexto e próxima ação"],
-          intelligence: ["Inteligência Comercial", "Prioridade, risco e potencial de receita"],
-          success: ["Customer Success", "Saúde, expansão e renovação da carteira"],
-          governance: ["Governança de IA", "Agentes, ferramentas e políticas em controle"]
-        };
+        const crmTabs = [...document.querySelectorAll("[data-crm-tab]")];
+        const crmPanels = [...document.querySelectorAll("[data-crm-panel]")];
+        const navScenes = [...document.querySelectorAll("[data-nav-scene]")];
+        const storySteps = [...document.querySelectorAll("[data-story-step]")];
+        const storyScenes = [...document.querySelectorAll("[data-story-scene]")];
+        const sceneNames = crmTabs.map((tab) => tab.dataset.crmTab);
+        let activeScene = 0;
+        let sceneTimer;
+        let hasInteractedWithTabs = false;
 
-        const setHeaderState = () => {
-          header.classList.toggle("is-scrolled", window.scrollY > 8);
-        };
+        document.getElementById("year").textContent = new Date().getFullYear();
 
-        setHeaderState();
-        window.addEventListener("scroll", setHeaderState, { passive: true });
+        const updateHeader = () => header.classList.toggle("is-scrolled", window.scrollY > 18);
+        updateHeader();
+        window.addEventListener("scroll", updateHeader, { passive: true });
 
-        menuButton.addEventListener("click", () => {
+        menuToggle.addEventListener("click", () => {
           const isOpen = mobileMenu.classList.toggle("is-open");
-          menuButton.setAttribute("aria-expanded", String(isOpen));
-          menuButton.setAttribute("aria-label", isOpen ? "Fechar menu" : "Abrir menu");
+          menuToggle.setAttribute("aria-expanded", String(isOpen));
         });
 
         mobileMenu.querySelectorAll("a").forEach((link) => {
           link.addEventListener("click", () => {
             mobileMenu.classList.remove("is-open");
-            menuButton.setAttribute("aria-expanded", "false");
+            menuToggle.setAttribute("aria-expanded", "false");
           });
         });
 
-        let activeProductIndex = 0;
-        let productTimer;
+        const activateCrmScene = (name, animate = true) => {
+          crmTabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.crmTab === name)));
+          crmPanels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.crmPanel === name));
+          navScenes.forEach((item) => item.classList.toggle("is-active", item.dataset.navScene === name));
+          activeScene = Math.max(0, sceneNames.indexOf(name));
 
-        const activateProduct = (target) => {
-          const index = productTabs.findIndex((tab) => tab.dataset.productTab === target);
-          if (index < 0) return;
-
-          activeProductIndex = index;
-          productTabs.forEach((tab) => {
-            tab.setAttribute("aria-selected", String(tab.dataset.productTab === target));
-          });
-          productPanels.forEach((panel) => {
-            panel.classList.toggle("is-active", panel.dataset.productPanel === target);
-          });
-          title.textContent = moduleCopy[target][0];
-          subtitle.textContent = moduleCopy[target][1];
+          if (animate && !prefersReducedMotion) {
+            const panel = crmPanels.find((item) => item.dataset.crmPanel === name);
+            panel?.animate(
+              [
+                { opacity: 0, transform: "translateY(10px)" },
+                { opacity: 1, transform: "translateY(0)" },
+              ],
+              { duration: 360, easing: "cubic-bezier(.16,1,.3,1)" },
+            );
+          }
         };
 
-        const scheduleProductRotation = () => {
-          if (prefersReducedMotion) return;
-          window.clearInterval(productTimer);
-          productTimer = window.setInterval(() => {
-            activeProductIndex = (activeProductIndex + 1) % productTabs.length;
-            activateProduct(productTabs[activeProductIndex].dataset.productTab);
-          }, 4800);
+        const scheduleScene = () => {
+          window.clearInterval(sceneTimer);
+          if (prefersReducedMotion || hasInteractedWithTabs) return;
+          sceneTimer = window.setInterval(() => {
+            activeScene = (activeScene + 1) % sceneNames.length;
+            activateCrmScene(sceneNames[activeScene]);
+          }, 5200);
         };
 
-        productTabs.forEach((tab) => {
+        crmTabs.forEach((tab, index) => {
           tab.addEventListener("click", () => {
-            activateProduct(tab.dataset.productTab);
-            scheduleProductRotation();
+            hasInteractedWithTabs = true;
+            activateCrmScene(tab.dataset.crmTab);
+            scheduleScene();
+          });
+          tab.addEventListener("keydown", (event) => {
+            if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+            event.preventDefault();
+            const delta = event.key === "ArrowRight" ? 1 : -1;
+            const next = (index + delta + crmTabs.length) % crmTabs.length;
+            crmTabs[next].focus();
+            crmTabs[next].click();
           });
         });
+        scheduleScene();
 
-        scheduleProductRotation();
-
-        if (!prefersReducedMotion && window.matchMedia("(pointer: fine)").matches) {
-          let frame;
-          productShell.addEventListener("pointermove", (event) => {
-            window.cancelAnimationFrame(frame);
-            frame = window.requestAnimationFrame(() => {
-              const rect = productShell.getBoundingClientRect();
-              const x = (event.clientX - rect.left) / rect.width - 0.5;
-              const y = (event.clientY - rect.top) / rect.height - 0.5;
-              productShell.style.transform = `rotateY(${x * 3.2 - 1.2}deg) rotateX(${-y * 2.5 + 0.7}deg)`;
-            });
-          });
-          productShell.addEventListener("pointerleave", () => {
-            productShell.style.transform = "rotateY(-1.7deg) rotateX(1.2deg)";
-          });
-        }
-
-        const revealItems = [...document.querySelectorAll("[data-reveal]")];
+        const revealElements = [...document.querySelectorAll("[data-reveal]")];
         if (prefersReducedMotion || !("IntersectionObserver" in window)) {
-          revealItems.forEach((item) => item.classList.add("is-visible"));
+          revealElements.forEach((element) => element.classList.add("is-visible"));
         } else {
           const revealObserver = new IntersectionObserver(
             (entries, observer) => {
@@ -2148,28 +4041,98 @@
                 observer.unobserve(entry.target);
               });
             },
-            { threshold: 0.12, rootMargin: "0px 0px -40px" }
+            { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
           );
-          revealItems.forEach((item) => revealObserver.observe(item));
+          revealElements.forEach((element) => revealObserver.observe(element));
         }
+
+        const heroItems = [...document.querySelectorAll("[data-hero-item]")];
+        const heroProduct = document.querySelector("[data-hero-product]");
+        if (!prefersReducedMotion) {
+          heroItems.forEach((element, index) => {
+            element.animate(
+              [
+                { opacity: 0, transform: "translateY(18px)" },
+                { opacity: 1, transform: "translateY(0)" },
+              ],
+              {
+                duration: 760,
+                delay: 90 + index * 95,
+                fill: "both",
+                easing: "cubic-bezier(.16,1,.3,1)",
+              },
+            );
+          });
+          heroProduct?.animate(
+            [
+              { opacity: 0, transform: "translateY(34px) scale(.985)" },
+              { opacity: 1, transform: "translateY(0) scale(1)" },
+            ],
+            { duration: 1000, delay: 520, fill: "both", easing: "cubic-bezier(.16,1,.3,1)" },
+          );
+        }
+
+        const activateStory = (name) => {
+          storySteps.forEach((step) => step.classList.toggle("is-active", step.dataset.storyStep === name));
+          storyScenes.forEach((scene) => scene.classList.toggle("is-active", scene.dataset.storyScene === name));
+        };
+
+        storySteps.forEach((step) => {
+          step.addEventListener("mouseenter", () => activateStory(step.dataset.storyStep));
+          step.addEventListener("click", () => activateStory(step.dataset.storyStep));
+        });
+
+        if ("IntersectionObserver" in window) {
+          const storyObserver = new IntersectionObserver(
+            (entries) => {
+              const current = entries
+                .filter((entry) => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+              if (current) activateStory(current.target.dataset.storyStep);
+            },
+            { threshold: [0.45, 0.65], rootMargin: "-20% 0px -30% 0px" },
+          );
+          storySteps.forEach((step) => storyObserver.observe(step));
+        }
+
+        const crmWindow = document.getElementById("crm-window");
+        if (!prefersReducedMotion && window.matchMedia("(pointer: fine)").matches) {
+          crmWindow.addEventListener("pointermove", (event) => {
+            const rect = crmWindow.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width - 0.5;
+            const y = (event.clientY - rect.top) / rect.height - 0.5;
+            crmWindow.style.transform = `perspective(1800px) rotateX(${0.7 - y * 1.2}deg) rotateY(${x * 1.2}deg)`;
+          });
+          crmWindow.addEventListener("pointerleave", () => {
+            crmWindow.style.transform = "perspective(1800px) rotateX(.7deg)";
+          });
+        }
+
+        const phoneInput = document.getElementById("whatsapp");
+        phoneInput.addEventListener("input", (event) => {
+          const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
+          const parts = [];
+          if (digits.length) parts.push(`(${digits.slice(0, 2)}`);
+          if (digits.length >= 2) parts[0] += ")";
+          if (digits.length > 2) parts.push(digits.slice(2, 7));
+          if (digits.length > 7) parts.push(`-${digits.slice(7, 11)}`);
+          event.target.value = parts.join(" ");
+        });
 
         document.getElementById("diagnostic-form").addEventListener("submit", (event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
           const message = [
-            "Olá! Quero solicitar um diagnóstico do Diex CRM.",
+            "Olá, quero solicitar um diagnóstico do Diex CRM.",
             "",
             `Nome: ${data.get("name")}`,
             `Empresa: ${data.get("company")}`,
+            `WhatsApp: ${data.get("whatsapp")}`,
             `Equipe comercial: ${data.get("team")}`,
-            `CRM atual: ${data.get("currentCrm") || "Não informado"}`,
-            `Principal gargalo: ${data.get("problem")}`
+            `Principal gargalo: ${data.get("challenge") || "Não informado"}`,
           ].join("\n");
-
-          window.open(`https://wa.me/5532984618531?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+          window.open(`https://wa.me/5532984618531?text=${encodeURIComponent(message)}`, "_blank", "noopener");
         });
-
-        document.getElementById("year").textContent = new Date().getFullYear();
       })();
     </script>
   </body>
