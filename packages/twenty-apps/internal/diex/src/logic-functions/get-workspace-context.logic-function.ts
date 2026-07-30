@@ -90,13 +90,13 @@ const getWorkspaceContext = async (): Promise<WorkspaceContextResult> => {
           id: true,
           name: true,
           status: true,
-          businessDescription: true,
-          idealCustomerProfile: true,
-          toneOfVoice: true,
-          commercialRules: true,
-          objectionPlaybook: true,
-          competitiveLandscape: true,
-          forbiddenClaims: true,
+          businessDescription: { markdown: true },
+          idealCustomerProfile: { markdown: true },
+          toneOfVoice: { markdown: true },
+          commercialRules: { markdown: true },
+          objectionPlaybook: { markdown: true },
+          competitiveLandscape: { markdown: true },
+          forbiddenClaims: { markdown: true },
           reviewedAt: true,
         },
       },
@@ -112,10 +112,10 @@ const getWorkspaceContext = async (): Promise<WorkspaceContextResult> => {
           name: true,
           category: true,
           pricingModel: true,
-          valueProposition: true,
-          idealCustomerProfile: true,
-          differentiators: true,
-          objectionPlaybook: true,
+          valueProposition: { markdown: true },
+          idealCustomerProfile: { markdown: true },
+          differentiators: { markdown: true },
+          objectionPlaybook: { markdown: true },
         },
       },
     },
@@ -153,7 +153,9 @@ const getWorkspaceContext = async (): Promise<WorkspaceContextResult> => {
   }
 
   if (!tone) {
-    gaps.push('Falta o tom de voz; rascunhos sairão no tom genérico do modelo.');
+    gaps.push(
+      'Falta o tom de voz; rascunhos sairão no tom genérico do modelo.',
+    );
   }
 
   if (!rules) {

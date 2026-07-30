@@ -221,11 +221,11 @@ const loadCommercialContext = async (client: CoreApiClient) => {
       },
       edges: {
         node: {
-          businessDescription: true,
-          idealCustomerProfile: true,
-          toneOfVoice: true,
-          commercialRules: true,
-          forbiddenClaims: true,
+          businessDescription: { markdown: true },
+          idealCustomerProfile: { markdown: true },
+          toneOfVoice: { markdown: true },
+          commercialRules: { markdown: true },
+          forbiddenClaims: { markdown: true },
         },
       },
     },
