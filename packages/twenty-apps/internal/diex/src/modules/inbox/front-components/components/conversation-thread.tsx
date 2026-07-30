@@ -118,8 +118,22 @@ const MessageTranscription = ({
     return <p style={inboxStyles.transcription}>{transcription}</p>;
   }
 
-  if (status === 'UNAVAILABLE' || status === 'FAILED') {
-    return null;
+  // Saying nothing left the operator unable to tell an audio the customer
+  // recorded in silence from one nobody ever transcribed.
+  if (status === 'UNAVAILABLE') {
+    return (
+      <p style={inboxStyles.transcriptionPending}>
+        Transcrição de áudio não está ativada neste servidor.
+      </p>
+    );
+  }
+
+  if (status === 'FAILED') {
+    return (
+      <p style={inboxStyles.transcriptionPending}>
+        Não foi possível transcrever este áudio.
+      </p>
+    );
   }
 
   return <p style={inboxStyles.transcriptionPending}>Transcrevendo áudio...</p>;

@@ -83,9 +83,11 @@ export const transcribeAudio = async ({
 
   const audio = base64ToBlobPart(base64);
 
+  // Failed rather than unavailable: the size belongs to this audio and will not
+  // change, so the queue must not keep coming back to it.
   if (audio.byteLength > MAX_AUDIO_BYTES) {
     return {
-      status: 'UNAVAILABLE',
+      status: 'FAILED',
       reason: 'Áudio maior do que o limite de transcrição.',
     };
   }

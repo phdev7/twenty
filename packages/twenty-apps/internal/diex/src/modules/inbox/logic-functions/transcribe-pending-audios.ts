@@ -2,7 +2,10 @@ import { CoreApiClient } from 'twenty-client-sdk/core';
 
 import { InboxTranscriptionStatus } from 'src/modules/inbox/objects/inbox-message.object';
 import { fetchEvolutionMediaBase64 } from 'src/modules/inbox/utils/evolution-media';
-import { transcribeAudio } from 'src/modules/inbox/utils/transcribe-audio';
+import {
+  readOpenAiApiKey,
+  transcribeAudio,
+} from 'src/modules/inbox/utils/transcribe-audio';
 
 // A handful per cycle: transcription is a paid round trip per audio, and the
 // cycle also has to stay responsive for the operator watching the inbox.
@@ -25,9 +28,18 @@ const readPendingAudios = async (
   const result = (await client.query({
     inboxMessages: {
       __args: {
+        // UNAVAILABLE is a server condition, not a property of the audio: the
+        // key was missing or the quota was spent. Once transcription works,
+        // whatever arrived meanwhile has to be picked up, or an operator who
+        // configures the key sees the backlog stay silent forever.
         filter: {
           messageType: { eq: 'AUDIO' },
-          transcriptionStatus: { is: 'NULL' },
+          or: [
+            { transcriptionStatus: { is: 'NULL' } },
+            {
+              transcriptionStatus: { eq: InboxTranscriptionStatus.UNAVAILABLE },
+            },
+          ],
         },
         first: MAX_AUDIOS_PER_RUN,
         orderBy: [{ sentAt: 'DescNullsLast' }],
@@ -75,6 +87,12 @@ const saveOutcome = async ({
 // into text puts it back in both.
 export const transcribePendingAudios =
   async (): Promise<TranscribePendingAudiosResult> => {
+    // Without a key every audio comes back UNAVAILABLE, so the whole cycle is
+    // a round trip to the provider and a write for nothing.
+    if (readOpenAiApiKey() === null) {
+      return { transcribed: 0, unavailable: 0, failed: 0 };
+    }
+
     const client = new CoreApiClient();
     const pending = await readPendingAudios(client);
     let transcribed = 0;
@@ -84,13 +102,16 @@ export const transcribePendingAudios =
     for (const audio of pending) {
       const media = await fetchEvolutionMediaBase64(audio.providerMessageKey);
 
+      // Failed, not unavailable: the provider has no media for this message, so
+      // retrying it every minute would spend the run's budget on an audio that
+      // is never coming back and starve the ones that just arrived.
       if (!media) {
-        unavailable += 1;
+        failed += 1;
 
         await saveOutcome({
           client,
           inboxMessageId: audio.id,
-          status: InboxTranscriptionStatus.UNAVAILABLE,
+          status: InboxTranscriptionStatus.FAILED,
           transcription: null,
         });
 
