@@ -194,7 +194,7 @@ const buildAgentPrompt = ({
     // Without this the agent treated a voice note as an empty message and asked
     // the customer to retype what they had just said, while the operator had the
     // audio one click away in the inbox.
-    'Em mensagens de áudio, transcription com transcriptionStatus DONE é a fala do cliente: trate como fala dele e cite como fala. Quando o status não é DONE o áudio não virou texto, mas o operador consegue ouvi-lo na inbox: não invente o conteúdo, não trate a mensagem como vazia e não peça ao cliente que repita por escrito o que ele já falou. Nesse caso recommendedAction é o operador abrir o áudio, e suggestedReply deve ser um texto que faça sentido sem conhecer o conteúdo do áudio ou ficar vazio.',
+    'Em mensagens de áudio, transcription com transcriptionStatus DONE é a fala do cliente: trate como fala dele e cite como fala. Quando o status não é DONE, ninguém leu o áudio ainda, mas o operador consegue ouvi-lo na inbox: não invente o conteúdo e não trate a mensagem como vazia. Nesse caso recommended_action é o operador abrir o áudio antes de responder, e suggested_reply é uma mensagem curta que faça sentido sem conhecer o conteúdo do áudio, sem pedir que o cliente repita por escrito o que já falou.',
     JSON.stringify({
       conversation,
       messages: safeMessages,
