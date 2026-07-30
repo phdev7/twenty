@@ -29,8 +29,7 @@ import {
   openRecord,
 } from 'src/modules/ai-command-center/front-components/utils/ai-command-center-formatters';
 import { aiCommandCenterStyles as styles } from 'src/modules/ai-command-center/front-components/ai-command-center.styles';
-import {
-} from 'src/modules/ai-command-center/front-components/ai-command-center.types';
+import {} from 'src/modules/ai-command-center/front-components/ai-command-center.types';
 import { useAiCommandCenter } from 'src/modules/ai-command-center/front-components/use-ai-command-center';
 import {
   Badge,
@@ -40,10 +39,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Progress,
   Skeleton,
 } from 'src/ui/shadcn-twenty';
-
 
 export const AiCommandCenterFrontComponent = () => {
   const {
@@ -346,7 +343,9 @@ export const AiCommandCenterFrontComponent = () => {
                   <Badge tone={getStatusTone(selectedAction.status)}>
                     {getStatusLabel(selectedAction.status)}
                   </Badge>
-                  <Badge tone="blue">{getTypeLabel(selectedAction.actionType)}</Badge>
+                  <Badge tone="blue">
+                    {getTypeLabel(selectedAction.actionType)}
+                  </Badge>
                   <Badge
                     tone={
                       (selectedAction.confidence ?? 0) >= 75
@@ -818,11 +817,6 @@ export const AiCommandCenterFrontComponent = () => {
               Últimas decisões e recibos operacionais.
             </CardDescription>
           </div>
-          <Progress
-            value={metrics.approvalRate}
-            tone={metrics.failed.length > 0 ? 'red' : 'green'}
-            style={{ maxWidth: 180 }}
-          />
         </div>
         <div style={styles.auditGrid}>
           {actions
