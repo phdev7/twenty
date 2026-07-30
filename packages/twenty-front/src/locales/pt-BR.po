@@ -20843,6 +20843,16 @@ msgstr "Endpoint Streamable HTTP ativo desta instância do Diex CRM."
 msgid "Open Claude with the Diex CRM connector name and MCP URL prefilled."
 msgstr "Abra o Claude com o nome do conector do Diex CRM e a URL do MCP preenchidos."
 
+msgid "Turn on developer mode in ChatGPT settings, then paste the MCP URL below as a connector."
+msgstr "Ative o modo desenvolvedor nas configurações do ChatGPT e cole a URL do MCP abaixo como conector."
+
+msgid "ChatGPT connectors require an HTTPS MCP URL."
+msgstr "Conectores do ChatGPT exigem uma URL MCP HTTPS."
+
+msgid "Connector"
+msgstr "Conector"
+
+
 msgid "Open Cursor's MCP installer with the Diex CRM remote server config."
 msgstr "Abra o instalador MCP do Cursor com a configuração do servidor remoto do Diex CRM."
 
