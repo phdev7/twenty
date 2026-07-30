@@ -75,6 +75,8 @@ type MessageContext = {
   direction: string | null;
   messageType: string | null;
   body: string | null;
+  transcription: string | null;
+  transcriptionStatus: string | null;
   sentAt: string | null;
   senderDisplayName: string | null;
   isInternalNote: boolean | null;
@@ -134,6 +136,8 @@ const loadConversationContext = async (
             direction: true,
             messageType: true,
             body: true,
+            transcription: true,
+            transcriptionStatus: true,
             sentAt: true,
             senderDisplayName: true,
             isInternalNote: true,
@@ -180,11 +184,17 @@ const buildAgentPrompt = ({
     senderDisplayName: message.senderDisplayName,
     isInternalNote: message.isInternalNote,
     body: message.body?.slice(0, 2_000) ?? null,
+    transcription: message.transcription?.slice(0, 2_000) ?? null,
+    transcriptionStatus: message.transcriptionStatus,
   }));
 
   return [
     'Analise o pacote fechado abaixo. Ele já está limitado ao workspace atual.',
     'Não execute nenhuma ação. Produza somente a saída estruturada solicitada.',
+    // Without this the agent treated a voice note as an empty message and asked
+    // the customer to retype what they had just said, while the operator had the
+    // audio one click away in the inbox.
+    'Em mensagens de áudio, transcription com transcriptionStatus DONE é a fala do cliente: trate como fala dele e cite como fala. Quando o status não é DONE o áudio não virou texto, mas o operador consegue ouvi-lo na inbox: não invente o conteúdo, não trate a mensagem como vazia e não peça ao cliente que repita por escrito o que ele já falou. Nesse caso recommendedAction é o operador abrir o áudio, e suggestedReply deve ser um texto que faça sentido sem conhecer o conteúdo do áudio ou ficar vazio.',
     JSON.stringify({
       conversation,
       messages: safeMessages,

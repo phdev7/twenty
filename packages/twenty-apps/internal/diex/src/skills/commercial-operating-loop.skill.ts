@@ -30,7 +30,7 @@ export default defineSkill({
     '## 2. Responder uma conversa de WhatsApp',
     '',
     '1. `get-diex-inbox-conversation-context` com o `conversationId` (ou o telefone em `contactSearch`). Traz a transcrição completa, as notas internas, o contato, a empresa, a oportunidade, as tarefas abertas e os sinais.',
-    '2. Em mensagens de áudio, `transcription` é o que o cliente **falou**. Trate como fala dele e cite como fala.',
+    '2. Em mensagens de áudio, `transcription` é o que o cliente **falou**. Trate como fala dele e cite como fala. Quando `transcriptionStatus` não é `DONE`, o áudio não virou texto e você não sabe o que foi dito: o operador consegue ouvi-lo na inbox, então peça que ele abra o áudio em vez de pedir ao cliente que repita por escrito o que já falou.',
     '3. `get-diex-workspace-context` antes de escrever: use o tom de voz e as regras comerciais de lá, e nunca produza afirmação listada como proibida.',
     '4. Redija o rascunho e entregue ao operador. **Você não envia.** O envio exige a confirmação explícita dele na inbox, e há uma janela de 24 horas desde a última mensagem recebida — fora dela é preciso consentimento registrado no contato.',
     '5. Registre o que a conversa revelou: sinal comercial quando houver evidência de intenção, objeção ou risco; tarefa quando ficou combinado um próximo passo.',
