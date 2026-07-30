@@ -377,8 +377,8 @@ export const CustomerSuccessCommandCenterFrontComponent = () => {
         </div>
         <Skeleton style={{ minHeight: 120 }} />
         <div style={styles.workspaceGrid}>
-          <Skeleton style={{ minHeight: 600 }} />
-          <Skeleton style={{ minHeight: 600 }} />
+          <Skeleton style={{ minHeight: 360 }} />
+          <Skeleton style={{ minHeight: 360 }} />
         </div>
       </div>
     );
