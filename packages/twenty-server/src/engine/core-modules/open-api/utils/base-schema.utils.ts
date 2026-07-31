@@ -124,10 +124,11 @@ curl -H 'Authorization: Bearer <token>' \\
   ${serverUrl}/rest/open-api/${schemaName} > twenty-${schemaName}.json
 \`\`\`
 `,
-      termsOfService:
-        'https://github.com/twentyhq/twenty?tab=coc-ov-file#readme',
+      // This document is served to our customers, so the contact has to be
+      // ours. The licence declaration stays: the API is genuinely AGPL, and
+      // saying so is an obligation rather than vendor branding.
       contact: {
-        email: 'felix@twenty.com',
+        email: 'contato@bydiex.com',
       },
       license: {
         name: 'AGPL-3.0',
@@ -158,10 +159,6 @@ curl -H 'Authorization: Bearer <token>' \\
         bearerAuth: [],
       },
     ],
-    externalDocs: {
-      description: 'Find out more about **Twenty**',
-      url: 'https://twenty.com',
-    },
     paths: { [`/open-api/${schemaName}`]: computeOpenApiPath(serverUrl) },
   };
 };

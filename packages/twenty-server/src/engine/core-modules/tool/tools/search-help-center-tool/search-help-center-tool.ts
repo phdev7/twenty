@@ -34,9 +34,19 @@ export class SearchHelpCenterTool implements Tool {
 
       const useDirectApi = MINTLIFY_API_KEY && MINTLIFY_SUBDOMAIN;
 
-      const endpoint = useDirectApi
-        ? `https://api-dsc.mintlify.com/v1/search/${MINTLIFY_SUBDOMAIN}`
-        : 'https://twenty-help-search.com/search/twenty';
+      // Upstream falls back to the vendor's help proxy here. That sent the
+      // question to them and answered with their product's documentation,
+      // which is wrong twice over in a white-label deployment. Without a help
+      // centre of our own configured, the tool says so instead.
+      if (!useDirectApi) {
+        return {
+          success: false,
+          message:
+            'Nenhuma central de ajuda está configurada nesta instância. Defina MINTLIFY_API_KEY e MINTLIFY_SUBDOMAIN para apontar à documentação própria.',
+        };
+      }
+
+      const endpoint = `https://api-dsc.mintlify.com/v1/search/${MINTLIFY_SUBDOMAIN}`;
 
       const headers = {
         'Content-Type': 'application/json',
