@@ -1440,33 +1440,33 @@ msgstr "Tilføj testinput for at evaluere (f.eks. \"Find alle kunder i NY\")"
 
 #. js-lingui-id: FKGcEL
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server as a remote context server in Zed."
-msgstr "Tilføj Twenty MCP-serveren som en fjern kontekstserver i Zed."
+msgid "Add the Diex MCP server as a remote context server in Zed."
+msgstr "Tilføj Diex MCP-serveren som en fjern kontekstserver i Zed."
 
 #. js-lingui-id: iA2nHX
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Augment Code settings."
-msgstr "Tilføj Twenty MCP-serveren fra Augment Code-indstillingerne."
+msgid "Add the Diex MCP server from Augment Code settings."
+msgstr "Tilføj Diex MCP-serveren fra Augment Code-indstillingerne."
 
 #. js-lingui-id: l+NzAk
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Raycast's MCP commands or settings."
-msgstr "Tilføj Twenty MCP-serveren fra Raycasts MCP-kommandoer eller -indstillinger."
+msgid "Add the Diex MCP server from Raycast's MCP commands or settings."
+msgstr "Tilføj Diex MCP-serveren fra Raycasts MCP-kommandoer eller -indstillinger."
 
 #. js-lingui-id: j6G/yI
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server in Gemini CLI settings."
-msgstr "Tilføj Twenty MCP-serveren i Gemini CLI-indstillingerne."
+msgid "Add the Diex MCP server in Gemini CLI settings."
+msgstr "Tilføj Diex MCP-serveren i Gemini CLI-indstillingerne."
 
 #. js-lingui-id: /OyhlM
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server to your LibreChat configuration file."
-msgstr "Tilføj Twenty MCP-serveren til din LibreChat-konfigurationsfil."
+msgid "Add the Diex MCP server to your LibreChat configuration file."
+msgstr "Tilføj Diex MCP-serveren til din LibreChat-konfigurationsfil."
 
 #. js-lingui-id: K0DXoj
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty remote server with LM Studio's install link."
-msgstr "Tilføj Twenty-fjernserveren med LM Studios installationslink."
+msgid "Add the Diex remote server with LM Studio's install link."
+msgstr "Tilføj Diex-fjernserveren med LM Studios installationslink."
 
 #. js-lingui-id: 5+ttxv
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistInput.tsx
@@ -1485,8 +1485,8 @@ msgstr "Tilføj emne"
 
 #. js-lingui-id: 4D/zWv
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add Twenty as a Streamable HTTP extension in Goose."
-msgstr "Tilføj Twenty som en Streamable HTTP-udvidelse i Goose."
+msgid "Add Diex as a Streamable HTTP extension in Goose."
+msgstr "Tilføj Diex som en Streamable HTTP-udvidelse i Goose."
 
 #. js-lingui-id: XnwceV
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationRedirectURIsInput.tsx
@@ -3072,8 +3072,8 @@ msgstr "Faktureringsperiode"
 
 #. js-lingui-id: xF/NXI
 #: src/modules/settings/billing/hooks/useBillingPortalSession.ts
-msgid "Billing portal session error. Please retry or contact Twenty team"
-msgstr "Fejl i faktureringsportalens session. Prøv igen, eller kontakt Twenty-teamet"
+msgid "Billing portal session error. Please retry or contact Diex team"
+msgstr "Fejl i faktureringsportalens session. Prøv igen, eller kontakt Diex-teamet"
 
 #. js-lingui-id: K1172m
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistSection.tsx
@@ -3199,8 +3199,8 @@ msgstr "af {author}"
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "Ved at bruge Twenty accepterer du"
+msgid "By using Diex, you agree to the"
+msgstr "Ved at bruge Diex accepterer du"
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -3663,8 +3663,8 @@ msgstr "Tjek din indbakke for at bekræfte din nye e-mailadresse."
 #. js-lingui-id: SxwQE8
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
-msgid "Checkout session error. Please retry or contact Twenty team"
-msgstr "Fejl i betalingssession. Prøv igen eller kontakt Twenty team"
+msgid "Checkout session error. Please retry or contact Diex team"
+msgstr "Fejl i betalingssession. Prøv igen eller kontakt Diex team"
 
 #. js-lingui-id: SviKkE
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
@@ -4272,13 +4272,13 @@ msgstr "Konfigurer den eksterne server i Amazon Q Developers MCP-indstillinger."
 
 #. js-lingui-id: g1/8jH
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cascade."
-msgstr "Konfigurer Twenty MCP-serveren manuelt i Cascade."
+msgid "Configure the Diex MCP server manually in Cascade."
+msgstr "Konfigurer Diex MCP-serveren manuelt i Cascade."
 
 #. js-lingui-id: XiyvRh
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cline."
-msgstr "Konfigurer Twenty MCP-serveren manuelt i Cline."
+msgid "Configure the Diex MCP server manually in Cline."
+msgstr "Konfigurer Diex MCP-serveren manuelt i Cline."
 
 #. js-lingui-id: qA9AGQ
 #: src/modules/settings/domains/components/SettingsDomainRecords.tsx
@@ -7560,8 +7560,8 @@ msgstr "Fejl ved annullering af planskift."
 
 #. js-lingui-id: QmR+2U
 #: src/modules/settings/billing/hooks/useEndSubscriptionTrialPeriod.ts
-msgid "Error while ending trial period. Please contact Twenty team."
-msgstr "Fejl ved afslutning af prøveperiode. Kontakt venligst Twenty team."
+msgid "Error while ending trial period. Please contact Diex team."
+msgstr "Fejl ved afslutning af prøveperiode. Kontakt venligst Diex team."
 
 #. js-lingui-id: 5g78zo
 #: src/pages/settings/members/SettingsWorkspaceMember.tsx
@@ -9218,8 +9218,8 @@ msgstr "Skjul systemindekser"
 
 #. js-lingui-id: 1ETc0T
 #: src/pages/settings/community/SettingsCommunity.tsx
-msgid "Hire a partner to help you implement and customize Twenty."
-msgstr "Hyr en partner til at hjælpe dig med at implementere og tilpasse Twenty."
+msgid "Hire a partner to help you implement and customize Diex."
+msgstr "Hyr en partner til at hjælpe dig med at implementere og tilpasse Diex."
 
 #. js-lingui-id: i0qMbr
 #: src/modules/navigation/components/MainNavigationDrawerTabsRow.tsx
@@ -13270,8 +13270,8 @@ msgstr "Et eller flere filtre refererer til deaktiverede eller slettede felter o
 
 #. js-lingui-id: 2l4SGU
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
-msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
-msgstr "Ét abonnement giver én enterprise-nøgle, der driver én produktionsinstans og én mulig staging- eller testinstans. For at køre et staging- eller testmiljø skal du installere Twenty på en anden server, aktivere den med den samme enterprise-nøgle og derefter registrere den server som en udviklingsinstans. Udviklingsinstanser låser op for enterprise-funktioner uden ekstra fakturering og tæller ikke med i dine produktionspladser."
+msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Diex on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
+msgstr "Ét abonnement giver én enterprise-nøgle, der driver én produktionsinstans og én mulig staging- eller testinstans. For at køre et staging- eller testmiljø skal du installere Diex på en anden server, aktivere den med den samme enterprise-nøgle og derefter registrere den server som en udviklingsinstans. Udviklingsinstanser låser op for enterprise-funktioner uden ekstra fakturering og tæller ikke med i dine produktionspladser."
 
 #. js-lingui-id: oFTo3P
 #: src/modules/settings/event-logs/components/SettingsLogs.tsx
@@ -13357,13 +13357,13 @@ msgstr "Åbn som link"
 
 #. js-lingui-id: n0vVgf
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Claude with the Twenty connector name and MCP URL prefilled."
-msgstr "Åbn Claude med Twenty-forbindelsesnavnet og MCP-URL'en forudfyldt."
+msgid "Open Claude with the Diex connector name and MCP URL prefilled."
+msgstr "Åbn Claude med Diex-forbindelsesnavnet og MCP-URL'en forudfyldt."
 
 #. js-lingui-id: +n2jpB
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Cursor's MCP installer with the Twenty remote server config."
-msgstr "Åbn Cursors MCP-installationsprogram med Twenty-fjernserverkonfigurationen."
+msgid "Open Cursor's MCP installer with the Diex remote server config."
+msgstr "Åbn Cursors MCP-installationsprogram med Diex-fjernserverkonfigurationen."
 
 #. js-lingui-id: pZZH4Q
 #: src/modules/auth/sign-in-up/components/EmailVerificationSent.tsx
@@ -13398,13 +13398,13 @@ msgstr "Åbn poster i"
 
 #. js-lingui-id: q170S2
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Replit with the Twenty remote server config."
-msgstr "Åbn Replit med Twenty-fjernserverkonfigurationen."
+msgid "Open Replit with the Diex remote server config."
+msgstr "Åbn Replit med Diex-fjernserverkonfigurationen."
 
 #. js-lingui-id: sBd/cl
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Twenty's official ChatGPT integration for your workspace."
-msgstr "Åbn Twentys officielle ChatGPT-integration for dit arbejdsområde."
+msgid "Open Diex official ChatGPT integration for your workspace."
+msgstr "Åbn Diexs officielle ChatGPT-integration for dit arbejdsområde."
 
 #. js-lingui-id: OV5wZZ
 #: src/modules/navigation-menu-item/display/sections/components/NavigationDrawerOpenedSection.tsx
@@ -13687,8 +13687,8 @@ msgstr "Sidenavn"
 
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "Side ikke fundet | Twenty"
+msgid "Page Not Found | Diex"
+msgstr "Side ikke fundet | Diex"
 
 #. js-lingui-id: sF+Xp9
 #: src/modules/settings/event-logs/components/EventLogTableSelector.tsx
@@ -17186,8 +17186,8 @@ msgstr "Abonnement aktiveret."
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
-msgid "Subscription error. Please retry or contact Twenty team"
-msgstr "Abonnementsfejl. Prøv igen, eller kontakt Twenty-teamet"
+msgid "Subscription error. Please retry or contact Diex team"
+msgstr "Abonnementsfejl. Prøv igen, eller kontakt Diex-teamet"
 
 #. js-lingui-id: FooJUj
 #. placeholder {0}: getTargetPlanLabel(targetPlanKey)
@@ -17566,11 +17566,11 @@ msgstr "AWS-regionen for Bedrock"
 #. js-lingui-id: HP7per
 #: src/pages/settings/applications/utils/getStandardApplicationDescription.ts
 msgid ""
-"The base data model every Twenty workspace runs on.\n"
+"The base data model every Diex workspace runs on.\n"
 "\n"
 "#### What \"foundation\" means\n"
 "\n"
-"Every Twenty workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
+"Every Diex workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
 "\n"
 "#### Included objects\n"
 "- **People & Companies**: contact and account records\n"
@@ -17578,11 +17578,11 @@ msgid ""
 "- **Notes & Tasks**: activity and follow-ups\n"
 "- **Workflows & Dashboards**: automation and reporting\n"
 "\n"
-"Remove this app and the rest of Twenty has nothing to hang off.\n"
+"Remove this app and the rest of Diex has nothing to hang off.\n"
 "\n"
 "#### Build your own app\n"
 "\n"
-"Extend Twenty with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
+"Extend Diex with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17597,11 +17597,11 @@ msgid ""
 "\n"
 "See the [Getting Started guide](https://twenty.com/developers/extend/apps/getting-started) for the full walkthrough, and [Building Apps](https://twenty.com/developers/extend/apps/building) for the `defineApplication` / `defineEntity` APIs."
 msgstr ""
-"Den grundlæggende datamodel, som hvert Twenty-arbejdsområde kører på.\n"
+"Den grundlæggende datamodel, som hvert Diex-arbejdsområde kører på.\n"
 "\n"
 "#### Hvad \"fundament\" betyder\n"
 "\n"
-"Hvert Twenty-arbejdsområde starter med dette sæt objekter. De definerer formen på dit CRM, inklusive relationer, aktivitet og rapportering. Alt andet, inklusive marketplace-apps, AI-agenter og brugerdefinerede objekter, tilsluttes dem.\n"
+"Hvert Diex-arbejdsområde starter med dette sæt objekter. De definerer formen på dit CRM, inklusive relationer, aktivitet og rapportering. Alt andet, inklusive marketplace-apps, AI-agenter og brugerdefinerede objekter, tilsluttes dem.\n"
 "\n"
 "#### Medfølgende objekter\n"
 "- **Personer og virksomheder**: kontakt- og virksomhedsoptegnelser\n"
@@ -17609,11 +17609,11 @@ msgstr ""
 "- **Noter og opgaver**: aktivitet og opfølgninger\n"
 "- **Arbejdsgange og dashboards**: automatisering og rapportering\n"
 "\n"
-"Fjerner du denne app, har resten af Twenty ikke noget at hænge på.\n"
+"Fjerner du denne app, har resten af Diex ikke noget at hænge på.\n"
 "\n"
 "#### Byg din egen app\n"
 "\n"
-"Udvid Twenty med dine egne objekter, felter, logiske funktioner eller AI-færdigheder. Opret en ny app med én kommando:\n"
+"Udvid Diex med dine egne objekter, felter, logiske funktioner eller AI-færdigheder. Opret en ny app med én kommando:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17712,8 +17712,8 @@ msgstr "Siden, som dine brugere bliver omdirigeret til for at framelde sig dine 
 
 #. js-lingui-id: Ya1wb4
 #: src/pages/settings/legal/SettingsLegalDpaNew.tsx
-msgid "The PDF is pre-signed by Twenty and executed with your legal entity and authorized signatory."
-msgstr "PDF'en er forhåndsunderskrevet af Twenty og udfærdiget med din juridiske enhed og bemyndigede underskriver."
+msgid "The PDF is pre-signed by Diex and executed with your legal entity and authorized signatory."
+msgstr "PDF'en er forhåndsunderskrevet af Diex og udfærdiget med din juridiske enhed og bemyndigede underskriver."
 
 #. js-lingui-id: wxyrqd
 #: src/modules/workflow/workflow-steps/workflow-actions/pick-record-action/components/WorkflowEditActionPickRecord.tsx
@@ -18584,8 +18584,8 @@ msgstr "Turkis"
 
 #. js-lingui-id: JnaRPe
 #: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
-msgid "Twenty fields"
-msgstr "Twenty-felter"
+msgid "Diex fields"
+msgstr "Diex-felter"
 
 #. js-lingui-id: YIjS4q
 #: src/modules/ai/components/SettingsAgentModelCapabilities.tsx
@@ -20071,8 +20071,8 @@ msgstr "Vægt"
 
 #. js-lingui-id: nTuObL
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "Velkommen til Twenty"
+msgid "Welcome to Diex"
+msgstr "Velkommen til Diex"
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

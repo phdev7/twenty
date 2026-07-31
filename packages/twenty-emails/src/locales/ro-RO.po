@@ -65,8 +65,8 @@ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
-msgid "Connect to Twenty"
-msgstr "Conectați-vă la Twenty"
+msgid "Connect to Diex"
+msgstr "Conectați-vă la Diex"
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
@@ -119,8 +119,8 @@ msgstr "Bună, {userName},"
 
 #. js-lingui-explicit-id
 #: src/emails/billing-trial-converting.email.tsx
-msgid "If Twenty is working for you, you're all set — there's nothing to do. If it's not the right fit, you can cancel in one click before then and you won't be charged."
-msgstr "Dacă Twenty funcționează bine pentru tine, ești acoperit — nu trebuie să faci nimic. Dacă nu este potrivit, poți anula cu un singur clic înainte de acea dată și nu vei fi taxat."
+msgid "If Diex is working for you, you're all set — there's nothing to do. If it's not the right fit, you can cancel in one click before then and you won't be charged."
+msgstr "Dacă Diex funcționează bine pentru tine, ești acoperit — nu trebuie să faci nimic. Dacă nu este potrivit, poți anula cu un singur clic înainte de acea dată și nu vei fi taxat."
 
 #. js-lingui-explicit-id
 #: src/emails/password-update-notify.email.tsx
@@ -134,8 +134,8 @@ msgstr "Dacă nu faci nimic, vom pune spațiul tău de lucru pe pauză și îți
 
 #. js-lingui-explicit-id
 #: src/emails/clean-suspended-workspace.email.tsx
-msgid "If you'd ever like to give Twenty another try, you can start a fresh workspace in minutes — we'd love to have you back."
-msgstr "Dacă vei dori vreodată să mai încerci Twenty, poți începe un spațiu de lucru nou în câteva minute — ne-ar plăcea să te avem din nou alături."
+msgid "If you'd ever like to give Diex another try, you can start a fresh workspace in minutes — we'd love to have you back."
+msgstr "Dacă vei dori vreodată să mai încerci Diex, poți începe un spațiu de lucru nou în câteva minute — ne-ar plăcea să te avem din nou alături."
 
 #. js-lingui-explicit-id
 #: src/components/WhatIsTwenty.tsx
@@ -149,8 +149,8 @@ msgstr "Datele sale au fost eliminate și nu mai pot fi recuperate."
 
 #. js-lingui-explicit-id
 #: src/emails/send-invite-link.email.tsx
-msgid "Join your team on Twenty"
-msgstr "Alăturați-vă echipei pe Twenty"
+msgid "Join your team on Diex"
+msgstr "Alăturați-vă echipei pe Diex"
 
 #. js-lingui-explicit-id
 #: src/emails/billing-subscription-renewing.email.tsx
@@ -185,8 +185,8 @@ msgstr "Reactivează spațiul de lucru"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Read Twenty's user guide"
-msgstr "Citiți ghidul utilizatorului Twenty"
+msgid "Read Diex user guide"
+msgstr "Citiți ghidul utilizatorului Diex"
 
 #. js-lingui-explicit-id
 #: src/emails/password-reset-link.email.tsx
@@ -265,8 +265,8 @@ msgstr "Pentru a păstra spațiul de lucru și tot ce ai construit, adaugă o me
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Twenty.com, Public Benefit Corporation"
-msgstr "Twenty.com, Corporație de Beneficiu Public"
+msgid "Diex, Public Benefit Corporation"
+msgstr "Diex, Corporație de Beneficiu Public"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
@@ -286,18 +286,18 @@ msgstr "Verificați Email"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Visit Twenty's developer documentation"
-msgstr "Vizitați documentația pentru dezvoltatori a Twenty"
+msgid "Visit Diex developer documentation"
+msgstr "Vizitați documentația pentru dezvoltatori a Diex"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Visit Twenty's GitHub repository"
-msgstr "Vizitați depozitul GitHub al Twenty"
+msgid "Visit Diex GitHub repository"
+msgstr "Vizitați depozitul GitHub al Diex"
 
 #. js-lingui-explicit-id
 #: src/components/Footer.tsx
-msgid "Visit Twenty's website"
-msgstr "Vizitați site-ul Twenty"
+msgid "Visit Diex website"
+msgstr "Vizitați site-ul Diex"
 
 #. js-lingui-explicit-id
 #: src/emails/billing-trial-converting.email.tsx
@@ -311,8 +311,8 @@ msgstr "Site web"
 
 #. js-lingui-explicit-id
 #: src/components/WhatIsTwenty.tsx
-msgid "What is Twenty?"
-msgstr "Ce este Twenty?"
+msgid "What is Diex?"
+msgstr "Ce este Diex?"
 
 #. js-lingui-explicit-id
 #: src/emails/billing-subscription-renewing.email.tsx

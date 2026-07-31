@@ -1440,33 +1440,33 @@ msgstr ""
 
 #. js-lingui-id: FKGcEL
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server as a remote context server in Zed."
-msgstr "在 Zed 中将 Twenty MCP 服务器添加为远程上下文服务器。"
+msgid "Add the Diex MCP server as a remote context server in Zed."
+msgstr "在 Zed 中将 Diex MCP 服务器添加为远程上下文服务器。"
 
 #. js-lingui-id: iA2nHX
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Augment Code settings."
-msgstr "在 Augment Code 设置中添加 Twenty MCP 服务器。"
+msgid "Add the Diex MCP server from Augment Code settings."
+msgstr "在 Augment Code 设置中添加 Diex MCP 服务器。"
 
 #. js-lingui-id: l+NzAk
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Raycast's MCP commands or settings."
-msgstr "通过 Raycast 的 MCP 命令或设置添加 Twenty MCP 服务器。"
+msgid "Add the Diex MCP server from Raycast's MCP commands or settings."
+msgstr "通过 Raycast 的 MCP 命令或设置添加 Diex MCP 服务器。"
 
 #. js-lingui-id: j6G/yI
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server in Gemini CLI settings."
-msgstr "在 Gemini CLI 设置中添加 Twenty MCP 服务器。"
+msgid "Add the Diex MCP server in Gemini CLI settings."
+msgstr "在 Gemini CLI 设置中添加 Diex MCP 服务器。"
 
 #. js-lingui-id: /OyhlM
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server to your LibreChat configuration file."
-msgstr "在 LibreChat 配置文件中添加 Twenty MCP 服务器。"
+msgid "Add the Diex MCP server to your LibreChat configuration file."
+msgstr "在 LibreChat 配置文件中添加 Diex MCP 服务器。"
 
 #. js-lingui-id: K0DXoj
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty remote server with LM Studio's install link."
-msgstr "使用 LM Studio 的安装链接添加 Twenty 远程服务器。"
+msgid "Add the Diex remote server with LM Studio's install link."
+msgstr "使用 LM Studio 的安装链接添加 Diex 远程服务器。"
 
 #. js-lingui-id: 5+ttxv
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistInput.tsx
@@ -1485,8 +1485,8 @@ msgstr "添加主题"
 
 #. js-lingui-id: 4D/zWv
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add Twenty as a Streamable HTTP extension in Goose."
-msgstr "在 Goose 中将 Twenty 添加为可流式传输的 HTTP 扩展。"
+msgid "Add Diex as a Streamable HTTP extension in Goose."
+msgstr "在 Goose 中将 Diex 添加为可流式传输的 HTTP 扩展。"
 
 #. js-lingui-id: XnwceV
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationRedirectURIsInput.tsx
@@ -3072,8 +3072,8 @@ msgstr "计费周期"
 
 #. js-lingui-id: xF/NXI
 #: src/modules/settings/billing/hooks/useBillingPortalSession.ts
-msgid "Billing portal session error. Please retry or contact Twenty team"
-msgstr "计费门户会话错误。请重试或联系 Twenty 团队"
+msgid "Billing portal session error. Please retry or contact Diex team"
+msgstr "计费门户会话错误。请重试或联系 Diex 团队"
 
 #. js-lingui-id: K1172m
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistSection.tsx
@@ -3199,8 +3199,8 @@ msgstr "由 {author} 提供"
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "使用 Twenty 即表示您同意"
+msgid "By using Diex, you agree to the"
+msgstr "使用 Diex 即表示您同意"
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -3663,8 +3663,8 @@ msgstr "请检查收件箱以验证您的新电子邮件地址。"
 #. js-lingui-id: SxwQE8
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
-msgid "Checkout session error. Please retry or contact Twenty team"
-msgstr "结账会话错误。请重试或联系 Twenty 团队"
+msgid "Checkout session error. Please retry or contact Diex team"
+msgstr "结账会话错误。请重试或联系 Diex 团队"
 
 #. js-lingui-id: SviKkE
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
@@ -4272,13 +4272,13 @@ msgstr "在 Amazon Q Developer 的 MCP 设置中配置远程服务器。"
 
 #. js-lingui-id: g1/8jH
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cascade."
-msgstr "在 Cascade 中手动配置 Twenty MCP 服务器。"
+msgid "Configure the Diex MCP server manually in Cascade."
+msgstr "在 Cascade 中手动配置 Diex MCP 服务器。"
 
 #. js-lingui-id: XiyvRh
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cline."
-msgstr "在 Cline 中手动配置 Twenty MCP 服务器。"
+msgid "Configure the Diex MCP server manually in Cline."
+msgstr "在 Cline 中手动配置 Diex MCP 服务器。"
 
 #. js-lingui-id: qA9AGQ
 #: src/modules/settings/domains/components/SettingsDomainRecords.tsx
@@ -7560,8 +7560,8 @@ msgstr "取消计划切换时出错。"
 
 #. js-lingui-id: QmR+2U
 #: src/modules/settings/billing/hooks/useEndSubscriptionTrialPeriod.ts
-msgid "Error while ending trial period. Please contact Twenty team."
-msgstr "结束试用期时发生错误。请联系Twenty团队。"
+msgid "Error while ending trial period. Please contact Diex team."
+msgstr "结束试用期时发生错误。请联系Diex团队。"
 
 #. js-lingui-id: 5g78zo
 #: src/pages/settings/members/SettingsWorkspaceMember.tsx
@@ -9218,8 +9218,8 @@ msgstr "隐藏系统索引"
 
 #. js-lingui-id: 1ETc0T
 #: src/pages/settings/community/SettingsCommunity.tsx
-msgid "Hire a partner to help you implement and customize Twenty."
-msgstr "聘请合作伙伴帮助你实施并自定义 Twenty。"
+msgid "Hire a partner to help you implement and customize Diex."
+msgstr "聘请合作伙伴帮助你实施并自定义 Diex。"
 
 #. js-lingui-id: i0qMbr
 #: src/modules/navigation/components/MainNavigationDrawerTabsRow.tsx
@@ -13247,8 +13247,8 @@ msgstr "一个或多个筛选器引用了已停用或已删除的字段，保存
 
 #. js-lingui-id: 2l4SGU
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
-msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
-msgstr "一个订阅提供一个企业密钥，该密钥可支持一个生产实例以及一个预备环境或测试实例。要运行预备或测试环境，请在第二台服务器上安装 Twenty，使用同一个企业密钥激活它，然后将该服务器注册为开发实例。开发实例可以在无需额外计费的情况下解锁企业功能，并且不计入你的生产席位数。"
+msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Diex on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
+msgstr "一个订阅提供一个企业密钥，该密钥可支持一个生产实例以及一个预备环境或测试实例。要运行预备或测试环境，请在第二台服务器上安装 Diex，使用同一个企业密钥激活它，然后将该服务器注册为开发实例。开发实例可以在无需额外计费的情况下解锁企业功能，并且不计入你的生产席位数。"
 
 #. js-lingui-id: oFTo3P
 #: src/modules/settings/event-logs/components/SettingsLogs.tsx
@@ -13334,13 +13334,13 @@ msgstr "作为链接打开"
 
 #. js-lingui-id: n0vVgf
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Claude with the Twenty connector name and MCP URL prefilled."
-msgstr "打开 Claude，并预填 Twenty 连接器名称和 MCP URL。"
+msgid "Open Claude with the Diex connector name and MCP URL prefilled."
+msgstr "打开 Claude，并预填 Diex 连接器名称和 MCP URL。"
 
 #. js-lingui-id: +n2jpB
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Cursor's MCP installer with the Twenty remote server config."
-msgstr "打开 Cursor 的 MCP 安装程序，并使用 Twenty 远程服务器配置。"
+msgid "Open Cursor's MCP installer with the Diex remote server config."
+msgstr "打开 Cursor 的 MCP 安装程序，并使用 Diex 远程服务器配置。"
 
 #. js-lingui-id: pZZH4Q
 #: src/modules/auth/sign-in-up/components/EmailVerificationSent.tsx
@@ -13375,13 +13375,13 @@ msgstr "在...中打开记录"
 
 #. js-lingui-id: q170S2
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Replit with the Twenty remote server config."
-msgstr "打开 Replit，并使用 Twenty 远程服务器配置。"
+msgid "Open Replit with the Diex remote server config."
+msgstr "打开 Replit，并使用 Diex 远程服务器配置。"
 
 #. js-lingui-id: sBd/cl
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Twenty's official ChatGPT integration for your workspace."
-msgstr "打开适用于你工作区的 Twenty 官方 ChatGPT 集成。"
+msgid "Open Diex official ChatGPT integration for your workspace."
+msgstr "打开适用于你工作区的 Diex 官方 ChatGPT 集成。"
 
 #. js-lingui-id: OV5wZZ
 #: src/modules/navigation-menu-item/display/sections/components/NavigationDrawerOpenedSection.tsx
@@ -13664,8 +13664,8 @@ msgstr "页面名称"
 
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "页面未找到 | Twenty"
+msgid "Page Not Found | Diex"
+msgstr "页面未找到 | Diex"
 
 #. js-lingui-id: sF+Xp9
 #: src/modules/settings/event-logs/components/EventLogTableSelector.tsx
@@ -17163,8 +17163,8 @@ msgstr "订阅已激活。"
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
-msgid "Subscription error. Please retry or contact Twenty team"
-msgstr "订阅错误。请重试或联系 Twenty 团队"
+msgid "Subscription error. Please retry or contact Diex team"
+msgstr "订阅错误。请重试或联系 Diex 团队"
 
 #. js-lingui-id: FooJUj
 #. placeholder {0}: getTargetPlanLabel(targetPlanKey)
@@ -17543,11 +17543,11 @@ msgstr "用于 Bedrock 的 AWS 区域"
 #. js-lingui-id: HP7per
 #: src/pages/settings/applications/utils/getStandardApplicationDescription.ts
 msgid ""
-"The base data model every Twenty workspace runs on.\n"
+"The base data model every Diex workspace runs on.\n"
 "\n"
 "#### What \"foundation\" means\n"
 "\n"
-"Every Twenty workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
+"Every Diex workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
 "\n"
 "#### Included objects\n"
 "- **People & Companies**: contact and account records\n"
@@ -17555,11 +17555,11 @@ msgid ""
 "- **Notes & Tasks**: activity and follow-ups\n"
 "- **Workflows & Dashboards**: automation and reporting\n"
 "\n"
-"Remove this app and the rest of Twenty has nothing to hang off.\n"
+"Remove this app and the rest of Diex has nothing to hang off.\n"
 "\n"
 "#### Build your own app\n"
 "\n"
-"Extend Twenty with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
+"Extend Diex with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17659,8 +17659,8 @@ msgstr "用户将被重定向到此页面以退订您的电子邮件"
 
 #. js-lingui-id: Ya1wb4
 #: src/pages/settings/legal/SettingsLegalDpaNew.tsx
-msgid "The PDF is pre-signed by Twenty and executed with your legal entity and authorized signatory."
-msgstr "该 PDF 已由 Twenty 预先签署，并与您的法律实体和授权签署人共同生效。"
+msgid "The PDF is pre-signed by Diex and executed with your legal entity and authorized signatory."
+msgstr "该 PDF 已由 Diex 预先签署，并与您的法律实体和授权签署人共同生效。"
 
 #. js-lingui-id: wxyrqd
 #: src/modules/workflow/workflow-steps/workflow-actions/pick-record-action/components/WorkflowEditActionPickRecord.tsx
@@ -18529,8 +18529,8 @@ msgstr "绿松石色"
 
 #. js-lingui-id: JnaRPe
 #: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
-msgid "Twenty fields"
-msgstr "Twenty 字段"
+msgid "Diex fields"
+msgstr "Diex 字段"
 
 #. js-lingui-id: YIjS4q
 #: src/modules/ai/components/SettingsAgentModelCapabilities.tsx
@@ -20016,8 +20016,8 @@ msgstr "权重"
 
 #. js-lingui-id: nTuObL
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "欢迎来到 Twenty"
+msgid "Welcome to Diex"
+msgstr "欢迎来到 Diex"
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

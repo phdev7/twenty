@@ -4,7 +4,6 @@ import { plainToClass } from 'class-transformer';
 import {
   IsDateString,
   IsDefined,
-  IsEnum,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -29,7 +28,6 @@ import { SupportDriver } from 'src/engine/core-modules/twenty-config/interfaces/
 
 import { CaptchaDriverType } from 'src/engine/core-modules/captcha/interfaces';
 import { CodeInterpreterDriverType } from 'src/engine/core-modules/code-interpreter/code-interpreter.interface';
-import { DpaRegion } from 'src/engine/core-modules/dpa/enums/dpa-region.enum';
 import { EmailDriver } from 'src/engine/core-modules/email/enums/email-driver.enum';
 import { EmailingDomainDriver } from 'src/engine/core-modules/emailing-domain/drivers/types/emailing-domain-driver.type';
 import { ExceptionHandlerDriver } from 'src/engine/core-modules/exception-handler/interfaces';
@@ -493,21 +491,6 @@ export class ConfigVariables {
   })
   @IsOptional()
   IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS = true;
-
-  @ConfigVariablesMetadata({
-    group: ConfigVariablesGroup.SERVER_CONFIG,
-    description:
-      'Deployment region that determines the contracting DPA Processor entity, hosting region and governing law. EU (default) = Twenty.com SAS / Frankfurt / France; US = Twenty, Inc. / United States. Must match where Customer Personal Data actually lives.',
-    type: ConfigVariableType.ENUM,
-    options: Object.values(DpaRegion),
-    // Deployment-fixed: must mirror where data actually lives. Allowing a
-    // runtime DB/admin override could produce a legally incorrect Processor
-    // entity, so this is only configurable via environment variable.
-    isEnvOnly: true,
-  })
-  @IsOptional()
-  @IsEnum(DpaRegion)
-  DPA_DEPLOYMENT_REGION: DpaRegion = DpaRegion.EU;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.STORAGE_CONFIG,

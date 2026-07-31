@@ -1435,32 +1435,32 @@ msgstr ""
 
 #. js-lingui-id: FKGcEL
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server as a remote context server in Zed."
+msgid "Add the Diex MCP server as a remote context server in Zed."
 msgstr ""
 
 #. js-lingui-id: iA2nHX
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Augment Code settings."
+msgid "Add the Diex MCP server from Augment Code settings."
 msgstr ""
 
 #. js-lingui-id: l+NzAk
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Raycast's MCP commands or settings."
+msgid "Add the Diex MCP server from Raycast's MCP commands or settings."
 msgstr ""
 
 #. js-lingui-id: j6G/yI
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server in Gemini CLI settings."
+msgid "Add the Diex MCP server in Gemini CLI settings."
 msgstr ""
 
 #. js-lingui-id: /OyhlM
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server to your LibreChat configuration file."
+msgid "Add the Diex MCP server to your LibreChat configuration file."
 msgstr ""
 
 #. js-lingui-id: K0DXoj
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty remote server with LM Studio's install link."
+msgid "Add the Diex remote server with LM Studio's install link."
 msgstr ""
 
 #. js-lingui-id: 5+ttxv
@@ -1480,7 +1480,7 @@ msgstr ""
 
 #. js-lingui-id: 4D/zWv
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add Twenty as a Streamable HTTP extension in Goose."
+msgid "Add Diex as a Streamable HTTP extension in Goose."
 msgstr ""
 
 #. js-lingui-id: XnwceV
@@ -3067,7 +3067,7 @@ msgstr ""
 
 #. js-lingui-id: xF/NXI
 #: src/modules/settings/billing/hooks/useBillingPortalSession.ts
-msgid "Billing portal session error. Please retry or contact Twenty team"
+msgid "Billing portal session error. Please retry or contact Diex team"
 msgstr ""
 
 #. js-lingui-id: K1172m
@@ -3194,7 +3194,7 @@ msgstr ""
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
+msgid "By using Diex, you agree to the"
 msgstr ""
 
 #. js-lingui-id: Yx41df
@@ -3658,7 +3658,7 @@ msgstr ""
 #. js-lingui-id: SxwQE8
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
-msgid "Checkout session error. Please retry or contact Twenty team"
+msgid "Checkout session error. Please retry or contact Diex team"
 msgstr ""
 
 #. js-lingui-id: SviKkE
@@ -4267,12 +4267,12 @@ msgstr ""
 
 #. js-lingui-id: g1/8jH
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cascade."
+msgid "Configure the Diex MCP server manually in Cascade."
 msgstr ""
 
 #. js-lingui-id: XiyvRh
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cline."
+msgid "Configure the Diex MCP server manually in Cline."
 msgstr ""
 
 #. js-lingui-id: qA9AGQ
@@ -7555,7 +7555,7 @@ msgstr ""
 
 #. js-lingui-id: QmR+2U
 #: src/modules/settings/billing/hooks/useEndSubscriptionTrialPeriod.ts
-msgid "Error while ending trial period. Please contact Twenty team."
+msgid "Error while ending trial period. Please contact Diex team."
 msgstr ""
 
 #. js-lingui-id: 5g78zo
@@ -9213,7 +9213,7 @@ msgstr ""
 
 #. js-lingui-id: 1ETc0T
 #: src/pages/settings/community/SettingsCommunity.tsx
-msgid "Hire a partner to help you implement and customize Twenty."
+msgid "Hire a partner to help you implement and customize Diex."
 msgstr ""
 
 #. js-lingui-id: i0qMbr
@@ -13242,7 +13242,7 @@ msgstr ""
 
 #. js-lingui-id: 2l4SGU
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
-msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
+msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Diex on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
 msgstr ""
 
 #. js-lingui-id: oFTo3P
@@ -13329,12 +13329,12 @@ msgstr ""
 
 #. js-lingui-id: n0vVgf
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Claude with the Twenty connector name and MCP URL prefilled."
+msgid "Open Claude with the Diex connector name and MCP URL prefilled."
 msgstr ""
 
 #. js-lingui-id: +n2jpB
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Cursor's MCP installer with the Twenty remote server config."
+msgid "Open Cursor's MCP installer with the Diex remote server config."
 msgstr ""
 
 #. js-lingui-id: pZZH4Q
@@ -13370,12 +13370,12 @@ msgstr ""
 
 #. js-lingui-id: q170S2
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Replit with the Twenty remote server config."
+msgid "Open Replit with the Diex remote server config."
 msgstr ""
 
 #. js-lingui-id: sBd/cl
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Twenty's official ChatGPT integration for your workspace."
+msgid "Open Diex official ChatGPT integration for your workspace."
 msgstr ""
 
 #. js-lingui-id: OV5wZZ
@@ -13659,7 +13659,7 @@ msgstr ""
 
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
+msgid "Page Not Found | Diex"
 msgstr ""
 
 #. js-lingui-id: sF+Xp9
@@ -17158,7 +17158,7 @@ msgstr ""
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
-msgid "Subscription error. Please retry or contact Twenty team"
+msgid "Subscription error. Please retry or contact Diex team"
 msgstr ""
 
 #. js-lingui-id: FooJUj
@@ -17538,11 +17538,11 @@ msgstr ""
 #. js-lingui-id: HP7per
 #: src/pages/settings/applications/utils/getStandardApplicationDescription.ts
 msgid ""
-"The base data model every Twenty workspace runs on.\n"
+"The base data model every Diex workspace runs on.\n"
 "\n"
 "#### What \"foundation\" means\n"
 "\n"
-"Every Twenty workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
+"Every Diex workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
 "\n"
 "#### Included objects\n"
 "- **People & Companies**: contact and account records\n"
@@ -17550,11 +17550,11 @@ msgid ""
 "- **Notes & Tasks**: activity and follow-ups\n"
 "- **Workflows & Dashboards**: automation and reporting\n"
 "\n"
-"Remove this app and the rest of Twenty has nothing to hang off.\n"
+"Remove this app and the rest of Diex has nothing to hang off.\n"
 "\n"
 "#### Build your own app\n"
 "\n"
-"Extend Twenty with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
+"Extend Diex with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17654,7 +17654,7 @@ msgstr ""
 
 #. js-lingui-id: Ya1wb4
 #: src/pages/settings/legal/SettingsLegalDpaNew.tsx
-msgid "The PDF is pre-signed by Twenty and executed with your legal entity and authorized signatory."
+msgid "The PDF is pre-signed by Diex and executed with your legal entity and authorized signatory."
 msgstr ""
 
 #. js-lingui-id: wxyrqd
@@ -18524,7 +18524,7 @@ msgstr ""
 
 #. js-lingui-id: JnaRPe
 #: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
-msgid "Twenty fields"
+msgid "Diex fields"
 msgstr ""
 
 #. js-lingui-id: YIjS4q
@@ -20011,7 +20011,7 @@ msgstr ""
 
 #. js-lingui-id: nTuObL
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
+msgid "Welcome to Diex"
 msgstr ""
 
 #. js-lingui-id: t8ZvkC

@@ -1440,33 +1440,33 @@ msgstr "أضف مدخل اختبار للتقييم (مثال: \"اعثر على
 
 #. js-lingui-id: FKGcEL
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server as a remote context server in Zed."
-msgstr "أضف خادم Twenty MCP كخادم سياق بعيد في Zed."
+msgid "Add the Diex MCP server as a remote context server in Zed."
+msgstr "أضف خادم Diex MCP كخادم سياق بعيد في Zed."
 
 #. js-lingui-id: iA2nHX
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Augment Code settings."
-msgstr "أضف خادم Twenty MCP من إعدادات Augment Code."
+msgid "Add the Diex MCP server from Augment Code settings."
+msgstr "أضف خادم Diex MCP من إعدادات Augment Code."
 
 #. js-lingui-id: l+NzAk
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Raycast's MCP commands or settings."
-msgstr "أضف خادم Twenty MCP من أوامر أو إعدادات MCP في Raycast."
+msgid "Add the Diex MCP server from Raycast's MCP commands or settings."
+msgstr "أضف خادم Diex MCP من أوامر أو إعدادات MCP في Raycast."
 
 #. js-lingui-id: j6G/yI
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server in Gemini CLI settings."
-msgstr "أضف خادم Twenty MCP في إعدادات Gemini CLI."
+msgid "Add the Diex MCP server in Gemini CLI settings."
+msgstr "أضف خادم Diex MCP في إعدادات Gemini CLI."
 
 #. js-lingui-id: /OyhlM
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server to your LibreChat configuration file."
-msgstr "أضف خادم Twenty MCP البعيد إلى ملف تهيئة LibreChat لديك."
+msgid "Add the Diex MCP server to your LibreChat configuration file."
+msgstr "أضف خادم Diex MCP البعيد إلى ملف تهيئة LibreChat لديك."
 
 #. js-lingui-id: K0DXoj
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty remote server with LM Studio's install link."
-msgstr "أضف خادم Twenty البعيد عبر رابط التثبيت في LM Studio."
+msgid "Add the Diex remote server with LM Studio's install link."
+msgstr "أضف خادم Diex البعيد عبر رابط التثبيت في LM Studio."
 
 #. js-lingui-id: 5+ttxv
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistInput.tsx
@@ -1485,8 +1485,8 @@ msgstr "إضافة موضوع"
 
 #. js-lingui-id: 4D/zWv
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add Twenty as a Streamable HTTP extension in Goose."
-msgstr "أضف Twenty كامتداد HTTP قابل للبث في Goose."
+msgid "Add Diex as a Streamable HTTP extension in Goose."
+msgstr "أضف Diex كامتداد HTTP قابل للبث في Goose."
 
 #. js-lingui-id: XnwceV
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationRedirectURIsInput.tsx
@@ -3072,8 +3072,8 @@ msgstr "فترة الفوترة"
 
 #. js-lingui-id: xF/NXI
 #: src/modules/settings/billing/hooks/useBillingPortalSession.ts
-msgid "Billing portal session error. Please retry or contact Twenty team"
-msgstr "خطأ في جلسة بوابة الفوترة. يُرجى المحاولة مرة أخرى أو الاتصال بفريق Twenty"
+msgid "Billing portal session error. Please retry or contact Diex team"
+msgstr "خطأ في جلسة بوابة الفوترة. يُرجى المحاولة مرة أخرى أو الاتصال بفريق Diex"
 
 #. js-lingui-id: K1172m
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistSection.tsx
@@ -3199,8 +3199,8 @@ msgstr "بواسطة {author}"
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "باستخدامك Twenty، فإنك توافق على"
+msgid "By using Diex, you agree to the"
+msgstr "باستخدامك Diex، فإنك توافق على"
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -3663,8 +3663,8 @@ msgstr "تحقق من صندوق الوارد لديك لتأكيد عنوان �
 #. js-lingui-id: SxwQE8
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
-msgid "Checkout session error. Please retry or contact Twenty team"
-msgstr "خطأ في جلسة الدفع. يُرجى المحاولة مرة أخرى أو الاتصال بفريق Twenty"
+msgid "Checkout session error. Please retry or contact Diex team"
+msgstr "خطأ في جلسة الدفع. يُرجى المحاولة مرة أخرى أو الاتصال بفريق Diex"
 
 #. js-lingui-id: SviKkE
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
@@ -4272,13 +4272,13 @@ msgstr "اضبط الخادم البعيد في إعدادات MCP في Amazon Q
 
 #. js-lingui-id: g1/8jH
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cascade."
-msgstr "اضبط خادم Twenty MCP يدويًا في Cascade."
+msgid "Configure the Diex MCP server manually in Cascade."
+msgstr "اضبط خادم Diex MCP يدويًا في Cascade."
 
 #. js-lingui-id: XiyvRh
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cline."
-msgstr "اضبط خادم Twenty MCP يدويًا في Cline."
+msgid "Configure the Diex MCP server manually in Cline."
+msgstr "اضبط خادم Diex MCP يدويًا في Cline."
 
 #. js-lingui-id: qA9AGQ
 #: src/modules/settings/domains/components/SettingsDomainRecords.tsx
@@ -7560,8 +7560,8 @@ msgstr "خطأ أثناء إلغاء تبديل الخطة."
 
 #. js-lingui-id: QmR+2U
 #: src/modules/settings/billing/hooks/useEndSubscriptionTrialPeriod.ts
-msgid "Error while ending trial period. Please contact Twenty team."
-msgstr "خطأ أثناء إنهاء فترة التجربة، يرجى التواصل مع فريق Twenty."
+msgid "Error while ending trial period. Please contact Diex team."
+msgstr "خطأ أثناء إنهاء فترة التجربة، يرجى التواصل مع فريق Diex."
 
 #. js-lingui-id: 5g78zo
 #: src/pages/settings/members/SettingsWorkspaceMember.tsx
@@ -9218,8 +9218,8 @@ msgstr "إخفاء فهارس النظام"
 
 #. js-lingui-id: 1ETc0T
 #: src/pages/settings/community/SettingsCommunity.tsx
-msgid "Hire a partner to help you implement and customize Twenty."
-msgstr "استعن بشريك لمساعدتك في تنفيذ Twenty وتخصيصه."
+msgid "Hire a partner to help you implement and customize Diex."
+msgstr "استعن بشريك لمساعدتك في تنفيذ Diex وتخصيصه."
 
 #. js-lingui-id: i0qMbr
 #: src/modules/navigation/components/MainNavigationDrawerTabsRow.tsx
@@ -13270,8 +13270,8 @@ msgstr "يُشير عامل تصفية واحد أو أكثر إلى حقول م
 
 #. js-lingui-id: 2l4SGU
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
-msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
-msgstr "يوفّر اشتراك واحد مفتاح Enterprise واحدًا يُشغِّل مثيل إنتاج واحدًا ومثيل تمهيد أو اختبار واحدًا محتملًا. لتشغيل بيئة تمهيد أو اختبار، ثبّت Twenty على خادم ثانٍ، وفعِّله بنفس مفتاح Enterprise هذا، ثم سجّل ذلك الخادم كمثيل تطوير. تمكِّن مثيلات التطوير ميزات Enterprise من دون فوترة إضافية ولا تُحتسب ضمن مقاعد الإنتاج لديك."
+msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Diex on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
+msgstr "يوفّر اشتراك واحد مفتاح Enterprise واحدًا يُشغِّل مثيل إنتاج واحدًا ومثيل تمهيد أو اختبار واحدًا محتملًا. لتشغيل بيئة تمهيد أو اختبار، ثبّت Diex على خادم ثانٍ، وفعِّله بنفس مفتاح Enterprise هذا، ثم سجّل ذلك الخادم كمثيل تطوير. تمكِّن مثيلات التطوير ميزات Enterprise من دون فوترة إضافية ولا تُحتسب ضمن مقاعد الإنتاج لديك."
 
 #. js-lingui-id: oFTo3P
 #: src/modules/settings/event-logs/components/SettingsLogs.tsx
@@ -13357,13 +13357,13 @@ msgstr "فتح كرابط"
 
 #. js-lingui-id: n0vVgf
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Claude with the Twenty connector name and MCP URL prefilled."
-msgstr "افتح Claude مع اسم موصل Twenty وعنوان MCP URL مملوءين مسبقًا."
+msgid "Open Claude with the Diex connector name and MCP URL prefilled."
+msgstr "افتح Claude مع اسم موصل Diex وعنوان MCP URL مملوءين مسبقًا."
 
 #. js-lingui-id: +n2jpB
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Cursor's MCP installer with the Twenty remote server config."
-msgstr "افتح مُثبّت MCP في Cursor مع تهيئة خادم Twenty البعيد."
+msgid "Open Cursor's MCP installer with the Diex remote server config."
+msgstr "افتح مُثبّت MCP في Cursor مع تهيئة خادم Diex البعيد."
 
 #. js-lingui-id: pZZH4Q
 #: src/modules/auth/sign-in-up/components/EmailVerificationSent.tsx
@@ -13398,13 +13398,13 @@ msgstr "فتح السجلات في"
 
 #. js-lingui-id: q170S2
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Replit with the Twenty remote server config."
-msgstr "افتح Replit مع تهيئة خادم Twenty البعيد."
+msgid "Open Replit with the Diex remote server config."
+msgstr "افتح Replit مع تهيئة خادم Diex البعيد."
 
 #. js-lingui-id: sBd/cl
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Twenty's official ChatGPT integration for your workspace."
-msgstr "افتح تكامل Twenty الرسمي مع ChatGPT لمساحة العمل الخاصة بك."
+msgid "Open Diex official ChatGPT integration for your workspace."
+msgstr "افتح تكامل Diex الرسمي مع ChatGPT لمساحة العمل الخاصة بك."
 
 #. js-lingui-id: OV5wZZ
 #: src/modules/navigation-menu-item/display/sections/components/NavigationDrawerOpenedSection.tsx
@@ -13687,8 +13687,8 @@ msgstr "اسم الصفحة"
 
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "الصفحة غير موجودة | Twenty"
+msgid "Page Not Found | Diex"
+msgstr "الصفحة غير موجودة | Diex"
 
 #. js-lingui-id: sF+Xp9
 #: src/modules/settings/event-logs/components/EventLogTableSelector.tsx
@@ -17186,8 +17186,8 @@ msgstr "تم تفعيل الاشتراك."
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
-msgid "Subscription error. Please retry or contact Twenty team"
-msgstr "خطأ في الاشتراك. يُرجى المحاولة مرة أخرى أو الاتصال بفريق Twenty"
+msgid "Subscription error. Please retry or contact Diex team"
+msgstr "خطأ في الاشتراك. يُرجى المحاولة مرة أخرى أو الاتصال بفريق Diex"
 
 #. js-lingui-id: FooJUj
 #. placeholder {0}: getTargetPlanLabel(targetPlanKey)
@@ -17566,11 +17566,11 @@ msgstr "منطقة AWS الخاصة بـ Bedrock"
 #. js-lingui-id: HP7per
 #: src/pages/settings/applications/utils/getStandardApplicationDescription.ts
 msgid ""
-"The base data model every Twenty workspace runs on.\n"
+"The base data model every Diex workspace runs on.\n"
 "\n"
 "#### What \"foundation\" means\n"
 "\n"
-"Every Twenty workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
+"Every Diex workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
 "\n"
 "#### Included objects\n"
 "- **People & Companies**: contact and account records\n"
@@ -17578,11 +17578,11 @@ msgid ""
 "- **Notes & Tasks**: activity and follow-ups\n"
 "- **Workflows & Dashboards**: automation and reporting\n"
 "\n"
-"Remove this app and the rest of Twenty has nothing to hang off.\n"
+"Remove this app and the rest of Diex has nothing to hang off.\n"
 "\n"
 "#### Build your own app\n"
 "\n"
-"Extend Twenty with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
+"Extend Diex with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17597,11 +17597,11 @@ msgid ""
 "\n"
 "See the [Getting Started guide](https://twenty.com/developers/extend/apps/getting-started) for the full walkthrough, and [Building Apps](https://twenty.com/developers/extend/apps/building) for the `defineApplication` / `defineEntity` APIs."
 msgstr ""
-"نموذج البيانات الأساسي الذي تعمل عليه كل مساحة عمل في Twenty.\n"
+"نموذج البيانات الأساسي الذي تعمل عليه كل مساحة عمل في Diex.\n"
 "\n"
 "#### معنى \"الأساس\"\n"
 "\n"
-"كل مساحة عمل في Twenty تبدأ بهذه المجموعة من العناصر. تحدّد شكل CRM الخاص بك، بما في ذلك العلاقات والنشاط والتقارير. كل شيء آخر — بما في ذلك تطبيقات السوق ووكلاء الذكاء الاصطناعي والعناصر المخصصة — يندمج معها.\n"
+"كل مساحة عمل في Diex تبدأ بهذه المجموعة من العناصر. تحدّد شكل CRM الخاص بك، بما في ذلك العلاقات والنشاط والتقارير. كل شيء آخر — بما في ذلك تطبيقات السوق ووكلاء الذكاء الاصطناعي والعناصر المخصصة — يندمج معها.\n"
 "\n"
 "#### العناصر المتضمنة\n"
 "- **الأشخاص والشركات**: سجلات جهات الاتصال والحسابات\n"
@@ -17609,11 +17609,11 @@ msgstr ""
 "- **الملاحظات والمهام**: النشاط والمتابعات\n"
 "- **سير العمل ولوحات القيادة**: الأتمتة والتقارير\n"
 "\n"
-"أزل هذا التطبيق وباقي Twenty لن يكون له ما يبنى عليه.\n"
+"أزل هذا التطبيق وباقي Diex لن يكون له ما يبنى عليه.\n"
 "\n"
 "#### ابنِ تطبيقك الخاص\n"
 "\n"
-"وسّع Twenty بعناصرك وحقولك ودوال المنطق أو مهارات الذكاء الاصطناعي الخاصة بك. أنشئ هيكل تطبيق جديد بأمر واحد:\n"
+"وسّع Diex بعناصرك وحقولك ودوال المنطق أو مهارات الذكاء الاصطناعي الخاصة بك. أنشئ هيكل تطبيق جديد بأمر واحد:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17712,8 +17712,8 @@ msgstr "الصفحة التي سيتم إعادة توجيه المستخدمي�
 
 #. js-lingui-id: Ya1wb4
 #: src/pages/settings/legal/SettingsLegalDpaNew.tsx
-msgid "The PDF is pre-signed by Twenty and executed with your legal entity and authorized signatory."
-msgstr "تم توقيع ملف PDF مسبقًا بواسطة Twenty ويُبرَم مع كيانك القانوني والموقِّع المفوَّض لديك."
+msgid "The PDF is pre-signed by Diex and executed with your legal entity and authorized signatory."
+msgstr "تم توقيع ملف PDF مسبقًا بواسطة Diex ويُبرَم مع كيانك القانوني والموقِّع المفوَّض لديك."
 
 #. js-lingui-id: wxyrqd
 #: src/modules/workflow/workflow-steps/workflow-actions/pick-record-action/components/WorkflowEditActionPickRecord.tsx
@@ -18582,8 +18582,8 @@ msgstr "فيروزي"
 
 #. js-lingui-id: JnaRPe
 #: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
-msgid "Twenty fields"
-msgstr "حقول Twenty"
+msgid "Diex fields"
+msgstr "حقول Diex"
 
 #. js-lingui-id: YIjS4q
 #: src/modules/ai/components/SettingsAgentModelCapabilities.tsx
@@ -20069,8 +20069,8 @@ msgstr "الوزن"
 
 #. js-lingui-id: nTuObL
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "مرحبًا بك في Twenty"
+msgid "Welcome to Diex"
+msgstr "مرحبًا بك في Diex"
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

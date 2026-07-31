@@ -1440,33 +1440,33 @@ msgstr ""
 
 #. js-lingui-id: FKGcEL
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server as a remote context server in Zed."
-msgstr "Thêm máy chủ Twenty MCP làm máy chủ ngữ cảnh từ xa trong Zed."
+msgid "Add the Diex MCP server as a remote context server in Zed."
+msgstr "Thêm máy chủ Diex MCP làm máy chủ ngữ cảnh từ xa trong Zed."
 
 #. js-lingui-id: iA2nHX
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Augment Code settings."
-msgstr "Thêm máy chủ Twenty MCP trong phần cài đặt Augment Code."
+msgid "Add the Diex MCP server from Augment Code settings."
+msgstr "Thêm máy chủ Diex MCP trong phần cài đặt Augment Code."
 
 #. js-lingui-id: l+NzAk
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Raycast's MCP commands or settings."
-msgstr "Thêm máy chủ Twenty MCP từ lệnh hoặc cài đặt MCP của Raycast."
+msgid "Add the Diex MCP server from Raycast's MCP commands or settings."
+msgstr "Thêm máy chủ Diex MCP từ lệnh hoặc cài đặt MCP của Raycast."
 
 #. js-lingui-id: j6G/yI
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server in Gemini CLI settings."
-msgstr "Thêm máy chủ Twenty MCP trong phần cài đặt Gemini CLI."
+msgid "Add the Diex MCP server in Gemini CLI settings."
+msgstr "Thêm máy chủ Diex MCP trong phần cài đặt Gemini CLI."
 
 #. js-lingui-id: /OyhlM
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server to your LibreChat configuration file."
-msgstr "Thêm máy chủ Twenty MCP vào tệp cấu hình LibreChat của bạn."
+msgid "Add the Diex MCP server to your LibreChat configuration file."
+msgstr "Thêm máy chủ Diex MCP vào tệp cấu hình LibreChat của bạn."
 
 #. js-lingui-id: K0DXoj
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty remote server with LM Studio's install link."
-msgstr "Thêm máy chủ từ xa Twenty bằng đường dẫn cài đặt của LM Studio."
+msgid "Add the Diex remote server with LM Studio's install link."
+msgstr "Thêm máy chủ từ xa Diex bằng đường dẫn cài đặt của LM Studio."
 
 #. js-lingui-id: 5+ttxv
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistInput.tsx
@@ -1485,8 +1485,8 @@ msgstr "Thêm chủ đề"
 
 #. js-lingui-id: 4D/zWv
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add Twenty as a Streamable HTTP extension in Goose."
-msgstr "Thêm Twenty làm tiện ích mở rộng Streamable HTTP trong Goose."
+msgid "Add Diex as a Streamable HTTP extension in Goose."
+msgstr "Thêm Diex làm tiện ích mở rộng Streamable HTTP trong Goose."
 
 #. js-lingui-id: XnwceV
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationRedirectURIsInput.tsx
@@ -3072,8 +3072,8 @@ msgstr "Chu kỳ thanh toán"
 
 #. js-lingui-id: xF/NXI
 #: src/modules/settings/billing/hooks/useBillingPortalSession.ts
-msgid "Billing portal session error. Please retry or contact Twenty team"
-msgstr "Lỗi phiên cổng thanh toán. Vui lòng thử lại hoặc liên hệ nhóm Twenty"
+msgid "Billing portal session error. Please retry or contact Diex team"
+msgstr "Lỗi phiên cổng thanh toán. Vui lòng thử lại hoặc liên hệ nhóm Diex"
 
 #. js-lingui-id: K1172m
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistSection.tsx
@@ -3199,8 +3199,8 @@ msgstr "bởi {author}"
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "Bằng việc sử dụng Twenty, bạn đồng ý với"
+msgid "By using Diex, you agree to the"
+msgstr "Bằng việc sử dụng Diex, bạn đồng ý với"
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -3663,8 +3663,8 @@ msgstr "Kiểm tra hộp thư đến để xác minh địa chỉ email mới c�
 #. js-lingui-id: SxwQE8
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
-msgid "Checkout session error. Please retry or contact Twenty team"
-msgstr "Lỗi phiên thanh toán. Vui lòng thử lại hoặc liên hệ nhóm Twenty"
+msgid "Checkout session error. Please retry or contact Diex team"
+msgstr "Lỗi phiên thanh toán. Vui lòng thử lại hoặc liên hệ nhóm Diex"
 
 #. js-lingui-id: SviKkE
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
@@ -4272,13 +4272,13 @@ msgstr "Cấu hình máy chủ từ xa trong phần cài đặt MCP của Amazon
 
 #. js-lingui-id: g1/8jH
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cascade."
-msgstr "Cấu hình thủ công máy chủ MCP của Twenty trong Cascade."
+msgid "Configure the Diex MCP server manually in Cascade."
+msgstr "Cấu hình thủ công máy chủ MCP của Diex trong Cascade."
 
 #. js-lingui-id: XiyvRh
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cline."
-msgstr "Cấu hình thủ công máy chủ MCP của Twenty trong Cline."
+msgid "Configure the Diex MCP server manually in Cline."
+msgstr "Cấu hình thủ công máy chủ MCP của Diex trong Cline."
 
 #. js-lingui-id: qA9AGQ
 #: src/modules/settings/domains/components/SettingsDomainRecords.tsx
@@ -7560,8 +7560,8 @@ msgstr "Lỗi khi hủy chuyển đổi kế hoạch."
 
 #. js-lingui-id: QmR+2U
 #: src/modules/settings/billing/hooks/useEndSubscriptionTrialPeriod.ts
-msgid "Error while ending trial period. Please contact Twenty team."
-msgstr "Lỗi khi kết thúc giai đoạn dùng thử. Vui lòng liên hệ nhóm Twenty."
+msgid "Error while ending trial period. Please contact Diex team."
+msgstr "Lỗi khi kết thúc giai đoạn dùng thử. Vui lòng liên hệ nhóm Diex."
 
 #. js-lingui-id: 5g78zo
 #: src/pages/settings/members/SettingsWorkspaceMember.tsx
@@ -9218,8 +9218,8 @@ msgstr "Ẩn các chỉ mục hệ thống"
 
 #. js-lingui-id: 1ETc0T
 #: src/pages/settings/community/SettingsCommunity.tsx
-msgid "Hire a partner to help you implement and customize Twenty."
-msgstr "Thuê một đối tác để giúp bạn triển khai và tùy chỉnh Twenty."
+msgid "Hire a partner to help you implement and customize Diex."
+msgstr "Thuê một đối tác để giúp bạn triển khai và tùy chỉnh Diex."
 
 #. js-lingui-id: i0qMbr
 #: src/modules/navigation/components/MainNavigationDrawerTabsRow.tsx
@@ -13270,8 +13270,8 @@ msgstr "Một hoặc nhiều bộ lọc tham chiếu đến các trường đã 
 
 #. js-lingui-id: 2l4SGU
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
-msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
-msgstr "Mỗi gói đăng ký cung cấp một khóa enterprise để vận hành một môi trường sản xuất và một môi trường dàn dựng (staging) hoặc thử nghiệm tiềm năng. Để chạy môi trường dàn dựng hoặc thử nghiệm, hãy cài đặt Twenty trên máy chủ thứ hai, kích hoạt bằng cùng khóa enterprise này, sau đó đăng ký máy chủ đó là một môi trường phát triển. Các môi trường phát triển mở khóa các tính năng enterprise mà không phát sinh thêm chi phí và không được tính vào số suất môi trường sản xuất của bạn."
+msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Diex on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
+msgstr "Mỗi gói đăng ký cung cấp một khóa enterprise để vận hành một môi trường sản xuất và một môi trường dàn dựng (staging) hoặc thử nghiệm tiềm năng. Để chạy môi trường dàn dựng hoặc thử nghiệm, hãy cài đặt Diex trên máy chủ thứ hai, kích hoạt bằng cùng khóa enterprise này, sau đó đăng ký máy chủ đó là một môi trường phát triển. Các môi trường phát triển mở khóa các tính năng enterprise mà không phát sinh thêm chi phí và không được tính vào số suất môi trường sản xuất của bạn."
 
 #. js-lingui-id: oFTo3P
 #: src/modules/settings/event-logs/components/SettingsLogs.tsx
@@ -13357,13 +13357,13 @@ msgstr "Mở dưới dạng liên kết"
 
 #. js-lingui-id: n0vVgf
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Claude with the Twenty connector name and MCP URL prefilled."
-msgstr "Mở Claude với tên connector Twenty và MCP URL được điền sẵn."
+msgid "Open Claude with the Diex connector name and MCP URL prefilled."
+msgstr "Mở Claude với tên connector Diex và MCP URL được điền sẵn."
 
 #. js-lingui-id: +n2jpB
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Cursor's MCP installer with the Twenty remote server config."
-msgstr "Mở trình cài đặt MCP của Cursor với cấu hình máy chủ từ xa Twenty."
+msgid "Open Cursor's MCP installer with the Diex remote server config."
+msgstr "Mở trình cài đặt MCP của Cursor với cấu hình máy chủ từ xa Diex."
 
 #. js-lingui-id: pZZH4Q
 #: src/modules/auth/sign-in-up/components/EmailVerificationSent.tsx
@@ -13398,13 +13398,13 @@ msgstr "Mở bản ghi trong"
 
 #. js-lingui-id: q170S2
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Replit with the Twenty remote server config."
-msgstr "Mở Replit với cấu hình máy chủ từ xa Twenty."
+msgid "Open Replit with the Diex remote server config."
+msgstr "Mở Replit với cấu hình máy chủ từ xa Diex."
 
 #. js-lingui-id: sBd/cl
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Twenty's official ChatGPT integration for your workspace."
-msgstr "Mở tích hợp ChatGPT chính thức của Twenty cho không gian làm việc của bạn."
+msgid "Open Diex official ChatGPT integration for your workspace."
+msgstr "Mở tích hợp ChatGPT chính thức của Diex cho không gian làm việc của bạn."
 
 #. js-lingui-id: OV5wZZ
 #: src/modules/navigation-menu-item/display/sections/components/NavigationDrawerOpenedSection.tsx
@@ -13687,8 +13687,8 @@ msgstr "Tên trang"
 
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "Không tìm thấy trang | Twenty"
+msgid "Page Not Found | Diex"
+msgstr "Không tìm thấy trang | Diex"
 
 #. js-lingui-id: sF+Xp9
 #: src/modules/settings/event-logs/components/EventLogTableSelector.tsx
@@ -17186,8 +17186,8 @@ msgstr "Đã kích hoạt đăng ký."
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
-msgid "Subscription error. Please retry or contact Twenty team"
-msgstr "Lỗi đăng ký. Vui lòng thử lại hoặc liên hệ nhóm Twenty"
+msgid "Subscription error. Please retry or contact Diex team"
+msgstr "Lỗi đăng ký. Vui lòng thử lại hoặc liên hệ nhóm Diex"
 
 #. js-lingui-id: FooJUj
 #. placeholder {0}: getTargetPlanLabel(targetPlanKey)
@@ -17566,11 +17566,11 @@ msgstr "Khu vực AWS cho Bedrock"
 #. js-lingui-id: HP7per
 #: src/pages/settings/applications/utils/getStandardApplicationDescription.ts
 msgid ""
-"The base data model every Twenty workspace runs on.\n"
+"The base data model every Diex workspace runs on.\n"
 "\n"
 "#### What \"foundation\" means\n"
 "\n"
-"Every Twenty workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
+"Every Diex workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
 "\n"
 "#### Included objects\n"
 "- **People & Companies**: contact and account records\n"
@@ -17578,11 +17578,11 @@ msgid ""
 "- **Notes & Tasks**: activity and follow-ups\n"
 "- **Workflows & Dashboards**: automation and reporting\n"
 "\n"
-"Remove this app and the rest of Twenty has nothing to hang off.\n"
+"Remove this app and the rest of Diex has nothing to hang off.\n"
 "\n"
 "#### Build your own app\n"
 "\n"
-"Extend Twenty with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
+"Extend Diex with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17597,11 +17597,11 @@ msgid ""
 "\n"
 "See the [Getting Started guide](https://twenty.com/developers/extend/apps/getting-started) for the full walkthrough, and [Building Apps](https://twenty.com/developers/extend/apps/building) for the `defineApplication` / `defineEntity` APIs."
 msgstr ""
-"Mô hình dữ liệu cơ sở làm nền cho mọi không gian làm việc Twenty.\n"
+"Mô hình dữ liệu cơ sở làm nền cho mọi không gian làm việc Diex.\n"
 "\n"
 "#### \\\"Nền tảng\\\" nghĩa là gì\n"
 "\n"
-"Mỗi không gian làm việc Twenty bắt đầu với tập hợp đối tượng này. Chúng xác định hình hài CRM của bạn, bao gồm mối quan hệ, hoạt động và báo cáo. Mọi thứ khác, bao gồm các ứng dụng marketplace, tác tử AI và đối tượng tùy chỉnh, đều tích hợp vào chúng.\n"
+"Mỗi không gian làm việc Diex bắt đầu với tập hợp đối tượng này. Chúng xác định hình hài CRM của bạn, bao gồm mối quan hệ, hoạt động và báo cáo. Mọi thứ khác, bao gồm các ứng dụng marketplace, tác tử AI và đối tượng tùy chỉnh, đều tích hợp vào chúng.\n"
 "\n"
 "#### Các đối tượng đi kèm\n"
 "- **Người & Công ty**: bản ghi liên hệ và tài khoản\n"
@@ -17609,11 +17609,11 @@ msgstr ""
 "- **Ghi chú & Nhiệm vụ**: hoạt động và các bước theo dõi\n"
 "- **Quy trình công việc & Bảng điều khiển**: tự động hóa và báo cáo\n"
 "\n"
-"Gỡ ứng dụng này đi thì phần còn lại của Twenty sẽ không còn gì để dựa vào.\n"
+"Gỡ ứng dụng này đi thì phần còn lại của Diex sẽ không còn gì để dựa vào.\n"
 "\n"
 "#### Tự xây dựng ứng dụng của bạn\n"
 "\n"
-"Mở rộng Twenty với các đối tượng, trường, hàm logic hoặc kỹ năng AI của riêng bạn. Tạo khung một ứng dụng mới chỉ với một lệnh:\n"
+"Mở rộng Diex với các đối tượng, trường, hàm logic hoặc kỹ năng AI của riêng bạn. Tạo khung một ứng dụng mới chỉ với một lệnh:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17712,8 +17712,8 @@ msgstr "Trang mà người dùng của bạn sẽ được chuyển hướng đ�
 
 #. js-lingui-id: Ya1wb4
 #: src/pages/settings/legal/SettingsLegalDpaNew.tsx
-msgid "The PDF is pre-signed by Twenty and executed with your legal entity and authorized signatory."
-msgstr "PDF được Twenty ký trước và được thực hiện với pháp nhân và người ký được ủy quyền của bạn."
+msgid "The PDF is pre-signed by Diex and executed with your legal entity and authorized signatory."
+msgstr "PDF được Diex ký trước và được thực hiện với pháp nhân và người ký được ủy quyền của bạn."
 
 #. js-lingui-id: wxyrqd
 #: src/modules/workflow/workflow-steps/workflow-actions/pick-record-action/components/WorkflowEditActionPickRecord.tsx
@@ -18582,8 +18582,8 @@ msgstr "Ngọc lam"
 
 #. js-lingui-id: JnaRPe
 #: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
-msgid "Twenty fields"
-msgstr "Các trường của Twenty"
+msgid "Diex fields"
+msgstr "Các trường của Diex"
 
 #. js-lingui-id: YIjS4q
 #: src/modules/ai/components/SettingsAgentModelCapabilities.tsx
@@ -20069,8 +20069,8 @@ msgstr "Trọng số"
 
 #. js-lingui-id: nTuObL
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "Chào mừng đến với Twenty"
+msgid "Welcome to Diex"
+msgstr "Chào mừng đến với Diex"
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

@@ -11,11 +11,11 @@ const mockedFs = fs as jest.Mocked<typeof fs>;
 
 const INDEX_TEMPLATE = `<html>
   <head>
-    <!-- BEGIN: Twenty Config -->
-    <script id="twenty-env-config">
+    <!-- BEGIN: Diex Config -->
+    <script id="diex-env-config">
       window._env_ = {"REACT_APP_SERVER_BASE_URL":"http://stale-value"};
     </script>
-    <!-- END: Twenty Config -->
+    <!-- END: Diex Config -->
   </head>
 </html>`;
 

@@ -1440,33 +1440,33 @@ msgstr ""
 
 #. js-lingui-id: FKGcEL
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server as a remote context server in Zed."
-msgstr "Přidejte Twenty MCP server jako vzdálený kontextový server v Zed."
+msgid "Add the Diex MCP server as a remote context server in Zed."
+msgstr "Přidejte Diex MCP server jako vzdálený kontextový server v Zed."
 
 #. js-lingui-id: iA2nHX
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Augment Code settings."
-msgstr "Přidejte Twenty MCP server v nastavení Augment Code."
+msgid "Add the Diex MCP server from Augment Code settings."
+msgstr "Přidejte Diex MCP server v nastavení Augment Code."
 
 #. js-lingui-id: l+NzAk
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server from Raycast's MCP commands or settings."
-msgstr "Přidejte Twenty MCP server z MCP příkazů nebo nastavení Raycast."
+msgid "Add the Diex MCP server from Raycast's MCP commands or settings."
+msgstr "Přidejte Diex MCP server z MCP příkazů nebo nastavení Raycast."
 
 #. js-lingui-id: j6G/yI
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server in Gemini CLI settings."
-msgstr "Přidejte Twenty MCP server v nastavení Gemini CLI."
+msgid "Add the Diex MCP server in Gemini CLI settings."
+msgstr "Přidejte Diex MCP server v nastavení Gemini CLI."
 
 #. js-lingui-id: /OyhlM
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty MCP server to your LibreChat configuration file."
-msgstr "Přidejte Twenty MCP server do svého konfiguračního souboru LibreChat."
+msgid "Add the Diex MCP server to your LibreChat configuration file."
+msgstr "Přidejte Diex MCP server do svého konfiguračního souboru LibreChat."
 
 #. js-lingui-id: K0DXoj
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add the Twenty remote server with LM Studio's install link."
-msgstr "Přidejte vzdálený server Twenty pomocí instalačního odkazu LM Studio."
+msgid "Add the Diex remote server with LM Studio's install link."
+msgstr "Přidejte vzdálený server Diex pomocí instalačního odkazu LM Studio."
 
 #. js-lingui-id: 5+ttxv
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistInput.tsx
@@ -1485,8 +1485,8 @@ msgstr "Přidat téma"
 
 #. js-lingui-id: 4D/zWv
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Add Twenty as a Streamable HTTP extension in Goose."
-msgstr "Přidejte Twenty jako rozšiřující Streamable HTTP modul v Goose."
+msgid "Add Diex as a Streamable HTTP extension in Goose."
+msgstr "Přidejte Diex jako rozšiřující Streamable HTTP modul v Goose."
 
 #. js-lingui-id: XnwceV
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationRedirectURIsInput.tsx
@@ -3072,8 +3072,8 @@ msgstr "Fakturační období"
 
 #. js-lingui-id: xF/NXI
 #: src/modules/settings/billing/hooks/useBillingPortalSession.ts
-msgid "Billing portal session error. Please retry or contact Twenty team"
-msgstr "Chyba relace fakturačního portálu. Prosím zkuste to znovu nebo kontaktujte tým Twenty"
+msgid "Billing portal session error. Please retry or contact Diex team"
+msgstr "Chyba relace fakturačního portálu. Prosím zkuste to znovu nebo kontaktujte tým Diex"
 
 #. js-lingui-id: K1172m
 #: src/modules/settings/accounts/components/SettingsAccountsBlocklistSection.tsx
@@ -3199,8 +3199,8 @@ msgstr "od {author}"
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "Použitím Twenty souhlasíte s"
+msgid "By using Diex, you agree to the"
+msgstr "Použitím Diex souhlasíte s"
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -3663,8 +3663,8 @@ msgstr "Zkontrolujte svou schránku a ověřte svou novou e-mailovou adresu."
 #. js-lingui-id: SxwQE8
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
 #: src/modules/settings/billing/hooks/useHandleCheckoutSession.ts
-msgid "Checkout session error. Please retry or contact Twenty team"
-msgstr "Chyba při relaci platby. Prosím zkuste to znovu nebo kontaktujte tým Twenty"
+msgid "Checkout session error. Please retry or contact Diex team"
+msgstr "Chyba při relaci platby. Prosím zkuste to znovu nebo kontaktujte tým Diex"
 
 #. js-lingui-id: SviKkE
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
@@ -4272,13 +4272,13 @@ msgstr "Nakonfigurujte vzdálený server v MCP nastavení Amazon Q Developer."
 
 #. js-lingui-id: g1/8jH
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cascade."
-msgstr "Nakonfigurujte Twenty MCP server ručně v Cascade."
+msgid "Configure the Diex MCP server manually in Cascade."
+msgstr "Nakonfigurujte Diex MCP server ručně v Cascade."
 
 #. js-lingui-id: XiyvRh
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Configure the Twenty MCP server manually in Cline."
-msgstr "Nakonfigurujte Twenty MCP server ručně v Cline."
+msgid "Configure the Diex MCP server manually in Cline."
+msgstr "Nakonfigurujte Diex MCP server ručně v Cline."
 
 #. js-lingui-id: qA9AGQ
 #: src/modules/settings/domains/components/SettingsDomainRecords.tsx
@@ -7560,8 +7560,8 @@ msgstr "Chyba při rušení změny plánu."
 
 #. js-lingui-id: QmR+2U
 #: src/modules/settings/billing/hooks/useEndSubscriptionTrialPeriod.ts
-msgid "Error while ending trial period. Please contact Twenty team."
-msgstr "Chyba při ukončování zkušební doby. Kontaktujte tým Twenty."
+msgid "Error while ending trial period. Please contact Diex team."
+msgstr "Chyba při ukončování zkušební doby. Kontaktujte tým Diex."
 
 #. js-lingui-id: 5g78zo
 #: src/pages/settings/members/SettingsWorkspaceMember.tsx
@@ -9218,8 +9218,8 @@ msgstr "Skrýt systémové indexy"
 
 #. js-lingui-id: 1ETc0T
 #: src/pages/settings/community/SettingsCommunity.tsx
-msgid "Hire a partner to help you implement and customize Twenty."
-msgstr "Najměte si partnera, který vám pomůže Twenty implementovat a přizpůsobit."
+msgid "Hire a partner to help you implement and customize Diex."
+msgstr "Najměte si partnera, který vám pomůže Diex implementovat a přizpůsobit."
 
 #. js-lingui-id: i0qMbr
 #: src/modules/navigation/components/MainNavigationDrawerTabsRow.tsx
@@ -13270,8 +13270,8 @@ msgstr "Jeden nebo více filtrů odkazuje na deaktivovaná nebo smazaná pole a 
 
 #. js-lingui-id: 2l4SGU
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
-msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
-msgstr "Jedno předplatné poskytuje jeden enterprise klíč, který obsluhuje jednu produkční instanci a jednu případnou staging nebo testovací instanci. Chcete-li spustit staging nebo testovací prostředí, nainstalujte Twenty na druhý server, aktivujte jej stejným enterprise klíčem a poté tento server zaregistrujte jako vývojovou instanci. Vývojové instance zpřístupňují enterprise funkce bez dodatečného účtování a nezapočítávají se do vašich produkčních míst."
+msgid "One subscription provides one enterprise key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Diex on a second server, activate it with this same enterprise key, then register that server as a development instance. Development instances unlock enterprise features without extra billing and do not count toward your production seats."
+msgstr "Jedno předplatné poskytuje jeden enterprise klíč, který obsluhuje jednu produkční instanci a jednu případnou staging nebo testovací instanci. Chcete-li spustit staging nebo testovací prostředí, nainstalujte Diex na druhý server, aktivujte jej stejným enterprise klíčem a poté tento server zaregistrujte jako vývojovou instanci. Vývojové instance zpřístupňují enterprise funkce bez dodatečného účtování a nezapočítávají se do vašich produkčních míst."
 
 #. js-lingui-id: oFTo3P
 #: src/modules/settings/event-logs/components/SettingsLogs.tsx
@@ -13357,13 +13357,13 @@ msgstr "Otevřít jako odkaz"
 
 #. js-lingui-id: n0vVgf
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Claude with the Twenty connector name and MCP URL prefilled."
-msgstr "Otevřete Claude s předvyplněným názvem konektoru Twenty a MCP URL."
+msgid "Open Claude with the Diex connector name and MCP URL prefilled."
+msgstr "Otevřete Claude s předvyplněným názvem konektoru Diex a MCP URL."
 
 #. js-lingui-id: +n2jpB
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Cursor's MCP installer with the Twenty remote server config."
-msgstr "Otevřete instalační nástroj MCP v Cursor s předvyplněnou konfigurací vzdáleného serveru Twenty."
+msgid "Open Cursor's MCP installer with the Diex remote server config."
+msgstr "Otevřete instalační nástroj MCP v Cursor s předvyplněnou konfigurací vzdáleného serveru Diex."
 
 #. js-lingui-id: pZZH4Q
 #: src/modules/auth/sign-in-up/components/EmailVerificationSent.tsx
@@ -13398,13 +13398,13 @@ msgstr "Otevřít záznamy v"
 
 #. js-lingui-id: q170S2
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Replit with the Twenty remote server config."
-msgstr "Otevřete Replit s předvyplněnou konfigurací vzdáleného serveru Twenty."
+msgid "Open Replit with the Diex remote server config."
+msgstr "Otevřete Replit s předvyplněnou konfigurací vzdáleného serveru Diex."
 
 #. js-lingui-id: sBd/cl
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
-msgid "Open Twenty's official ChatGPT integration for your workspace."
-msgstr "Otevřete oficiální integraci Twenty s ChatGPT pro váš pracovní prostor."
+msgid "Open Diex official ChatGPT integration for your workspace."
+msgstr "Otevřete oficiální integraci Diex s ChatGPT pro váš pracovní prostor."
 
 #. js-lingui-id: OV5wZZ
 #: src/modules/navigation-menu-item/display/sections/components/NavigationDrawerOpenedSection.tsx
@@ -13687,8 +13687,8 @@ msgstr "Název stránky"
 
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "Stránka nenalezena | Twenty"
+msgid "Page Not Found | Diex"
+msgstr "Stránka nenalezena | Diex"
 
 #. js-lingui-id: sF+Xp9
 #: src/modules/settings/event-logs/components/EventLogTableSelector.tsx
@@ -17186,8 +17186,8 @@ msgstr "Předplatné aktivováno."
 #: src/modules/settings/billing/components/AddPaymentMethodForm.tsx
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
 #: src/modules/settings/billing/hooks/useSubmitSubscriptionPayment.ts
-msgid "Subscription error. Please retry or contact Twenty team"
-msgstr "Chyba předplatného. Zkuste to prosím znovu nebo kontaktujte tým Twenty."
+msgid "Subscription error. Please retry or contact Diex team"
+msgstr "Chyba předplatného. Zkuste to prosím znovu nebo kontaktujte tým Diex."
 
 #. js-lingui-id: FooJUj
 #. placeholder {0}: getTargetPlanLabel(targetPlanKey)
@@ -17566,11 +17566,11 @@ msgstr "Region AWS pro Bedrock"
 #. js-lingui-id: HP7per
 #: src/pages/settings/applications/utils/getStandardApplicationDescription.ts
 msgid ""
-"The base data model every Twenty workspace runs on.\n"
+"The base data model every Diex workspace runs on.\n"
 "\n"
 "#### What \"foundation\" means\n"
 "\n"
-"Every Twenty workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
+"Every Diex workspace starts with this set of objects. They define the shape of your CRM, including relationships, activity, and reporting. Everything else, including marketplace apps, AI agents, and custom objects, plugs into them.\n"
 "\n"
 "#### Included objects\n"
 "- **People & Companies**: contact and account records\n"
@@ -17578,11 +17578,11 @@ msgid ""
 "- **Notes & Tasks**: activity and follow-ups\n"
 "- **Workflows & Dashboards**: automation and reporting\n"
 "\n"
-"Remove this app and the rest of Twenty has nothing to hang off.\n"
+"Remove this app and the rest of Diex has nothing to hang off.\n"
 "\n"
 "#### Build your own app\n"
 "\n"
-"Extend Twenty with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
+"Extend Diex with your own objects, fields, logic functions, or AI skills. Scaffold a new app in one command:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17597,11 +17597,11 @@ msgid ""
 "\n"
 "See the [Getting Started guide](https://twenty.com/developers/extend/apps/getting-started) for the full walkthrough, and [Building Apps](https://twenty.com/developers/extend/apps/building) for the `defineApplication` / `defineEntity` APIs."
 msgstr ""
-"Základní datový model, na kterém běží každý pracovní prostor Twenty.\n"
+"Základní datový model, na kterém běží každý pracovní prostor Diex.\n"
 "\n"
 "#### Co znamená \"základ\"\n"
 "\n"
-"Každý pracovní prostor Twenty začíná touto sadou objektů. Ty definují podobu vašeho CRM včetně vztahů, aktivit a reportování. Vše ostatní, včetně aplikací z marketplace, agentů AI a vlastních objektů, se do nich zapojuje.\n"
+"Každý pracovní prostor Diex začíná touto sadou objektů. Ty definují podobu vašeho CRM včetně vztahů, aktivit a reportování. Vše ostatní, včetně aplikací z marketplace, agentů AI a vlastních objektů, se do nich zapojuje.\n"
 "\n"
 "#### Zahrnuté objekty\n"
 "- **Lidé a společnosti**: záznamy kontaktů a účtů\n"
@@ -17609,11 +17609,11 @@ msgstr ""
 "- **Poznámky a úkoly**: aktivity a navazující kroky\n"
 "- **Pracovní postupy a řídicí panely**: automatizace a reportování\n"
 "\n"
-"Když tuto aplikaci odstraníte, zbytku Twenty nezůstane nic, na co by se mohl napojit.\n"
+"Když tuto aplikaci odstraníte, zbytku Diex nezůstane nic, na co by se mohl napojit.\n"
 "\n"
 "#### Vytvořte si vlastní aplikaci\n"
 "\n"
-"Rozšiřte Twenty vlastními objekty, poli, logickými funkcemi nebo dovednostmi AI. Vytvořte kostru nové aplikace jediným příkazem:\n"
+"Rozšiřte Diex vlastními objekty, poli, logickými funkcemi nebo dovednostmi AI. Vytvořte kostru nové aplikace jediným příkazem:\n"
 "\n"
 "```bash\n"
 "npx create-twenty-app@latest my-twenty-app\n"
@@ -17712,8 +17712,8 @@ msgstr "Stránka, na kterou budou vaši uživatelé přesměrováni, aby se odhl
 
 #. js-lingui-id: Ya1wb4
 #: src/pages/settings/legal/SettingsLegalDpaNew.tsx
-msgid "The PDF is pre-signed by Twenty and executed with your legal entity and authorized signatory."
-msgstr "PDF je předem podepsané Twenty a je doplněno o vaši právnickou osobu a oprávněného signatáře."
+msgid "The PDF is pre-signed by Diex and executed with your legal entity and authorized signatory."
+msgstr "PDF je předem podepsané Diex a je doplněno o vaši právnickou osobu a oprávněného signatáře."
 
 #. js-lingui-id: wxyrqd
 #: src/modules/workflow/workflow-steps/workflow-actions/pick-record-action/components/WorkflowEditActionPickRecord.tsx
@@ -18582,8 +18582,8 @@ msgstr "Tyrkysová"
 
 #. js-lingui-id: JnaRPe
 #: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/components/ColumnGrid.tsx
-msgid "Twenty fields"
-msgstr "Pole Twenty"
+msgid "Diex fields"
+msgstr "Pole Diex"
 
 #. js-lingui-id: YIjS4q
 #: src/modules/ai/components/SettingsAgentModelCapabilities.tsx
@@ -20069,8 +20069,8 @@ msgstr "Váha"
 
 #. js-lingui-id: nTuObL
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "Vítejte ve Twenty"
+msgid "Welcome to Diex"
+msgstr "Vítejte ve Diex"
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

@@ -31,14 +31,14 @@ msgstr "...cu un AI care chiar te ajută să *lucrezi mai repede*"
 #. js-lingui-id: PtoUO1
 #. placeholder {0}: app.name
 #: src/app/[locale]/(site)/apps/[slug]/page.tsx
-msgid "{0} — Twenty Apps"
+msgid "{0} — Diex Apps"
 msgstr ""
 
 #. js-lingui-id: Z6mKXu
 #. placeholder {0}: partner.name
 #: src/app/[locale]/(site)/partners/profile/[slug]/page.tsx
-msgid "{0} — Twenty Partner"
-msgstr "{0} — Partener Twenty"
+msgid "{0} — Diex Partner"
+msgstr "{0} — Partener Diex"
 
 #. js-lingui-id: sGt3Jm
 #. placeholder {0}: i18n._(card.attribution.company)
@@ -103,8 +103,8 @@ msgstr "/utilizator/lună"
 
 #. js-lingui-id: UEDohT
 #: src/sections/footer/FooterBottom.tsx
-msgid "© {year} – Twenty"
-msgstr "© {year} – Twenty"
+msgid "© {year} – Diex"
+msgstr "© {year} – Diex"
 
 #. js-lingui-id: 2ygf/L
 #: src/partner-application/partner-application-copy.ts
@@ -114,8 +114,8 @@ msgstr "← Înapoi"
 
 #. js-lingui-id: 9j/bUt
 #: src/partners-marketplace/BackToMarketplaceLink.tsx
-msgid "← Twenty partners"
-msgstr "← Parteneri Twenty"
+msgid "← Diex partners"
+msgstr "← Parteneri Diex"
 
 #. js-lingui-id: foGG8A
 #: src/sections/pricing-salesfarce/salesfarce-data.ts
@@ -354,8 +354,8 @@ msgstr "Un CRM care crește odată cu tine"
 
 #. js-lingui-id: och6cp
 #: src/case-studies/case-study-stories.ts
-msgid "A CRM that grows with you | NetZero & Twenty"
-msgstr "Un CRM care crește odată cu tine | NetZero & Twenty"
+msgid "A CRM that grows with you | NetZero & Diex"
+msgstr "Un CRM care crește odată cu tine | NetZero & Diex"
 
 #. js-lingui-id: N3qsQD
 #: src/case-studies/case-study-stories.ts
@@ -437,8 +437,8 @@ msgstr "Aproximativ 150 de ore pe lună economisite în operațiuni manuale. Ind
 
 #. js-lingui-id: 41o3VS
 #: src/case-studies/case-study-catalog.ts
-msgid "AC&T and Flycoder moved from a dead vendor export to self-hosted Twenty, with over 90% lower CRM cost and full control."
-msgstr "AC&T și Flycoder au trecut de la un export de la un furnizor inactiv la Twenty găzduit self-hosted, cu peste 90% costuri CRM mai mici și control total."
+msgid "AC&T and Flycoder moved from a dead vendor export to self-hosted Diex, with over 90% lower CRM cost and full control."
+msgstr "AC&T și Flycoder au trecut de la un export de la un furnizor inactiv la Diex găzduit self-hosted, cu peste 90% costuri CRM mai mici și control total."
 
 #. js-lingui-id: TuJiQF
 #: src/sections/three-cards/three-cards.data.ts
@@ -453,13 +453,13 @@ msgstr "AC&T Education Migration (actimmi.com) este o agenție educațională di
 
 #. js-lingui-id: MPzy5R
 #: src/sections/three-cards/three-cards.data.ts
-msgid "AC&T moved to a self-hosted Twenty instance with no vendor risk, no forced migration, and CRM costs reduced by more than 90%."
-msgstr "AC&T a trecut la o instanță Twenty găzduită self-hosted, fără risc legat de furnizor, fără migrare forțată și cu costuri CRM reduse cu mai mult de 90%."
+msgid "AC&T moved to a self-hosted Diex instance with no vendor risk, no forced migration, and CRM costs reduced by more than 90%."
+msgstr "AC&T a trecut la o instanță Diex găzduită self-hosted, fără risc legat de furnizor, fără migrare forțată și cu costuri CRM reduse cu mai mult de 90%."
 
 #. js-lingui-id: J+A83M
 #: src/sections/helped/helped.data.ts
-msgid "AC&T replaced a shuttered vendor CRM with self-hosted Twenty and cut CRM costs by more than 90%."
-msgstr "AC&T a înlocuit un CRM al unui furnizor închis cu Twenty găzduit self-hosted și a redus costurile CRM cu mai mult de 90%."
+msgid "AC&T replaced a shuttered vendor CRM with self-hosted Diex and cut CRM costs by more than 90%."
+msgstr "AC&T a înlocuit un CRM al unui furnizor închis cu Diex găzduit self-hosted și a redus costurile CRM cu mai mult de 90%."
 
 #. js-lingui-id: pd81Qb
 #: src/sections/product-stepper/LayoutVisual/LayoutVisual.tsx
@@ -479,8 +479,8 @@ msgstr "Acțiune"
 
 #. js-lingui-id: Kqfsda
 #: src/platform/routing/static-website-routes.ts
-msgid "Activate your Twenty enterprise license after checkout and copy your key into your self-hosted instance."
-msgstr "Activează-ți licența Twenty enterprise după finalizarea plății și copiază cheia în instanța ta self-hosted."
+msgid "Activate your Diex enterprise license after checkout and copy your key into your self-hosted instance."
+msgstr "Activează-ți licența Diex enterprise după finalizarea plății și copiază cheia în instanța ta self-hosted."
 
 #. js-lingui-id: muhZ+X
 #: src/sections/enterprise-activate/EnterpriseActivateClient.tsx
@@ -730,13 +730,13 @@ msgstr "Alternative Partners"
 
 #. js-lingui-id: GDVvyT
 #: src/case-studies/case-study-stories.ts
-msgid "Alternative Partners is a consulting firm that moved from Salesforce to a self-hosted Twenty instance. Benjamin Reynolds led the migration. He had already become a Twenty expert implementing Twenty for one of Twenty's first cloud customers."
-msgstr "Alternative Partners este o firmă de consultanță care a trecut de la Salesforce la o instanță Twenty găzduită self-hosted. Benjamin Reynolds a condus migrarea. Deja devenise expert în Twenty, implementând Twenty pentru unul dintre primii clienți cloud ai Twenty."
+msgid "Alternative Partners is a consulting firm that moved from Salesforce to a self-hosted Diex instance. Benjamin Reynolds led the migration. He had already become a Diex expert implementing Diex for one of Diex first cloud customers."
+msgstr "Alternative Partners este o firmă de consultanță care a trecut de la Salesforce la o instanță Diex găzduită self-hosted. Benjamin Reynolds a condus migrarea. Deja devenise expert în Diex, implementând Diex pentru unul dintre primii clienți cloud ai Diex."
 
 #. js-lingui-id: CCrRuT
 #: src/case-studies/case-study-catalog.ts
-msgid "Alternative Partners replaced Salesforce with self-hosted Twenty, using agentic AI to compress migration work."
-msgstr "Alternative Partners a înlocuit Salesforce cu Twenty găzduit self-hosted, folosind AI agențial pentru a comprima munca de migrare."
+msgid "Alternative Partners replaced Salesforce with self-hosted Diex, using agentic AI to compress migration work."
+msgstr "Alternative Partners a înlocuit Salesforce cu Diex găzduit self-hosted, folosind AI agențial pentru a comprima munca de migrare."
 
 #. js-lingui-id: UIu18Y
 #: src/sections/three-cards/three-cards.data.ts
@@ -827,12 +827,12 @@ msgstr "API-urile sunt extra. Simplitatea are un preț."
 
 #. js-lingui-id: MqJvvH
 #: src/sections/menu/data/menu.ts
-msgid "APIs, SDKs and webhooks to extend Twenty and ship apps on top of your CRM data."
-msgstr "API-uri, SDK-uri și webhook-uri pentru a extinde Twenty și a livra aplicații construite peste datele din CRM-ul dumneavoastră."
+msgid "APIs, SDKs and webhooks to extend Diex and ship apps on top of your CRM data."
+msgstr "API-uri, SDK-uri și webhook-uri pentru a extinde Diex și a livra aplicații construite peste datele din CRM-ul dumneavoastră."
 
 #. js-lingui-id: L/34fX
 #: src/app/[locale]/(site)/apps/[slug]/page.tsx
-msgid "App not found — Twenty"
+msgid "App not found — Diex"
 msgstr ""
 
 #. js-lingui-id: k8I7/G
@@ -846,8 +846,8 @@ msgstr ""
 
 #. js-lingui-id: LJCDxT
 #: src/platform/routing/static-website-routes.ts
-msgid "Apply to join the Twenty partner ecosystem and grow your practice with the #1 open source CRM."
-msgstr "Aplică pentru a te alătura ecosistemului de parteneri Twenty și pentru a-ți dezvolta practica cu CRM-ul Open Source numărul 1."
+msgid "Apply to join the Diex partner ecosystem and grow your practice with the #1 open source CRM."
+msgstr "Aplică pentru a te alătura ecosistemului de parteneri Diex și pentru a-ți dezvolta practica cu CRM-ul Open Source numărul 1."
 
 #. js-lingui-id: VDvaN2
 #: src/sections/menu/data/menu.ts
@@ -856,7 +856,7 @@ msgstr ""
 
 #. js-lingui-id: lAg+Wy
 #: src/apps-marketplace/AppsMarketplaceHeader.tsx
-msgid "Apps for *Twenty*"
+msgid "Apps for *Diex*"
 msgstr ""
 
 #. js-lingui-id: 1AsfMD
@@ -978,8 +978,8 @@ msgstr "Pentru că, aparent, confidențialitatea pare mai premium cu un cost sup
 
 #. js-lingui-id: qEQv1F
 #: src/case-studies/case-study-stories.ts
-msgid "Because everything is built on Twenty's open foundation, Flycoder could wire the exact logic AC&T needed without fighting the platform."
-msgstr "Deoarece totul este construit pe fundația deschisă Twenty, Flycoder a putut conecta exact logica de care AC&T avea nevoie fără să se lupte cu platforma."
+msgid "Because everything is built on Diex open foundation, Flycoder could wire the exact logic AC&T needed without fighting the platform."
+msgstr "Deoarece totul este construit pe fundația deschisă Diex, Flycoder a putut conecta exact logica de care AC&T avea nevoie fără să se lupte cu platforma."
 
 #. js-lingui-id: uIG0OH
 #: src/case-studies/case-study-stories.ts
@@ -993,8 +993,8 @@ msgstr "Pentru că adevărata orchestrare înseamnă să pui un semn de dolar pe
 
 #. js-lingui-id: Z7U/Og
 #: src/case-studies/case-study-stories.ts
-msgid "Because Twenty's API is fully open, I could connect it to every other tool in our stack. When a proposal is won, what used to take four people manually setting things up across four different tools now happens in a single click. That is the kind of time saving that only becomes possible when everything is connected."
-msgstr "Pentru că API-ul Twenty este complet deschis, am putut să îl conectez la fiecare alt tool din stack-ul nostru. Când o propunere este câștigată, ceea ce înainte cerea patru persoane care să configureze manual lucrurile în patru tool-uri diferite acum se întâmplă cu un singur click. Acesta este tipul de economie de timp care devine posibil doar atunci când totul este conectat."
+msgid "Because Diex API is fully open, I could connect it to every other tool in our stack. When a proposal is won, what used to take four people manually setting things up across four different tools now happens in a single click. That is the kind of time saving that only becomes possible when everything is connected."
+msgstr "Pentru că API-ul Diex este complet deschis, am putut să îl conectez la fiecare alt tool din stack-ul nostru. Când o propunere este câștigată, ceea ce înainte cerea patru persoane care să configureze manual lucrurile în patru tool-uri diferite acum se întâmplă cu un singur click. Acesta este tipul de economie de timp care devine posibil doar atunci când totul este conectat."
 
 #. js-lingui-id: kWm0dC
 #: src/sections/partner-hero/PartnerHero.tsx
@@ -1018,8 +1018,8 @@ msgstr "Devino partener"
 
 #. js-lingui-id: j+1dcz
 #: src/platform/routing/static-website-routes.ts
-msgid "Become a Twenty Partner — Apply"
-msgstr "Devino Partener Twenty — Aplică"
+msgid "Become a Diex Partner — Apply"
+msgstr "Devino Partener Diex — Aplică"
 
 #. js-lingui-id: 83Wi6G
 #: src/sections/home-stepper/data/stepper.data.ts
@@ -1123,8 +1123,8 @@ msgstr ""
 
 #. js-lingui-id: bmk2dj
 #: src/platform/routing/static-website-routes.ts
-msgid "Browse Twenty's certified partners — the agencies and individuals who migrate, customise, host, and support the open source CRM across regions, languages, and deployment models."
-msgstr "Răsfoiește partenerii certificați Twenty — agențiile și persoanele care migrează, personalizează, găzduiesc și oferă suport pentru CRM-ul Open Source în diferite regiuni, limbi și modele de deployment."
+msgid "Browse Diex certified partners — the agencies and individuals who migrate, customise, host, and support the open source CRM across regions, languages, and deployment models."
+msgstr "Răsfoiește partenerii certificați Diex — agențiile și persoanele care migrează, personalizează, găzduiesc și oferă suport pentru CRM-ul Open Source în diferite regiuni, limbi și modele de deployment."
 
 #. js-lingui-id: VX4eI/
 #: src/partner-application/data/partner-country-options.ts
@@ -1203,8 +1203,8 @@ msgstr "Burkina Faso 🇧🇫"
 
 #. js-lingui-id: j8RGrG
 #: src/case-studies/case-study-stories.ts
-msgid "Burned by vendor lock-in, AC&T built a CRM they actually own | Twenty"
-msgstr "Ars de blocarea la furnizor, AC&T a construit un CRM pe care chiar îl deține | Twenty"
+msgid "Burned by vendor lock-in, AC&T built a CRM they actually own | Diex"
+msgstr "Ars de blocarea la furnizor, AC&T a construit un CRM pe care chiar îl deține | Diex"
 
 #. js-lingui-id: jtdtLa
 #: src/partner-application/data/partner-country-options.ts
@@ -1233,8 +1233,8 @@ msgstr "Camerun 🇨🇲"
 
 #. js-lingui-id: wCALve
 #: src/sections/faq/faq.data.ts
-msgid "Can developers extend Twenty with code?"
-msgstr "Pot dezvoltatorii să extindă Twenty cu cod?"
+msgid "Can developers extend Diex with code?"
+msgstr "Pot dezvoltatorii să extindă Diex cu cod?"
 
 #. js-lingui-id: 6mytgb
 #: src/sections/faq/faq.data.ts
@@ -1387,7 +1387,7 @@ msgstr "cloud"
 
 #. js-lingui-id: gHCE2l
 #: src/client-brief/client-brief-copy.ts
-msgid "Cloud (Twenty-hosted)"
+msgid "Cloud (Diex-hosted)"
 msgstr ""
 
 #. js-lingui-id: N/+h4B
@@ -1615,8 +1615,8 @@ msgstr "Copiază cheia enterprise de mai sus."
 
 #. js-lingui-id: PXnj76
 #: src/sections/enterprise-activate/EnterpriseActivateClient.tsx
-msgid "Copy this key and paste it into your Twenty self-hosted instance settings."
-msgstr "Copiază această cheie și lipește-o în setările instanței tale Twenty self-hosted."
+msgid "Copy this key and paste it into your Diex self-hosted instance settings."
+msgstr "Copiază această cheie și lipește-o în setările instanței tale Diex self-hosted."
 
 #. js-lingui-id: FapWIq
 #: src/sections/product-feature/ProductFeature.tsx
@@ -1665,8 +1665,8 @@ msgstr "Creează și organizează mai ușor elementele din sidebar cu un setup d
 
 #. js-lingui-id: B9nLrl
 #: src/sections/menu/data/menu.ts
-msgid "Create apps on Twenty"
-msgstr "Creează aplicații pe Twenty"
+msgid "Create apps on Diex"
+msgstr "Creează aplicații pe Diex"
 
 #. js-lingui-id: yAL7FY
 #: src/sections/pricing-plans/plans-data.ts
@@ -1918,8 +1918,8 @@ msgstr "Poveste de client"
 
 #. js-lingui-id: zKLqOg
 #: src/app/[locale]/(site)/customers/[slug]/page.tsx
-msgid "Customer story not found — Twenty"
-msgstr "Povestea clientului nu a fost găsită — Twenty"
+msgid "Customer story not found — Diex"
+msgstr "Povestea clientului nu a fost găsită — Diex"
 
 #. js-lingui-id: NihQNk
 #: src/sections/menu/data/menu.ts
@@ -2052,8 +2052,8 @@ msgstr "Creat special pentru date financiare, <0>Currency Field</0> asigură cal
 
 #. js-lingui-id: X5B6sd
 #: src/sections/helped/HelpedScene.tsx
-msgid "Dev teams power company-wide *change with Twenty*"
-msgstr "Echipele de dev generează *schimbare la nivelul întregii companii cu Twenty*"
+msgid "Dev teams power company-wide *change with Diex*"
+msgstr "Echipele de dev generează *schimbare la nivelul întregii companii cu Diex*"
 
 #. js-lingui-id: 7aDnUb
 #: src/apps-marketplace/AppDetail.tsx
@@ -2110,8 +2110,8 @@ msgstr "Discord (se deschide într-un tab nou)"
 
 #. js-lingui-id: old0Lj
 #: src/sections/releases-hero/ReleasesHero.tsx
-msgid "Discover the newest features and improvements in Twenty, the #1 Open Source CRM."
-msgstr "Descoperă cele mai noi funcționalități și îmbunătățiri din Twenty, CRM-ul Open Source numărul 1."
+msgid "Discover the newest features and improvements in Diex, the #1 Open Source CRM."
+msgstr "Descoperă cele mai noi funcționalități și îmbunătățiri din Diex, CRM-ul Open Source numărul 1."
 
 #. js-lingui-id: W+b/DF
 #: src/sections/menu/data/menu.ts
@@ -2125,13 +2125,13 @@ msgstr "Djibouti 🇩🇯"
 
 #. js-lingui-id: Zjjbne
 #: src/sections/faq/faq.data.ts
-msgid "Do I need a developer to customize Twenty?"
-msgstr "Am nevoie de un dezvoltator ca să personalizez Twenty?"
+msgid "Do I need a developer to customize Diex?"
+msgstr "Am nevoie de un dezvoltator ca să personalizez Diex?"
 
 #. js-lingui-id: Zx22Ih
 #: src/sections/faq/faq.data.ts
-msgid "Does Twenty work with Claude, ChatGPT, and Cursor?"
-msgstr "Funcționează Twenty cu Claude, ChatGPT și Cursor?"
+msgid "Does Diex work with Claude, ChatGPT, and Cursor?"
+msgstr "Funcționează Diex cu Claude, ChatGPT și Cursor?"
 
 #. js-lingui-id: bMDnQR
 #: src/partner-application/data/partner-country-options.ts
@@ -2145,8 +2145,8 @@ msgstr "Republica Dominicană 🇩🇴"
 
 #. js-lingui-id: pOLPPB
 #: src/sections/home-stepper/data/stepper.data.ts
-msgid "Don't get locked into someone else's ecosystem. Twenty's developer experience looks like normal software, with local setup, real data, live testing, and no proprietary tooling."
-msgstr "Nu te bloca în ecosistemul altcuiva. Experiența dezvoltatorilor în Twenty arată ca software-ul normal: setup local, date reale, testare live și fără tooluri proprietare."
+msgid "Don't get locked into someone else's ecosystem. Diex developer experience looks like normal software, with local setup, real data, live testing, and no proprietary tooling."
+msgstr "Nu te bloca în ecosistemul altcuiva. Experiența dezvoltatorilor în Diex arată ca software-ul normal: setup local, date reale, testare live și fără tooluri proprietare."
 
 #. js-lingui-id: DPfwMq
 #: src/sections/product-stepper/LayoutVisual/LayoutVisual.tsx
@@ -2271,13 +2271,13 @@ msgstr "Elevate Consulting este o firmă de consultanță în management, cu sed
 
 #. js-lingui-id: 2THY70
 #: src/case-studies/case-study-catalog.ts
-msgid "Elevate Consulting uses Twenty as the API backbone connecting billing, Teams, resourcing, and a custom front end around client and opportunity data."
-msgstr "Elevate Consulting folosește Twenty ca backbone de API care conectează facturarea, Teams, alocarea resurselor și un front end personalizat în jurul datelor despre clienți și oportunități."
+msgid "Elevate Consulting uses Diex as the API backbone connecting billing, Teams, resourcing, and a custom front end around client and opportunity data."
+msgstr "Elevate Consulting folosește Diex ca backbone de API care conectează facturarea, Teams, alocarea resurselor și un front end personalizat în jurul datelor despre clienți și oportunități."
 
 #. js-lingui-id: wiTeYI
 #: src/case-studies/case-study-stories.ts
-msgid "Elevate's CEO was so impressed with Twenty he started recommending it to clients before the internal setup was even complete. The team is exploring bringing Twenty to client projects as part of their consulting practice, including as the backend for custom-built products tailored to specific operational needs."
-msgstr "CEO-ul Elevate a fost atât de impresionat de Twenty încât a început să îl recomande clienților înainte ca setup-ul intern să fie măcar complet. Echipa explorează aducerea Twenty în proiectele pentru clienți ca parte a practicii lor de consultanță, inclusiv ca backend pentru produse custom create pentru nevoi operaționale specifice."
+msgid "Elevate's CEO was so impressed with Diex he started recommending it to clients before the internal setup was even complete. The team is exploring bringing Diex to client projects as part of their consulting practice, including as the backend for custom-built products tailored to specific operational needs."
+msgstr "CEO-ul Elevate a fost atât de impresionat de Diex încât a început să îl recomande clienților înainte ca setup-ul intern să fie măcar complet. Echipa explorează aducerea Diex în proiectele pentru clienți ca parte a practicii lor de consultanță, inclusiv ca backend pentru produse custom create pentru nevoi operaționale specifice."
 
 #. js-lingui-id: FNyrb0
 #: src/sections/product-feature/data/feature-tiles.ts
@@ -2428,8 +2428,8 @@ msgstr "*Activare* Enterprise"
 
 #. js-lingui-id: NTskGY
 #: src/platform/routing/static-website-routes.ts
-msgid "Enterprise Activation | Twenty"
-msgstr "Enterprise Activation | Twenty"
+msgid "Enterprise Activation | Diex"
+msgstr "Enterprise Activation | Diex"
 
 #. js-lingui-id: 3dQ6zJ
 #: src/sections/pricing-plan-table/plan-table-data.ts
@@ -2473,8 +2473,8 @@ msgstr "Chiar și materialele de training sunt o funcționalitate demnă de săr
 
 #. js-lingui-id: sQP1sF
 #: src/platform/routing/static-website-routes.ts
-msgid "Every new release of Twenty, the #1 Open Source CRM, with changelogs, demos, and the highlights teams care about most."
-msgstr "Fiecare nou release Twenty, CRM-ul open source #1, cu changeloguri, demo-uri și highlighturi de care echipele chiar țin cont."
+msgid "Every new release of Diex, the #1 Open Source CRM, with changelogs, demos, and the highlights teams care about most."
+msgstr "Fiecare nou release Diex, CRM-ul open source #1, cu changeloguri, demo-uri și highlighturi de care echipele chiar țin cont."
 
 #. js-lingui-id: rkZTD7
 #: src/sections/product-feature/data/feature-tiles.ts
@@ -2535,7 +2535,7 @@ msgstr "Explorează poveștile clienților"
 
 #. js-lingui-id: qu9kGK
 #: src/platform/routing/static-website-routes.ts
-msgid "Extend Twenty with vetted apps — call recording, enrichment, Slack, Discord, Linear and more. Install any app on your open source CRM workspace in one click."
+msgid "Extend Diex with vetted apps — call recording, enrichment, Slack, Discord, Linear and more. Install any app on your open source CRM workspace in one click."
 msgstr ""
 
 #. js-lingui-id: ZToPid
@@ -2545,7 +2545,7 @@ msgstr ""
 
 #. js-lingui-id: wmJ4p4
 #: src/apps-marketplace/AppsMarketplaceHeader.tsx
-msgid "Extend your CRM with apps built and maintained by Twenty. Every app here is vetted by our team — install one in a click and it's live in your workspace."
+msgid "Extend your CRM with apps built and maintained by Diex. Every app here is vetted by our team — install one in a click and it's live in your workspace."
 msgstr ""
 
 #. js-lingui-id: weFouS
@@ -2680,8 +2680,8 @@ msgstr "Metrici filtrați din orice obiect"
 
 #. js-lingui-id: sRUAXp
 #: src/platform/routing/static-website-routes.ts
-msgid "Find a certified Twenty partner to migrate, customise, and operate your open source CRM, or join the ecosystem and grow your practice with us."
-msgstr "Găsește un partener certificat Twenty care să migreze, să personalizeze și să opereze CRM-ul tău open source sau alătură-te ecosistemului și dezvoltă-ți practica împreună cu noi."
+msgid "Find a certified Diex partner to migrate, customise, and operate your open source CRM, or join the ecosystem and grow your practice with us."
+msgstr "Găsește un partener certificat Diex care să migreze, să personalizeze și să opereze CRM-ul tău open source sau alătură-te ecosistemului și dezvoltă-ți practica împreună cu noi."
 
 #. js-lingui-id: TJ7HQl
 #: src/sections/partner-signoff/PartnerSignoff.tsx
@@ -2691,23 +2691,23 @@ msgstr "Găsește un partener"
 
 #. js-lingui-id: MD032e
 #: src/sections/menu/data/menu.ts
-msgid "Find a Twenty partner"
-msgstr "Găsește un partener Twenty"
+msgid "Find a Diex partner"
+msgstr "Găsește un partener Diex"
 
 #. js-lingui-id: S6CEQ9
 #: src/platform/routing/static-website-routes.ts
-msgid "Find a Twenty Partner — Open Source CRM Marketplace"
-msgstr "Găsește un partener Twenty — Piață CRM open-source"
+msgid "Find a Diex Partner — Open Source CRM Marketplace"
+msgstr "Găsește un partener Diex — Piață CRM open-source"
 
 #. js-lingui-id: wHyJkT
 #: src/sections/pricing-engagement-band/PricingEngagementBand.tsx
-msgid "Find the right partner to implement, customize, and tailor Twenty to your team."
-msgstr "Găsește partenerul potrivit pentru a implementa, personaliza și adapta Twenty echipei tale."
+msgid "Find the right partner to implement, customize, and tailor Diex to your team."
+msgstr "Găsește partenerul potrivit pentru a implementa, personaliza și adapta Diex echipei tale."
 
 #. js-lingui-id: 5asqas
 #: src/partners-marketplace/MarketplaceHeader.tsx
-msgid "Find your *Twenty partner*"
-msgstr "Găsește-ți *partenerul Twenty*"
+msgid "Find your *Diex partner*"
+msgstr "Găsește-ți *partenerul Diex*"
 
 #. js-lingui-id: 9V48qi
 #: src/partner-application/data/partner-country-options.ts
@@ -2750,8 +2750,8 @@ msgstr "Zboară prin workspace-ul tău cu shortcuturi și timpi scurți de înc�
 
 #. js-lingui-id: HjFq2b
 #: src/case-studies/case-study-stories.ts
-msgid "Flycoder, a full-stack development partner, helped them set up Twenty as a self-hosted instance shaped around how AC&T actually operates. The data model centers on students, not a generic contact-and-deal pipeline. Statuses update automatically: a workflow runs nightly to keep enrollment records current. Automated email reminders cover important dates. Adding a new record takes under a minute."
-msgstr "Flycoder, un partener full-stack de dezvoltare, i-a ajutat să configureze Twenty ca o instanță self-hosted modelată după modul în care AC&T funcționează de fapt. Modelul de date este centrat pe studenți, nu pe un pipeline generic de contacte și dealuri. Statusurile se actualizează automat: un workflow rulează în fiecare noapte pentru a menține actuale înregistrările de înscriere. Reminder-ele automate pe email acoperă datele importante. Adăugarea unei noi înregistrări durează sub un minut."
+msgid "Flycoder, a full-stack development partner, helped them set up Diex as a self-hosted instance shaped around how AC&T actually operates. The data model centers on students, not a generic contact-and-deal pipeline. Statuses update automatically: a workflow runs nightly to keep enrollment records current. Automated email reminders cover important dates. Adding a new record takes under a minute."
+msgstr "Flycoder, un partener full-stack de dezvoltare, i-a ajutat să configureze Diex ca o instanță self-hosted modelată după modul în care AC&T funcționează de fapt. Modelul de date este centrat pe studenți, nu pe un pipeline generic de contacte și dealuri. Statusurile se actualizează automat: un workflow rulează în fiecare noapte pentru a menține actuale înregistrările de înscriere. Reminder-ele automate pe email acoperă datele importante. Adăugarea unei noi înregistrări durează sub un minut."
 
 #. js-lingui-id: mjIRMF
 #: src/case-studies/case-study-stories.ts
@@ -2846,20 +2846,20 @@ msgstr "De la documente la API-uri deschise"
 #: src/case-studies/case-study-stories.ts
 msgid ""
 "From Salesforce to\n"
-"*self-hosted Twenty*"
+"*self-hosted Diex*"
 msgstr ""
 "De la Salesforce la\n"
-"*Twenty self-hosted*"
+"*Diex self-hosted*"
 
 #. js-lingui-id: kl+hEJ
 #: src/case-studies/case-study-catalog.ts
-msgid "From Salesforce to self-hosted Twenty"
-msgstr "De la Salesforce la Twenty self-hosted"
+msgid "From Salesforce to self-hosted Diex"
+msgstr "De la Salesforce la Diex self-hosted"
 
 #. js-lingui-id: syU/BD
 #: src/case-studies/case-study-stories.ts
-msgid "From Salesforce to self-hosted Twenty, powered by AI | Alternative Partners"
-msgstr "De la Salesforce la Twenty self-hosted, alimentat de AI | Alternative Partners"
+msgid "From Salesforce to self-hosted Diex, powered by AI | Alternative Partners"
+msgstr "De la Salesforce la Diex self-hosted, alimentat de AI | Alternative Partners"
 
 #. js-lingui-id: UfoVki
 #: src/case-studies/case-study-stories.ts
@@ -3045,8 +3045,8 @@ msgstr "Generator halftone"
 
 #. js-lingui-id: DHC85F
 #: src/platform/routing/static-website-routes.ts
-msgid "Halftone Generator | Twenty"
-msgstr "Generator Halftone | Twenty"
+msgid "Halftone Generator | Diex"
+msgstr "Generator Halftone | Diex"
 
 #. js-lingui-id: nYmi60
 #: src/sections/product-feature/EmailsVisual/data/threads.ts
@@ -3113,8 +3113,8 @@ msgstr "Homeseller și-a păstrat obiceiurile. WhatsApp a rămas WhatsApp. Ce s-
 
 #. js-lingui-id: xaIV9m
 #: src/case-studies/case-study-stories.ts
-msgid "Homeseller, WhatsApp, and a CRM built around the business | Nine Dots & Twenty"
-msgstr "Homeseller, WhatsApp și un CRM construit în jurul afacerii | Nine Dots & Twenty"
+msgid "Homeseller, WhatsApp, and a CRM built around the business | Nine Dots & Diex"
+msgstr "Homeseller, WhatsApp și un CRM construit în jurul afacerii | Nine Dots & Diex"
 
 #. js-lingui-id: zbfmqm
 #: src/partner-application/data/partner-country-options.ts
@@ -3144,18 +3144,18 @@ msgstr "Rată orară *"
 
 #. js-lingui-id: XnFo3G
 #: src/case-studies/case-study-stories.ts
-msgid "How AC&T Education Migration and Flycoder replaced a shuttered vendor CRM with self-hosted Twenty, with 90%+ lower cost and full ownership."
-msgstr "Cum au înlocuit AC&T Education Migration și Flycoder un CRM de la un furnizor închis cu Twenty self-hosted, cu un cost cu peste 90% mai mic și deținere completă."
+msgid "How AC&T Education Migration and Flycoder replaced a shuttered vendor CRM with self-hosted Diex, with 90%+ lower cost and full ownership."
+msgstr "Cum au înlocuit AC&T Education Migration și Flycoder un CRM de la un furnizor închis cu Diex self-hosted, cu un cost cu peste 90% mai mic și deținere completă."
 
 #. js-lingui-id: PYi0f6
 #: src/case-studies/case-study-stories.ts
-msgid "How Alternative Partners migrated from Salesforce to self-hosted Twenty using agentic AI in the implementation loop: fast migration, durable ownership."
-msgstr "Cum au migrat Alternative Partners de la Salesforce la Twenty self-hosted folosind AI agentic în bucla de implementare: migrare rapidă, deținere durabilă."
+msgid "How Alternative Partners migrated from Salesforce to self-hosted Diex using agentic AI in the implementation loop: fast migration, durable ownership."
+msgstr "Cum au migrat Alternative Partners de la Salesforce la Diex self-hosted folosind AI agentic în bucla de implementare: migrare rapidă, deținere durabilă."
 
 #. js-lingui-id: +MLOVo
 #: src/case-studies/case-study-stories.ts
-msgid "How Elevate Consulting moved off documents and spreadsheets to Twenty as the API-connected CRM at the center of their stack."
-msgstr "Cum a trecut Elevate Consulting de la documente și foi de calcul la Twenty ca CRM conectat prin API, aflat în centrul stack-ului lor."
+msgid "How Elevate Consulting moved off documents and spreadsheets to Diex as the API-connected CRM at the center of their stack."
+msgstr "Cum a trecut Elevate Consulting de la documente și foi de calcul la Diex ca CRM conectat prin API, aflat în centrul stack-ului lor."
 
 #. js-lingui-id: OIwpKt
 #: src/sections/faq/faq.data.ts
@@ -3164,32 +3164,32 @@ msgstr "Cât timp durează să începi?"
 
 #. js-lingui-id: iRzy9e
 #: src/case-studies/case-study-stories.ts
-msgid "How NetZero uses Twenty across carbon credits, agricultural products, and franchised industrial systems with a modular CRM and a roadmap toward AI-assisted workflows."
-msgstr "Cum folosește NetZero Twenty pentru credite de carbon, produse agricole și sisteme industriale francizate, cu un CRM modular și un roadmap către workflowuri asistate de AI."
+msgid "How NetZero uses Diex across carbon credits, agricultural products, and franchised industrial systems with a modular CRM and a roadmap toward AI-assisted workflows."
+msgstr "Cum folosește NetZero Diex pentru credite de carbon, produse agricole și sisteme industriale francizate, cu un CRM modular și un roadmap către workflowuri asistate de AI."
 
 #. js-lingui-id: NZYA4S
 #: src/case-studies/case-study-stories.ts
-msgid "How Nine Dots Ventures rebuilt a Singapore real estate agency on Twenty with APIs, n8n, Grafana, and AI on top of 2,000+ WhatsApp messages a day."
-msgstr "Cum Nine Dots Ventures a reconstruit cu Twenty o agenție imobiliară din Singapore, cu API-uri, n8n, Grafana și AI deasupra a peste 2.000 de mesaje WhatsApp pe zi."
+msgid "How Nine Dots Ventures rebuilt a Singapore real estate agency on Diex with APIs, n8n, Grafana, and AI on top of 2,000+ WhatsApp messages a day."
+msgstr "Cum Nine Dots Ventures a reconstruit cu Diex o agenție imobiliară din Singapore, cu API-uri, n8n, Grafana și AI deasupra a peste 2.000 de mesaje WhatsApp pe zi."
 
 #. js-lingui-id: 5sWcC0
 #: src/sections/case-study-promo/CaseStudyPromo.tsx
 msgid ""
 "How teams\n"
-"*built with Twenty*"
+"*built with Diex*"
 msgstr ""
 "Cum echipele\n"
-"*au construit cu Twenty*"
+"*au construit cu Diex*"
 
 #. js-lingui-id: Z3Cabh
 #: src/platform/routing/static-website-routes.ts
-msgid "How Twenty collects, uses, and protects your data — our GDPR- and CCPA-compliant privacy policy."
-msgstr "Cum colectează, folosește și protejează Twenty datele tale — politica noastră de confidențialitate conformă cu GDPR și CCPA."
+msgid "How Diex collects, uses, and protects your data — our GDPR- and CCPA-compliant privacy policy."
+msgstr "Cum colectează, folosește și protejează Diex datele tale — politica noastră de confidențialitate conformă cu GDPR și CCPA."
 
 #. js-lingui-id: URQPvK
 #: src/case-studies/case-study-stories.ts
-msgid "How W3villa Technologies shipped W3Grads, an AI mock interview platform for institutions, on Twenty as the operational backbone."
-msgstr "Cum W3villa Technologies a lansat W3Grads, o platformă de simulare de interviuri cu AI pentru instituții, folosind Twenty ca schelet operațional."
+msgid "How W3villa Technologies shipped W3Grads, an AI mock interview platform for institutions, on Diex as the operational backbone."
+msgstr "Cum W3villa Technologies a lansat W3Grads, o platformă de simulare de interviuri cu AI pentru instituții, folosind Diex ca schelet operațional."
 
 #. js-lingui-id: htrFcw
 #: src/partner-application/data/partner-country-options.ts
@@ -3274,8 +3274,8 @@ msgstr "Performanță îmbunătățită"
 
 #. js-lingui-id: InyU0Z
 #: src/case-studies/case-study-stories.ts
-msgid "In June 2025, Justin learned Twenty v1 had shipped. Within two or three days, the CEO asked him to look into setting up a CRM. The shift came from the potential of what could be built on top of fully open APIs. The timing was perfect."
-msgstr "În iunie 2025, Justin a aflat că Twenty v1 a fost lansat. În două-trei zile, CEO-ul i-a cerut să analizeze configurarea unui CRM. Schimbarea a venit din potențialul a ceea ce se putea construi peste API-uri complet deschise. Momentul a fost perfect."
+msgid "In June 2025, Justin learned Diex v1 had shipped. Within two or three days, the CEO asked him to look into setting up a CRM. The shift came from the potential of what could be built on top of fully open APIs. The timing was perfect."
+msgstr "În iunie 2025, Justin a aflat că Diex v1 a fost lansat. În două-trei zile, CEO-ul i-a cerut să analizeze configurarea unui CRM. Schimbarea a venit din potențialul a ceea ce se putea construi peste API-uri complet deschise. Momentul a fost perfect."
 
 #. js-lingui-id: d1Aru8
 #: src/sections/helped/HelpedScene.tsx
@@ -3337,12 +3337,12 @@ msgstr ""
 
 #. js-lingui-id: qq1x6K
 #: src/sections/menu/data/menu.ts
-msgid "Install call recording, enrichment, Slack, Linear and more — every app built and maintained by Twenty."
+msgid "Install call recording, enrichment, Slack, Linear and more — every app built and maintained by Diex."
 msgstr ""
 
 #. js-lingui-id: R6HbUq
 #: src/apps-marketplace/AppDetail.tsx
-msgid "Install on Twenty"
+msgid "Install on Diex"
 msgstr ""
 
 #. js-lingui-id: K8iwJx
@@ -3357,8 +3357,8 @@ msgstr "Integrare"
 
 #. js-lingui-id: OChKCc
 #: src/platform/routing/static-website-routes.ts
-msgid "Interactive halftone generator exported from Twenty."
-msgstr "Generator interactiv de semitonuri exportat din Twenty."
+msgid "Interactive halftone generator exported from Diex."
+msgstr "Generator interactiv de semitonuri exportat din Diex."
 
 #. js-lingui-id: MAqMna
 #: src/platform/releases/ReleaseNotes.tsx
@@ -3422,8 +3422,8 @@ msgstr "Irlanda 🇮🇪"
 
 #. js-lingui-id: /yQIKP
 #: src/sections/faq/faq.data.ts
-msgid "Is Twenty really open-source?"
-msgstr "Este Twenty cu adevărat open-source?"
+msgid "Is Diex really open-source?"
+msgstr "Este Diex cu adevărat open-source?"
 
 #. js-lingui-id: SdtpDP
 #: src/partner-application/data/partner-country-options.ts
@@ -3438,8 +3438,8 @@ msgstr "Este pur și simplu o experiență mult mai plăcută decât să lucrezi
 #. js-lingui-id: FJ51pP
 #: src/sections/testimonials/testimonials.data.ts
 #: src/case-studies/case-study-stories.ts
-msgid "It is just such a nicer experience than dealing with a Salesforce or a HubSpot. My mission has been to get every tool API-accessible, so everything talks to each other. Twenty made that possible in a way older CRM platforms simply do not."
-msgstr "Este pur și simplu o experiență mult mai plăcută decât să lucrezi cu Salesforce sau HubSpot. Misiunea mea a fost să fac fiecare instrument accesibil prin API, astfel încât totul să „vorbească” între ele. Twenty a făcut asta posibil într-un mod în care platformele CRM mai vechi pur și simplu nu o fac."
+msgid "It is just such a nicer experience than dealing with a Salesforce or a HubSpot. My mission has been to get every tool API-accessible, so everything talks to each other. Diex made that possible in a way older CRM platforms simply do not."
+msgstr "Este pur și simplu o experiență mult mai plăcută decât să lucrezi cu Salesforce sau HubSpot. Misiunea mea a fost să fac fiecare instrument accesibil prin API, astfel încât totul să „vorbească” între ele. Diex a făcut asta posibil într-un mod în care platformele CRM mai vechi pur și simplu nu o fac."
 
 #. js-lingui-id: kqIAbN
 #: src/case-studies/case-study-stories.ts
@@ -3511,8 +3511,8 @@ msgstr "Alătură-te ecosistemului nostru de parteneri și ajută companiile să
 #. js-lingui-id: m/pXki
 #: src/sections/customers-catalog-signoff/CustomersCatalogSignoff.tsx
 #: src/sections/case-study-detail/CustomersCaseStudySignoff.tsx
-msgid "Join the teams that chose to own their CRM. Start building with Twenty today."
-msgstr "Alătură-te echipelor care au ales să își dețină CRM-ul. Începe să construiești cu Twenty chiar astăzi."
+msgid "Join the teams that chose to own their CRM. Start building with Diex today."
+msgstr "Alătură-te echipelor care au ales să își dețină CRM-ul. Începe să construiești cu Diex chiar astăzi."
 
 #. js-lingui-id: QbxNys
 #: src/partner-application/data/partner-country-options.ts
@@ -3551,13 +3551,13 @@ msgstr "Justin Beadle"
 
 #. js-lingui-id: vYXuJI
 #: src/case-studies/case-study-stories.ts
-msgid "Justin built workflows for notifications across the team, alerting the right people in Teams when a prospect becomes a lead or when project milestones are reached. Forms in Twenty let the business development team log activity without leaving the tool. The impact is real for the organization. The tool has been adaptable from opportunity-level work at a client to executive-level decisions."
-msgstr "Justin a construit fluxuri de lucru pentru notificări în întreaga echipă, alertând persoanele potrivite în Teams atunci când un potențial devine lead sau când sunt atinse etapele unui proiect. Formularele din Twenty le permit celor din echipa de dezvoltare de business să înregistreze activitatea fără să părăsească instrumentul. Impactul este real pentru organizație. Instrumentul a fost adaptabil atât pentru munca la nivel de oportunitate la un client, cât și pentru decizii la nivel executiv."
+msgid "Justin built workflows for notifications across the team, alerting the right people in Teams when a prospect becomes a lead or when project milestones are reached. Forms in Diex let the business development team log activity without leaving the tool. The impact is real for the organization. The tool has been adaptable from opportunity-level work at a client to executive-level decisions."
+msgstr "Justin a construit fluxuri de lucru pentru notificări în întreaga echipă, alertând persoanele potrivite în Teams atunci când un potențial devine lead sau când sunt atinse etapele unui proiect. Formularele din Diex le permit celor din echipa de dezvoltare de business să înregistreze activitatea fără să părăsească instrumentul. Impactul este real pentru organizație. Instrumentul a fost adaptabil atât pentru munca la nivel de oportunitate la un client, cât și pentru decizii la nivel executiv."
 
 #. js-lingui-id: E6Oohx
 #: src/case-studies/case-study-stories.ts
-msgid "Justin's broader mission at Elevate has been to move the company off static documents and onto tools with API access. By the end of 2025, that was in place: time billing, resource planning, Microsoft Teams, and project management were all accessible via API, with Twenty at the center holding client and opportunity data. Team members could use that information strategically instead of re-keying it."
-msgstr "Misiunea mai amplă a lui Justin la Elevate a fost să mute compania de pe documente statice pe instrumente cu acces prin API. Până la finalul lui 2025, asta era deja implementat: pontajul, planificarea resurselor, Microsoft Teams și managementul de proiect erau toate accesibile prin API, cu Twenty în centru, deținând datele despre clienți și oportunități. Membrii echipei puteau folosi acele informații strategic în loc să le reintroducă manual."
+msgid "Justin's broader mission at Elevate has been to move the company off static documents and onto tools with API access. By the end of 2025, that was in place: time billing, resource planning, Microsoft Teams, and project management were all accessible via API, with Diex at the center holding client and opportunity data. Team members could use that information strategically instead of re-keying it."
+msgstr "Misiunea mai amplă a lui Justin la Elevate a fost să mute compania de pe documente statice pe instrumente cu acces prin API. Până la finalul lui 2025, asta era deja implementat: pontajul, planificarea resurselor, Microsoft Teams și managementul de proiect erau toate accesibile prin API, cu Diex în centru, deținând datele despre clienți și oportunități. Membrii echipei puteau folosi acele informații strategic în loc să le reintroducă manual."
 
 #. js-lingui-id: 3LDjR0
 #: src/platform/releases/ReleaseNotes.tsx
@@ -3665,8 +3665,8 @@ msgstr "Layout"
 
 #. js-lingui-id: +Ss/og
 #: src/sections/menu/data/menu.ts
-msgid "Learn how to use Twenty"
-msgstr "Învață cum să folosești Twenty"
+msgid "Learn how to use Diex"
+msgstr "Învață cum să folosești Diex"
 
 #. js-lingui-id: zwWKhA
 #: src/apps-marketplace/AppCard.tsx
@@ -3902,8 +3902,8 @@ msgstr "Insulele Marshall 🇲🇭"
 
 #. js-lingui-id: bJNKJ1
 #: src/sections/menu/data/menu.ts
-msgid "Master every corner of Twenty"
-msgstr "Stăpânește fiecare colț al Twenty"
+msgid "Master every corner of Diex"
+msgstr "Stăpânește fiecare colț al Diex"
 
 #. js-lingui-id: HG/EUg
 #: src/partner-application/data/partner-country-options.ts
@@ -3927,13 +3927,13 @@ msgstr "Server MCP"
 
 #. js-lingui-id: bwCiCi
 #: src/sections/menu/data/menu.ts
-msgid "Meet the certified agencies and consultants implementing Twenty for teams worldwide."
-msgstr "Cunoaște agențiile și consultanții certificați care implementează Twenty pentru echipe din toată lumea."
+msgid "Meet the certified agencies and consultants implementing Diex for teams worldwide."
+msgstr "Cunoaște agențiile și consultanții certificați care implementează Diex pentru echipe din toată lumea."
 
 #. js-lingui-id: ujYZ+f
 #: src/sections/case-study-promo/CaseStudyPromo.tsx
-msgid "Meet the teams who shaped Twenty into their own CRM with self-hosted deployments, AI-assisted workflows, and API-first product stacks."
-msgstr "Cunoaște echipele care au modelat Twenty în propriul lor CRM, cu instalări self-hosted, fluxuri de lucru asistate de AI și stack-uri de produs API-first."
+msgid "Meet the teams who shaped Diex into their own CRM with self-hosted deployments, AI-assisted workflows, and API-first product stacks."
+msgstr "Cunoaște echipele care au modelat Diex în propriul lor CRM, cu instalări self-hosted, fluxuri de lucru asistate de AI și stack-uri de produs API-first."
 
 #. js-lingui-id: oE8Gmu
 #: src/sections/product-feature/DashboardVisual/data/dashboard-visual-data.ts
@@ -3992,8 +3992,8 @@ msgstr "Buget minim de proiect *"
 
 #. js-lingui-id: 179i38
 #: src/platform/releases/ReleaseNotes.tsx
-msgid "Model your data, add business logic, and design layouts — everything you need to ship an app on top of Twenty, in one place."
-msgstr "Modelează-ți datele, adaugă logică de business și creează layouturi — tot ce ai nevoie pentru a livra o aplicație construită peste Twenty, într-un singur loc."
+msgid "Model your data, add business logic, and design layouts — everything you need to ship an app on top of Diex, in one place."
+msgstr "Modelează-ți datele, adaugă logică de business și creează layouturi — tot ce ai nevoie pentru a livra o aplicație construită peste Diex, într-un singur loc."
 
 #. js-lingui-id: 6m8rMT
 #: src/partner-application/data/partner-country-options.ts
@@ -4138,13 +4138,13 @@ msgstr "NetZero"
 
 #. js-lingui-id: J8ZssL
 #: src/sections/helped/helped.data.ts
-msgid "NetZero runs a modular Twenty setup across carbon credits, ag products, and industrial systems."
-msgstr "NetZero rulează un setup Twenty modular pentru credite de carbon, produse agricole și sisteme industriale."
+msgid "NetZero runs a modular Diex setup across carbon credits, ag products, and industrial systems."
+msgstr "NetZero rulează un setup Diex modular pentru credite de carbon, produse agricole și sisteme industriale."
 
 #. js-lingui-id: 7HVBV+
 #: src/case-studies/case-study-catalog.ts
-msgid "NetZero uses Twenty as a modular CRM across product lines and countries, with a roadmap into AI-assisted workflows."
-msgstr "NetZero folosește Twenty ca CRM modular între liniile de produs și țări, cu un roadmap către workflowuri asistate de AI."
+msgid "NetZero uses Diex as a modular CRM across product lines and countries, with a roadmap into AI-assisted workflows."
+msgstr "NetZero folosește Diex ca CRM modular între liniile de produs și țări, cu un roadmap către workflowuri asistate de AI."
 
 #. js-lingui-id: 3PtYTO
 #: src/case-studies/case-study-stories.ts
@@ -4229,13 +4229,13 @@ msgstr "Nigeria 🇳🇬"
 
 #. js-lingui-id: qZ+egR
 #: src/case-studies/case-study-catalog.ts
-msgid "Nine Dots put Twenty at the center of Homeseller's stack with APIs, automation, and AI on top of WhatsApp-heavy operations."
-msgstr "Nine Dots a pus Twenty în centrul stack-ului Homeseller, cu API-uri, automatizare și AI peste operațiunile intens bazate pe WhatsApp."
+msgid "Nine Dots put Diex at the center of Homeseller's stack with APIs, automation, and AI on top of WhatsApp-heavy operations."
+msgstr "Nine Dots a pus Diex în centrul stack-ului Homeseller, cu API-uri, automatizare și AI peste operațiunile intens bazate pe WhatsApp."
 
 #. js-lingui-id: sGuHDu
 #: src/case-studies/case-study-stories.ts
-msgid "Nine Dots rebuilt Homeseller's operations on Twenty, with a custom data model shaped around their sales flow. Because Twenty is open and everything is accessible via API, they connected it to what the business actually needed: n8n for automated workflows (in-app workflows were not available at that time), Grafana for live dashboards fed from Twenty, and a custom AI layer to parse and extract structured insights from more than 2,000 WhatsApp messages a day."
-msgstr "Nine Dots a reconstruit operațiunile Homeseller pe Twenty, cu un model de date personalizat, modelat după fluxul lor de vânzări. Pentru că Twenty este deschis și totul este accesibil prin API, l-au conectat la ceea ce afacerea chiar avea nevoie: n8n pentru workflowuri automate (workflowurile in-app nu erau disponibile atunci), Grafana pentru dashboarduri live alimentate din Twenty și un strat AI personalizat pentru a parsa și extrage insighturi structurate din peste 2.000 de mesaje WhatsApp pe zi."
+msgid "Nine Dots rebuilt Homeseller's operations on Diex, with a custom data model shaped around their sales flow. Because Diex is open and everything is accessible via API, they connected it to what the business actually needed: n8n for automated workflows (in-app workflows were not available at that time), Grafana for live dashboards fed from Diex, and a custom AI layer to parse and extract structured insights from more than 2,000 WhatsApp messages a day."
+msgstr "Nine Dots a reconstruit operațiunile Homeseller pe Diex, cu un model de date personalizat, modelat după fluxul lor de vânzări. Pentru că Diex este deschis și totul este accesibil prin API, l-au conectat la ceea ce afacerea chiar avea nevoie: n8n pentru workflowuri automate (workflowurile in-app nu erau disponibile atunci), Grafana pentru dashboarduri live alimentate din Diex și un strat AI personalizat pentru a parsa și extrage insighturi structurate din peste 2.000 de mesaje WhatsApp pe zi."
 
 #. js-lingui-id: G0GGKA
 #: src/case-studies/case-study-stories.ts
@@ -4339,8 +4339,8 @@ msgstr "Număr de tablouri de bord"
 
 #. js-lingui-id: pkrZnO
 #: src/case-studies/case-study-stories.ts
-msgid "Olivier recognizes that NetZero's current use of Twenty is still relatively simple: workflows and integrations are not yet as deep as he eventually wants, because he prioritized getting foundations right first."
-msgstr "Olivier recunoaște că utilizarea actuală a Twenty la NetZero este încă relativ simplă: workflowurile și integrările nu sunt încă atât de profunde pe cât și-ar dori în final, pentru că a prioritizat mai întâi punerea fundațiilor corecte."
+msgid "Olivier recognizes that NetZero's current use of Diex is still relatively simple: workflows and integrations are not yet as deep as he eventually wants, because he prioritized getting foundations right first."
+msgstr "Olivier recunoaște că utilizarea actuală a Diex la NetZero este încă relativ simplă: workflowurile și integrările nu sunt încă atât de profunde pe cât și-ar dori în final, pentru că a prioritizat mai întâi punerea fundațiilor corecte."
 
 #. js-lingui-id: l/1LQc
 #: src/sections/testimonials/testimonials.data.ts
@@ -4406,8 +4406,8 @@ msgstr "Deschide meniul"
 
 #. js-lingui-id: pkXQA+
 #: src/sections/enterprise-activate/EnterpriseActivateClient.tsx
-msgid "Open your Twenty self-hosted instance Settings → Enterprise."
-msgstr "Deschide Settings → Enterprise în instanța ta Twenty self-hosted."
+msgid "Open your Diex self-hosted instance Settings → Enterprise."
+msgstr "Deschide Settings → Enterprise în instanța ta Diex self-hosted."
 
 #. js-lingui-id: r2NnGk
 #: src/sections/product-signoff/ProductSignoff.tsx
@@ -4491,8 +4491,8 @@ msgstr ""
 
 #. js-lingui-id: h/oMMb
 #: src/platform/routing/static-website-routes.ts
-msgid "Packaged CRMs make every company look the same. Twenty is the open source CRM teams shape around their workflow, with a modern UI and a developer-first platform."
-msgstr "CRMs „la pachet” fac ca fiecare companie să arate la fel. Twenty este CRM-ul open source pe care echipele îl modelează în jurul workflowului lor, cu o interfață modernă și o platformă orientată către dezvoltatori."
+msgid "Packaged CRMs make every company look the same. Diex is the open source CRM teams shape around their workflow, with a modern UI and a developer-first platform."
+msgstr "CRMs „la pachet” fac ca fiecare companie să arate la fel. Diex este CRM-ul open source pe care echipele îl modelează în jurul workflowului lor, cu o interfață modernă și o platformă orientată către dezvoltatori."
 
 #. js-lingui-id: +AiiMt
 #: src/sections/pricing-salesfarce/salesfarce-data.ts
@@ -4546,8 +4546,8 @@ msgstr ""
 
 #. js-lingui-id: 4RPECg
 #: src/app/[locale]/(site)/partners/profile/[slug]/page.tsx
-msgid "Partner not found — Twenty Partners"
-msgstr "Partener negăsit — Twenty Partners"
+msgid "Partner not found — Diex Partners"
+msgstr "Partener negăsit — Diex Partners"
 
 #. js-lingui-id: dRIK0d
 #: src/sections/testimonials/PartnerTestimonialsCarousel.tsx
@@ -4629,8 +4629,8 @@ msgstr "Gestionarea pipeline-ului"
 
 #. js-lingui-id: gzkkC3
 #: src/platform/routing/static-website-routes.ts
-msgid "Pipelines, custom objects, AI assistants, and a native API on top of Postgres. Twenty is the open source CRM with the modern UX teams actually want to use."
-msgstr "Pipeline-uri, obiecte personalizate, asistenți AI și un API nativ peste Postgres. Twenty este CRM-ul open source, cu UX modern, pe care echipele chiar își doresc să îl folosească."
+msgid "Pipelines, custom objects, AI assistants, and a native API on top of Postgres. Diex is the open source CRM with the modern UX teams actually want to use."
+msgstr "Pipeline-uri, obiecte personalizate, asistenți AI și un API nativ peste Postgres. Diex este CRM-ul open source, cu UX modern, pe care echipele chiar își doresc să îl folosească."
 
 #. js-lingui-id: z7gnI9
 #: src/partner-application/partner-application-copy.ts
@@ -4728,8 +4728,8 @@ msgstr "Politica de Confidențialitate"
 
 #. js-lingui-id: DJ3uVe
 #: src/platform/routing/static-website-routes.ts
-msgid "Privacy Policy | Twenty"
-msgstr "Politica de Confidențialitate | Twenty"
+msgid "Privacy Policy | Diex"
+msgstr "Politica de Confidențialitate | Diex"
 
 #. js-lingui-id: 3fPjUY
 #: src/sections/pricing-plans/plans-data.ts
@@ -4841,13 +4841,13 @@ msgstr "Pregătit să construiești *propria ta poveste?*"
 #. js-lingui-id: UF2KDj
 #: src/sections/partner-signoff/PartnerSignoff.tsx
 #: src/sections/case-study-detail/CustomersCaseStudySignoff.tsx
-msgid "Ready to grow *with Twenty?*"
-msgstr "Pregătit să crești *alături de Twenty?*"
+msgid "Ready to grow *with Diex?*"
+msgstr "Pregătit să crești *alături de Diex?*"
 
 #. js-lingui-id: zTY2by
 #: src/platform/routing/static-website-routes.ts
-msgid "Real customer stories from teams running their business on Twenty: how they migrated, what they customised, and what changed once their CRM finally fit."
-msgstr "Povești reale ale clienților, de la echipe care își conduc afacerea pe Twenty: cum au migrat, ce au personalizat și ce s-a schimbat când CRM-ul, în sfârșit, li s-a potrivit."
+msgid "Real customer stories from teams running their business on Diex: how they migrated, what they customised, and what changed once their CRM finally fit."
+msgstr "Povești reale ale clienților, de la echipe care își conduc afacerea pe Diex: cum au migrat, ce au personalizat și ce s-a schimbat când CRM-ul, în sfârșit, li s-a potrivit."
 
 #. js-lingui-id: NIwjHh
 #: src/case-studies/case-study-catalog.ts
@@ -4856,8 +4856,8 @@ msgstr "Imobiliare"
 
 #. js-lingui-id: CH+Ona
 #: src/sections/customers-hero/CustomersHero.tsx
-msgid "Real stories from real teams about how they shaped Twenty to fit their workflow and accelerated their growth."
-msgstr "Povești reale de la echipe reale despre cum au modelat Twenty pentru a se potrivi workflowului lor și și-au accelerat creșterea."
+msgid "Real stories from real teams about how they shaped Diex to fit their workflow and accelerated their growth."
+msgstr "Povești reale de la echipe reale despre cum au modelat Diex pentru a se potrivi workflowului lor și și-au accelerat creșterea."
 
 #. js-lingui-id: 5O1eTm
 #: src/sections/pricing-salesfarce/salesfarce-data.ts
@@ -5228,10 +5228,10 @@ msgstr "Securitate"
 #: src/sections/customers-hero/CustomersHero.tsx
 msgid ""
 "See how teams\n"
-"build *on Twenty*"
+"build *on Diex*"
 msgstr ""
 "Vezi cum echipele\n"
-"construiesc *pe Twenty*"
+"construiesc *pe Diex*"
 
 #. js-lingui-id: aB+XpI
 #: src/sections/pricing-plan-table/plan-table-data.ts
@@ -5371,7 +5371,7 @@ msgstr "Seychelles 🇸🇨"
 
 #. js-lingui-id: XawGZE
 #: src/client-brief/client-brief-copy.ts
-msgid "Share your CRM project brief and our team will match you with a certified Twenty partner."
+msgid "Share your CRM project brief and our team will match you with a certified Diex partner."
 msgstr ""
 
 #. js-lingui-id: /beeoq
@@ -5381,8 +5381,8 @@ msgstr ""
 
 #. js-lingui-id: 3VFzsh
 #: src/sections/helped/helped.data.ts
-msgid "Ship a product on Twenty"
-msgstr "Lansează un produs pe Twenty"
+msgid "Ship a product on Diex"
+msgstr "Lansează un produs pe Diex"
 
 #. js-lingui-id: Ta0ts5
 #: src/app-preview/terminal/diff/DiffPill.tsx
@@ -5624,8 +5624,8 @@ msgstr "Ghiduri pas cu pas și playbook-uri care ajută echipa să obțină maxi
 
 #. js-lingui-id: jKt86V
 #: src/sections/faq/Faq.tsx
-msgid "Stop fighting custom. *Start building, with Twenty*"
-msgstr "Nu te mai lupta cu custom. *Începe să construiești, cu Twenty*"
+msgid "Stop fighting custom. *Start building, with Diex*"
+msgstr "Nu te mai lupta cu custom. *Începe să construiești, cu Diex*"
 
 #. js-lingui-id: UCLArd
 #: src/sections/three-cards/ThreeCards.tsx
@@ -5661,12 +5661,12 @@ msgstr ""
 
 #. js-lingui-id: 1LJhtF
 #: src/platform/routing/static-website-routes.ts
-msgid "Submit a Client Brief — Twenty Partners"
+msgid "Submit a Client Brief — Diex Partners"
 msgstr ""
 
 #. js-lingui-id: Tp3Gi6
 #: src/platform/routing/static-website-routes.ts
-msgid "Submit a project brief and get matched with a certified Twenty partner for migration, customisation, and CRM implementation."
+msgid "Submit a project brief and get matched with a certified Diex partner for migration, customisation, and CRM implementation."
 msgstr ""
 
 #. js-lingui-id: H5/rZQ
@@ -5800,8 +5800,8 @@ msgstr ""
 
 #. js-lingui-id: Ye3KKA
 #: src/sections/menu/data/menu.ts
-msgid "Team up with a Twenty expert"
-msgstr "Fă echipă cu un expert Twenty"
+msgid "Team up with a Diex expert"
+msgstr "Fă echipă cu un expert Diex"
 
 #. js-lingui-id: vsdUaL
 #: src/sections/releases-hero/ReleasesHero.tsx
@@ -5828,7 +5828,7 @@ msgstr ""
 
 #. js-lingui-id: kjnQvE
 #: src/partners-marketplace/MarketplaceBriefPrompt.tsx
-msgid "Tell us what you need and we'll match you with a certified Twenty partner."
+msgid "Tell us what you need and we'll match you with a certified Diex partner."
 msgstr ""
 
 #. js-lingui-id: Hevu8X
@@ -5848,8 +5848,8 @@ msgstr "Termeni de utilizare"
 
 #. js-lingui-id: BEX1RA
 #: src/platform/routing/static-website-routes.ts
-msgid "Terms of Service | Twenty"
-msgstr "Termeni de utilizare | Twenty"
+msgid "Terms of Service | Diex"
+msgstr "Termeni de utilizare | Diex"
 
 #. js-lingui-id: VUZDlr
 #: src/sections/testimonials/TestimonialsCarousel.tsx
@@ -5882,8 +5882,8 @@ msgstr ""
 
 #. js-lingui-id: FjkPYg
 #: src/case-studies/case-study-stories.ts
-msgid "That opened the door to something more powerful. Justin built a custom front end that pulls live data from those systems into a single view, tailored to each role. When a proposal is won, what used to require four separate people manually setting up instances across four different tools now happens in a single click, drawing on data collected in Twenty across the full opportunity lifecycle. It is another shift toward higher-value work for clients."
-msgstr "Asta a deschis ușa către ceva mai puternic. Justin a construit un front-end personalizat care trage date live din acele sisteme într-o singură vizualizare, adaptată fiecărui rol. Când o ofertă este câștigată, ceea ce înainte necesita patru persoane separate care să configureze manual instanțe în patru instrumente diferite acum se întâmplă cu un singur click, bazându-se pe datele colectate în Twenty pe tot parcursul ciclului de viață al oportunității. Este încă o trecere către muncă cu valoare mai mare pentru clienți."
+msgid "That opened the door to something more powerful. Justin built a custom front end that pulls live data from those systems into a single view, tailored to each role. When a proposal is won, what used to require four separate people manually setting up instances across four different tools now happens in a single click, drawing on data collected in Diex across the full opportunity lifecycle. It is another shift toward higher-value work for clients."
+msgstr "Asta a deschis ușa către ceva mai puternic. Justin a construit un front-end personalizat care trage date live din acele sisteme într-o singură vizualizare, adaptată fiecărui rol. Când o ofertă este câștigată, ceea ce înainte necesita patru persoane separate care să configureze manual instanțe în patru instrumente diferite acum se întâmplă cu un singur click, bazându-se pe datele colectate în Diex pe tot parcursul ciclului de viață al oportunității. Este încă o trecere către muncă cu valoare mai mare pentru clienți."
 
 #. js-lingui-id: 8S4psU
 #: src/case-studies/case-study-stories.ts
@@ -5958,8 +5958,8 @@ msgstr "Flexibilitatea de a lega toate acestea, fără ajutor extern și fără 
 
 #. js-lingui-id: l0eUFC
 #: src/case-studies/case-study-stories.ts
-msgid "The full rollout landed in July 2025. Since then, Nine Dots built a Smart Assistant on top of the system, nudging agents with tasks, reminders, and on-demand market analysis. Some agents never open Twenty directly, yet they are powered by it, outperforming peers on manual processes alone. By Q1 2026, Homeseller had recorded its best sales quarter ever."
-msgstr "Implementarea completă a fost finalizată în iulie 2025. De atunci, Nine Dots a construit un Smart Assistant peste sistem, care împinge agenților task-uri, remindere și analize de piață la cerere. Unii agenți nu deschid niciodată direct Twenty, dar sunt alimentați de acesta, depășindu-și colegii care lucrează doar manual. Până în T1 2026, Homeseller înregistrase cel mai bun trimestru de vânzări din istorie."
+msgid "The full rollout landed in July 2025. Since then, Nine Dots built a Smart Assistant on top of the system, nudging agents with tasks, reminders, and on-demand market analysis. Some agents never open Diex directly, yet they are powered by it, outperforming peers on manual processes alone. By Q1 2026, Homeseller had recorded its best sales quarter ever."
+msgstr "Implementarea completă a fost finalizată în iulie 2025. De atunci, Nine Dots a construit un Smart Assistant peste sistem, care împinge agenților task-uri, remindere și analize de piață la cerere. Unii agenți nu deschid niciodată direct Diex, dar sunt alimentați de acesta, depășindu-și colegii care lucrează doar manual. Până în T1 2026, Homeseller înregistrase cel mai bun trimestru de vânzări din istorie."
 
 #. js-lingui-id: SW9clW
 #: src/sections/why-twenty-hero/WhyTwentyHero.tsx
@@ -5978,8 +5978,8 @@ msgstr "Povara in-house"
 
 #. js-lingui-id: ZNzKXV
 #: src/case-studies/case-study-stories.ts
-msgid "The key decision was not to build everything from scratch. Twenty covers the data model, permissions, authentication, and workflow engine, the parts that would have taken months to rebuild, so the team could focus on product-specific logic."
-msgstr "Decizia cheie a fost să nu construiască totul de la zero. Twenty acoperă modelul de date, permisiunile, autentificarea și motorul de workflow, părțile care ar fi durat luni să fie reconstruite, astfel încât echipa să se poată concentra pe logica specifică produsului."
+msgid "The key decision was not to build everything from scratch. Diex covers the data model, permissions, authentication, and workflow engine, the parts that would have taken months to rebuild, so the team could focus on product-specific logic."
+msgstr "Decizia cheie a fost să nu construiască totul de la zero. Diex acoperă modelul de date, permisiunile, autentificarea și motorul de workflow, părțile care ar fi durat luni să fie reconstruite, astfel încât echipa să se poată concentra pe logica specifică produsului."
 
 #. js-lingui-id: nf1NnD
 #: src/platform/releases/ReleaseNotes.tsx
@@ -6068,13 +6068,13 @@ msgstr "Situația"
 
 #. js-lingui-id: gXGp3Q
 #: src/sections/menu/data/menu.ts
-msgid "The story behind Twenty"
+msgid "The story behind Diex"
 msgstr ""
 
 #. js-lingui-id: axo4rg
 #: src/platform/routing/static-website-routes.ts
-msgid "The terms governing your use of Twenty and its open source CRM services."
-msgstr "Termenii care reglementează utilizarea Twenty și a serviciilor sale CRM open source."
+msgid "The terms governing your use of Diex and its open source CRM services."
+msgstr "Termenii care reglementează utilizarea Diex și a serviciilor sale CRM open source."
 
 #. js-lingui-id: xCAT8U
 #: src/platform/releases/ReleaseNotes.tsx
@@ -6133,8 +6133,8 @@ msgstr "Pentru a îmbunătăți confidențialitatea, poți acum să adaugi adres
 
 #. js-lingui-id: ijf9QM
 #: src/platform/releases/ReleaseNotes.tsx
-msgid "To maintain the simplicity of Twenty, we are introducing \"Advanced Settings.\" This option consolidates all settings intended for advanced use cases, often preferred by developers, such as API and function settings or security settings."
-msgstr "Pentru a menține simplitatea Twenty, introducem \"Advanced Settings\". Această opțiune grupează toate setările destinate cazurilor de utilizare avansate, preferate adesea de dezvoltatori, cum ar fi setările de API și funcții sau setările de securitate."
+msgid "To maintain the simplicity of Diex, we are introducing \"Advanced Settings.\" This option consolidates all settings intended for advanced use cases, often preferred by developers, such as API and function settings or security settings."
+msgstr "Pentru a menține simplitatea Diex, introducem \"Advanced Settings\". Această opțiune grupează toate setările destinate cazurilor de utilizare avansate, preferate adesea de dezvoltatori, cum ar fi setările de API și funcții sau setările de securitate."
 
 #. js-lingui-id: aeKe9G
 #: src/sections/product-feature/TasksVisual/TasksVisual.tsx
@@ -6264,139 +6264,139 @@ msgstr "Tuvalu 🇹🇻"
 
 #. js-lingui-id: O5dAmW
 #: src/platform/routing/static-website-routes.ts
-msgid "Twenty | #1 Open Source CRM"
-msgstr "Twenty | CRM Open Source #1"
+msgid "Diex | #1 Open Source CRM"
+msgstr "Diex | CRM Open Source #1"
 
 #. js-lingui-id: XxKVz4
 #: src/platform/routing/static-website-routes.ts
-msgid "Twenty Apps — Vetted Apps for the Open Source CRM"
+msgid "Diex Apps — Vetted Apps for the Open Source CRM"
 msgstr ""
 
 #. js-lingui-id: jwNPEV
 #: src/sections/menu/data/menu.ts
-msgid "Twenty apps marketplace"
+msgid "Diex apps marketplace"
 msgstr ""
 
 #. js-lingui-id: NalB1c
 #: src/sections/testimonials/partner-testimonials.data.ts
-msgid "Twenty Apps opens the door to building products, not just implementations. For example, we're developing a WhatsApp Business integration that any Twenty's client could get. That's a recurring revenue stream we wouldn't have if we were just configuring someone else's platform."
-msgstr "Twenty Apps deschide ușa către construirea de produse, nu doar implementări. De exemplu, dezvoltăm o integrare WhatsApp Business pe care orice client Twenty o poate avea. Asta este un flux de venituri recurente pe care nu l-am avea dacă doar am configura platforma altcuiva."
+msgid "Diex Apps opens the door to building products, not just implementations. For example, we're developing a WhatsApp Business integration that any Diex client could get. That's a recurring revenue stream we wouldn't have if we were just configuring someone else's platform."
+msgstr "Diex Apps deschide ușa către construirea de produse, nu doar implementări. De exemplu, dezvoltăm o integrare WhatsApp Business pe care orice client Diex o poate avea. Asta este un flux de venituri recurente pe care nu l-am avea dacă doar am configura platforma altcuiva."
 
 #. js-lingui-id: fZsVj6
 #: src/case-studies/case-study-stories.ts
 msgid ""
-"Twenty as the\n"
+"Diex as the\n"
 "*API backbone* of a go-to-market stack"
 msgstr ""
-"Twenty ca\n"
+"Diex ca\n"
 "*coloană vertebrală API* a unui stack go-to-market"
 
 #. js-lingui-id: +w9xZW
 #: src/case-studies/case-study-catalog.ts
-msgid "Twenty as the API backbone of a go-to-market stack"
-msgstr "Twenty ca backbone de API al unui stack go-to-market"
+msgid "Diex as the API backbone of a go-to-market stack"
+msgstr "Diex ca backbone de API al unui stack go-to-market"
 
 #. js-lingui-id: zj0CA+
 #: src/case-studies/case-study-stories.ts
-msgid "Twenty as the API backbone of a go-to-market stack | Elevate Consulting"
-msgstr "Twenty ca backbone de API al unui stack go-to-market | Elevate Consulting"
+msgid "Diex as the API backbone of a go-to-market stack | Elevate Consulting"
+msgstr "Diex ca backbone de API al unui stack go-to-market | Elevate Consulting"
 
 #. js-lingui-id: neM1Ol
 #: src/platform/routing/static-website-routes.ts
-msgid "Twenty CRM Features — Modern Open Source CRM Platform"
-msgstr "Funcționalități Twenty CRM — Platformă CRM open source modernă"
+msgid "Diex CRM Features — Modern Open Source CRM Platform"
+msgstr "Funcționalități Diex CRM — Platformă CRM open source modernă"
 
 #. js-lingui-id: 8zCqPL
 #: src/platform/routing/static-website-routes.ts
-msgid "Twenty CRM Pricing — Plans from $9 per User per Month"
-msgstr "Prețuri Twenty CRM — Planuri de la 9 $ per utilizator pe lună"
+msgid "Diex CRM Pricing — Plans from $9 per User per Month"
+msgstr "Prețuri Diex CRM — Planuri de la 9 $ per utilizator pe lună"
 
 #. js-lingui-id: D05UQH
 #: src/platform/routing/static-website-routes.ts
-msgid "Twenty Customers — How Modern Teams Run Their CRM"
-msgstr "Clienții Twenty — Cum își rulează echipele moderne CRM-ul"
+msgid "Diex Customers — How Modern Teams Run Their CRM"
+msgstr "Clienții Diex — Cum își rulează echipele moderne CRM-ul"
 
 #. js-lingui-id: MYHdd/
 #: src/case-studies/case-study-stories.ts
-msgid "Twenty delivers on what CRMs should have always been: fairly priced software with a fully modular and customizable model, a clean and modern UI, granular permissions, automations, enterprise features. A compelling solution with high potential to rightfully disrupt the CRM market."
-msgstr "Twenty oferă ceea ce CRM-urile ar fi trebuit întotdeauna să fie: software corect ca preț, cu un model complet modular și personalizabil, o interfață modernă și curată, permisiuni granulare, automatizări, funcționalități enterprise. O soluție convingătoare, cu un potențial ridicat de a schimba în mod firesc piața CRM."
+msgid "Diex delivers on what CRMs should have always been: fairly priced software with a fully modular and customizable model, a clean and modern UI, granular permissions, automations, enterprise features. A compelling solution with high potential to rightfully disrupt the CRM market."
+msgstr "Diex oferă ceea ce CRM-urile ar fi trebuit întotdeauna să fie: software corect ca preț, cu un model complet modular și personalizabil, o interfață modernă și curată, permisiuni granulare, automatizări, funcționalități enterprise. O soluție convingătoare, cu un potențial ridicat de a schimba în mod firesc piața CRM."
 
 #. js-lingui-id: JnaRPe
 #: src/sections/product-feature/ImportVisual/ImportVisual.tsx
-msgid "Twenty fields"
-msgstr "Câmpuri Twenty"
+msgid "Diex fields"
+msgstr "Câmpuri Diex"
 
 #. js-lingui-id: fwep/o
 #: src/case-studies/case-study-stories.ts
-msgid "Twenty gave us the flexibility to model the entire interview lifecycle as custom objects and workflows. We could build something genuinely complex without fighting the platform to do it."
-msgstr "Twenty ne-a oferit flexibilitatea de a modela întregul ciclu de viață al interviului ca obiecte și fluxuri de lucru personalizate. Am putut construi ceva cu adevărat complex fără să ne luptăm cu platforma pentru a face asta."
+msgid "Diex gave us the flexibility to model the entire interview lifecycle as custom objects and workflows. We could build something genuinely complex without fighting the platform to do it."
+msgstr "Diex ne-a oferit flexibilitatea de a modela întregul ciclu de viață al interviului ca obiecte și fluxuri de lucru personalizate. Am putut construi ceva cu adevărat complex fără să ne luptăm cu platforma pentru a face asta."
 
 #. js-lingui-id: 0qyMhk
 #: src/sections/home-hero/HomeHero.tsx
-msgid "Twenty gives technical teams the building blocks for a custom CRM that meets complex business needs and quickly adapts as the business evolves."
-msgstr "Twenty oferă echipelor tehnice blocurile de bază pentru un CRM personalizat care răspunde unor nevoi de business complexe și se adaptează rapid pe măsură ce afacerea evoluează."
+msgid "Diex gives technical teams the building blocks for a custom CRM that meets complex business needs and quickly adapts as the business evolves."
+msgstr "Diex oferă echipelor tehnice blocurile de bază pentru un CRM personalizat care răspunde unor nevoi de business complexe și se adaptează rapid pe măsură ce afacerea evoluează."
 
 #. js-lingui-id: jVhq41
 #: src/sections/testimonials/partner-testimonials.data.ts
-msgid "Twenty gives you the kind of flexibility that actually changes what you can offer your clients. The dev experience is clean, the APIs are open, and when something needs to be customized, you can just do it. There's no fighting the platform."
-msgstr "Twenty îți oferă un tip de flexibilitate care chiar schimbă ce poți oferi clienților tăi. Experiența de dezvoltare este curată, API-urile sunt deschise și, când ceva trebuie personalizat, pur și simplu o poți face. Fără să te lupți cu platforma."
+msgid "Diex gives you the kind of flexibility that actually changes what you can offer your clients. The dev experience is clean, the APIs are open, and when something needs to be customized, you can just do it. There's no fighting the platform."
+msgstr "Diex îți oferă un tip de flexibilitate care chiar schimbă ce poți oferi clienților tăi. Experiența de dezvoltare este curată, API-urile sunt deschise și, când ceva trebuie personalizat, pur și simplu o poți face. Fără să te lupți cu platforma."
 
 #. js-lingui-id: x/I85y
 #: src/case-studies/case-study-stories.ts
-msgid "Twenty is not only where CRM data lives. It is the API backbone that makes the rest of the stack possible."
-msgstr "Twenty nu este doar locul unde trăiesc datele CRM. Este backbone-ul de API care face posibil restul stack-ului."
+msgid "Diex is not only where CRM data lives. It is the API backbone that makes the rest of the stack possible."
+msgstr "Diex nu este doar locul unde trăiesc datele CRM. Este backbone-ul de API care face posibil restul stack-ului."
 
 #. js-lingui-id: zvfdHM
 #: src/case-studies/case-study-stories.ts
-msgid "Twenty is the heart of the system. Everything branches from it."
-msgstr "Twenty este inima sistemului. Totul pornește de la el."
+msgid "Diex is the heart of the system. Everything branches from it."
+msgstr "Diex este inima sistemului. Totul pornește de la el."
 
 #. js-lingui-id: K+zzSQ
 #: src/case-studies/case-study-stories.ts
 #: src/case-studies/case-study-catalog.ts
-msgid "Twenty lets us build a CRM around the business and not the business around the CRM."
-msgstr "Twenty ne permite să construim un CRM în jurul afacerii și nu afacerea în jurul CRM-ului."
+msgid "Diex lets us build a CRM around the business and not the business around the CRM."
+msgstr "Diex ne permite să construim un CRM în jurul afacerii și nu afacerea în jurul CRM-ului."
 
 #. js-lingui-id: AxT+g4
 #: src/sections/feature-cards/feature-cards.data.ts
-msgid "Twenty makes it simple. It's clean, intuitive, and built to feel like Notion."
-msgstr "Twenty face lucrurile simple. Este curat, intuitiv și construit să se simtă ca Notion."
+msgid "Diex makes it simple. It's clean, intuitive, and built to feel like Notion."
+msgstr "Diex face lucrurile simple. Este curat, intuitiv și construit să se simtă ca Notion."
 
 #. js-lingui-id: mZ3xRm
 #: src/sections/menu/data/menu.ts
-msgid "Twenty partner ecosystem"
-msgstr "Ecosistemul de parteneri Twenty"
+msgid "Diex partner ecosystem"
+msgstr "Ecosistemul de parteneri Diex"
 
 #. js-lingui-id: 4SJucz
 #: src/platform/routing/static-website-routes.ts
-msgid "Twenty Partners — Certified Open Source CRM Implementers"
-msgstr "Parteneri Twenty — Implementatori CRM open source certificați"
+msgid "Diex Partners — Certified Open Source CRM Implementers"
+msgstr "Parteneri Diex — Implementatori CRM open source certificați"
 
 #. js-lingui-id: vD7S1X
 #. placeholder {0}: LATEST_RELEASE.release
 #. placeholder {1}: LATEST_RELEASE.title
 #: src/sections/menu/data/menu.ts
-msgid "Twenty release {0} — {1}"
-msgstr "Lansarea Twenty {0} — {1}"
+msgid "Diex release {0} — {1}"
+msgstr "Lansarea Diex {0} — {1}"
 
 #. js-lingui-id: X1GHuJ
 #: src/platform/routing/static-website-routes.ts
-msgid "Twenty Releases — What's New in the Open Source CRM"
-msgstr "Versiunile Twenty — Ce este nou în CRM-ul open source"
+msgid "Diex Releases — What's New in the Open Source CRM"
+msgstr "Versiunile Diex — Ce este nou în CRM-ul open source"
 
 #. js-lingui-id: V1lV7B
 #: src/sections/pricing-plans/plans-data.ts
-msgid "Twenty team support"
-msgstr "Suport din partea echipei Twenty"
+msgid "Diex team support"
+msgstr "Suport din partea echipei Diex"
 
 #. js-lingui-id: osa7Xg
 #: src/sections/menu/data/menu.ts
-msgid "Twenty user guide preview"
-msgstr "Previzualizare ghid utilizator Twenty"
+msgid "Diex user guide preview"
+msgstr "Previzualizare ghid utilizator Diex"
 
 #. js-lingui-id: abTOgp
 #: src/partners-marketplace/MarketplaceHeader.tsx
-msgid "Twenty's certified partners help teams migrate, customise, and operate the open source CRM across regions, languages, and deployment models. Browse profiles and book a call, or <0>tell us what you need</0> and we'll match you."
+msgid "Diex certified partners help teams migrate, customise, and operate the open source CRM across regions, languages, and deployment models. Browse profiles and book a call, or <0>tell us what you need</0> and we'll match you."
 msgstr ""
 
 #. js-lingui-id: tuvLv1
@@ -6605,7 +6605,7 @@ msgstr ""
 
 #. js-lingui-id: k5HTQK
 #: src/apps-marketplace/AppDetail.tsx
-msgid "Vetted by Twenty"
+msgid "Vetted by Diex"
 msgstr ""
 
 #. js-lingui-id: FlQ1vR
@@ -6672,18 +6672,18 @@ msgstr "W3Grads"
 
 #. js-lingui-id: R8BueT
 #: src/case-studies/case-study-stories.ts
-msgid "W3villa built W3Grads (w3grads.com), an AI-powered mock interview platform for universities and training institutes, using Twenty as its operational backbone."
-msgstr "W3villa a construit W3Grads (w3grads.com), o platformă de interviuri simulate cu AI pentru universități și institute de formare, folosind Twenty ca schelet operațional."
+msgid "W3villa built W3Grads (w3grads.com), an AI-powered mock interview platform for universities and training institutes, using Diex as its operational backbone."
+msgstr "W3villa a construit W3Grads (w3grads.com), o platformă de interviuri simulate cu AI pentru universități și institute de formare, folosind Diex ca schelet operațional."
 
 #. js-lingui-id: 7hHsoV
 #: src/sections/helped/helped.data.ts
-msgid "W3villa built W3Grads for AI mock interviews at scale, with Twenty as the operational backbone."
-msgstr "W3villa a construit W3Grads pentru interviuri simulate cu AI la scară, cu Twenty ca schelet operațional."
+msgid "W3villa built W3Grads for AI mock interviews at scale, with Diex as the operational backbone."
+msgstr "W3villa a construit W3Grads pentru interviuri simulate cu AI la scară, cu Diex ca schelet operațional."
 
 #. js-lingui-id: QBOUnd
 #: src/case-studies/case-study-catalog.ts
-msgid "W3villa shipped W3Grads on Twenty for AI interviews, scoring, and institution-scale workflows without rebuilding CRM plumbing."
-msgstr "W3villa a lansat W3Grads pe Twenty pentru interviuri cu AI, scoring și fluxuri de lucru la nivel de instituție, fără să reconstruiască „instalația” CRM de la zero."
+msgid "W3villa shipped W3Grads on Diex for AI interviews, scoring, and institution-scale workflows without rebuilding CRM plumbing."
+msgstr "W3villa a lansat W3Grads pe Diex pentru interviuri cu AI, scoring și fluxuri de lucru la nivel de instituție, fără să reconstruiască „instalația” CRM de la zero."
 
 #. js-lingui-id: 7q5Vjn
 #: src/sections/three-cards/three-cards.data.ts
@@ -6697,8 +6697,8 @@ msgstr "W3villa Technologies și-a propus să rezolve problema corect, nu cu un 
 
 #. js-lingui-id: 3v2ipf
 #: src/sections/three-cards/three-cards.data.ts
-msgid "W3villa used Twenty as a production-grade framework for the data model, permissions, authentication, and workflow engine they would otherwise have rebuilt themselves."
-msgstr "W3villa a folosit Twenty ca un framework la nivel de producție pentru modelul de date, permisiuni, autentificare și motorul de workflow pe care altfel ar fi trebuit să le reconstruiască singuri."
+msgid "W3villa used Diex as a production-grade framework for the data model, permissions, authentication, and workflow engine they would otherwise have rebuilt themselves."
+msgstr "W3villa a folosit Diex ca un framework la nivel de producție pentru modelul de date, permisiuni, autentificare și motorul de workflow pe care altfel ar fi trebuit să le reconstruiască singuri."
 
 #. js-lingui-id: k1Pevc
 #: src/platform/releases/ReleaseNotes.tsx
@@ -6814,8 +6814,8 @@ msgstr ""
 
 #. js-lingui-id: phiBjc
 #: src/sections/faq/faq.data.ts
-msgid "What does Twenty cost?"
-msgstr "Cât costă Twenty?"
+msgid "What does Diex cost?"
+msgstr "Cât costă Diex?"
 
 #. js-lingui-id: WVQaGB
 #: src/case-studies/case-study-stories.ts
@@ -6830,8 +6830,8 @@ msgstr "Ce urmează"
 
 #. js-lingui-id: tWd6MT
 #: src/case-studies/case-study-stories.ts
-msgid "What is planned is significant. NetZero has a data lake, online forms, and multiple internal systems that he wants to connect to Twenty. The pipes are there; the next step is automations that tie them together."
-msgstr "Ceea ce este planificat este semnificativ. NetZero are un data lake, formulare online și mai multe sisteme interne pe care vrea să le conecteze la Twenty. Conductele sunt acolo; următorul pas este automatizarea care le leagă între ele."
+msgid "What is planned is significant. NetZero has a data lake, online forms, and multiple internal systems that he wants to connect to Diex. The pipes are there; the next step is automations that tie them together."
+msgstr "Ceea ce este planificat este semnificativ. NetZero are un data lake, formulare online și mai multe sisteme interne pe care vrea să le conecteze la Diex. Conductele sunt acolo; următorul pas este automatizarea care le leagă între ele."
 
 #. js-lingui-id: w8IA3m
 #: src/partners-marketplace/marketplace-copy.ts
@@ -6899,13 +6899,13 @@ msgstr "Când CRM-ul tău este produsul"
 
 #. js-lingui-id: Svuneu
 #: src/case-studies/case-study-stories.ts
-msgid "When your CRM is the product: W3Grads on Twenty | W3villa Technologies"
-msgstr "Când CRM-ul tău este produsul: W3Grads pe Twenty | W3villa Technologies"
+msgid "When your CRM is the product: W3Grads on Diex | W3villa Technologies"
+msgstr "Când CRM-ul tău este produsul: W3Grads pe Diex | W3villa Technologies"
 
 #. js-lingui-id: bGN8u+
 #: src/case-studies/case-study-stories.ts
-msgid "While NetZero still runs a second CRM in parallel for WhatsApp-heavy operations with farmers in Brazil, they expect to migrate all of it to Twenty as features and the ecosystem grow. Already, their structured, multinational pipeline is powered by Twenty."
-msgstr "Deși NetZero rulează încă un al doilea CRM în paralel pentru operațiunile intensive pe WhatsApp cu fermierii din Brazilia, ei se așteaptă să migreze totul pe Twenty pe măsură ce funcționalitățile și ecosistemul cresc. Deja, pipeline-ul lor structurat, multinațional, este alimentat de Twenty."
+msgid "While NetZero still runs a second CRM in parallel for WhatsApp-heavy operations with farmers in Brazil, they expect to migrate all of it to Diex as features and the ecosystem grow. Already, their structured, multinational pipeline is powered by Diex."
+msgstr "Deși NetZero rulează încă un al doilea CRM în paralel pentru operațiunile intensive pe WhatsApp cu fermierii din Brazilia, ei se așteaptă să migreze totul pe Diex pe măsură ce funcționalitățile și ecosistemul cresc. Deja, pipeline-ul lor structurat, multinațional, este alimentat de Diex."
 
 #. js-lingui-id: DJlSwA
 #: src/sections/menu/data/menu.ts
@@ -6914,22 +6914,22 @@ msgstr "De ce"
 
 #. js-lingui-id: mrxgOV
 #: src/sections/menu/data/menu.ts
-msgid "Why teams choose Twenty"
+msgid "Why teams choose Diex"
 msgstr ""
 
 #. js-lingui-id: 4sOVu+
 #: src/sections/footer/footer.data.ts
-msgid "Why Twenty"
-msgstr "De ce Twenty"
+msgid "Why Diex"
+msgstr "De ce Diex"
 
 #. js-lingui-id: DH7vVZ
 #: src/platform/routing/static-website-routes.ts
-msgid "Why Twenty — The Open Source CRM Built to Be Customised"
-msgstr "De ce Twenty — CRM-ul Open Source construit pentru a fi personalizat"
+msgid "Why Diex — The Open Source CRM Built to Be Customised"
+msgstr "De ce Diex — CRM-ul Open Source construit pentru a fi personalizat"
 
 #. js-lingui-id: tetjz4
 #: src/sections/menu/data/menu.ts
-msgid "Why Twenty illustration"
+msgid "Why Diex illustration"
 msgstr ""
 
 #. js-lingui-id: baquqN
@@ -6954,8 +6954,8 @@ msgstr "Cu <0>Câmpul Datetime</0> poți urmări eficient evenimente, termene li
 
 #. js-lingui-id: OKVlnc
 #: src/case-studies/case-study-stories.ts
-msgid "With Twenty, when a new need appears, he can address it himself: no developer required, no support ticket."
-msgstr "Cu Twenty, atunci când apare o nevoie nouă, o poate acoperi singur: nu e nevoie de dezvoltator, nici de tichet la suport."
+msgid "With Diex, when a new need appears, he can address it himself: no developer required, no support ticket."
+msgstr "Cu Diex, atunci când apare o nevoie nouă, o poate acoperi singur: nu e nevoie de dezvoltator, nici de tichet la suport."
 
 #. js-lingui-id: OX5bbs
 #: src/partner-application/partner-application-copy.ts
@@ -7102,8 +7102,8 @@ msgstr "Da"
 
 #. js-lingui-id: bo6pUs
 #: src/sections/faq/faq.data.ts
-msgid "Yes, with our Apps framework. Scaffold an extension with `npx create-twenty-app` and ship custom objects, server-side logic functions, React components that render inside Twenty’s UI, AI skills and agents, views, and navigation, all in TypeScript, deployable to any workspace."
-msgstr "Da, cu framework-ul nostru de Apps. Creează scheletul unei extensii cu `npx create-twenty-app` și livrează obiecte personalizate, funcții de logică pe server, componente React care se redau în interfața Twenty, skill-uri și agenți AI, vizualizări și navigație, toate în TypeScript, care pot fi implementate în orice workspace."
+msgid "Yes, with our Apps framework. Scaffold an extension with `npx create-twenty-app` and ship custom objects, server-side logic functions, React components that render inside Diex’s UI, AI skills and agents, views, and navigation, all in TypeScript, deployable to any workspace."
+msgstr "Da, cu framework-ul nostru de Apps. Creează scheletul unei extensii cu `npx create-twenty-app` și livrează obiecte personalizate, funcții de logică pe server, componente React care se redau în interfața Diex, skill-uri și agenți AI, vizualizări și navigație, toate în TypeScript, care pot fi implementate în orice workspace."
 
 #. js-lingui-id: yIcBW6
 #: src/sections/faq/faq.data.ts
@@ -7117,8 +7117,8 @@ msgstr "Da. Importă-ți datele prin CSV sau folosește API-ul nostru pentru pes
 
 #. js-lingui-id: 8m0eN9
 #: src/sections/faq/faq.data.ts
-msgid "Yes. Twenty is the #1 Open Source CRM on GitHub. You can self-host to fully own your infrastructure, or run it on our managed cloud for a zero-ops setup."
-msgstr "Da. Twenty este CRM-ul Open Source numărul 1 pe GitHub. Îl poți auto-găzdui pentru a deține complet infrastructura sau îl poți rula în cloud-ul nostru administrat pentru un setup fără operațiuni."
+msgid "Yes. Diex is the #1 Open Source CRM on GitHub. You can self-host to fully own your infrastructure, or run it on our managed cloud for a zero-ops setup."
+msgstr "Da. Diex este CRM-ul Open Source numărul 1 pe GitHub. Îl poți auto-găzdui pentru a deține complet infrastructura sau îl poți rula în cloud-ul nostru administrat pentru un setup fără operațiuni."
 
 #. js-lingui-id: kWJmRL
 #: src/client-brief/client-brief-copy.ts
@@ -7242,8 +7242,8 @@ msgstr ""
 
 #. js-lingui-id: SfJVcK
 #: src/sections/enterprise-activate/EnterpriseActivateHero.tsx
-msgid "Your checkout is complete. Follow the steps below to copy your license key into your Twenty instance."
-msgstr "Checkout-ul tău este finalizat. Urmează pașii de mai jos pentru a copia cheia de licență în instanța ta Twenty."
+msgid "Your checkout is complete. Follow the steps below to copy your license key into your Diex instance."
+msgstr "Checkout-ul tău este finalizat. Urmează pașii de mai jos pentru a copia cheia de licență în instanța ta Diex."
 
 #. js-lingui-id: krHgj1
 #: src/sections/enterprise-activate/EnterpriseActivateClient.tsx
@@ -7282,8 +7282,8 @@ msgstr "Zero"
 
 #. js-lingui-id: ZvEoMq
 #: src/case-studies/case-study-stories.ts
-msgid "Zero manual work at the core. Full automation. Built on Twenty."
-msgstr "Zero muncă manuală în centru. Automatizare completă. Construit pe Twenty."
+msgid "Zero manual work at the core. Full automation. Built on Diex."
+msgstr "Zero muncă manuală în centru. Automatizare completă. Construit pe Diex."
 
 #. js-lingui-id: TT3YXb
 #: src/partner-application/data/partner-country-options.ts
