@@ -27,7 +27,6 @@ import { CaptchaModule } from 'src/engine/core-modules/captcha/captcha.module';
 import { CloudflareModule } from 'src/engine/core-modules/cloudflare/cloudflare.module';
 import { CodeInterpreterModule } from 'src/engine/core-modules/code-interpreter/code-interpreter.module';
 import { DnsManagerModule } from 'src/engine/core-modules/dns-manager/dns-manager.module';
-import { DpaModule } from 'src/engine/core-modules/dpa/dpa.module';
 import { EmailModule } from 'src/engine/core-modules/email/email.module';
 import { EmailingDomainModule } from 'src/engine/core-modules/emailing-domain/emailing-domain.module';
 import { EmailingModule } from 'src/modules/emailing/emailing.module';
@@ -160,7 +159,12 @@ import { FileModule } from './file/file.module';
     CodeInterpreterModule.forRoot(),
     SearchModule,
     ApiKeyModule,
-    DpaModule,
+    // DpaModule is unregistered: its resolver generates a pre-signed Data
+    // Processing Agreement naming the upstream vendor as Processor, listing
+    // that vendor's sub-processors and security commitments. Renaming the
+    // parties would be worse than leaving it, because the document would then
+    // have this operator guaranteeing infrastructure it does not run. Register
+    // it again once there is an agreement written for this operation.
     PageLayoutModule,
     ImpersonationModule,
     TrashCleanupModule,

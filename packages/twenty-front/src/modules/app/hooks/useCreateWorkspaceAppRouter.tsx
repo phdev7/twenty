@@ -193,15 +193,7 @@ const createWorkspaceAppRouter = (
                   />
                 }
               />
-              <Route
-                path={AppPath.Dpa}
-                element={
-                  <Navigate
-                    to={getSettingsPath(SettingsPath.LegalDpa)}
-                    replace
-                  />
-                }
-              />
+              {/* /dpa pointed at the vendor's agreement; unrouted with it. */}
               <Route
                 path={AppPath.NotFoundWildcard}
                 element={
