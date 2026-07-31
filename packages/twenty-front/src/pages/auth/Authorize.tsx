@@ -182,6 +182,10 @@ export const Authorize = () => {
 
       url.searchParams.set('theme', colorScheme);
 
+      // RFC 9207: OAuth clients must be able to verify which authorization
+      // server issued the response. Codex enforces this for remote MCP OAuth.
+      url.searchParams.set('iss', window.location.origin);
+
       return url.toString();
     } catch {
       return urlString;
