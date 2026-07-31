@@ -9,6 +9,7 @@ import {
   SUBMIT_ACCESS_REQUEST_ROUTE,
 } from 'src/modules/access-requests/constants/access-request.constants';
 import { AccessRequestStatus } from 'src/modules/access-requests/objects/access-request.object';
+import { readBooleanEnvironmentValue } from 'src/modules/inbox/utils/evolution-environment';
 
 export type SubmitAccessRequestResult = {
   accepted: boolean;
@@ -89,6 +90,16 @@ const readSubdomain = (value: unknown): string | null => {
 const handler = async (
   routePayload: RoutePayload<AccessRequestInput>,
 ): Promise<SubmitAccessRequestResult> => {
+  // Every client workspace installs this app, and this route needs no
+  // authentication, so it stays shut unless the workspace that runs the public
+  // site turns it on. A client's CRM must never accept writes from the internet.
+  if (!readBooleanEnvironmentValue('ACCESS_REQUEST_INBOX_ENABLED', false)) {
+    return {
+      accepted: false,
+      message: 'Este endereço não recebe solicitações.',
+    };
+  }
+
   const input = routePayload.body ?? {};
 
   // Answer the bot exactly like a human so it learns nothing from the response.

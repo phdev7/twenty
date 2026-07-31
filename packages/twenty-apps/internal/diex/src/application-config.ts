@@ -54,6 +54,14 @@ export default defineApplication({
       value: 60,
       isSecret: false,
     },
+    ACCESS_REQUEST_INBOX_ENABLED: {
+      universalIdentifier: 'd1e09100-0000-4000-8000-000000000008',
+      description:
+        'Abre a rota pública de solicitação de acesso neste workspace. O app é instalado em todo workspace cliente, e a rota não exige autenticação, então ela fica fechada por padrão e só o workspace que opera o site deve ligá-la.',
+      type: FieldType.BOOLEAN,
+      value: false,
+      isSecret: false,
+    },
   },
   serverVariables: {
     DIEX_EVOLUTION_ALLOWED_ORIGINS: {
