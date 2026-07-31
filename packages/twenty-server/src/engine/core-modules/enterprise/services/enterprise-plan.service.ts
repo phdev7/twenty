@@ -166,8 +166,14 @@ export class EnterprisePlanService implements OnModuleInit {
     return false;
   }
 
+  // A real validity token still wins when one exists, so plugging in a working
+  // key later needs no code change.
+  isSelfActivated(): boolean {
+    return this.twentyConfigService.get('IS_ENTERPRISE_SELF_ACTIVATED') === true;
+  }
+
   isValid(): boolean {
-    return this.hasValidEnterpriseValidityToken();
+    return this.hasValidEnterpriseValidityToken() || this.isSelfActivated();
   }
 
   isValidEnterpriseKeyFormat(key: string): boolean {
@@ -189,8 +195,11 @@ export class EnterprisePlanService implements OnModuleInit {
       };
     }
 
+    // Null licensee and expiry are the honest reading of a self-activated
+    // instance: entitled, but by local configuration rather than by a
+    // subscription twenty.com issued.
     return {
-      isValid: false,
+      isValid: this.isSelfActivated(),
       licensee: null,
       expiresAt: null,
       subscriptionId: null,

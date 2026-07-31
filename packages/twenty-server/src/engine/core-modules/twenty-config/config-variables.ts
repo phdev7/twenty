@@ -44,6 +44,7 @@ import { CastToMeterDriverArray } from 'src/engine/core-modules/twenty-config/de
 import { CastToPositiveNumber } from 'src/engine/core-modules/twenty-config/decorators/cast-to-positive-number.decorator';
 import { CastToTypeORMLogLevelArray } from 'src/engine/core-modules/twenty-config/decorators/cast-to-typeorm-log-level-array.decorator';
 import { CastToUpperSnakeCase } from 'src/engine/core-modules/twenty-config/decorators/cast-to-upper-snake-case.decorator';
+import { MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY_DEFAULT } from 'src/engine/core-modules/auth/constants/max-workspaces-without-enterprise-key.constants';
 import { ConfigVariablesMetadata } from 'src/engine/core-modules/twenty-config/decorators/config-variables-metadata.decorator';
 import { IsAWSRegion } from 'src/engine/core-modules/twenty-config/decorators/is-aws-region.decorator';
 import { IsDuration } from 'src/engine/core-modules/twenty-config/decorators/is-duration.decorator';
@@ -1780,6 +1781,30 @@ export class ConfigVariables {
   })
   @IsOptional()
   IS_MULTIWORKSPACE_ENABLED = false;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'How many workspaces this instance may create without a validated enterprise key. Upstream hardcodes 5; this fork reads it from configuration so the ceiling can be raised without a rebuild.',
+    type: ConfigVariableType.NUMBER,
+  })
+  @IsOptional()
+  MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY = MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY_DEFAULT;
+
+  // Enterprise validity is granted by a token this instance fetches from
+  // twenty.com, not by the key itself, so a version the vendor no longer serves
+  // can never validate no matter what key is configured. Diex was told by
+  // Twenty that this fork's version is discontinued and that it may enable the
+  // features itself. This flag is that decision, kept explicit and reversible
+  // rather than hidden in a patched conditional.
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'Treat the enterprise plan as valid without a validity token from twenty.com. Set to false to go back to upstream behaviour.',
+    type: ConfigVariableType.BOOLEAN,
+  })
+  @IsOptional()
+  IS_ENTERPRISE_SELF_ACTIVATED = true;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,

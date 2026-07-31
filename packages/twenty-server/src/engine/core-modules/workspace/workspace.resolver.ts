@@ -329,9 +329,13 @@ export class WorkspaceResolver {
     return this.enterprisePlanService.hasValidSignedEnterpriseKey();
   }
 
+  // The front gates SSO, security settings and the AI admin panel on this
+  // field, so it has to answer "are enterprise features on" rather than the
+  // narrower "did twenty.com issue us a token". Otherwise a self-activated
+  // instance unlocks the server and still paints those screens disabled.
   @ResolveField(() => Boolean)
   hasValidEnterpriseValidityToken(): boolean {
-    return this.enterprisePlanService.hasValidEnterpriseValidityToken();
+    return this.enterprisePlanService.isValid();
   }
 
   @ResolveField(() => WorkspaceUrlsDTO)
