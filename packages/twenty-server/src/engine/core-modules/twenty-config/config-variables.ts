@@ -805,13 +805,16 @@ export class ConfigVariables {
   @ValidateIf((env) => env.ANALYTICS_ENABLED === true)
   CLICKHOUSE_URL: string;
 
+  // Upstream defaults this on, which posts a self-hosting event to
+  // twenty-telemetry.com on every user signup. This fork sends nothing to the
+  // vendor, so it is off unless someone deliberately turns it back on.
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.LOGGING,
     description: 'Enable or disable telemetry logging',
     type: ConfigVariableType.BOOLEAN,
   })
   @IsOptional()
-  TELEMETRY_ENABLED = true;
+  TELEMETRY_ENABLED = false;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.LOGGING,

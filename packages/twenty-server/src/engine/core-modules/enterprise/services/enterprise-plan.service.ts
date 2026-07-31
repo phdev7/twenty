@@ -252,6 +252,18 @@ export class EnterprisePlanService implements OnModuleInit {
   async refreshValidityToken(): Promise<boolean> {
     this.lastRefreshRejectionCode = null;
 
+    // A self-activated instance is not asking twenty.com for entitlement, so it
+    // has no reason to send them the server URL, admin email, workspace count
+    // and user counts that gatherInstanceMetadata collects. Gated here rather
+    // than in the cron job so the admin panel's manual refresh is silent too.
+    if (this.isSelfActivated()) {
+      this.logger.log(
+        'Enterprise plan is self-activated, skipping refresh against twenty.com',
+      );
+
+      return false;
+    }
+
     const enterpriseKey = this.twentyConfigService.get('ENTERPRISE_KEY');
 
     if (!enterpriseKey) {
@@ -359,6 +371,11 @@ export class EnterprisePlanService implements OnModuleInit {
   }
 
   async reportSeats(seatCount: number): Promise<boolean> {
+    // Seat counts exist to bill a subscription this instance does not have.
+    if (this.isSelfActivated()) {
+      return false;
+    }
+
     const enterpriseKey = this.twentyConfigService.get('ENTERPRISE_KEY');
 
     if (!enterpriseKey) {
@@ -402,6 +419,10 @@ export class EnterprisePlanService implements OnModuleInit {
   }
 
   async releaseServerBinding(): Promise<boolean> {
+    if (this.isSelfActivated()) {
+      return false;
+    }
+
     const enterpriseKey = this.twentyConfigService.get('ENTERPRISE_KEY');
 
     if (!enterpriseKey) {
@@ -470,6 +491,10 @@ export class EnterprisePlanService implements OnModuleInit {
     currentPeriodEnd: Date | null;
     isCancellationScheduled: boolean;
   } | null> {
+    if (this.isSelfActivated()) {
+      return null;
+    }
+
     this.refreshKeyPayload();
 
     const enterpriseKey = this.twentyConfigService.get('ENTERPRISE_KEY');
@@ -540,6 +565,10 @@ export class EnterprisePlanService implements OnModuleInit {
     enterpriseKey: string,
     returnUrl?: string,
   ): Promise<string | null> {
+    if (this.isSelfActivated()) {
+      return null;
+    }
+
     const portalUrl = `${apiUrl}/portal`;
 
     try {
@@ -573,6 +602,10 @@ export class EnterprisePlanService implements OnModuleInit {
     billingInterval: 'monthly' | 'yearly' = 'monthly',
     seatCount: number,
   ): Promise<string | null> {
+    if (this.isSelfActivated()) {
+      return null;
+    }
+
     const apiUrl = this.twentyConfigService.get('ENTERPRISE_API_URL');
 
     if (!apiUrl) {
