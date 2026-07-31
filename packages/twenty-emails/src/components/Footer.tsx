@@ -33,24 +33,12 @@ export const Footer = ({ i18n }: FooterProps) => {
             />
           </ShadowText>
         </Column>
-        <Column>
-          <ShadowText>
-            <Link
-              href="https://crm.bydiex.com/privacy-policy"
-              value={i18n._('Privacy')}
-              aria-label={i18n._("Read Diex's privacy policy")}
-            />
-          </ShadowText>
-        </Column>
-        <Column>
-          <ShadowText>
-            <Link
-              href="https://crm.bydiex.com/terms-of-service"
-              value={i18n._('Terms')}
-              aria-label={i18n._("Read Diex's terms of service")}
-            />
-          </ShadowText>
-        </Column>
+        {/*
+          Privacy and Terms links were removed because neither page exists:
+          both URLs redirected to the app. A broken link to a privacy policy is
+          worse than no link, because it claims one is published. Put them back
+          the moment those pages are written.
+        */}
       </Row>
       <ShadowText>
         <>
