@@ -26,6 +26,8 @@ export enum AppPath {
   RecordShowPage = '/object/:objectNameSingular/:objectRecordId',
   PageLayoutPage = '/page/:pageLayoutId',
   Inbox = '/inbox',
+  DiexOnboarding = '/onboarding',
+  DiexAccessRequests = '/access-requests',
 
   Settings = `settings`,
   SettingsCatchAll = `/${Settings}/*`,

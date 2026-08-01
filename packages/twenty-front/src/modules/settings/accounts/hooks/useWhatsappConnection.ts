@@ -27,7 +27,7 @@ export const useWhatsappConnection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<WhatsappConnection | null> => {
     setIsLoading(true);
     setErrorMessage(null);
 
@@ -54,11 +54,17 @@ export const useWhatsappConnection = () => {
         throw new Error(String(response.status));
       }
 
-      setConnection((await response.json()) as WhatsappConnection);
+      const result = (await response.json()) as WhatsappConnection;
+
+      setConnection(result);
+
+      return result;
     } catch {
       setErrorMessage(
         t`Could not reach the WhatsApp provider. Check the workspace integration settings.`,
       );
+
+      return null;
     } finally {
       setIsLoading(false);
     }

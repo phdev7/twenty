@@ -115,6 +115,20 @@ const InboxPage = lazy(() =>
   })),
 );
 
+const DiexOnboardingPage = lazy(() =>
+  import('~/pages/diex-onboarding/DiexOnboardingPage').then((module) => ({
+    default: module.DiexOnboardingPage,
+  })),
+);
+
+const DiexAccessRequestsPage = lazy(() =>
+  import('~/pages/diex-access-requests/DiexAccessRequestsPage').then(
+    (module) => ({
+      default: module.DiexAccessRequestsPage,
+    }),
+  ),
+);
+
 const WorkspaceSetup = lazyWithPreload(() =>
   import('~/pages/onboarding/WorkspaceSetup').then((module) => ({
     default: module.WorkspaceSetup,
@@ -193,6 +207,22 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <InboxPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.DiexOnboarding}
+                element={
+                  <LazyRoute>
+                    <DiexOnboardingPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.DiexAccessRequests}
+                element={
+                  <LazyRoute>
+                    <DiexAccessRequestsPage />
                   </LazyRoute>
                 }
               />
