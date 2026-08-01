@@ -1,6 +1,5 @@
-import { gql } from '@apollo/client';
-import { useMutation, useQuery } from '@apollo/client/react';
-import { useState } from 'react';
+import { styled } from '@linaria/react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   CommandCenterCard,
@@ -13,207 +12,552 @@ import {
   CommandCenterPage,
   CommandCenterRow,
 } from '@/diex-command-centers/components/CommandCenterLayout';
-import { postLogicFunction } from '@/diex-command-centers/utils/useLogicFunctionRequest';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import {
+  type AiAction,
+  type AiActionExecutionPreview,
+} from '@/diex-command-centers/ai/types';
+import { useAiCommandCenter } from '@/diex-command-centers/ai/useAiCommandCenter';
+import { getRecordName } from '@/diex-command-centers/customer-success/utils';
+import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { Button, Tag } from 'twenty-ui';
+import { themeCssVariables } from 'twenty-ui/theme-constants';
 
-const AI_ACTIONS_QUERY = gql`
-  query DiexAiActions {
-    aiActions(first: 100, orderBy: [{ requestedAt: DescNullsLast }]) {
-      edges {
-        node {
-          id name actionType status confidence requiresApproval
-          requestedAt approvedAt executedAt
-          rationale { markdown }
-          proposedAction { markdown }
-          executionReceipt { markdown }
-          opportunity { id name }
-          commercialSignal { id name }
-          successPlan { id name }
-          customerRenewal { id name }
-          inboxConversation { id name }
-          executionTask { id title dueAt status }
-        }
-      }
-    }
-  }
+const StyledText = styled.p`
+  color: ${themeCssVariables.font.color.secondary};
+  line-height: 1.5;
+  margin: ${themeCssVariables.spacing[2]} 0;
+  white-space: pre-wrap;
+`;
+const StyledTextarea = styled.textarea`
+  border: 1px solid ${themeCssVariables.border.color.light};
+  box-sizing: border-box;
+  font: inherit;
+  min-height: 84px;
+  padding: ${themeCssVariables.spacing[2]};
+  width: 100%;
+`;
+const StyledSelect = styled.select`
+  border: 1px solid ${themeCssVariables.border.color.light};
+  min-height: ${themeCssVariables.spacing[8]};
+  width: 100%;
+`;
+const StyledButtons = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${themeCssVariables.spacing[2]};
 `;
 
-const REVIEW_AI_ACTION = gql`
-  mutation DiexReviewAiAction($id: UUID!, $data: AiActionUpdateInput!) {
-    updateAiAction(id: $id, data: $data) { id }
-  }
-`;
-
-type AiAction = {
-  id: string;
-  name: string;
-  actionType: string;
-  status: string;
-  confidence?: number | null;
-  requiresApproval: boolean;
-  requestedAt?: string | null;
-  proposedAction?: { markdown?: string | null } | null;
-  opportunity?: { name?: string | null } | null;
-  commercialSignal?: { name?: string | null } | null;
-  successPlan?: { name?: string | null } | null;
-  customerRenewal?: { name?: string | null } | null;
-  inboxConversation?: { name?: string | null } | null;
-};
-type AiActionsData = { aiActions?: { edges?: Array<{ node: AiAction }> } };
-type ExecutionPreview = {
-  supported: boolean;
-  message: string;
-  blockedReason?: string;
-  confirmationToken?: string;
-};
-
-const relatedName = (action: AiAction): string =>
-  action.opportunity?.name ??
-  action.commercialSignal?.name ??
-  action.successPlan?.name ??
-  action.customerRenewal?.name ??
-  action.inboxConversation?.name ??
-  'Sem registro vinculado';
-
-const statusColor = (status: string): 'blue' | 'green' | 'orange' | 'red' | 'gray' =>
-  status === 'EXECUTED'
-    ? 'green'
-    : status === 'REJECTED' || status === 'FAILED'
-      ? 'red'
-      : status === 'PENDING_APPROVAL'
-        ? 'orange'
-        : status === 'APPROVED'
-          ? 'blue'
+const statusColor = (
+  status: string,
+): 'blue' | 'green' | 'orange' | 'red' | 'gray' =>
+  status === 'PENDING_APPROVAL'
+    ? 'orange'
+    : status === 'APPROVED'
+      ? 'blue'
+      : status === 'EXECUTED'
+        ? 'green'
+        : ['REJECTED', 'FAILED'].includes(status)
+          ? 'red'
           : 'gray';
+const statusLabel = (status: string) =>
+  ({
+    DRAFT: 'Rascunho',
+    PENDING_APPROVAL: 'Aguardando aprovação',
+    APPROVED: 'Aprovada',
+    REJECTED: 'Rejeitada',
+    EXECUTED: 'Executada',
+    FAILED: 'Falhou',
+  })[status] ?? status;
+const typeLabel = (type: string) =>
+  ({
+    QUALIFY: 'Qualificar',
+    REPLY: 'Responder',
+    FOLLOW_UP: 'Follow-up',
+    PIPELINE_UPDATE: 'Atualizar pipeline',
+    RISK_MITIGATION: 'Mitigar risco',
+    CS_INTERVENTION: 'Intervenção de CS',
+    EXPANSION: 'Expansão',
+  })[type] ?? type;
+const formatDateTime = (value?: string | null) =>
+  value
+    ? new Date(value).toLocaleString('pt-BR', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      })
+    : 'sem data';
+const linkedRecords = (action: AiAction) =>
+  [
+    [action.opportunity, 'Oportunidade', 'opportunity'],
+    [action.commercialSignal, 'Sinal comercial', 'commercialSignal'],
+    [action.successPlan, 'Plano de sucesso', 'successPlan'],
+    [action.customerRenewal, 'Renovação', 'customerRenewal'],
+    [action.inboxConversation, 'Conversa', 'inboxConversation'],
+    [
+      action.executionTask
+        ? { id: action.executionTask.id, name: action.executionTask.title }
+        : null,
+      'Tarefa executada',
+      'task',
+    ],
+  ] as const;
 
 export const AiCommandCenterPage = () => {
-  const { data, loading, error, refetch } = useQuery<AiActionsData>(
-    AI_ACTIONS_QUERY,
-  );
-  const [reviewAiAction, { loading: isReviewing }] = useMutation(REVIEW_AI_ACTION);
-  const { enqueueErrorSnackBar, enqueueSuccessSnackBar, enqueueWarningSnackBar } =
-    useSnackBar();
-  const [executionPreviews, setExecutionPreviews] = useState<
-    Record<string, ExecutionPreview>
+  const {
+    actions,
+    currentReviewer,
+    isLoading,
+    errorMessage,
+    busyActionId,
+    busyExecution,
+    executionPreviews,
+    load,
+    reviewAction,
+    executeAction,
+  } = useAiCommandCenter();
+  const { openRecordInSidePanel } = useOpenRecordInSidePanel();
+  const [filter, setFilter] = useState<
+    'PENDING' | 'APPROVED' | 'HISTORY' | 'ALL'
+  >('PENDING');
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState('');
+  const [pipelineTargets, setPipelineTargets] = useState<
+    Record<string, string>
   >({});
-  const [busyActionId, setBusyActionId] = useState<string | null>(null);
-
-  const actions = data?.aiActions?.edges?.map(({ node }) => node) ?? [];
-  const pending = actions.filter(({ status }) => status === 'PENDING_APPROVAL');
-  const approved = actions.filter(({ status }) => status === 'APPROVED');
-  const history = actions.filter(({ status }) =>
-    ['EXECUTED', 'REJECTED', 'FAILED'].includes(status),
+  const metrics = useMemo(() => {
+    const pending = actions.filter(
+      ({ status }) => status === 'PENDING_APPROVAL',
+    );
+    const approved = actions.filter(({ status }) => status === 'APPROVED');
+    const executed = actions.filter(({ status }) => status === 'EXECUTED');
+    const failed = actions.filter(({ status }) => status === 'FAILED');
+    const reviewed = actions.filter(({ status }) =>
+      ['APPROVED', 'REJECTED'].includes(status),
+    );
+    return {
+      pending,
+      approved,
+      executed,
+      failed,
+      approvalRate: reviewed.length
+        ? Math.round(
+            (reviewed.filter(({ status }) => status === 'APPROVED').length /
+              reviewed.length) *
+              100,
+          )
+        : 0,
+    };
+  }, [actions]);
+  const visibleActions = useMemo(
+    () =>
+      actions
+        .filter((action) =>
+          filter === 'PENDING'
+            ? action.status === 'PENDING_APPROVAL'
+            : filter === 'APPROVED'
+              ? action.status === 'APPROVED'
+              : filter === 'HISTORY'
+                ? ['REJECTED', 'EXECUTED', 'FAILED'].includes(action.status)
+                : true,
+        )
+        .sort(
+          (left, right) =>
+            (right.status === 'PENDING_APPROVAL' ? 1 : 0) -
+              (left.status === 'PENDING_APPROVAL' ? 1 : 0) ||
+            new Date(right.requestedAt ?? 0).getTime() -
+              new Date(left.requestedAt ?? 0).getTime(),
+        ),
+    [actions, filter],
   );
-  const reviewed = actions.filter(({ status }) =>
-    ['APPROVED', 'REJECTED'].includes(status),
-  );
-  const approvalRate = reviewed.length
-    ? Math.round((reviewed.filter(({ status }) => status === 'APPROVED').length / reviewed.length) * 100)
-    : 0;
-
-  const review = async (action: AiAction, decision: 'APPROVED' | 'REJECTED') => {
-    setBusyActionId(action.id);
-    try {
-      await reviewAiAction({
-        variables: {
-          id: action.id,
-          data: {
-            status: decision,
-            approvedAt: decision === 'APPROVED' ? new Date().toISOString() : null,
-            approvalNotes: {
-              markdown:
-                decision === 'APPROVED'
-                  ? 'Proposta aprovada manualmente no Centro de IA.'
-                  : 'Proposta rejeitada manualmente no Centro de IA.',
-              blocknote: null,
-            },
-          },
-        },
-      });
-      await refetch();
-      enqueueSuccessSnackBar({
-        message: decision === 'APPROVED' ? 'Proposta aprovada.' : 'Proposta rejeitada.',
-      });
-    } catch {
-      enqueueErrorSnackBar({ message: 'Não foi possível registrar a decisão.' });
-    } finally {
-      setBusyActionId(null);
-    }
-  };
-
-  const previewExecution = async (actionId: string) => {
-    setBusyActionId(actionId);
-    try {
-      const result = await postLogicFunction<ExecutionPreview>('/diex/ai-actions/execute', {
-        actionId,
-        previewOnly: true,
-        confirmExecute: false,
-      });
-      setExecutionPreviews((current) => ({ ...current, [actionId]: result }));
-      if (result.supported) {
-        enqueueSuccessSnackBar({ message: 'Prévia gerada sem alterar o CRM.' });
-      } else {
-        enqueueWarningSnackBar({ message: result.blockedReason ?? result.message });
-      }
-    } catch {
-      enqueueErrorSnackBar({ message: 'Não foi possível operar o executor interno.' });
-    } finally {
-      setBusyActionId(null);
-    }
-  };
+  const selectedAction =
+    actions.find(({ id }) => id === selectedActionId) ??
+    visibleActions[0] ??
+    null;
+  const execution = selectedAction
+    ? executionPreviews[selectedAction.id]
+    : null;
+  const preview = execution?.mode === 'PREVIEW' ? execution : null;
+  const pipelinePreview =
+    preview?.supported && preview.executionKind === 'PIPELINE_UPDATE'
+      ? preview
+      : null;
+  const targetStage = selectedAction
+    ? (pipelineTargets[selectedAction.id] ?? '')
+    : '';
+  useEffect(() => {
+    if (!visibleActions.some(({ id }) => id === selectedActionId))
+      setSelectedActionId(visibleActions[0]?.id ?? null);
+  }, [selectedActionId, visibleActions]);
+  useEffect(() => {
+    setReviewNote('');
+  }, [selectedAction?.id]);
 
   return (
     <CommandCenterPage
       title="Centro de IA"
-      description="Governança humana para propostas de IA antes de qualquer execução no CRM."
+      description="Propostas rastreáveis, decisão humana e recibo antes de qualquer efeito externo."
     >
-      <CommandCenterMetrics>
-        <CommandCenterMetric label="Aguardando aprovação" value={pending.length} />
-        <CommandCenterMetric label="Aprovadas" value={approved.length} />
-        <CommandCenterMetric label="Histórico" value={history.length} />
-        <CommandCenterMetric label="Taxa de aprovação" value={`${approvalRate}%`} />
-      </CommandCenterMetrics>
-      {loading ? <CommandCenterLoadingState /> : null}
-      {error ? <CommandCenterEmptyState message="Não foi possível carregar o Centro de IA." /> : null}
-      {!loading && !error ? (
-        <CommandCenterGrid>
-          <CommandCenterCard title="Fila de aprovação">
-            {pending.length === 0 ? <CommandCenterEmptyState message="Não há propostas aguardando revisão humana." /> : (
-              <CommandCenterList>
-                {pending.map((action) => (
-                  <CommandCenterRow
-                    key={action.id}
-                    title={action.name}
-                    detail={`${action.actionType} · ${relatedName(action)} · confiança ${action.confidence ?? 0}%`}
-                    action={<><Button title="Rejeitar" size="small" variant="tertiary" disabled={isReviewing || busyActionId === action.id} onClick={() => void review(action, 'REJECTED')} /><Button title="Aprovar" size="small" variant="secondary" disabled={isReviewing || busyActionId === action.id} onClick={() => void review(action, 'APPROVED')} /></>}
+      {isLoading && actions.length === 0 ? <CommandCenterLoadingState /> : null}
+      {errorMessage ? (
+        <CommandCenterCard title="Centro de IA">
+          <CommandCenterEmptyState message={errorMessage} />
+          <Button
+            title="Tentar novamente"
+            size="small"
+            variant="secondary"
+            onClick={() => void load()}
+          />
+        </CommandCenterCard>
+      ) : null}
+      {!errorMessage ? (
+        <>
+          <CommandCenterCard title="Governança ativa">
+            <CommandCenterRow
+              title={
+                currentReviewer
+                  ? `Revisor: ${getRecordName(currentReviewer)}`
+                  : 'Revisor não identificado'
+              }
+              detail="Aprovação não executa automaticamente; o executor exige uma segunda confirmação."
+              action={
+                <Button
+                  title="Atualizar"
+                  size="small"
+                  variant="secondary"
+                  disabled={isLoading}
+                  onClick={() => void load()}
+                />
+              }
+            />
+          </CommandCenterCard>
+          <CommandCenterMetrics>
+            <CommandCenterMetric
+              label="Aguardando decisão"
+              value={metrics.pending.length}
+            />
+            <CommandCenterMetric
+              label="Aprovadas, não executadas"
+              value={metrics.approved.length}
+            />
+            <CommandCenterMetric
+              label="Executadas"
+              value={metrics.executed.length}
+            />
+            <CommandCenterMetric
+              label="Taxa de aprovação"
+              value={`${metrics.approvalRate}%`}
+            />
+          </CommandCenterMetrics>
+          <CommandCenterGrid>
+            <CommandCenterCard title="Fila de decisões">
+              <StyledButtons>
+                {(
+                  [
+                    ['PENDING', 'Pendentes'],
+                    ['APPROVED', 'Aprovadas'],
+                    ['HISTORY', 'Histórico'],
+                    ['ALL', 'Todas'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <Button
+                    key={value}
+                    title={label}
+                    size="small"
+                    variant={filter === value ? 'secondary' : 'tertiary'}
+                    onClick={() => setFilter(value)}
                   />
                 ))}
-              </CommandCenterList>
-            )}
-          </CommandCenterCard>
-          <CommandCenterCard title="Executor aprovado">
-            {approved.length === 0 ? <CommandCenterEmptyState message="Ações aprovadas aparecerão aqui para gerar uma prévia de execução." /> : (
+              </StyledButtons>
+              {visibleActions.length === 0 ? (
+                <CommandCenterEmptyState message="Nenhuma ação neste filtro." />
+              ) : (
+                <CommandCenterList>
+                  {visibleActions.map((action) => (
+                    <CommandCenterRow
+                      key={action.id}
+                      title={action.name}
+                      detail={`${typeLabel(action.actionType)} · ${Math.round(action.confidence ?? 0)}% confiança · ${formatDateTime(action.requestedAt)}`}
+                      action={
+                        <Button
+                          title={
+                            selectedAction?.id === action.id
+                              ? 'Selecionada'
+                              : 'Revisar'
+                          }
+                          size="small"
+                          variant="tertiary"
+                          onClick={() => setSelectedActionId(action.id)}
+                        />
+                      }
+                    />
+                  ))}
+                </CommandCenterList>
+              )}
+            </CommandCenterCard>
+            <CommandCenterCard
+              title={selectedAction?.name ?? 'Revisão da proposta'}
+            >
+              {!selectedAction ? (
+                <CommandCenterEmptyState message="Selecione uma proposta da fila para abrir a revisão." />
+              ) : (
+                <>
+                  <StyledButtons>
+                    <Tag
+                      color={statusColor(selectedAction.status)}
+                      text={statusLabel(selectedAction.status)}
+                    />
+                    <Tag
+                      color="blue"
+                      text={typeLabel(selectedAction.actionType)}
+                    />
+                    <Tag
+                      color={
+                        (selectedAction.confidence ?? 0) >= 75
+                          ? 'green'
+                          : 'orange'
+                      }
+                      text={`${Math.round(selectedAction.confidence ?? 0)}% confiança`}
+                    />
+                    <Button
+                      title="Abrir registro"
+                      size="small"
+                      variant="tertiary"
+                      onClick={() =>
+                        openRecordInSidePanel({
+                          recordId: selectedAction.id,
+                          objectNameSingular: 'aiAction',
+                        })
+                      }
+                    />
+                  </StyledButtons>
+                  <StyledText>
+                    Evidência e raciocínio:{' '}
+                    {selectedAction.rationale?.markdown ||
+                      'A proposta não possui justificativa registrada.'}
+                  </StyledText>
+                  <StyledText>
+                    Ação proposta:{' '}
+                    {selectedAction.proposedAction?.markdown ||
+                      'Nenhuma ação detalhada foi registrada.'}
+                  </StyledText>
+                  {selectedAction.approvalNotes?.markdown ? (
+                    <StyledText>
+                      Decisão humana: {selectedAction.approvalNotes.markdown}
+                    </StyledText>
+                  ) : null}
+                  {selectedAction.executionReceipt?.markdown ? (
+                    <StyledText>
+                      Recibo de execução:{' '}
+                      {selectedAction.executionReceipt.markdown}
+                    </StyledText>
+                  ) : null}
+                  <CommandCenterList>
+                    {linkedRecords(selectedAction)
+                      .filter(([record]) => Boolean(record))
+                      .map(([record, label, objectName]) => (
+                        <CommandCenterRow
+                          key={`${objectName}:${record?.id}`}
+                          title={label}
+                          detail={getRecordName(record)}
+                          action={
+                            <Button
+                              title="Abrir"
+                              size="small"
+                              variant="tertiary"
+                              onClick={() =>
+                                record &&
+                                openRecordInSidePanel({
+                                  recordId: record.id,
+                                  objectNameSingular: objectName,
+                                })
+                              }
+                            />
+                          }
+                        />
+                      ))}
+                  </CommandCenterList>
+                  {selectedAction.status === 'PENDING_APPROVAL' ? (
+                    <>
+                      <StyledTextarea
+                        aria-label="Nota da decisão"
+                        placeholder="Justificativa, ajuste ou condição para a decisão..."
+                        value={reviewNote}
+                        disabled={!currentReviewer}
+                        onChange={(event) => setReviewNote(event.target.value)}
+                      />
+                      <StyledButtons>
+                        <Button
+                          title="Rejeitar"
+                          size="small"
+                          variant="tertiary"
+                          disabled={
+                            !currentReviewer ||
+                            busyActionId === selectedAction.id
+                          }
+                          onClick={() =>
+                            void reviewAction(
+                              selectedAction.id,
+                              'REJECTED',
+                              reviewNote,
+                            )
+                          }
+                        />
+                        <Button
+                          title="Aprovar"
+                          size="small"
+                          disabled={
+                            !currentReviewer ||
+                            busyActionId === selectedAction.id
+                          }
+                          onClick={() =>
+                            void reviewAction(
+                              selectedAction.id,
+                              'APPROVED',
+                              reviewNote,
+                            )
+                          }
+                        />
+                      </StyledButtons>
+                    </>
+                  ) : null}
+                  {selectedAction.status === 'APPROVED' ? (
+                    <>
+                      <StyledText>
+                        Executor interno seguro: comunicação externa permanece
+                        bloqueada.
+                      </StyledText>
+                      {preview?.supported === false ? (
+                        <StyledText>
+                          Execução direta bloqueada: {preview.blockedReason}
+                        </StyledText>
+                      ) : null}
+                      {preview?.supported &&
+                      preview.executionKind === 'TASK' ? (
+                        <StyledText>
+                          Tarefa: {preview.task.title} · responsável{' '}
+                          {getRecordName(preview.task.assignee)} · prazo{' '}
+                          {formatDateTime(preview.task.dueAt)} ·{' '}
+                          {preview.task.targets.length} vínculo(s)
+                        </StyledText>
+                      ) : null}
+                      {pipelinePreview ? (
+                        <>
+                          <StyledSelect
+                            value={targetStage}
+                            onChange={(event) =>
+                              setPipelineTargets((current) => ({
+                                ...current,
+                                [selectedAction.id]: event.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">Selecione uma etapa</option>
+                            {pipelinePreview.stageOptions.map((stage) => (
+                              <option key={stage.value} value={stage.value}>
+                                {stage.label}
+                              </option>
+                            ))}
+                          </StyledSelect>
+                          {!pipelinePreview.requiresTargetStage ? (
+                            <StyledText>
+                              Mudança:{' '}
+                              {pipelinePreview.pipelineChange.sourceStage.label}{' '}
+                              →{' '}
+                              {pipelinePreview.pipelineChange.targetStage.label}
+                            </StyledText>
+                          ) : null}
+                        </>
+                      ) : null}
+                      <StyledButtons>
+                        <Button
+                          title={
+                            pipelinePreview
+                              ? 'Atualizar prévia'
+                              : 'Gerar prévia'
+                          }
+                          size="small"
+                          variant="secondary"
+                          disabled={
+                            busyExecution?.actionId === selectedAction.id ||
+                            (selectedAction.actionType === 'PIPELINE_UPDATE' &&
+                              pipelinePreview !== null &&
+                              !targetStage)
+                          }
+                          onClick={() =>
+                            void executeAction(
+                              selectedAction.id,
+                              'PREVIEW',
+                              selectedAction.actionType === 'PIPELINE_UPDATE' &&
+                                targetStage
+                                ? { targetStage }
+                                : undefined,
+                            )
+                          }
+                        />
+                        {preview?.supported &&
+                        preview.executionKind === 'TASK' ? (
+                          <Button
+                            title="Confirmar e criar tarefa"
+                            size="small"
+                            disabled={
+                              busyExecution?.actionId === selectedAction.id
+                            }
+                            onClick={() =>
+                              void executeAction(selectedAction.id, 'APPLY', {
+                                confirmationToken: preview.confirmationToken,
+                              })
+                            }
+                          />
+                        ) : pipelinePreview &&
+                          !pipelinePreview.requiresTargetStage &&
+                          targetStage ===
+                            pipelinePreview.pipelineChange.targetStage.value ? (
+                          <Button
+                            title="Confirmar mudança de etapa"
+                            size="small"
+                            disabled={
+                              busyExecution?.actionId === selectedAction.id
+                            }
+                            onClick={() =>
+                              void executeAction(selectedAction.id, 'APPLY', {
+                                confirmationToken:
+                                  pipelinePreview.confirmationToken,
+                              })
+                            }
+                          />
+                        ) : null}
+                      </StyledButtons>
+                    </>
+                  ) : null}
+                </>
+              )}
+            </CommandCenterCard>
+          </CommandCenterGrid>
+          <CommandCenterCard title="Trilha recente">
+            {actions.filter(({ status }) => status !== 'PENDING_APPROVAL')
+              .length === 0 ? (
+              <CommandCenterEmptyState message="Nenhuma decisão registrada até agora." />
+            ) : (
               <CommandCenterList>
-                {approved.map((action) => (
-                  <CommandCenterRow
-                    key={action.id}
-                    title={action.name}
-                    detail={executionPreviews[action.id]?.message ?? `${action.actionType} · ${relatedName(action)}`}
-                    action={<Button title="Gerar prévia" size="small" variant="secondary" disabled={busyActionId === action.id} onClick={() => void previewExecution(action.id)} />}
-                  />
-                ))}
+                {actions
+                  .filter(({ status }) => status !== 'PENDING_APPROVAL')
+                  .slice(0, 4)
+                  .map((action) => (
+                    <CommandCenterRow
+                      key={action.id}
+                      title={action.name}
+                      detail={`${statusLabel(action.status)} · ${formatDateTime(action.executedAt || action.approvedAt || action.requestedAt)} · ${getRecordName(action.reviewer) || 'sem revisor vinculado'}`}
+                      action={
+                        <Tag
+                          color={statusColor(action.status)}
+                          text={statusLabel(action.status)}
+                        />
+                      }
+                    />
+                  ))}
               </CommandCenterList>
             )}
           </CommandCenterCard>
-          <CommandCenterCard title="Histórico de governança">
-            {history.length === 0 ? <CommandCenterEmptyState message="Nenhuma decisão ou execução registrada ainda." /> : (
-              <CommandCenterList>
-                {history.slice(0, 8).map((action) => <CommandCenterRow key={action.id} title={action.name} detail={`${action.actionType} · ${relatedName(action)}`} action={<Tag color={statusColor(action.status)} text={action.status} />} />)}
-              </CommandCenterList>
-            )}
-          </CommandCenterCard>
-        </CommandCenterGrid>
+        </>
       ) : null}
     </CommandCenterPage>
   );
