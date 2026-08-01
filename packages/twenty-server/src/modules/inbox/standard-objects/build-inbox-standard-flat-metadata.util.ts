@@ -23,6 +23,7 @@ import {
 import { i18nLabel } from 'src/engine/workspace-manager/twenty-standard-application/utils/i18n-label.util';
 import { type StandardObjectMetadataRelatedEntityIds } from 'src/engine/workspace-manager/twenty-standard-application/utils/get-standard-object-metadata-related-entity-ids.util';
 import { type CreateStandardObjectArgs } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/create-standard-object-flat-metadata.util';
+import { buildDiexStandardRelationFlatFieldMetadatas } from 'src/modules/diex/standard-objects/build-diex-standard-flat-relation-metadata.util';
 import { buildInboxStandardRelationFlatFieldMetadatas } from 'src/modules/inbox/standard-objects/build-inbox-standard-flat-relation-metadata.util';
 
 const INBOX_SYSTEM_FIELD_CONTEXTS: CreateStandardFieldArgs<
@@ -294,6 +295,14 @@ export const buildInboxStandardObjectFlatFieldMetadatas = <
 
   const allFlatFieldMetadatas = {
     ...flatFieldMetadatas,
+    ...buildDiexStandardRelationFlatFieldMetadatas({
+      objectName,
+      now,
+      workspaceId,
+      standardObjectMetadataRelatedEntityIds,
+      dependencyFlatEntityMaps,
+      twentyStandardApplicationId,
+    }),
     ...buildInboxStandardRelationFlatFieldMetadatas({
       objectName,
       now,
