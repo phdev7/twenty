@@ -31,6 +31,16 @@ import { buildWorkflowVersionStandardFlatIndexMetadatas } from 'src/engine/works
 import { buildWorkspaceMemberStandardFlatIndexMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/index/compute-workspace-member-standard-flat-index-metadata.util';
 import { type CreateStandardIndexArgs } from 'src/engine/workspace-manager/twenty-standard-application/utils/index/create-standard-index-flat-metadata.util';
 import {
+  buildAiActionStandardFlatIndexMetadatas,
+  buildCommercialSignalStandardFlatIndexMetadatas,
+  buildCustomerRenewalStandardFlatIndexMetadatas,
+  buildDiexAccessRequestStandardFlatIndexMetadatas,
+  buildDiexWorkspaceContextStandardFlatIndexMetadatas,
+  buildOfferStandardFlatIndexMetadatas,
+  buildSuccessMilestoneStandardFlatIndexMetadatas,
+  buildSuccessPlanStandardFlatIndexMetadatas,
+} from 'src/modules/diex/standard-objects/build-diex-standard-flat-index-metadata.util';
+import {
   buildInboxAutomationStandardFlatIndexMetadatas,
   buildInboxConversationEventStandardFlatIndexMetadatas,
   buildInboxConversationLabelStandardFlatIndexMetadatas,
@@ -49,6 +59,7 @@ type StandardIndexBuilder<P extends AllStandardObjectName> = (
 ) => Record<string, FlatIndexMetadata>;
 
 const STANDARD_FLAT_INDEX_METADATA_BUILDERS_BY_OBJECT_NAME = {
+  aiAction: buildAiActionStandardFlatIndexMetadatas,
   attachment: buildAttachmentStandardFlatIndexMetadatas,
   blocklist: buildBlocklistStandardFlatIndexMetadatas,
   calendarChannelEventAssociation:
@@ -57,7 +68,11 @@ const STANDARD_FLAT_INDEX_METADATA_BUILDERS_BY_OBJECT_NAME = {
     buildCalendarEventParticipantStandardFlatIndexMetadatas,
   callRecording: buildCallRecordingStandardFlatIndexMetadatas,
   company: buildCompanyStandardFlatIndexMetadatas,
+  commercialSignal: buildCommercialSignalStandardFlatIndexMetadatas,
+  customerRenewal: buildCustomerRenewalStandardFlatIndexMetadatas,
   dashboard: buildDashboardStandardFlatIndexMetadatas,
+  diexAccessRequest: buildDiexAccessRequestStandardFlatIndexMetadatas,
+  diexWorkspaceContext: buildDiexWorkspaceContextStandardFlatIndexMetadatas,
   inboxAutomation: buildInboxAutomationStandardFlatIndexMetadatas,
   inboxConversation: buildInboxConversationStandardFlatIndexMetadatas,
   inboxConversationEvent: buildInboxConversationEventStandardFlatIndexMetadatas,
@@ -80,10 +95,13 @@ const STANDARD_FLAT_INDEX_METADATA_BUILDERS_BY_OBJECT_NAME = {
   messageParticipant: buildMessageParticipantStandardFlatIndexMetadatas,
   note: buildNoteStandardFlatIndexMetadatas,
   noteTarget: buildNoteTargetStandardFlatIndexMetadatas,
+  offer: buildOfferStandardFlatIndexMetadatas,
   opportunity: buildOpportunityStandardFlatIndexMetadatas,
   person: buildPersonStandardFlatIndexMetadatas,
   task: buildTaskStandardFlatIndexMetadatas,
   taskTarget: buildTaskTargetStandardFlatIndexMetadatas,
+  successMilestone: buildSuccessMilestoneStandardFlatIndexMetadatas,
+  successPlan: buildSuccessPlanStandardFlatIndexMetadatas,
   timelineActivity: buildTimelineActivityStandardFlatIndexMetadatas,
   workflow: buildWorkflowStandardFlatIndexMetadatas,
   workflowAutomatedTrigger:

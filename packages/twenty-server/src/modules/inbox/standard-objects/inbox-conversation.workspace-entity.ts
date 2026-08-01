@@ -1,5 +1,6 @@
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
 import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migration/types/entity-relation.interface';
+import { type AiActionWorkspaceEntity } from 'src/modules/ai-governance/standard-objects/ai-action.workspace-entity';
 import { type InboxConversationEventWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation-event.workspace-entity';
 import { type InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
 import { type InboxConversationLabelWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation-label.workspace-entity';
@@ -24,6 +25,7 @@ export class InboxConversationWorkspaceEntity extends BaseWorkspaceEntity {
   snoozedUntil: string | null;
   slaBreachedAt: string | null;
   metadata: Record<string, unknown> | null;
+  diexAiActions: EntityRelation<AiActionWorkspaceEntity[]>;
   conversationEvents: EntityRelation<InboxConversationEventWorkspaceEntity[]>;
   inboxTeam: EntityRelation<InboxTeamWorkspaceEntity> | null;
   inboxTeamId: string | null;

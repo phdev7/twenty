@@ -19,8 +19,26 @@ import { buildInboxMacroStandardFlatObjectMetadata } from 'src/engine/workspace-
 import { buildInboxSavedReplyStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-saved-reply-standard-flat-object-metadata.util';
 import { buildInboxMentionStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-mention-standard-flat-object-metadata.util';
 import { buildInboxAutomationStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-automation-standard-flat-object-metadata.util';
+import { buildSuccessPlanStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-success-plan-standard-flat-object-metadata.util';
+import { buildSuccessMilestoneStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-success-milestone-standard-flat-object-metadata.util';
+import { buildCustomerRenewalStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-customer-renewal-standard-flat-object-metadata.util';
+import { buildCustomerRenewalEventStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-customer-renewal-event-standard-flat-object-metadata.util';
+import { buildCommercialSignalStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-commercial-signal-standard-flat-object-metadata.util';
+import { buildOfferStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-offer-standard-flat-object-metadata.util';
+import { buildAiActionStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-ai-action-standard-flat-object-metadata.util';
+import { buildDiexWorkspaceContextStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-diex-workspace-context-standard-flat-object-metadata.util';
+import { buildDiexAccessRequestStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-diex-access-request-standard-flat-object-metadata.util';
 
 export const STANDARD_FLAT_OBJECT_METADATA_BUILDERS_BY_OBJECT_NAME = {
+  successPlan: buildSuccessPlanStandardFlatObjectMetadata,
+  successMilestone: buildSuccessMilestoneStandardFlatObjectMetadata,
+  customerRenewal: buildCustomerRenewalStandardFlatObjectMetadata,
+  customerRenewalEvent: buildCustomerRenewalEventStandardFlatObjectMetadata,
+  commercialSignal: buildCommercialSignalStandardFlatObjectMetadata,
+  offer: buildOfferStandardFlatObjectMetadata,
+  aiAction: buildAiActionStandardFlatObjectMetadata,
+  diexWorkspaceContext: buildDiexWorkspaceContextStandardFlatObjectMetadata,
+  diexAccessRequest: buildDiexAccessRequestStandardFlatObjectMetadata,
   attachment: ({
     now,
     workspaceId,

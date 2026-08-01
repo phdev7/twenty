@@ -1,10 +1,12 @@
 import { buildDiexStandardObjectSystemFields } from '@/metadata/utils/internal/build-standard-object-system-fields.util';
 import { INBOX_STANDARD_RELATION_FIELDS } from '@/metadata/constants/inbox-standard-relation-fields.constant';
+import { DIEX_STANDARD_RELATION_FIELDS } from '@/metadata/constants/diex-standard-relation-fields.constant';
 
 export const INBOX_STANDARD_OBJECTS = {
   inboxConversation: {
     universalIdentifier: 'b9ec457e-7da0-47b2-a3f5-3d9608e66331',
     fields: {
+      ...DIEX_STANDARD_RELATION_FIELDS.inboxConversation,
       ...INBOX_STANDARD_RELATION_FIELDS.inboxConversation,
       ...buildDiexStandardObjectSystemFields(
         'b9ec457e-7da0-47b2-a3f5-3d9608e66331',
