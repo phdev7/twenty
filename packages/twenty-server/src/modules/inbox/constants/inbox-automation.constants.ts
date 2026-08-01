@@ -1,0 +1,72 @@
+export const INBOX_AUTOMATION_UNIVERSAL_IDENTIFIER =
+  'd1e0fd00-0000-4000-8000-000000000001';
+
+export const INBOX_AUTOMATION_FIELD_IDS = {
+  name: 'd1e0fd10-0000-4000-8000-000000000001',
+  key: 'd1e0fd10-0000-4000-8000-000000000002',
+  description: 'd1e0fd10-0000-4000-8000-000000000003',
+  status: 'd1e0fd10-0000-4000-8000-000000000004',
+  trigger: 'd1e0fd10-0000-4000-8000-000000000005',
+  channel: 'd1e0fd10-0000-4000-8000-000000000006',
+  keywords: 'd1e0fd10-0000-4000-8000-000000000007',
+  crmCondition: 'd1e0fd10-0000-4000-8000-000000000008',
+  onlyIfUnassigned: 'd1e0fd10-0000-4000-8000-000000000009',
+  targetConversationStatus: 'd1e0fd10-0000-4000-8000-00000000000a',
+  targetPriority: 'd1e0fd10-0000-4000-8000-00000000000b',
+  followUpDelayMinutes: 'd1e0fd10-0000-4000-8000-00000000000c',
+  taskTitleTemplate: 'd1e0fd10-0000-4000-8000-00000000000d',
+  taskDueDelayMinutes: 'd1e0fd10-0000-4000-8000-00000000000e',
+  internalNoteTemplate: 'd1e0fd10-0000-4000-8000-00000000000f',
+  stopAfterMatch: 'd1e0fd10-0000-4000-8000-000000000010',
+  position: 'd1e0fd10-0000-4000-8000-000000000011',
+  runCount: 'd1e0fd10-0000-4000-8000-000000000012',
+  lastRunAt: 'd1e0fd10-0000-4000-8000-000000000013',
+  label: 'd1e0fd10-0000-4000-8000-000000000014',
+  team: 'd1e0fd10-0000-4000-8000-000000000015',
+  assignee: 'd1e0fd10-0000-4000-8000-000000000016',
+} as const;
+
+export const INBOX_AUTOMATION_RELATION_FIELD_IDS = {
+  automationsOnLabel: 'd1e0fd20-0000-4000-8000-000000000001',
+  automationsOnTeam: 'd1e0fd20-0000-4000-8000-000000000002',
+  automationsOnWorkspaceMember: 'd1e0fd20-0000-4000-8000-000000000003',
+} as const;
+
+export const INBOX_AUTOMATION_OPTION_IDS = {
+  status: {
+    active: 'd1e0fd30-0000-4000-8000-000000000001',
+    inactive: 'd1e0fd30-0000-4000-8000-000000000002',
+  },
+  trigger: {
+    conversationCreated: 'd1e0fd31-0000-4000-8000-000000000001',
+    inboundMessageCreated: 'd1e0fd31-0000-4000-8000-000000000002',
+  },
+  channel: {
+    all: 'd1e0fd32-0000-4000-8000-000000000001',
+    whatsapp: 'd1e0fd32-0000-4000-8000-000000000002',
+    email: 'd1e0fd32-0000-4000-8000-000000000003',
+  },
+  crmCondition: {
+    any: 'd1e0fd33-0000-4000-8000-000000000001',
+    linked: 'd1e0fd33-0000-4000-8000-000000000002',
+    unlinked: 'd1e0fd33-0000-4000-8000-000000000003',
+    hasOpportunity: 'd1e0fd33-0000-4000-8000-000000000004',
+    noOpportunity: 'd1e0fd33-0000-4000-8000-000000000005',
+  },
+  conversationStatus: {
+    keep: 'd1e0fd34-0000-4000-8000-000000000001',
+    open: 'd1e0fd34-0000-4000-8000-000000000002',
+    pending: 'd1e0fd34-0000-4000-8000-000000000003',
+    resolved: 'd1e0fd34-0000-4000-8000-000000000004',
+  },
+  priority: {
+    keep: 'd1e0fd35-0000-4000-8000-000000000001',
+    low: 'd1e0fd35-0000-4000-8000-000000000002',
+    normal: 'd1e0fd35-0000-4000-8000-000000000003',
+    high: 'd1e0fd35-0000-4000-8000-000000000004',
+    urgent: 'd1e0fd35-0000-4000-8000-000000000005',
+  },
+} as const;
+
+export const INBOX_AUTOMATIONS_VIEW_UNIVERSAL_IDENTIFIER =
+  'd1e0fd40-0000-4000-8000-000000000001';

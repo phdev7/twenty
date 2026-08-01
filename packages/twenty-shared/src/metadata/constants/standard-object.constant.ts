@@ -1,6 +1,7 @@
 import { TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER } from '@/application/constants/TwentyStandardApplicationUniversalIdentifier';
 import { getSystemRelationFieldUniversalIdentifier } from '@/application/deterministic-identifier/get-system-relation-field-universal-identifier.util';
 import { STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS } from '@/metadata/constants/standard-object-universal-identifiers.constant';
+import { INBOX_STANDARD_OBJECTS } from '@/metadata/constants/inbox-standard-object.constant';
 import { buildStandardObjectSystemFields } from '@/metadata/utils/internal/build-standard-object-system-fields.util';
 
 // Important notice:
@@ -13,6 +14,7 @@ import { buildStandardObjectSystemFields } from '@/metadata/utils/internal/build
 //   The name field is a default field, not a system field, and keeps its
 //   hardcoded universal identifier.
 export const STANDARD_OBJECTS = {
+  ...INBOX_STANDARD_OBJECTS,
   attachment: {
     universalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.attachment,
     fields: {
