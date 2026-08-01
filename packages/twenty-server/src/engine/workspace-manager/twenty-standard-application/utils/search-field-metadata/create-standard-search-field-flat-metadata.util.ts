@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 import { findFlatEntityByUniversalIdentifierOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-universal-identifier-or-throw.util';
 import { type FlatSearchFieldMetadata } from 'src/engine/metadata-modules/flat-search-field-metadata/types/flat-search-field-metadata.type';
 import { SEARCH_VECTOR_FIELD } from 'src/engine/metadata-modules/search-field-metadata/constants/search-vector-field.constants';
+import { METADATA_IDENTITY_APPLICATION_UNIVERSAL_IDENTIFIER_BY_STANDARD_OBJECT_NAME } from 'src/engine/workspace-manager/twenty-standard-application/constants/metadata-identity-application-universal-identifier-by-standard-object-name.constant';
 import { type AllStandardObjectFieldName } from 'src/engine/workspace-manager/twenty-standard-application/types/all-standard-object-field-name.type';
 import { type AllStandardObjectName } from 'src/engine/workspace-manager/twenty-standard-application/types/all-standard-object-name.type';
 import { type StandardBuilderArgs } from 'src/engine/workspace-manager/twenty-standard-application/types/metadata-standard-buillder-args.type';
@@ -65,12 +66,16 @@ export const createStandardSearchFieldFlatMetadata = <
   const tsVectorFieldMetadataUniversalIdentifier =
     objectFields[SEARCH_VECTOR_FIELD.name as keyof typeof objectFields]
       .universalIdentifier;
+  const metadataIdentityApplicationUniversalIdentifier =
+    METADATA_IDENTITY_APPLICATION_UNIVERSAL_IDENTIFIER_BY_STANDARD_OBJECT_NAME[
+      objectName as keyof typeof METADATA_IDENTITY_APPLICATION_UNIVERSAL_IDENTIFIER_BY_STANDARD_OBJECT_NAME
+    ] ?? flatObjectMetadata.applicationUniversalIdentifier;
 
   return {
     id: v4(),
     universalIdentifier: getSearchFieldUniversalIdentifier({
       applicationUniversalIdentifier:
-        flatObjectMetadata.applicationUniversalIdentifier,
+        metadataIdentityApplicationUniversalIdentifier,
       fieldMetadataUniversalIdentifier: flatFieldMetadata.universalIdentifier,
     }),
     applicationId: twentyStandardApplicationId,

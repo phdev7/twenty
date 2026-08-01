@@ -1,5 +1,9 @@
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
 
+import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migration/types/entity-relation.interface';
+import { type InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
+import { type InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-message.workspace-entity';
+
 export class InboxMentionWorkspaceEntity extends BaseWorkspaceEntity {
   name: string | null;
   excerpt: string | null;
@@ -7,4 +11,8 @@ export class InboxMentionWorkspaceEntity extends BaseWorkspaceEntity {
   mentionedAt: string | null;
   readAt: string | null;
   resolvedAt: string | null;
+  inboxConversation: EntityRelation<InboxConversationWorkspaceEntity> | null;
+  inboxConversationId: string | null;
+  inboxMessage: EntityRelation<InboxMessageWorkspaceEntity> | null;
+  inboxMessageId: string | null;
 }

@@ -1,4 +1,5 @@
 import { TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER } from '@/application/constants/TwentyStandardApplicationUniversalIdentifier';
+import { DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER } from '@/application/constants/DiexCoreApplicationUniversalIdentifier';
 import { getFieldUniversalIdentifier } from '@/application/deterministic-identifier/get-field-universal-identifier.util';
 
 export const STANDARD_OBJECT_SYSTEM_FIELD_NAMES = [
@@ -30,6 +31,23 @@ export const buildStandardObjectSystemFields = (
         universalIdentifier: getFieldUniversalIdentifier({
           applicationUniversalIdentifier:
             TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER,
+          objectUniversalIdentifier,
+          name: fieldName,
+        }),
+      },
+    ]),
+  ) as Record<StandardObjectSystemFieldName, { universalIdentifier: string }>;
+
+export const buildDiexStandardObjectSystemFields = (
+  objectUniversalIdentifier: string,
+): Record<StandardObjectSystemFieldName, { universalIdentifier: string }> =>
+  Object.fromEntries(
+    STANDARD_OBJECT_SYSTEM_FIELD_NAMES.map((fieldName) => [
+      fieldName,
+      {
+        universalIdentifier: getFieldUniversalIdentifier({
+          applicationUniversalIdentifier:
+            DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
           objectUniversalIdentifier,
           name: fieldName,
         }),

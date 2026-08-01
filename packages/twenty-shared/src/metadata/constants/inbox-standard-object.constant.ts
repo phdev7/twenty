@@ -1,10 +1,12 @@
-import { buildStandardObjectSystemFields } from '@/metadata/utils/internal/build-standard-object-system-fields.util';
+import { buildDiexStandardObjectSystemFields } from '@/metadata/utils/internal/build-standard-object-system-fields.util';
+import { INBOX_STANDARD_RELATION_FIELDS } from '@/metadata/constants/inbox-standard-relation-fields.constant';
 
 export const INBOX_STANDARD_OBJECTS = {
   inboxConversation: {
     universalIdentifier: 'b9ec457e-7da0-47b2-a3f5-3d9608e66331',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxConversation,
+      ...buildDiexStandardObjectSystemFields(
         'b9ec457e-7da0-47b2-a3f5-3d9608e66331',
       ),
       name: { universalIdentifier: '675dd863-f5b0-4940-8b73-2ec9a6cc4044' },
@@ -47,12 +49,20 @@ export const INBOX_STANDARD_OBJECTS = {
       },
       metadata: { universalIdentifier: '43d5ed6a-a102-4c12-8b31-f6e98f54996a' },
     },
-    indexes: {},
+    indexes: {
+      providerThreadKeyUniqueIndex: {
+        universalIdentifier: 'c4c227e8-3d28-5bc3-a3fe-33f46785b823',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: 'e5d0b76c-f65b-5509-a6aa-7a3c890dbd0f',
+      },
+    },
   },
   inboxMessage: {
     universalIdentifier: '7f598a57-08b2-4cc4-a4fa-a5c66f00da7b',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxMessage,
+      ...buildDiexStandardObjectSystemFields(
         '7f598a57-08b2-4cc4-a4fa-a5c66f00da7b',
       ),
       name: { universalIdentifier: 'f060bf2e-d788-4d87-baf0-c3f84bafd99c' },
@@ -91,12 +101,20 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'e93d4f7a-68f3-458f-997f-6243e86a5415',
       },
     },
-    indexes: {},
+    indexes: {
+      providerMessageKeyUniqueIndex: {
+        universalIdentifier: '7ea9536c-3aac-539d-86f0-9d79e8e1f739',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: 'bcd7632e-2ac3-500f-bfd2-d1c1f810e33a',
+      },
+    },
   },
   inboxConversationEvent: {
     universalIdentifier: 'd1e0fc00-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxConversationEvent,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0fc00-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0fc10-0000-4000-8000-000000000001' },
@@ -109,12 +127,20 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0fc10-0000-4000-8000-000000000005',
       },
     },
-    indexes: {},
+    indexes: {
+      nameUniqueIndex: {
+        universalIdentifier: 'ebee77ac-acc7-5133-9815-6e4c4f0e1d9b',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: '22d14b77-16c2-522e-8d9f-d0d2bf4d337a',
+      },
+    },
   },
   inboxLabel: {
     universalIdentifier: 'd1e0e000-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxLabel,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0e000-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0e100-0000-4000-8000-000000000001' },
@@ -128,12 +154,20 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0e100-0000-4000-8000-000000000006',
       },
     },
-    indexes: {},
+    indexes: {
+      slugUniqueIndex: {
+        universalIdentifier: '1f6f5dae-a884-586c-856b-51be512b4a90',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: '02f68e24-9e3d-5210-8453-d37fec6ec746',
+      },
+    },
   },
   inboxConversationLabel: {
     universalIdentifier: 'd1e0f000-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxConversationLabel,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0f000-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0f100-0000-4000-8000-000000000001' },
@@ -145,12 +179,17 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0f100-0000-4000-8000-000000000004',
       },
     },
-    indexes: {},
+    indexes: {
+      nameUniqueIndex: {
+        universalIdentifier: '3e372aa5-e406-5bfd-b3fb-e74aed145068',
+      },
+    },
   },
   inboxTeam: {
     universalIdentifier: 'd1e0f400-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxTeam,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0f400-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0f410-0000-4000-8000-000000000001' },
@@ -169,12 +208,20 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0f410-0000-4000-8000-000000000007',
       },
     },
-    indexes: {},
+    indexes: {
+      keyUniqueIndex: {
+        universalIdentifier: '7316fca4-8f18-50c0-858f-ab85dbd3f732',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: 'dace8440-fe90-5fe5-8027-9161ab2cd55c',
+      },
+    },
   },
   inboxTeamMember: {
     universalIdentifier: 'd1e0f500-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxTeamMember,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0f500-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0f510-0000-4000-8000-000000000001' },
@@ -184,12 +231,17 @@ export const INBOX_STANDARD_OBJECTS = {
       isActive: { universalIdentifier: 'd1e0f510-0000-4000-8000-000000000003' },
       joinedAt: { universalIdentifier: 'd1e0f510-0000-4000-8000-000000000004' },
     },
-    indexes: {},
+    indexes: {
+      nameUniqueIndex: {
+        universalIdentifier: '5553e997-7cb3-5bec-aaa7-e2b607938a2a',
+      },
+    },
   },
   inboxMacro: {
     universalIdentifier: 'd1e0fb00-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxMacro,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0fb00-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0fb10-0000-4000-8000-000000000001' },
@@ -215,12 +267,20 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0fb10-0000-4000-8000-00000000000a',
       },
     },
-    indexes: {},
+    indexes: {
+      shortcutUniqueIndex: {
+        universalIdentifier: 'f0da6c17-4c57-574a-b7e3-93ed9a96483d',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: 'fe45de39-67f4-5f58-af9f-64bcc185a87a',
+      },
+    },
   },
   inboxSavedReply: {
     universalIdentifier: 'd1e0d000-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxSavedReply,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0d000-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0d100-0000-4000-8000-000000000001' },
@@ -236,12 +296,20 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0d100-0000-4000-8000-000000000008',
       },
     },
-    indexes: {},
+    indexes: {
+      shortcutUniqueIndex: {
+        universalIdentifier: '255c2431-6c23-52ca-b936-d488e95b3132',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: '94bd4084-fb70-5864-9843-920c37baa427',
+      },
+    },
   },
   inboxMention: {
     universalIdentifier: 'd1e0fa00-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxMention,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0fa00-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0fa10-0000-4000-8000-000000000001' },
@@ -255,12 +323,20 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0fa10-0000-4000-8000-000000000006',
       },
     },
-    indexes: {},
+    indexes: {
+      nameUniqueIndex: {
+        universalIdentifier: 'e26ba073-0aa0-503b-bbdd-5eec6c045f87',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: '182d6a93-2583-599c-be2e-ed2e3fbe3bd9',
+      },
+    },
   },
   inboxAutomation: {
     universalIdentifier: 'd1e0fd00-0000-4000-8000-000000000001',
     fields: {
-      ...buildStandardObjectSystemFields(
+      ...INBOX_STANDARD_RELATION_FIELDS.inboxAutomation,
+      ...buildDiexStandardObjectSystemFields(
         'd1e0fd00-0000-4000-8000-000000000001',
       ),
       name: { universalIdentifier: 'd1e0fd10-0000-4000-8000-000000000001' },
@@ -307,6 +383,13 @@ export const INBOX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e0fd10-0000-4000-8000-000000000013',
       },
     },
-    indexes: {},
+    indexes: {
+      keyUniqueIndex: {
+        universalIdentifier: 'a9b6e7db-a732-5daf-bc94-755a9c89fef6',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: '4df6ae72-6cc3-5ede-b7c7-7b11bfaa6557',
+      },
+    },
   },
 } as const;

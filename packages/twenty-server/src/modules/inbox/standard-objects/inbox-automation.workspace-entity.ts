@@ -1,5 +1,9 @@
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
 
+import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migration/types/entity-relation.interface';
+import { type InboxLabelWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-label.workspace-entity';
+import { type InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
+
 export class InboxAutomationWorkspaceEntity extends BaseWorkspaceEntity {
   name: string | null;
   key: string | null;
@@ -20,4 +24,8 @@ export class InboxAutomationWorkspaceEntity extends BaseWorkspaceEntity {
   executionOrder: number | null;
   runCount: number | null;
   lastRunAt: string | null;
+  inboxLabel: EntityRelation<InboxLabelWorkspaceEntity> | null;
+  inboxLabelId: string | null;
+  inboxTeam: EntityRelation<InboxTeamWorkspaceEntity> | null;
+  inboxTeamId: string | null;
 }

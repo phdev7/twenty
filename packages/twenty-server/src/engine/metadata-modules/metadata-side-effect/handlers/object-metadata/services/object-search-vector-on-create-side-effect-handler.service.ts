@@ -40,6 +40,25 @@ export class ObjectSearchVectorOnCreateSideEffectHandlerService extends Metadata
           universalIdentifier,
         },
       });
+    const pendingSearchVectorFlatFieldMetadata = Object.values(
+      allFlatEntityOperationRecordByMetadataName.fieldMetadata
+        ?.flatEntityToCreate ?? {},
+    )
+      .filter(isDefined)
+      .find(
+        (candidate) =>
+          candidate.objectMetadataUniversalIdentifier ===
+            flatObjectMetadata.universalIdentifier &&
+          candidate.name === searchVectorFlatFieldMetadata.name,
+      );
+
+    if (
+      isDefined(pendingSearchVectorFlatFieldMetadata) &&
+      pendingSearchVectorFlatFieldMetadata.universalIdentifier !==
+        searchVectorFlatFieldMetadata.universalIdentifier
+    ) {
+      return { status: 'noop' };
+    }
 
     const tsVectorFlatIndex = buildSearchVectorGinIndexForCustomObject({
       flatObjectMetadata,

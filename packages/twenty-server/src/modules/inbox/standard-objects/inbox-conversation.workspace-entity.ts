@@ -1,4 +1,10 @@
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
+import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migration/types/entity-relation.interface';
+import { type InboxConversationEventWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation-event.workspace-entity';
+import { type InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
+import { type InboxConversationLabelWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation-label.workspace-entity';
+import { type InboxMentionWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-mention.workspace-entity';
+import { type InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-message.workspace-entity';
 
 export class InboxConversationWorkspaceEntity extends BaseWorkspaceEntity {
   name: string | null;
@@ -18,4 +24,10 @@ export class InboxConversationWorkspaceEntity extends BaseWorkspaceEntity {
   snoozedUntil: string | null;
   slaBreachedAt: string | null;
   metadata: Record<string, unknown> | null;
+  conversationEvents: EntityRelation<InboxConversationEventWorkspaceEntity[]>;
+  inboxTeam: EntityRelation<InboxTeamWorkspaceEntity> | null;
+  inboxTeamId: string | null;
+  labelAssignments: EntityRelation<InboxConversationLabelWorkspaceEntity[]>;
+  mentions: EntityRelation<InboxMentionWorkspaceEntity[]>;
+  messages: EntityRelation<InboxMessageWorkspaceEntity[]>;
 }
