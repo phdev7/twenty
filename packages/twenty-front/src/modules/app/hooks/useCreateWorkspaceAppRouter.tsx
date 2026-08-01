@@ -115,7 +115,7 @@ const InboxPage = lazy(() =>
   })),
 );
 
-const DiexOnboardingPage = lazy(() =>
+const DiexOnboardingPage = lazyWithPreload(() =>
   import('~/pages/diex-onboarding/DiexOnboardingPage').then((module) => ({
     default: module.DiexOnboardingPage,
   })),
@@ -149,6 +149,7 @@ const preloadOnboardingPages = () => {
   void InviteTeam.preload();
   void ChooseYourPlan.preload();
   void WorkspaceSetup.preload();
+  void DiexOnboardingPage.preload();
 
   return null;
 };
@@ -207,14 +208,6 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <InboxPage />
-                  </LazyRoute>
-                }
-              />
-              <Route
-                path={AppPath.DiexOnboarding}
-                element={
-                  <LazyRoute>
-                    <DiexOnboardingPage />
                   </LazyRoute>
                 }
               />
@@ -314,6 +307,14 @@ const createWorkspaceAppRouter = (
             element={<OnboardingStepLayout />}
             loader={preloadOnboardingPages}
           >
+            <Route
+              path={AppPath.DiexOnboarding}
+              element={
+                <LazyRoute fallback={<OnboardingStepPageLoader />}>
+                  <DiexOnboardingPage />
+                </LazyRoute>
+              }
+            />
             <Route
               path={AppPath.CreateProfile}
               element={

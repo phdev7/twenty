@@ -145,9 +145,9 @@ export const usePageChangeEffectNavigateLocation = () => {
 
   if (
     onboardingStatus === OnboardingStatus.SYNC_EMAIL &&
-    !isMatchingLocation(location, AppPath.SyncEmails)
+    !isMatchingLocation(location, AppPath.DiexOnboarding)
   ) {
-    return AppPath.SyncEmails;
+    return AppPath.DiexOnboarding;
   }
 
   if (

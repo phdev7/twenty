@@ -167,13 +167,23 @@ export const DiexAccessRequestCard = ({
 
       {request.goal ? <StyledGoal>{request.goal}</StyledGoal> : null}
 
-      {request.provisionedSubdomain ? (
+      {request.provisionedSubdomain &&
+      request.status === DiexAccessRequestStatus.APPROVED ? (
         <StyledOutcome>
           Workspace entregue em {request.provisionedSubdomain}.crm.bydiex.com
           {outcome && !outcome.wasInvitationSent
             ? ` — ${outcome.invitationMessage}`
             : ''}
         </StyledOutcome>
+      ) : null}
+
+      {request.provisionedSubdomain &&
+      request.status !== DiexAccessRequestStatus.APPROVED ? (
+        <StyledWarning>
+          Provisionamento interrompido em {request.provisionedSubdomain}.
+          Aprovar novamente recupera a mesma operação; não escolha outro
+          endereço.
+        </StyledWarning>
       ) : null}
 
       {outcome &&

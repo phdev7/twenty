@@ -545,7 +545,11 @@ export class SignInUpService {
 
   async signUpOnNewWorkspace(
     userData: ExistingUserOrPartialUserWithPicture['userData'],
-    options?: { displayName?: string; subdomain?: string },
+    options?: {
+      displayName?: string;
+      subdomain?: string;
+      workspaceId?: string;
+    },
   ) {
     const email =
       userData.type === 'newUserWithPicture'
@@ -588,7 +592,7 @@ export class SignInUpService {
 
     const isWorkEmailFound = isWorkEmail(email);
 
-    const workspaceId = v4();
+    const workspaceId = options?.workspaceId ?? v4();
     const workspaceCustomApplicationId = v4();
 
     try {

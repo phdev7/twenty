@@ -1,13 +1,31 @@
-import { IconRocket } from 'twenty-ui/icon';
+import { useState } from 'react';
 
 import { DiexOnboarding } from '@/diex-onboarding/components/DiexOnboarding';
-import { PageCardLayout } from '@/ui/layout/page/components/PageCardLayout';
-import { PageHeader } from '@/ui/layout/page/components/PageHeader';
+import { useSkipSyncEmailOnboardingStep } from '@/onboarding/hooks/useSkipSyncEmailOnboardingStep';
+import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 
-export const DiexOnboardingPage = () => (
-  <PageCardLayout
-    header={<PageHeader title="Primeiros passos" Icon={IconRocket} />}
-  >
-    <DiexOnboarding />
-  </PageCardLayout>
-);
+export const DiexOnboardingPage = () => {
+  const skipSyncEmailOnboardingStep = useSkipSyncEmailOnboardingStep();
+  const { enqueueErrorSnackBar } = useSnackBar();
+  const [isContinuing, setIsContinuing] = useState(false);
+
+  const continueOnboarding = async (): Promise<void> => {
+    setIsContinuing(true);
+
+    try {
+      await skipSyncEmailOnboardingStep();
+    } catch {
+      enqueueErrorSnackBar({
+        message: 'Não foi possível avançar o onboarding.',
+      });
+      setIsContinuing(false);
+    }
+  };
+
+  return (
+    <DiexOnboarding
+      isContinuing={isContinuing}
+      onContinue={() => void continueOnboarding()}
+    />
+  );
+};

@@ -12,12 +12,14 @@ import {
   StyledActions,
   StyledText,
 } from '@/diex-onboarding/components/DiexOnboardingStepCard';
+import { DiexOnboardingContextFields } from '@/diex-onboarding/components/DiexOnboardingContextFields';
 import {
   type ContextField,
   type ContextFieldKey,
+  type WorkspaceContextReadState,
+  type WorkspaceContextDraft,
   type WorkspaceContextRecord,
 } from '@/diex-onboarding/types/diexOnboardingTypes';
-import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 
 const CONTEXT_FIELDS: Array<{
   key: ContextFieldKey;
@@ -122,25 +124,35 @@ const StyledHint = styled.p`
   margin: 0;
 `;
 
+const StyledContextError = styled(StyledHint)`
+  color: ${themeCssVariables.font.color.danger};
+`;
+
 type DiexOnboardingContextStepProps = {
   workspaceContext: WorkspaceContextRecord | null;
+  readState: WorkspaceContextReadState;
   isLoading: boolean;
   isCreatingContext: boolean;
+  isSavingContext: boolean;
   isActivatingContext: boolean;
   onCreateContext: () => void;
+  onSaveContext: (draft: WorkspaceContextDraft) => void;
   onActivateContext: () => void;
+  onRetry: () => void;
 };
 
 export const DiexOnboardingContextStep = ({
   workspaceContext,
+  readState,
   isLoading,
   isCreatingContext,
+  isSavingContext,
   isActivatingContext,
   onCreateContext,
+  onSaveContext,
   onActivateContext,
+  onRetry,
 }: DiexOnboardingContextStepProps) => {
-  const { openRecordInSidePanel } = useOpenRecordInSidePanel();
-
   const contextFields: ContextField[] = useMemo(
     () =>
       CONTEXT_FIELDS.map((field) => ({
@@ -156,6 +168,8 @@ export const DiexOnboardingContextStep = ({
   const isContextDone = workspaceContext?.status === 'ACTIVE';
   const contextStatus =
     CONTEXT_STATUS[workspaceContext?.status ?? 'DRAFT'] ?? CONTEXT_STATUS.DRAFT;
+  const hasReadError = readState === 'READ_ERROR';
+  const hasReconciliationError = readState === 'RECONCILIATION_ERROR';
 
   return (
     <DiexOnboardingStepCard
@@ -181,7 +195,21 @@ export const DiexOnboardingContextStep = ({
         valer em toda triagem, rascunho e análise.
       </StyledText>
 
-      {isLoading ? (
+      {hasReadError ? (
+        <>
+          <StyledContextError>
+            A leitura do contexto falhou. A ausência não foi confirmada; criar
+            outro registro está bloqueado para evitar duplicação.
+          </StyledContextError>
+          <StyledActions>
+            <Button
+              variant="secondary"
+              title="Tentar novamente"
+              onClick={onRetry}
+            />
+          </StyledActions>
+        </>
+      ) : isLoading && readState === 'LOADING' ? (
         <StyledSkeleton />
       ) : workspaceContext ? (
         <>
@@ -203,17 +231,12 @@ export const DiexOnboardingContextStep = ({
               ),
             )}
           </StyledFieldGrid>
+          <DiexOnboardingContextFields
+            workspaceContext={workspaceContext}
+            isSaving={isSavingContext}
+            onSave={onSaveContext}
+          />
           <StyledActions>
-            <Button
-              variant={isContextDone ? 'secondary' : 'primary'}
-              title="Abrir e preencher"
-              onClick={() =>
-                openRecordInSidePanel({
-                  recordId: workspaceContext.id,
-                  objectNameSingular: 'diexWorkspaceContext',
-                })
-              }
-            />
             {isContextDone ? null : (
               <Button
                 variant="primary"
@@ -228,6 +251,21 @@ export const DiexOnboardingContextStep = ({
               Preencha os três campos marcados com * para poder ativar.
             </StyledHint>
           )}
+          {hasReconciliationError ? (
+            <StyledContextError>
+              A gravação foi confirmada, mas a releitura falhou. O registro
+              exibido foi preservado; atualize para reconciliar.
+            </StyledContextError>
+          ) : null}
+          {hasReconciliationError ? (
+            <StyledActions>
+              <Button
+                variant="secondary"
+                title="Reconciliar"
+                onClick={onRetry}
+              />
+            </StyledActions>
+          ) : null}
         </>
       ) : (
         <StyledActions>

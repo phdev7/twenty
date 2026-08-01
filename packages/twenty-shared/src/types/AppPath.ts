@@ -27,7 +27,8 @@ export enum AppPath {
   PageLayoutPage = '/page/:pageLayoutId',
   Inbox = '/inbox',
   DiexOnboarding = '/onboarding',
-  DiexAccessRequests = '/access-requests',
+  DiexAccessRequest = '/access-requests',
+  DiexAccessRequests = '/access-requests/inbox',
 
   Settings = `settings`,
   SettingsCatchAll = `/${Settings}/*`,

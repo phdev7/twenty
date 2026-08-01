@@ -99,7 +99,10 @@ export const useDiexAccessRequests = () => {
       request: DiexAccessRequestRecord,
       subdomain: string,
     ): Promise<void> => {
-      if (request.provisionedSubdomain) {
+      if (
+        request.provisionedSubdomain &&
+        request.status === DiexAccessRequestStatus.APPROVED
+      ) {
         enqueueWarningSnackBar({
           message: `Esta solicitação já recebeu o endereço ${request.provisionedSubdomain}.`,
         });
@@ -123,17 +126,11 @@ export const useDiexAccessRequests = () => {
           subdomain: normalizedSubdomain,
         });
 
-        await updateRequest(request.id, {
-          status: DiexAccessRequestStatus.APPROVED,
-          provisionedSubdomain: normalizedSubdomain,
-          reviewedAt: new Date().toISOString(),
-        });
-
         setOutcomes((current) => ({
           ...current,
           [request.id]: {
             workspaceUrl: provisioned.workspaceUrl,
-            subdomain: normalizedSubdomain,
+            subdomain: provisioned.subdomain,
             wasInvitationSent: provisioned.wasInvitationSent,
             invitationMessage: provisioned.invitationMessage,
           },
@@ -143,11 +140,11 @@ export const useDiexAccessRequests = () => {
 
         if (provisioned.wasInvitationSent) {
           enqueueSuccessSnackBar({
-            message: `Workspace ${normalizedSubdomain} criado e convite enviado.`,
+            message: `Workspace ${provisioned.subdomain} criado e convite enviado.`,
           });
         } else {
           enqueueWarningSnackBar({
-            message: `Workspace ${normalizedSubdomain} criado. Falta convidar o cliente.`,
+            message: `Workspace ${provisioned.subdomain} criado. Falta confirmar o convite do cliente.`,
           });
         }
       } catch (approvalError) {
@@ -166,7 +163,6 @@ export const useDiexAccessRequests = () => {
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,
       load,
-      updateRequest,
     ],
   );
 

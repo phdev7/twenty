@@ -9,12 +9,21 @@ export type ContextFieldKey =
 
 export type RichTextValue = { markdown?: string | null } | null;
 
+export type WorkspaceContextDraft = Record<ContextFieldKey, string>;
+
 export type WorkspaceContextRecord = {
   id: string;
   name: string | null;
   status: string | null;
   reviewedAt: string | null;
 } & Record<ContextFieldKey, RichTextValue>;
+
+export type WorkspaceContextReadState =
+  | 'LOADING'
+  | 'ABSENT'
+  | 'READY'
+  | 'READ_ERROR'
+  | 'RECONCILIATION_ERROR';
 
 export type ContextField = {
   key: ContextFieldKey;

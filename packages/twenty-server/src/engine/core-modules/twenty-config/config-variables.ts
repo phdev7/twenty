@@ -66,6 +66,26 @@ import {
 export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Expose the unauthenticated Diex access-request inbox. Disabled by default.',
+    type: ConfigVariableType.BOOLEAN,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  ACCESS_REQUEST_INBOX_ENABLED = false;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Only this workspace may expose the public Diex access-request route.',
+    type: ConfigVariableType.STRING,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  ACCESS_REQUEST_INBOX_WORKSPACE_ID = '';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
     description: 'Enable or disable password authentication for users',
     type: ConfigVariableType.BOOLEAN,
   })
@@ -1775,7 +1795,8 @@ export class ConfigVariables {
     type: ConfigVariableType.NUMBER,
   })
   @IsOptional()
-  MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY = MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY_DEFAULT;
+  MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY =
+    MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY_DEFAULT;
 
   // Enterprise validity is granted by a token this instance fetches from
   // twenty.com, not by the key itself, so a version the vendor no longer serves

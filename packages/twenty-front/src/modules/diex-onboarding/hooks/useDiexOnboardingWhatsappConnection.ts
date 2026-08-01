@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { WHATSAPP_CONNECTION_POLL_INTERVAL_MS } from '@/diex-onboarding/constants/WHATSAPP_CONNECTION_POLL_INTERVAL_MS';
 import {
@@ -18,6 +18,13 @@ export const useDiexOnboardingWhatsappConnection = ({
   const { connection, isLoading, errorMessage, refresh } =
     useWhatsappConnection();
   const [isConnecting, setIsConnecting] = useState(false);
+  // Keep the polling cycle independent from callback identity changes.
+  // oxlint-disable-next-line twenty/no-state-useref
+  const onConnectedRef = useRef(onConnected);
+
+  useEffect(() => {
+    onConnectedRef.current = onConnected;
+  }, [onConnected]);
 
   const requestConnection = useCallback(async (): Promise<void> => {
     setIsConnecting(true);
@@ -38,20 +45,41 @@ export const useDiexOnboardingWhatsappConnection = ({
     }
 
     let isCancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    const timeoutId = setTimeout(() => {
-      void refresh().then((result: WhatsappConnection | null) => {
-        if (!isCancelled && result?.state === 'CONNECTED') {
-          onConnected();
-        }
-      });
-    }, WHATSAPP_CONNECTION_POLL_INTERVAL_MS);
+    const schedule = () => {
+      timeoutId = setTimeout(() => {
+        void poll();
+      }, WHATSAPP_CONNECTION_POLL_INTERVAL_MS);
+    };
+
+    const poll = async (): Promise<void> => {
+      const result: WhatsappConnection | null = await refresh();
+
+      if (isCancelled) {
+        return;
+      }
+
+      if (result?.state === 'CONNECTED') {
+        onConnectedRef.current();
+        return;
+      }
+
+      if (result?.state === 'AWAITING_SCAN' || result?.state === 'CONNECTING') {
+        schedule();
+      }
+    };
+
+    schedule();
 
     return () => {
       isCancelled = true;
-      clearTimeout(timeoutId);
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
-  }, [connection?.state, onConnected, refresh]);
+  }, [connection?.state, refresh]);
 
   return {
     connection,

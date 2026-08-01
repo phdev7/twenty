@@ -1,6 +1,11 @@
 import { useCallback, useState } from 'react';
 
-import { type WorkspaceContextRecord } from '@/diex-onboarding/types/diexOnboardingTypes';
+import {
+  type ContextFieldKey,
+  type WorkspaceContextReadState,
+  type WorkspaceContextDraft,
+  type WorkspaceContextRecord,
+} from '@/diex-onboarding/types/diexOnboardingTypes';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
@@ -31,6 +36,7 @@ export const useDiexWorkspaceContext = () => {
   const {
     records: workspaceContexts,
     loading: isLoading,
+    error,
     refetch,
   } = useFindManyRecords<WorkspaceContextRecord & { __typename: string }>({
     objectNameSingular: 'diexWorkspaceContext',
@@ -45,10 +51,29 @@ export const useDiexWorkspaceContext = () => {
   });
   const { updateOneRecord } = useUpdateOneRecord();
   const [isActivatingContext, setIsActivatingContext] = useState(false);
+  const [isSavingContext, setIsSavingContext] = useState(false);
+  const [preservedWorkspaceContext, setPreservedWorkspaceContext] =
+    useState<WorkspaceContextRecord | null>(null);
 
-  const workspaceContext = workspaceContexts[0] ?? null;
+  const workspaceContext =
+    preservedWorkspaceContext ?? workspaceContexts[0] ?? null;
+  const readState: WorkspaceContextReadState = error
+    ? preservedWorkspaceContext
+      ? 'RECONCILIATION_ERROR'
+      : 'READ_ERROR'
+    : isLoading && workspaceContext === null
+      ? 'LOADING'
+      : workspaceContext
+        ? 'READY'
+        : 'ABSENT';
 
   const createWorkspaceContext = useCallback(async (): Promise<void> => {
+    if (readState !== 'ABSENT') {
+      return;
+    }
+
+    let createdContext: WorkspaceContextRecord;
+
     try {
       const created = await createOneRecord({ name: 'Contexto comercial' });
 
@@ -56,7 +81,8 @@ export const useDiexWorkspaceContext = () => {
         throw new Error('O contexto não foi criado.');
       }
 
-      await refetch();
+      createdContext = created as unknown as WorkspaceContextRecord;
+      setPreservedWorkspaceContext(createdContext);
       enqueueSuccessSnackBar({
         message: 'Contexto criado. Preencha os campos para orientar a IA.',
       });
@@ -64,8 +90,74 @@ export const useDiexWorkspaceContext = () => {
       enqueueErrorSnackBar({
         message: 'Não foi possível criar o contexto comercial.',
       });
+      return;
     }
-  }, [createOneRecord, enqueueErrorSnackBar, enqueueSuccessSnackBar, refetch]);
+
+    try {
+      await refetch();
+      setPreservedWorkspaceContext(null);
+    } catch {
+      enqueueErrorSnackBar({
+        message:
+          'O contexto foi criado, mas a tela não conseguiu reconciliar a leitura. Atualize antes de tentar qualquer criação.',
+      });
+    }
+  }, [
+    createOneRecord,
+    enqueueErrorSnackBar,
+    enqueueSuccessSnackBar,
+    readState,
+    refetch,
+  ]);
+
+  const saveWorkspaceContext = useCallback(
+    async (draft: WorkspaceContextDraft): Promise<void> => {
+      if (workspaceContext === null) {
+        return;
+      }
+
+      setIsSavingContext(true);
+      const richTextFields = Object.fromEntries(
+        Object.entries(draft).map(([key, markdown]) => [key, { markdown }]),
+      ) as Record<ContextFieldKey, { markdown: string }>;
+
+      try {
+        await updateOneRecord({
+          objectNameSingular: 'diexWorkspaceContext',
+          idToUpdate: workspaceContext.id,
+          updateOneRecordInput: richTextFields,
+        });
+        setPreservedWorkspaceContext({
+          ...workspaceContext,
+          ...richTextFields,
+        });
+        enqueueSuccessSnackBar({ message: 'Contexto comercial salvo.' });
+
+        try {
+          await refetch();
+          setPreservedWorkspaceContext(null);
+        } catch {
+          enqueueErrorSnackBar({
+            message:
+              'O contexto foi salvo, mas a tela não conseguiu reconciliar a leitura.',
+          });
+        }
+      } catch {
+        enqueueErrorSnackBar({
+          message: 'Não foi possível salvar o contexto comercial.',
+        });
+      } finally {
+        setIsSavingContext(false);
+      }
+    },
+    [
+      enqueueErrorSnackBar,
+      enqueueSuccessSnackBar,
+      refetch,
+      updateOneRecord,
+      workspaceContext,
+    ],
+  );
 
   // A context sitting in DRAFT is invisible to every agent, so filling the
   // fields is only half the step: this is the switch that puts it in front of
@@ -87,10 +179,28 @@ export const useDiexWorkspaceContext = () => {
         },
       });
 
-      await refetch();
+      setPreservedWorkspaceContext((current) =>
+        (current ?? workspaceContext).id === workspaceContext.id
+          ? {
+              ...(current ?? workspaceContext),
+              status: 'ACTIVE',
+              reviewedAt: new Date().toISOString(),
+            }
+          : current,
+      );
       enqueueSuccessSnackBar({
         message: 'Contexto ativo. A IA já responde com a voz da sua empresa.',
       });
+
+      try {
+        await refetch();
+        setPreservedWorkspaceContext(null);
+      } catch {
+        enqueueErrorSnackBar({
+          message:
+            'O contexto foi ativado, mas a tela não conseguiu reconciliar a leitura.',
+        });
+      }
     } catch {
       enqueueErrorSnackBar({
         message: 'Não foi possível ativar o contexto comercial.',
@@ -108,11 +218,14 @@ export const useDiexWorkspaceContext = () => {
 
   return {
     workspaceContext,
+    workspaceContextReadState: readState,
     isLoadingWorkspaceContext: isLoading,
     isCreatingContext,
+    isSavingContext,
     isActivatingContext,
     refetchWorkspaceContext: refetch,
     createWorkspaceContext,
+    saveWorkspaceContext,
     activateWorkspaceContext,
   };
 };

@@ -57,6 +57,12 @@ const StyledSteps = styled.div`
   gap: ${themeCssVariables.spacing[4]};
 `;
 
+const StyledFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: ${themeCssVariables.spacing[6]};
+`;
+
 const StyledError = styled.div`
   background: ${themeCssVariables.background.transparent.danger};
   border: 1px solid ${themeCssVariables.border.color.danger};
@@ -67,19 +73,28 @@ const StyledError = styled.div`
   padding: ${themeCssVariables.spacing[3]} ${themeCssVariables.spacing[4]};
 `;
 
-export const DiexOnboarding = () => {
+export const DiexOnboarding = ({
+  isContinuing,
+  onContinue,
+}: {
+  isContinuing: boolean;
+  onContinue: () => void;
+}) => {
   const {
     workspaceContext,
+    workspaceContextReadState,
     dataFlow,
     connection,
     errorMessage,
     isLoading,
     isConnecting,
     isCreatingContext,
+    isSavingContext,
     isActivatingContext,
     load,
     requestConnection,
     createWorkspaceContext,
+    saveWorkspaceContext,
     activateWorkspaceContext,
   } = useDiexOnboarding();
 
@@ -121,14 +136,26 @@ export const DiexOnboarding = () => {
         />
         <DiexOnboardingContextStep
           workspaceContext={workspaceContext}
+          readState={workspaceContextReadState}
           isLoading={isLoading}
           isCreatingContext={isCreatingContext}
+          isSavingContext={isSavingContext}
           isActivatingContext={isActivatingContext}
           onCreateContext={() => void createWorkspaceContext()}
+          onSaveContext={(draft) => void saveWorkspaceContext(draft)}
           onActivateContext={() => void activateWorkspaceContext()}
+          onRetry={() => void load()}
         />
         <DiexOnboardingDataFlowStep dataFlow={dataFlow} />
       </StyledSteps>
+      <StyledFooter>
+        <Button
+          title={isContinuing ? 'Avançando...' : 'Continuar'}
+          disabled={isContinuing}
+          isLoading={isContinuing}
+          onClick={onContinue}
+        />
+      </StyledFooter>
     </StyledRoot>
   );
 };
