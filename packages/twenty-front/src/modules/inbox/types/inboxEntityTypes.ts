@@ -65,7 +65,7 @@ export type InboxConversationLabelAssignment = {
   isActive: boolean;
   assignedAt?: string | null;
   removedAt?: string | null;
-  label: InboxLabel;
+  inboxLabel: InboxLabel;
 };
 
 export type InboxConversation = {

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { inboxMentionGqlFields } from '@/inbox/graphql/inboxRecordGqlFields';
 import { type InboxMention } from '@/inbox/types/inboxEntityTypes';
@@ -44,9 +44,9 @@ export const useInboxMentionsQuery = ({
     [memberMentions],
   );
 
-  const refetchMentions = async () => {
+  const refetchMentions = useCallback(async (): Promise<void> => {
     await Promise.all([refetchConversationMentions(), refetchMemberMentions()]);
-  };
+  }, [refetchConversationMentions, refetchMemberMentions]);
 
   return { conversationMentions, pendingMentions, refetchMentions };
 };

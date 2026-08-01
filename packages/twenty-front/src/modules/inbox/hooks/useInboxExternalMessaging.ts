@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useApolloClient } from '@apollo/client/react';
 import { isDefined } from 'twenty-shared/utils';
@@ -62,6 +62,10 @@ export const useInboxExternalMessaging = ({
   // oxlint-disable-next-line twenty/no-state-useref
   const consumedEmailConfirmationTokensRef = useRef(new Set<string>());
   const selectedConversationId = selectedConversation?.id ?? null;
+
+  useEffect(() => {
+    setTriageResult(null);
+  }, [selectedConversationId]);
 
   const getEmailSyncRouting = useCallback(() => {
     const defaultTeam =
@@ -426,7 +430,7 @@ export const useInboxExternalMessaging = ({
             );
           }
 
-          void refreshInbox();
+          void refreshInbox().catch(() => undefined);
           enqueueSuccessSnackBar({
             message: 'Mensagem aceita pelo WhatsApp e registrada na inbox.',
           });
@@ -475,7 +479,7 @@ export const useInboxExternalMessaging = ({
           );
         }
 
-        let syncSucceeded = true;
+        let reconciliationSucceeded = true;
 
         try {
           await syncTwentyEmailToInbox({
@@ -484,12 +488,16 @@ export const useInboxExternalMessaging = ({
             routing: getEmailSyncRouting(),
           });
         } catch {
-          syncSucceeded = false;
+          reconciliationSucceeded = false;
         }
 
-        await refreshInbox();
+        try {
+          await refreshInbox();
+        } catch {
+          reconciliationSucceeded = false;
+        }
 
-        if (syncSucceeded) {
+        if (reconciliationSucceeded) {
           enqueueSuccessSnackBar({
             message:
               'E-mail enviado pela conta nativa do Twenty e sincronizado na Inbox.',

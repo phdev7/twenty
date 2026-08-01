@@ -19,6 +19,7 @@ export const useInboxData = () => {
     hasMoreConversations,
     loadMoreConversations,
     isLoadingConversations,
+    conversationsError,
     isSearching,
     refetchConversations,
     query,
@@ -59,11 +60,14 @@ export const useInboxData = () => {
       currentWorkspaceMemberId,
     });
 
-  const { conversationEvents, recordConversationEvent } =
-    useInboxConversationActivity({
-      selectedConversationId,
-      currentWorkspaceMemberId,
-    });
+  const {
+    conversationEvents,
+    recordConversationEvent,
+    refetchConversationEvents,
+  } = useInboxConversationActivity({
+    selectedConversationId,
+    currentWorkspaceMemberId,
+  });
 
   const {
     busyAction,
@@ -119,13 +123,14 @@ export const useInboxData = () => {
       await Promise.all([
         refetchConversations(),
         ...(selectedConversationId
-          ? [refetchMessages(), refetchMentions()]
+          ? [refetchMessages(), refetchMentions(), refetchConversationEvents()]
           : []),
       ]);
     },
     [
       pullProviderMessages,
       refetchConversations,
+      refetchConversationEvents,
       refetchMessages,
       refetchMentions,
       selectedConversationId,
@@ -156,8 +161,15 @@ export const useInboxData = () => {
     [setSelectedConversationId],
   );
 
+  // A failed optimistic mark-as-read may roll the cache back. That rollback
+  // must not retry until the operator makes a new selection.
+  // oxlint-disable-next-line twenty/no-state-useref
+  const readSideEffectsAttemptedConversationIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (selectedConversationId === null) {
+      readSideEffectsAttemptedConversationIdRef.current = null;
+
       return;
     }
 
@@ -165,6 +177,16 @@ export const useInboxData = () => {
       conversations.find(({ id }) => id === selectedConversationId) ??
       selectedConversation ??
       undefined;
+
+    if (
+      conversation === undefined ||
+      readSideEffectsAttemptedConversationIdRef.current ===
+        selectedConversationId
+    ) {
+      return;
+    }
+
+    readSideEffectsAttemptedConversationIdRef.current = selectedConversationId;
 
     void selectConversationSideEffects(conversation);
   }, [
@@ -188,9 +210,11 @@ export const useInboxData = () => {
 
       isPollingRef.current = true;
 
-      void refreshInbox({ pullProvider: true }).finally(() => {
-        isPollingRef.current = false;
-      });
+      void refreshInbox({ pullProvider: true })
+        .catch(() => undefined)
+        .finally(() => {
+          isPollingRef.current = false;
+        });
     }, INBOX_POLL_INTERVAL_MS);
 
     return () => clearInterval(intervalId);
@@ -228,6 +252,7 @@ export const useInboxData = () => {
     pendingMentions,
     currentWorkspaceMemberId,
     isLoadingConversations,
+    conversationsError,
     isLoadingMessages,
     busyAction,
     triageResult,

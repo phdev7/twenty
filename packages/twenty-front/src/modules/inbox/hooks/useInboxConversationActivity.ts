@@ -91,5 +91,6 @@ export const useInboxConversationActivity = ({
   return {
     conversationEvents,
     recordConversationEvent,
+    refetchConversationEvents,
   };
 };

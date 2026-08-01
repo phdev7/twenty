@@ -325,15 +325,15 @@ export const InboxConversationListItem = ({
           {conversation.labelAssignments
             .filter(({ isActive }) => isActive)
             .slice(0, 2)
-            .map(({ id, label }) => (
+            .map(({ id, inboxLabel }) => (
               <StyledChip
                 key={id}
                 background={
-                  getPalette(labelChipPalette, label.color).background
+                  getPalette(labelChipPalette, inboxLabel.color).background
                 }
-                color={getPalette(labelChipPalette, label.color).color}
+                color={getPalette(labelChipPalette, inboxLabel.color).color}
               >
-                {label.name}
+                {inboxLabel.name}
               </StyledChip>
             ))}
         </StyledMetadataRow>

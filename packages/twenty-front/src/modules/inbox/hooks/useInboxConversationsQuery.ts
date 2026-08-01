@@ -29,7 +29,7 @@ export const useInboxConversationsQuery = () => {
   >(null);
   const [cachedSelectedConversation, setCachedSelectedConversation] =
     useState<InboxConversation | null>(null);
-  const [reopenedSnoozeIds, setReopenedSnoozeIds] = useState<Set<string>>(
+  const [reopenedSnoozeKeys, setReopenedSnoozeKeys] = useState<Set<string>>(
     () => new Set(),
   );
 
@@ -80,46 +80,51 @@ export const useInboxConversationsQuery = () => {
   // conversation that should have woken up gets nudged back to OPEN as soon
   // as it is loaded rather than waiting for a scheduled job.
   useEffect(() => {
-    const expiredSnoozes = conversations.filter(
-      (conversation) =>
-        conversation.status === 'SNOOZED' &&
-        typeof conversation.snoozedUntil === 'string' &&
-        new Date(conversation.snoozedUntil).getTime() <= Date.now() &&
-        !reopenedSnoozeIds.has(conversation.id),
-    );
+    const expiredSnoozes = conversations
+      .filter(
+        (conversation) =>
+          conversation.status === 'SNOOZED' &&
+          typeof conversation.snoozedUntil === 'string' &&
+          new Date(conversation.snoozedUntil).getTime() <= Date.now(),
+      )
+      .map((conversation) => ({
+        conversation,
+        snoozeKey: `${conversation.id}:${conversation.snoozedUntil}`,
+      }))
+      .filter(({ snoozeKey }) => !reopenedSnoozeKeys.has(snoozeKey));
 
     if (expiredSnoozes.length === 0) {
       return;
     }
 
-    setReopenedSnoozeIds((current) => {
+    setReopenedSnoozeKeys((current) => {
       const next = new Set(current);
 
-      for (const conversation of expiredSnoozes) {
-        next.add(conversation.id);
+      for (const { snoozeKey } of expiredSnoozes) {
+        next.add(snoozeKey);
       }
 
       return next;
     });
 
     void Promise.all(
-      expiredSnoozes.map((conversation) =>
+      expiredSnoozes.map(({ conversation, snoozeKey }) =>
         updateOneRecord({
           objectNameSingular: 'inboxConversation',
           idToUpdate: conversation.id,
           updateOneRecordInput: { status: 'OPEN', snoozedUntil: null },
         }).catch(() => {
-          setReopenedSnoozeIds((current) => {
+          setReopenedSnoozeKeys((current) => {
             const next = new Set(current);
 
-            next.delete(conversation.id);
+            next.delete(snoozeKey);
 
             return next;
           });
         }),
       ),
     );
-  }, [conversations, reopenedSnoozeIds, updateOneRecord]);
+  }, [conversations, reopenedSnoozeKeys, updateOneRecord]);
 
   // Only ever fill an empty selection. A conversation an operator opened
   // stays open even when a filter or a page no longer contains it —

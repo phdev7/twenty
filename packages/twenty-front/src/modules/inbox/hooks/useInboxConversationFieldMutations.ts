@@ -66,7 +66,7 @@ export const useInboxConversationFieldMutations = ({
       }
 
       const existingAssignment = selectedConversation.labelAssignments.find(
-        (assignment) => assignment.label.id === label.id,
+        (assignment) => assignment.inboxLabel.id === label.id,
       );
       const shouldActivate = !existingAssignment?.isActive;
       const changedAt = new Date().toISOString();

@@ -155,7 +155,7 @@ export const InboxCrmLabelsAndRelationships = ({
   const activeLabelIds = new Set(
     conversation.labelAssignments
       .filter(({ isActive }) => isActive)
-      .map(({ label }) => label.id),
+      .map(({ inboxLabel }) => inboxLabel.id),
   );
   const missingRelations = [
     conversation.person ? null : 'pessoa',

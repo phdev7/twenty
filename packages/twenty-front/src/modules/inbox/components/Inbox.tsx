@@ -66,6 +66,7 @@ export const Inbox = () => {
     pendingMentions,
     currentWorkspaceMemberId,
     isLoadingConversations,
+    conversationsError,
     isLoadingMessages,
     busyAction,
     triageResult,
@@ -117,7 +118,7 @@ export const Inbox = () => {
         labelFilterId === 'ALL' ||
         conversation.labelAssignments.some(
           (assignment) =>
-            assignment.isActive && assignment.label.id === labelFilterId,
+            assignment.isActive && assignment.inboxLabel.id === labelFilterId,
         );
 
       if (!matchesLabel) {
@@ -146,7 +147,7 @@ export const Inbox = () => {
         getRecordName(conversation.assignee),
         ...conversation.labelAssignments
           .filter(({ isActive }) => isActive)
-          .map(({ label }) => label.name),
+          .map(({ inboxLabel }) => inboxLabel.name),
       ]
         .filter((value): value is string => Boolean(value))
         .join(' ');
@@ -178,7 +179,7 @@ export const Inbox = () => {
         pendingMentionCounts={pendingMentionCounts}
         isLoading={isLoadingConversations || isSearching}
         isEmailSyncing={busyAction === 'email-sync'}
-        errorMessage={null}
+        errorMessage={conversationsError?.message ?? null}
         onQueryChange={setQuery}
         onFilterChange={setFilter}
         onLabelFilterChange={setLabelFilterId}

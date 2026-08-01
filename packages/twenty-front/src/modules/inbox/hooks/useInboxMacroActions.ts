@@ -395,7 +395,7 @@ export const useInboxMacroActions = ({
           const existingAssignment:
             | InboxConversationLabelAssignment
             | undefined = selectedConversation.labelAssignments.find(
-            (assignment) => assignment.label.id === label.id,
+            (assignment) => assignment.inboxLabel.id === label.id,
           );
 
           try {
