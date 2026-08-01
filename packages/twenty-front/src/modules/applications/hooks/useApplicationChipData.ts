@@ -9,7 +9,6 @@ import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomState
 import { t } from '@lingui/core/macro';
 import { isDefined } from 'twenty-shared/utils';
 import CustomLogo from '~/pages/settings/applications/assets/custom-illustrations/custom-logo.webp';
-import StandardLogo from '~/pages/settings/applications/assets/standard-illustrations/standard-logo.webp';
 
 type UseApplicationChipDataArgs = {
   applicationId?: string | null;
@@ -57,13 +56,13 @@ export const useApplicationChipData = ({
   const isCustom = isWorkspaceCustomApplication(application, currentWorkspace);
 
   const displayName = isStandard
-    ? t`Standard`
+    ? t`Diex CRM`
     : isCustom
       ? t`Custom`
       : application.name;
 
   const logo = isStandard
-    ? new URL(StandardLogo, window.location.href).toString()
+    ? new URL('/images/brand/logomark.svg', window.location.href).toString()
     : isCustom
       ? new URL(CustomLogo, window.location.href).toString()
       : (application.logoUrl ?? undefined);
