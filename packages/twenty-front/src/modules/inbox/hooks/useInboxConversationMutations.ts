@@ -12,6 +12,7 @@ import {
 
 export const useInboxConversationMutations = ({
   selectedConversation,
+  conversations,
   teams,
   workspaceMembers,
   currentWorkspaceMemberId,
@@ -22,6 +23,7 @@ export const useInboxConversationMutations = ({
   refetchMessages,
 }: {
   selectedConversation: InboxConversation | null;
+  conversations: InboxConversation[];
   teams: InboxTeam[];
   workspaceMembers: InboxWorkspaceMember[];
   currentWorkspaceMemberId: string | null;
@@ -47,6 +49,7 @@ export const useInboxConversationMutations = ({
     snoozeConversation,
   } = useInboxConversationFieldMutations({
     selectedConversation,
+    conversations,
     teams,
     workspaceMembers,
     recordConversationEvent,

@@ -576,7 +576,7 @@ export const syncTwentyEmailToInbox = async ({
             name: getSubject(association).slice(0, 255),
             providerMessageKey,
             direction: isIncoming(association) ? 'INBOUND' : 'OUTBOUND',
-            type: 'TEXT',
+            messageType: 'TEXT',
             body: association.message?.text?.trim() || null,
             deliveryStatus: isIncoming(association) ? 'RECEIVED' : 'SENT',
             sentAt: getOccurredAt(association),

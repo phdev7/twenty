@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { INBOX_POLL_INTERVAL_MS } from '@/inbox/constants/INBOX_POLL_INTERVAL_MS';
 import { useInboxConversationActivity } from '@/inbox/hooks/useInboxConversationActivity';
@@ -81,6 +81,7 @@ export const useInboxData = () => {
     completeConversationTask,
   } = useInboxConversationMutations({
     selectedConversation,
+    conversations,
     teams,
     workspaceMembers,
     currentWorkspaceMemberId,
@@ -149,37 +150,46 @@ export const useInboxData = () => {
   });
 
   const selectConversation = useCallback(
-    async (conversationId: string): Promise<void> => {
+    (conversationId: string): void => {
       setSelectedConversationId(conversationId);
-
-      const conversation = conversations.find(
-        ({ id }) => id === conversationId,
-      );
-
-      await selectConversationSideEffects(conversation);
     },
-    [conversations, selectConversationSideEffects, setSelectedConversationId],
+    [setSelectedConversationId],
   );
+
+  useEffect(() => {
+    if (selectedConversationId === null) {
+      return;
+    }
+
+    const conversation =
+      conversations.find(({ id }) => id === selectedConversationId) ??
+      selectedConversation ??
+      undefined;
+
+    void selectConversationSideEffects(conversation);
+  }, [
+    conversations,
+    selectConversationSideEffects,
+    selectedConversation,
+    selectedConversationId,
+  ]);
 
   // Nothing pushes provider messages down to the front, so a live conversation
   // only stays live if the inbox re-reads on its own. One request at a time,
-  // otherwise a slow round trip stacks up behind the next tick. The functional
-  // updater reads the latest in-flight flag even though the interval callback
-  // closure is set up once, so this needs no ref.
-  const [, setIsPolling] = useState(false);
+  // otherwise a slow round trip stacks up behind the next tick.
+  // oxlint-disable-next-line twenty/no-state-useref
+  const isPollingRef = useRef(false);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setIsPolling((wasPolling) => {
-        if (wasPolling) {
-          return wasPolling;
-        }
+      if (isPollingRef.current) {
+        return;
+      }
 
-        void refreshInbox({ pullProvider: true }).finally(() =>
-          setIsPolling(false),
-        );
+      isPollingRef.current = true;
 
-        return true;
+      void refreshInbox({ pullProvider: true }).finally(() => {
+        isPollingRef.current = false;
       });
     }, INBOX_POLL_INTERVAL_MS);
 

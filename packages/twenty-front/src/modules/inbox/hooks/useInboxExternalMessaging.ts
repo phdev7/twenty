@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useApolloClient } from '@apollo/client/react';
 import { isDefined } from 'twenty-shared/utils';
@@ -58,8 +58,9 @@ export const useInboxExternalMessaging = ({
   } = useSnackBar();
   const apolloClient = useApolloClient();
   const apolloCoreClient = useApolloCoreClient();
-  const [consumedEmailConfirmationTokens, setConsumedEmailConfirmationTokens] =
-    useState<Set<string>>(() => new Set());
+  // A synchronous guard closes the re-entrant click window before sendEmail.
+  // oxlint-disable-next-line twenty/no-state-useref
+  const consumedEmailConfirmationTokensRef = useRef(new Set<string>());
   const selectedConversationId = selectedConversation?.id ?? null;
 
   const getEmailSyncRouting = useCallback(() => {
@@ -387,7 +388,9 @@ export const useInboxExternalMessaging = ({
 
         if (
           isInvalidEmailPreview ||
-          consumedEmailConfirmationTokens.has(preview.confirmationToken)
+          consumedEmailConfirmationTokensRef.current.has(
+            preview.confirmationToken,
+          )
         ) {
           enqueueWarningSnackBar({
             message:
@@ -397,8 +400,8 @@ export const useInboxExternalMessaging = ({
           return false;
         }
 
-        setConsumedEmailConfirmationTokens((current) =>
-          new Set(current).add(preview.confirmationToken),
+        consumedEmailConfirmationTokensRef.current.add(
+          preview.confirmationToken,
         );
       }
 
@@ -515,7 +518,6 @@ export const useInboxExternalMessaging = ({
     [
       apolloClient,
       apolloCoreClient,
-      consumedEmailConfirmationTokens,
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { isDefined } from 'twenty-shared/utils';
 
 import {
   type InboxConversation,
@@ -7,6 +8,7 @@ import {
   type InboxWorkspaceMember,
 } from '@/inbox/types/inboxEntityTypes';
 import { getActiveTeamMembers } from '@/inbox/utils/getActiveTeamMembers';
+import { getLeastLoadedTeamMember } from '@/inbox/utils/getLeastLoadedTeamMember';
 import { getRecordName } from '@/inbox/utils/getRecordName';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
@@ -28,12 +30,14 @@ const priorityLabels: Record<string, string> = {
 
 export const useInboxConversationFieldMutations = ({
   selectedConversation,
+  conversations,
   teams,
   workspaceMembers,
   recordConversationEvent,
   setBusyAction,
 }: {
   selectedConversation: InboxConversation | null;
+  conversations: InboxConversation[];
   teams: InboxTeam[];
   workspaceMembers: InboxWorkspaceMember[];
   recordConversationEvent: (input: {
@@ -50,6 +54,7 @@ export const useInboxConversationFieldMutations = ({
     enqueueErrorSnackBar,
   } = useSnackBar();
   const { updateOneRecord: updateConversation } = useUpdateOneRecord();
+  const { updateOneRecord: updateLabel } = useUpdateOneRecord();
   const { createOneRecord: createConversationLabel } = useCreateOneRecord({
     objectNameSingular: 'inboxConversationLabel',
   });
@@ -69,6 +74,8 @@ export const useInboxConversationFieldMutations = ({
       setBusyAction(`label:${label.id}`);
 
       try {
+        let usageCountUpdated = true;
+
         if (existingAssignment) {
           await updateConversation({
             objectNameSingular: 'inboxConversationLabel',
@@ -92,6 +99,20 @@ export const useInboxConversationFieldMutations = ({
           });
         }
 
+        if (shouldActivate) {
+          try {
+            await updateLabel({
+              objectNameSingular: 'inboxLabel',
+              idToUpdate: label.id,
+              updateOneRecordInput: {
+                usageCount: (label.usageCount ?? 0) + 1,
+              },
+            });
+          } catch {
+            usageCountUpdated = false;
+          }
+        }
+
         const eventRecorded = await recordConversationEvent({
           conversationId: selectedConversation.id,
           eventType: 'LABEL_CHANGED',
@@ -100,10 +121,11 @@ export const useInboxConversationFieldMutations = ({
             : `Etiqueta removida: ${label.name}`,
         });
 
-        if (!eventRecorded) {
+        if (!eventRecorded || !usageCountUpdated) {
           enqueueWarningSnackBar({
-            message:
-              'Etiqueta atualizada, mas o evento não entrou no histórico.',
+            message: !eventRecorded
+              ? 'Etiqueta atualizada, mas o evento não entrou no histórico.'
+              : 'Etiqueta aplicada, mas sua contagem de uso não foi atualizada.',
           });
         }
       } catch {
@@ -122,6 +144,7 @@ export const useInboxConversationFieldMutations = ({
       selectedConversation,
       setBusyAction,
       updateConversation,
+      updateLabel,
     ],
   );
 
@@ -148,6 +171,16 @@ export const useInboxConversationFieldMutations = ({
       const selectedTeam = selectedConversation.inboxTeam
         ? teams.find(({ id }) => id === selectedConversation.inboxTeam?.id)
         : null;
+
+      if (isDefined(selectedConversation.inboxTeam) && selectedTeam === null) {
+        enqueueWarningSnackBar({
+          message:
+            'A equipe da conversa não pôde ser validada. Atualize a Inbox.',
+        });
+
+        return;
+      }
+
       const activeTeamMemberIds = new Set(
         getActiveTeamMembers(selectedTeam).map(({ id }) => id),
       );
@@ -230,12 +263,20 @@ export const useInboxConversationFieldMutations = ({
 
       const activeMembers = getActiveTeamMembers(nextTeam);
       const activeMemberIds = new Set(activeMembers.map(({ id }) => id));
-      const nextAssignee =
+      let nextAssignee =
         selectedConversation.assignee &&
         (nextTeam === null ||
           activeMemberIds.has(selectedConversation.assignee.id))
           ? selectedConversation.assignee
           : null;
+
+      if (nextTeam?.routingStrategy === 'BALANCED') {
+        nextAssignee = getLeastLoadedTeamMember({
+          team: nextTeam,
+          conversations,
+          excludedConversationId: selectedConversation.id,
+        });
+      }
 
       const shouldResetResponseSla =
         nextTeam !== null && !selectedConversation.firstRespondedAt;
@@ -294,6 +335,7 @@ export const useInboxConversationFieldMutations = ({
       }
     },
     [
+      conversations,
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,

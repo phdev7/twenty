@@ -95,7 +95,7 @@ export const useInboxNotesAndMentions = ({
               : trimmedBody,
           providerMessageKey: createInternalMessageKey(),
           direction: 'OUTBOUND',
-          type: 'TEXT',
+          messageType: 'TEXT',
           body: trimmedBody,
           deliveryStatus: 'SENT',
           sentAt: mentionedAt,
