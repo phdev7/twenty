@@ -86,6 +86,16 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Exact public origin allowed to submit Diex access requests for the configured operator workspace.',
+    type: ConfigVariableType.STRING,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  ACCESS_REQUEST_INBOX_PUBLIC_ORIGIN = '';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
     description: 'Enable or disable password authentication for users',
     type: ConfigVariableType.BOOLEAN,
   })

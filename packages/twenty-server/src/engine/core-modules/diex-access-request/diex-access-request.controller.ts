@@ -8,13 +8,16 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import { type Request } from 'express';
+import { isValidUuid } from 'twenty-shared/utils';
+import { type Repository } from 'typeorm';
 
-import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { DiexAccessRequestService } from 'src/engine/core-modules/diex-access-request/services/diex-access-request.service';
 import { type DiexPublicAccessRequestInput } from 'src/engine/core-modules/diex-access-request/types/diex-access-request.types';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
+import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
 import { getRequestBaseUrl } from 'src/utils/get-request-base-url.util';
@@ -24,28 +27,56 @@ import { getRequestBaseUrl } from 'src/utils/get-request-base-url.util';
 export class DiexAccessRequestController {
   constructor(
     private readonly twentyConfigService: TwentyConfigService,
-    private readonly workspaceDomainsService: WorkspaceDomainsService,
     private readonly diexAccessRequestService: DiexAccessRequestService,
+    @InjectRepository(WorkspaceEntity)
+    private readonly workspaceRepository: Repository<WorkspaceEntity>,
   ) {}
 
-  private readPublicOrigin(request: Request): string {
+  private parseOrigin(value: string): string | null {
+    try {
+      const parsed = new URL(value);
+
+      if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+        return null;
+      }
+
+      return parsed.origin;
+    } catch {
+      return null;
+    }
+  }
+
+  private readPublicOrigin(request: Request): string | null {
     const origin = request.get('origin');
 
     if (origin) {
-      return origin;
+      return this.parseOrigin(origin);
     }
 
     const referer = request.get('referer');
 
     if (referer) {
-      try {
-        return new URL(referer).origin;
-      } catch {
-        // Fall back to the API request origin below.
+      const refererOrigin = this.parseOrigin(referer);
+
+      if (refererOrigin) {
+        return refererOrigin;
       }
+
+      return null;
     }
 
-    return getRequestBaseUrl(request);
+    return this.parseOrigin(getRequestBaseUrl(request));
+  }
+
+  private readConfiguredPublicOrigin(): string | null {
+    const configuredOrigin = this.twentyConfigService
+      .get('ACCESS_REQUEST_INBOX_PUBLIC_ORIGIN')
+      .trim();
+    const parsedOrigin = this.parseOrigin(configuredOrigin);
+
+    // An origin is deliberately stricter than a URL: no path, query, hash,
+    // credentials or trailing slash can be silently discarded here.
+    return parsedOrigin === configuredOrigin ? configuredOrigin : null;
   }
 
   private async getPublicWorkspaceIdOrThrow(request: Request): Promise<string> {
@@ -56,21 +87,25 @@ export class DiexAccessRequestController {
     const configuredWorkspaceId = this.twentyConfigService
       .get('ACCESS_REQUEST_INBOX_WORKSPACE_ID')
       .trim();
+    const configuredPublicOrigin = this.readConfiguredPublicOrigin();
 
-    if (!configuredWorkspaceId) {
+    if (
+      !isValidUuid(configuredWorkspaceId) ||
+      !configuredPublicOrigin ||
+      this.readPublicOrigin(request) !== configuredPublicOrigin
+    ) {
       throw new NotFoundException();
     }
 
-    const workspace =
-      await this.workspaceDomainsService.getWorkspaceByOriginOrDefaultWorkspace(
-        this.readPublicOrigin(request),
-      );
+    const workspaceExists = await this.workspaceRepository.existsBy({
+      id: configuredWorkspaceId,
+    });
 
-    if (workspace?.id !== configuredWorkspaceId) {
+    if (!workspaceExists) {
       throw new NotFoundException();
     }
 
-    return workspace.id;
+    return configuredWorkspaceId;
   }
 
   @Get()
@@ -82,10 +117,7 @@ export class DiexAccessRequestController {
 
   @Post()
   @HttpCode(200)
-  async submit(
-    @Req() request: Request,
-    @Body() body: unknown,
-  ) {
+  async submit(@Req() request: Request, @Body() body: unknown) {
     const workspaceId = await this.getPublicWorkspaceIdOrThrow(request);
     const input =
       typeof body === 'object' && body !== null

@@ -7,6 +7,8 @@ import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorato
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
 import { ApproveDiexAccessRequestDTO } from 'src/engine/core-modules/diex-access-request/dtos/approve-diex-access-request.dto';
 import { ApproveDiexAccessRequestInput } from 'src/engine/core-modules/diex-access-request/dtos/approve-diex-access-request.input';
+import { RetryDiexAccessRequestInvitationDTO } from 'src/engine/core-modules/diex-access-request/dtos/retry-diex-access-request-invitation.dto';
+import { RetryDiexAccessRequestInvitationInput } from 'src/engine/core-modules/diex-access-request/dtos/retry-diex-access-request-invitation.input';
 import { DiexAccessRequestService } from 'src/engine/core-modules/diex-access-request/services/diex-access-request.service';
 import { PreventNestToAutoLogGraphqlErrorsFilter } from 'src/engine/core-modules/graphql/filters/prevent-nest-to-auto-log-graphql-errors.filter';
 import { ResolverValidationPipe } from 'src/engine/core-modules/graphql/pipes/resolver-validation.pipe';
@@ -44,6 +46,19 @@ export class DiexAccessRequestResolver {
     return this.diexAccessRequestService.approveRequest({
       requestId: input.requestId,
       requestedSubdomain: input.subdomain,
+      operatorWorkspaceId: workspace.id,
+      operator: user,
+    });
+  }
+
+  @Mutation(() => RetryDiexAccessRequestInvitationDTO)
+  async retryDiexAccessRequestInvitation(
+    @Args('input') input: RetryDiexAccessRequestInvitationInput,
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUser() user: AuthContextUser,
+  ): Promise<RetryDiexAccessRequestInvitationDTO> {
+    return this.diexAccessRequestService.retryInvitation({
+      requestId: input.requestId,
       operatorWorkspaceId: workspace.id,
       operator: user,
     });

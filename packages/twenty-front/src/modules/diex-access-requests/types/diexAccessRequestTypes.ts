@@ -25,8 +25,5 @@ export type DiexAccessRequestRecord = {
 export type DiexAccessRequestApprovalOutcome = {
   workspaceUrl: string;
   subdomain: string;
-  // Workspace creation precedes the invitation. A failed invitation must not
-  // erase the address of the live workspace the operator now owns.
-  wasInvitationSent: boolean;
   invitationMessage: string;
 };

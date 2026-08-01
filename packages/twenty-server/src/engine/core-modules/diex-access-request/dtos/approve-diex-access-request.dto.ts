@@ -8,9 +8,6 @@ export class ApproveDiexAccessRequestDTO {
   @Field(() => String)
   subdomain: string;
 
-  @Field(() => Boolean)
-  wasInvitationSent: boolean;
-
   @Field(() => String)
   invitationMessage: string;
 }

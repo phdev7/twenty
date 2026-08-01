@@ -122,6 +122,7 @@ type DiexAccessRequestCardProps = {
   outcome?: DiexAccessRequestApprovalOutcome;
   onSubdomainChange: (value: string) => void;
   onApprove: () => void;
+  onRetryInvitation: () => void;
   onSetStatus: (status: DiexAccessRequestStatus) => void;
 };
 
@@ -132,6 +133,7 @@ export const DiexAccessRequestCard = ({
   outcome,
   onSubdomainChange,
   onApprove,
+  onRetryInvitation,
   onSetStatus,
 }: DiexAccessRequestCardProps) => {
   const isDecided =
@@ -171,25 +173,31 @@ export const DiexAccessRequestCard = ({
       request.status === DiexAccessRequestStatus.APPROVED ? (
         <StyledOutcome>
           Workspace entregue em {request.provisionedSubdomain}.crm.bydiex.com
-          {outcome && !outcome.wasInvitationSent
-            ? ` — ${outcome.invitationMessage}`
-            : ''}
+          {' — '}
+          {outcome?.invitationMessage ??
+            'Ative o workspace e depois envie o convite por esta fila.'}
         </StyledOutcome>
       ) : null}
 
       {request.provisionedSubdomain &&
       request.status !== DiexAccessRequestStatus.APPROVED ? (
         <StyledWarning>
-          Provisionamento interrompido em {request.provisionedSubdomain}.
-          Aprovar novamente recupera a mesma operação; não escolha outro
-          endereço.
+          Provisionamento interrompido em {request.provisionedSubdomain}. Se
+          esse endereço foi ocupado, informe outro: a aprovação reatribui a
+          reserva somente quando não existe workspace recuperável.
         </StyledWarning>
       ) : null}
 
-      {outcome &&
-      !outcome.wasInvitationSent &&
-      !request.provisionedSubdomain ? (
-        <StyledWarning>{outcome.invitationMessage}</StyledWarning>
+      {request.status === DiexAccessRequestStatus.APPROVED && request.email ? (
+        <StyledActions>
+          <Button
+            variant="secondary"
+            title="Enviar convite"
+            onClick={onRetryInvitation}
+            disabled={isBusy}
+            isLoading={isBusy}
+          />
+        </StyledActions>
       ) : null}
 
       {isDecided ? null : (

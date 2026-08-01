@@ -84,6 +84,7 @@ export const DiexAccessRequests = () => {
     load,
     setStatus,
     approve,
+    retryInvitation,
   } = useDiexAccessRequests();
   const [subdomainDrafts, setSubdomainDrafts] = useState<
     Record<string, string>
@@ -160,6 +161,7 @@ export const DiexAccessRequests = () => {
               onApprove={() =>
                 void approve(request, subdomainDrafts[request.id] ?? '')
               }
+              onRetryInvitation={() => void retryInvitation(request)}
               onSetStatus={(status) => void setStatus(request.id, status)}
             />
           ))

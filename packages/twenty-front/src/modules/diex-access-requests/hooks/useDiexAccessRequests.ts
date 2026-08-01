@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import {
   DiexAccessRequestProvisioningError,
   provisionDiexAccessRequestWorkspace,
+  retryDiexAccessRequestInvitation,
 } from '@/diex-access-requests/services/provisionDiexAccessRequestWorkspace';
 import {
   type DiexAccessRequestApprovalOutcome,
@@ -131,22 +132,14 @@ export const useDiexAccessRequests = () => {
           [request.id]: {
             workspaceUrl: provisioned.workspaceUrl,
             subdomain: provisioned.subdomain,
-            wasInvitationSent: provisioned.wasInvitationSent,
             invitationMessage: provisioned.invitationMessage,
           },
         }));
 
         await load();
-
-        if (provisioned.wasInvitationSent) {
-          enqueueSuccessSnackBar({
-            message: `Workspace ${provisioned.subdomain} criado e convite enviado.`,
-          });
-        } else {
-          enqueueWarningSnackBar({
-            message: `Workspace ${provisioned.subdomain} criado. Falta confirmar o convite do cliente.`,
-          });
-        }
+        enqueueWarningSnackBar({
+          message: `Workspace ${provisioned.subdomain} criado. Ative-o antes de enviar o convite.`,
+        });
       } catch (approvalError) {
         enqueueErrorSnackBar({
           message:
@@ -158,12 +151,35 @@ export const useDiexAccessRequests = () => {
         setBusyRequestId(null);
       }
     },
-    [
-      enqueueErrorSnackBar,
-      enqueueSuccessSnackBar,
-      enqueueWarningSnackBar,
-      load,
-    ],
+    [enqueueErrorSnackBar, enqueueWarningSnackBar, load],
+  );
+
+  const retryInvitation = useCallback(
+    async (request: DiexAccessRequestRecord): Promise<void> => {
+      setBusyRequestId(request.id);
+
+      try {
+        const result = await retryDiexAccessRequestInvitation({
+          requestId: request.id,
+        });
+
+        if (result.invitationReady) {
+          enqueueSuccessSnackBar({ message: result.message });
+        } else {
+          enqueueWarningSnackBar({ message: result.message });
+        }
+      } catch (invitationError) {
+        enqueueErrorSnackBar({
+          message:
+            invitationError instanceof DiexAccessRequestProvisioningError
+              ? invitationError.message
+              : 'Não foi possível processar o convite. Tente novamente pela fila ou por Membros.',
+        });
+      } finally {
+        setBusyRequestId(null);
+      }
+    },
+    [enqueueErrorSnackBar, enqueueSuccessSnackBar, enqueueWarningSnackBar],
   );
 
   return {
@@ -175,5 +191,6 @@ export const useDiexAccessRequests = () => {
     load,
     setStatus,
     approve,
+    retryInvitation,
   };
 };
