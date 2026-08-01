@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import { isDefined } from 'twenty-shared/utils';
+
 import { type MetadataUniversalFlatEntity } from 'src/engine/metadata-modules/flat-entity/types/metadata-universal-flat-entity.type';
 import {
   type BuildSideEffectsArgs,
@@ -20,6 +22,7 @@ export class ObjectSystemFieldsOnCreateSideEffectHandlerService extends Metadata
 ) {
   buildSideEffects({
     flatEntity: flatObjectMetadata,
+    allFlatEntityOperationRecordByMetadataName,
   }: BuildSideEffectsArgs<'objectMetadata'>): MetadataSideEffectResult {
     const { applicationUniversalIdentifier, universalIdentifier } =
       flatObjectMetadata;
@@ -36,12 +39,35 @@ export class ObjectSystemFieldsOnCreateSideEffectHandlerService extends Metadata
       string,
       MetadataUniversalFlatEntity<'fieldMetadata'>
     > = {};
+    const pendingFieldMetadatas = Object.values(
+      allFlatEntityOperationRecordByMetadataName.fieldMetadata
+        ?.flatEntityToCreate ?? {},
+    ).filter(isDefined);
 
     for (const flatFieldMetadata of Object.values(
       reservedSystemFlatFieldMetadatas,
     )) {
+      const pendingFieldMetadata = pendingFieldMetadatas.find(
+        (candidate) =>
+          candidate.objectMetadataUniversalIdentifier ===
+            flatObjectMetadata.universalIdentifier &&
+          candidate.name === flatFieldMetadata.name,
+      );
+
+      if (
+        isDefined(pendingFieldMetadata) &&
+        pendingFieldMetadata.universalIdentifier !==
+          flatFieldMetadata.universalIdentifier
+      ) {
+        continue;
+      }
+
       flatEntityToCreate[flatFieldMetadata.universalIdentifier] =
         flatFieldMetadata;
+    }
+
+    if (Object.keys(flatEntityToCreate).length === 0) {
+      return { status: 'noop' };
     }
 
     return {

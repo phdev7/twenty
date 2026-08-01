@@ -23,6 +23,7 @@ import {
 import { i18nLabel } from 'src/engine/workspace-manager/twenty-standard-application/utils/i18n-label.util';
 import { type StandardObjectMetadataRelatedEntityIds } from 'src/engine/workspace-manager/twenty-standard-application/utils/get-standard-object-metadata-related-entity-ids.util';
 import { type CreateStandardObjectArgs } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/create-standard-object-flat-metadata.util';
+import { buildInboxStandardRelationFlatFieldMetadatas } from 'src/modules/inbox/standard-objects/build-inbox-standard-flat-relation-metadata.util';
 
 const INBOX_SYSTEM_FIELD_CONTEXTS: CreateStandardFieldArgs<
   AllStandardObjectName,
@@ -238,6 +239,7 @@ export const buildInboxStandardObjectFlatFieldMetadatas = <
   now,
   workspaceId,
   standardObjectMetadataRelatedEntityIds,
+  dependencyFlatEntityMaps,
   twentyStandardApplicationId,
 }: Omit<
   CreateStandardFieldArgs<O, FieldMetadataTypeValue>,
@@ -290,9 +292,24 @@ export const buildInboxStandardObjectFlatFieldMetadatas = <
     }),
   ) satisfies Record<string, FlatFieldMetadata>;
 
-  const missingFieldNames = Object.keys(
-    STANDARD_OBJECTS[objectName].fields,
-  ).filter((fieldName) => !(fieldName in flatFieldMetadatas));
+  const allFlatFieldMetadatas = {
+    ...flatFieldMetadatas,
+    ...buildInboxStandardRelationFlatFieldMetadatas({
+      objectName,
+      now,
+      workspaceId,
+      standardObjectMetadataRelatedEntityIds,
+      dependencyFlatEntityMaps,
+      twentyStandardApplicationId,
+    }),
+  };
+
+  const systemFieldNames = new Set<string>(
+    INBOX_SYSTEM_FIELD_CONTEXTS.map(({ fieldName }) => fieldName),
+  );
+  const missingFieldNames = Object.keys(STANDARD_OBJECTS[objectName].fields)
+    .filter((fieldName) => !systemFieldNames.has(fieldName))
+    .filter((fieldName) => !(fieldName in allFlatFieldMetadatas));
 
   if (missingFieldNames.length > 0) {
     throw new Error(
@@ -300,7 +317,7 @@ export const buildInboxStandardObjectFlatFieldMetadatas = <
     );
   }
 
-  return flatFieldMetadatas as unknown as Record<
+  return allFlatFieldMetadatas as unknown as Record<
     AllStandardObjectFieldName<O>,
     FlatFieldMetadata
   >;

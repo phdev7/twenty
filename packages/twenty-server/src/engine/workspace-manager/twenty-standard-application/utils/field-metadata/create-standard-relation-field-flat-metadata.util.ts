@@ -28,7 +28,7 @@ export type CreateStandardMorphOrRelationFieldContext<
   type: F;
   fieldName: AllStandardObjectFieldName<O>;
   label: string;
-  description: string;
+  description: string | null;
   icon: string;
   targetObjectName: T;
   targetFieldName: AllStandardObjectFieldName<T>;

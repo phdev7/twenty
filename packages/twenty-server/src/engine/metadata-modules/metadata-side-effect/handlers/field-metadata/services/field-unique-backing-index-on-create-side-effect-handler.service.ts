@@ -6,6 +6,7 @@ import { generateDeterministicIndexForFlatFieldMetadataOrThrow } from 'src/engin
 import { isMorphOrRelationUniversalFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/is-morph-or-relation-flat-field-metadata.util';
 import { isPrimaryKeyFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/is-primary-key-flat-field-metadata.util';
 import { buildFieldSideEffectParentNotFoundFailure } from 'src/engine/metadata-modules/metadata-side-effect/handlers/field-metadata/utils/build-field-side-effect-parent-not-found-failure.util';
+import { hasUniqueFieldBackingIndexScheduledForCreate } from 'src/engine/metadata-modules/metadata-side-effect/handlers/field-metadata/utils/has-unique-field-backing-index-scheduled-for-create.util';
 import { resolveParentFlatObjectMetadataAfterStateForFieldSideEffect } from 'src/engine/metadata-modules/metadata-side-effect/handlers/field-metadata/utils/resolve-parent-flat-object-metadata-after-state-for-field-side-effect.util';
 import {
   type BuildSideEffectsArgs,
@@ -36,6 +37,15 @@ export class FieldUniqueBackingIndexOnCreateSideEffectHandlerService extends Met
     }
 
     if (isPrimaryKeyFlatFieldMetadata(flatFieldMetadata)) {
+      return { status: 'noop' };
+    }
+
+    if (
+      hasUniqueFieldBackingIndexScheduledForCreate({
+        allFlatEntityOperationRecordByMetadataName,
+        flatFieldMetadata,
+      })
+    ) {
       return { status: 'noop' };
     }
 

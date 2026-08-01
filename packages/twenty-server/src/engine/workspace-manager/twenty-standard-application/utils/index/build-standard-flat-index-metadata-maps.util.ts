@@ -30,6 +30,19 @@ import { buildWorkflowStandardFlatIndexMetadatas } from 'src/engine/workspace-ma
 import { buildWorkflowVersionStandardFlatIndexMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/index/compute-workflow-version-standard-flat-index-metadata.util';
 import { buildWorkspaceMemberStandardFlatIndexMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/index/compute-workspace-member-standard-flat-index-metadata.util';
 import { type CreateStandardIndexArgs } from 'src/engine/workspace-manager/twenty-standard-application/utils/index/create-standard-index-flat-metadata.util';
+import {
+  buildInboxAutomationStandardFlatIndexMetadatas,
+  buildInboxConversationEventStandardFlatIndexMetadatas,
+  buildInboxConversationLabelStandardFlatIndexMetadatas,
+  buildInboxConversationStandardFlatIndexMetadatas,
+  buildInboxLabelStandardFlatIndexMetadatas,
+  buildInboxMacroStandardFlatIndexMetadatas,
+  buildInboxMentionStandardFlatIndexMetadatas,
+  buildInboxMessageStandardFlatIndexMetadatas,
+  buildInboxSavedReplyStandardFlatIndexMetadatas,
+  buildInboxTeamMemberStandardFlatIndexMetadatas,
+  buildInboxTeamStandardFlatIndexMetadatas,
+} from 'src/modules/inbox/standard-objects/build-inbox-standard-flat-index-metadata.util';
 
 type StandardIndexBuilder<P extends AllStandardObjectName> = (
   args: Omit<CreateStandardIndexArgs<P>, 'context'>,
@@ -45,6 +58,17 @@ const STANDARD_FLAT_INDEX_METADATA_BUILDERS_BY_OBJECT_NAME = {
   callRecording: buildCallRecordingStandardFlatIndexMetadatas,
   company: buildCompanyStandardFlatIndexMetadatas,
   dashboard: buildDashboardStandardFlatIndexMetadatas,
+  inboxAutomation: buildInboxAutomationStandardFlatIndexMetadatas,
+  inboxConversation: buildInboxConversationStandardFlatIndexMetadatas,
+  inboxConversationEvent: buildInboxConversationEventStandardFlatIndexMetadatas,
+  inboxConversationLabel: buildInboxConversationLabelStandardFlatIndexMetadatas,
+  inboxLabel: buildInboxLabelStandardFlatIndexMetadatas,
+  inboxMacro: buildInboxMacroStandardFlatIndexMetadatas,
+  inboxMention: buildInboxMentionStandardFlatIndexMetadatas,
+  inboxMessage: buildInboxMessageStandardFlatIndexMetadatas,
+  inboxSavedReply: buildInboxSavedReplyStandardFlatIndexMetadatas,
+  inboxTeam: buildInboxTeamStandardFlatIndexMetadatas,
+  inboxTeamMember: buildInboxTeamMemberStandardFlatIndexMetadatas,
   messageCampaign: buildMessageCampaignStandardFlatIndexMetadatas,
   messageList: buildMessageListStandardFlatIndexMetadatas,
   messageListMember: buildMessageListMemberStandardFlatIndexMetadatas,
