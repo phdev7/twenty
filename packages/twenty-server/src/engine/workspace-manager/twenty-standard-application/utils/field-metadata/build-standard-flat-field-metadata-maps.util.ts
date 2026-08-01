@@ -13,6 +13,17 @@ import { buildCalendarEventStandardFlatFieldMetadatas } from 'src/engine/workspa
 import { buildCallRecordingStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-call-recording-standard-flat-field-metadata.util';
 import { buildCompanyStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-company-standard-flat-field-metadata.util';
 import { buildDashboardStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-dashboard-standard-flat-field-metadata.util';
+import { buildInboxConversationStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-conversation-standard-flat-field-metadata.util';
+import { buildInboxMessageStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-message-standard-flat-field-metadata.util';
+import { buildInboxConversationEventStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-conversation-event-standard-flat-field-metadata.util';
+import { buildInboxLabelStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-label-standard-flat-field-metadata.util';
+import { buildInboxConversationLabelStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-conversation-label-standard-flat-field-metadata.util';
+import { buildInboxTeamStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-team-standard-flat-field-metadata.util';
+import { buildInboxTeamMemberStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-team-member-standard-flat-field-metadata.util';
+import { buildInboxMacroStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-macro-standard-flat-field-metadata.util';
+import { buildInboxSavedReplyStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-saved-reply-standard-flat-field-metadata.util';
+import { buildInboxMentionStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-mention-standard-flat-field-metadata.util';
+import { buildInboxAutomationStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-inbox-automation-standard-flat-field-metadata.util';
 import { buildMessageCampaignStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-campaign-standard-flat-field-metadata.util';
 import { buildMessageListStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-list-standard-flat-field-metadata.util';
 import { buildMessageListMemberStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-list-member-standard-flat-field-metadata.util';
@@ -50,6 +61,17 @@ const STANDARD_FLAT_FIELD_METADATA_BUILDERS_BY_OBJECT_NAME = {
   callRecording: buildCallRecordingStandardFlatFieldMetadatas,
   company: buildCompanyStandardFlatFieldMetadatas,
   dashboard: buildDashboardStandardFlatFieldMetadatas,
+  inboxConversation: buildInboxConversationStandardFlatFieldMetadatas,
+  inboxMessage: buildInboxMessageStandardFlatFieldMetadatas,
+  inboxConversationEvent: buildInboxConversationEventStandardFlatFieldMetadatas,
+  inboxLabel: buildInboxLabelStandardFlatFieldMetadatas,
+  inboxConversationLabel: buildInboxConversationLabelStandardFlatFieldMetadatas,
+  inboxTeam: buildInboxTeamStandardFlatFieldMetadatas,
+  inboxTeamMember: buildInboxTeamMemberStandardFlatFieldMetadatas,
+  inboxMacro: buildInboxMacroStandardFlatFieldMetadatas,
+  inboxSavedReply: buildInboxSavedReplyStandardFlatFieldMetadatas,
+  inboxMention: buildInboxMentionStandardFlatFieldMetadatas,
+  inboxAutomation: buildInboxAutomationStandardFlatFieldMetadatas,
   messageCampaign: buildMessageCampaignStandardFlatFieldMetadatas,
   messageList: buildMessageListStandardFlatFieldMetadatas,
   messageListMember: buildMessageListMemberStandardFlatFieldMetadatas,

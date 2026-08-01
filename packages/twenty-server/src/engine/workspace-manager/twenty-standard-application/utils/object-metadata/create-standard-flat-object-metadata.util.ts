@@ -8,6 +8,17 @@ import {
   type CreateStandardObjectArgs,
   createStandardObjectFlatMetadata,
 } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/create-standard-object-flat-metadata.util';
+import { buildInboxConversationStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-conversation-standard-flat-object-metadata.util';
+import { buildInboxMessageStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-message-standard-flat-object-metadata.util';
+import { buildInboxConversationEventStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-conversation-event-standard-flat-object-metadata.util';
+import { buildInboxLabelStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-label-standard-flat-object-metadata.util';
+import { buildInboxConversationLabelStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-conversation-label-standard-flat-object-metadata.util';
+import { buildInboxTeamStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-team-standard-flat-object-metadata.util';
+import { buildInboxTeamMemberStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-team-member-standard-flat-object-metadata.util';
+import { buildInboxMacroStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-macro-standard-flat-object-metadata.util';
+import { buildInboxSavedReplyStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-saved-reply-standard-flat-object-metadata.util';
+import { buildInboxMentionStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-mention-standard-flat-object-metadata.util';
+import { buildInboxAutomationStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-inbox-automation-standard-flat-object-metadata.util';
 
 export const STANDARD_FLAT_OBJECT_METADATA_BUILDERS_BY_OBJECT_NAME = {
   attachment: ({
@@ -219,6 +230,17 @@ export const STANDARD_FLAT_OBJECT_METADATA_BUILDERS_BY_OBJECT_NAME = {
       twentyStandardApplicationId,
       now,
     }),
+  inboxConversation: buildInboxConversationStandardFlatObjectMetadata,
+  inboxMessage: buildInboxMessageStandardFlatObjectMetadata,
+  inboxConversationEvent: buildInboxConversationEventStandardFlatObjectMetadata,
+  inboxLabel: buildInboxLabelStandardFlatObjectMetadata,
+  inboxConversationLabel: buildInboxConversationLabelStandardFlatObjectMetadata,
+  inboxTeam: buildInboxTeamStandardFlatObjectMetadata,
+  inboxTeamMember: buildInboxTeamMemberStandardFlatObjectMetadata,
+  inboxMacro: buildInboxMacroStandardFlatObjectMetadata,
+  inboxSavedReply: buildInboxSavedReplyStandardFlatObjectMetadata,
+  inboxMention: buildInboxMentionStandardFlatObjectMetadata,
+  inboxAutomation: buildInboxAutomationStandardFlatObjectMetadata,
   dashboard: ({
     now,
     workspaceId,
