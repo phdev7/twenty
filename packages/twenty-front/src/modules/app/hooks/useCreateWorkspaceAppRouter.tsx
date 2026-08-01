@@ -2,11 +2,9 @@ import { lazy, useMemo } from 'react';
 import {
   createBrowserRouter,
   createRoutesFromElements,
-  Navigate,
   Route,
 } from 'react-router-dom';
-import { AppPath, SettingsPath } from 'twenty-shared/types';
-import { getSettingsPath } from 'twenty-shared/utils';
+import { AppPath } from 'twenty-shared/types';
 
 import { LazyRoute } from '@/app/components/LazyRoute';
 import { SettingsRoutes } from '@/app/components/SettingsRoutes';
@@ -111,6 +109,12 @@ const StandalonePageLayoutPage = lazy(() =>
   })),
 );
 
+const InboxPage = lazy(() =>
+  import('~/pages/inbox/InboxPage').then((module) => ({
+    default: module.InboxPage,
+  })),
+);
+
 const WorkspaceSetup = lazyWithPreload(() =>
   import('~/pages/onboarding/WorkspaceSetup').then((module) => ({
     default: module.WorkspaceSetup,
@@ -181,6 +185,14 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <StandalonePageLayoutPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.Inbox}
+                element={
+                  <LazyRoute>
+                    <InboxPage />
                   </LazyRoute>
                 }
               />
