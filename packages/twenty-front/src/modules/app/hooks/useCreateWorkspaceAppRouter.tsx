@@ -123,6 +123,30 @@ const NotFound = lazy(() =>
   })),
 );
 
+const CustomerSuccessCommandCenterPage = lazy(() =>
+  import('~/pages/diex/CustomerSuccessCommandCenterPage').then((module) => ({
+    default: module.CustomerSuccessCommandCenterPage,
+  })),
+);
+
+const RenewalCommandCenterPage = lazy(() =>
+  import('~/pages/diex/RenewalCommandCenterPage').then((module) => ({
+    default: module.RenewalCommandCenterPage,
+  })),
+);
+
+const AiCommandCenterPage = lazy(() =>
+  import('~/pages/diex/AiCommandCenterPage').then((module) => ({
+    default: module.AiCommandCenterPage,
+  })),
+);
+
+const CommercialIntelligencePage = lazy(() =>
+  import('~/pages/diex/CommercialIntelligencePage').then((module) => ({
+    default: module.CommercialIntelligencePage,
+  })),
+);
+
 const preloadOnboardingPages = () => {
   void WorkspaceActivation.preload();
   void CreateProfile.preload();
@@ -181,6 +205,38 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <StandalonePageLayoutPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path="/diex/customer-success"
+                element={
+                  <LazyRoute>
+                    <CustomerSuccessCommandCenterPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path="/diex/renewals"
+                element={
+                  <LazyRoute>
+                    <RenewalCommandCenterPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path="/diex/ai-command-center"
+                element={
+                  <LazyRoute>
+                    <AiCommandCenterPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path="/diex/commercial-intelligence"
+                element={
+                  <LazyRoute>
+                    <CommercialIntelligencePage />
                   </LazyRoute>
                 }
               />
