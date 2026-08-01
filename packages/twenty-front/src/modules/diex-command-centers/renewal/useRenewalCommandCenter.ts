@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 import { useApolloClient, useQuery } from '@apollo/client/react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { currentUserState } from '@/auth/states/currentUserState';
 import {
@@ -201,21 +201,29 @@ export const useRenewalCommandCenter = () => {
     enqueueWarningSnackBar,
   } = useSnackBar();
   const { data, loading, error, refetch } = useQuery<QueryData>(RENEWAL_QUERY);
-  const renewals =
-    data?.customerRenewals?.edges?.map(({ node }) => ({
-      ...node,
-      renewalEvents:
-        node.renewalEvents?.edges
-          ?.map(({ node: event }) => event)
-          .sort(
-            (left, right) =>
-              new Date(right.occurredAt).getTime() -
-              new Date(left.occurredAt).getTime(),
-          ) ?? [],
-    })) ?? [];
-  const successPlans = data?.successPlans?.edges?.map(({ node }) => node) ?? [];
-  const workspaceMembers =
-    data?.workspaceMembers?.edges?.map(({ node }) => node) ?? [];
+  const renewals = useMemo(
+    () =>
+      data?.customerRenewals?.edges?.map(({ node }) => ({
+        ...node,
+        renewalEvents:
+          node.renewalEvents?.edges
+            ?.map(({ node: event }) => event)
+            .sort(
+              (left, right) =>
+                new Date(right.occurredAt).getTime() -
+                new Date(left.occurredAt).getTime(),
+            ) ?? [],
+      })) ?? [],
+    [data?.customerRenewals?.edges],
+  );
+  const successPlans = useMemo(
+    () => data?.successPlans?.edges?.map(({ node }) => node) ?? [],
+    [data?.successPlans?.edges],
+  );
+  const workspaceMembers = useMemo(
+    () => data?.workspaceMembers?.edges?.map(({ node }) => node) ?? [],
+    [data?.workspaceMembers?.edges],
+  );
   const currentWorkspaceMemberId =
     workspaceMembers.find(({ userId }) => userId === currentUser?.id)?.id ??
     null;
@@ -479,7 +487,7 @@ export const useRenewalCommandCenter = () => {
           variables: {
             data: {
               name: `Intervenção de renovação · ${renewal.name}`,
-              type: 'CS_INTERVENTION',
+              actionType: 'CS_INTERVENTION',
               status: 'PENDING_APPROVAL',
               confidence: 50 + evidence * 10,
               requiresApproval: true,

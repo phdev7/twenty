@@ -344,10 +344,21 @@ export const CustomerSuccessCommandCenterPage = () => {
                     title={plan.name}
                     detail={`${getRecordName(plan.company) || 'Empresa não vinculada'} · ${formatPlanMoney(plan.recurringRevenue)} · ${getDatePressureLabel(plan.renewalDate)}`}
                     action={
-                      <Tag
-                        color={healthColor(plan.health)}
-                        text={healthLabel(plan.health)}
-                      />
+                      <>
+                        <Tag
+                          color={healthColor(plan.health)}
+                          text={healthLabel(plan.health)}
+                        />
+                        <Button
+                          title="Abrir plano"
+                          size="small"
+                          variant="tertiary"
+                          onClick={() => {
+                            setFilter('ALL');
+                            setSelectedPlanId(plan.id);
+                          }}
+                        />
+                      </>
                     }
                   />
                 ))}

@@ -1,5 +1,11 @@
 import { styled } from '@linaria/react';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   CommandCenterCard,
@@ -74,12 +80,32 @@ export const RenewalCommandCenterPage = () => {
   );
   const [selectedSuccessPlanId, setSelectedSuccessPlanId] = useState('');
   const [draft, setDraft] = useState<RenewalDraft | null>(null);
+  const [draftSyncKey, setDraftSyncKey] = useState(0);
   const [isBusy, setIsBusy] = useState(false);
+  const isDraftDirtyRef = useRef(false);
+  const lastSyncedRenewalIdRef = useRef<string | null>(null);
   const selectedRenewal =
     renewals.find(({ id }) => id === selectedRenewalId) ?? renewals[0] ?? null;
   useEffect(() => {
-    setDraft(selectedRenewal ? createDraft(selectedRenewal) : null);
-  }, [selectedRenewal?.id]);
+    const selectedId = selectedRenewal?.id ?? null;
+    const changedSelection = lastSyncedRenewalIdRef.current !== selectedId;
+
+    if (changedSelection || !isDraftDirtyRef.current) {
+      setDraft(selectedRenewal ? createDraft(selectedRenewal) : null);
+      isDraftDirtyRef.current = false;
+      lastSyncedRenewalIdRef.current = selectedId;
+    }
+  }, [draftSyncKey, selectedRenewal]);
+  const updateDraft = (nextDraft: SetStateAction<RenewalDraft | null>) => {
+    setDraft((currentDraft) => {
+      const updatedDraft =
+        typeof nextDraft === 'function' ? nextDraft(currentDraft) : nextDraft;
+
+      if (updatedDraft !== currentDraft) isDraftDirtyRef.current = true;
+
+      return updatedDraft;
+    });
+  };
   const metrics = useMemo(() => {
     const active = renewals.filter(({ stage }) =>
       ['PLANNING', 'VALUE_PROOF', 'NEGOTIATION', 'COMMITMENT'].includes(stage),
@@ -146,6 +172,10 @@ export const RenewalCommandCenterPage = () => {
     setIsBusy(true);
     const result = await updateRenewal(selectedRenewal.id, nextDraft);
     setIsBusy(false);
+    if (result) {
+      isDraftDirtyRef.current = false;
+      setDraftSyncKey((current) => current + 1);
+    }
     return result;
   };
   const touch = async () => {
@@ -310,7 +340,7 @@ export const RenewalCommandCenterPage = () => {
           <RenewalWorkbench
             renewal={selectedRenewal}
             draft={draft}
-            setDraft={setDraft}
+            setDraft={updateDraft}
             workspaceMembers={workspaceMembers}
             isBusy={isBusy}
             onSave={save}
