@@ -12,10 +12,13 @@ import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migr
 import { type AttachmentWorkspaceEntity } from 'src/modules/attachment/standard-objects/attachment.workspace-entity';
 import { type CalendarEventParticipantWorkspaceEntity } from 'src/modules/calendar/common/standard-objects/calendar-event-participant.workspace-entity';
 import { type CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/company.workspace-entity';
+import { type CommercialSignalWorkspaceEntity } from 'src/modules/commercial-intelligence/standard-objects/commercial-signal.workspace-entity';
+import { type SuccessPlanWorkspaceEntity } from 'src/modules/customer-success/standard-objects/success-plan.workspace-entity';
 import { type MessageListMemberWorkspaceEntity } from 'src/modules/emailing/standard-objects/message-list-member.workspace-entity';
 import { type MessageParticipantWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message-participant.workspace-entity';
 import { type NoteTargetWorkspaceEntity } from 'src/modules/note/standard-objects/note-target.workspace-entity';
 import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
+import { type InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
 import { type TaskTargetWorkspaceEntity } from 'src/modules/task/standard-objects/task-target.workspace-entity';
 import { type TimelineActivityWorkspaceEntity } from 'src/modules/timeline/standard-objects/timeline-activity.workspace-entity';
 
@@ -46,4 +49,14 @@ export class PersonWorkspaceEntity extends BaseWorkspaceEntity {
   timelineActivities: EntityRelation<TimelineActivityWorkspaceEntity[]>;
   listMemberships: EntityRelation<MessageListMemberWorkspaceEntity[]>;
   searchVector: string;
+  buyingIntent: string | null;
+  buyingRole: string | null;
+  doNotContact: boolean | null;
+  legacyDiexId: string | null;
+  whatsappConsentAt: Date | null;
+  whatsappConsentStatus: string | null;
+  whatsappNormalizedPhone: string | null;
+  diexCommercialSignals: EntityRelation<CommercialSignalWorkspaceEntity[]>;
+  diexInboxConversations: EntityRelation<InboxConversationWorkspaceEntity[]>;
+  diexSuccessPlans: EntityRelation<SuccessPlanWorkspaceEntity[]>;
 }

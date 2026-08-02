@@ -17,6 +17,19 @@ export const buildNoteStandardFlatIndexMetadatas = ({
   AllStandardObjectIndexName<'note'>,
   FlatIndexMetadata
 > => ({
+  legacyDiexIdUniqueIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'legacyDiexIdUniqueIndex',
+      relatedFieldNames: ['legacyDiexId'],
+      isUnique: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
   searchVectorGinIndex: createStandardIndexFlatMetadata({
     objectName,
     workspaceId,

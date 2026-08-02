@@ -3,6 +3,7 @@ import { getSystemRelationFieldUniversalIdentifier } from '@/application/determi
 import { STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS } from '@/metadata/constants/standard-object-universal-identifiers.constant';
 import { INBOX_STANDARD_OBJECTS } from '@/metadata/constants/inbox-standard-object.constant';
 import { DIEX_STANDARD_OBJECTS } from '@/metadata/constants/diex-standard-object.constant';
+import { DIEX_STANDARD_OBJECT_EXTENSION_FIELDS } from '@/metadata/constants/diex-standard-object-extension-fields.constant';
 import { buildStandardObjectSystemFields } from '@/metadata/utils/internal/build-standard-object-system-fields.util';
 
 // Important notice:
@@ -651,6 +652,7 @@ export const STANDARD_OBJECTS = {
   company: {
     universalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.company,
     fields: {
+      ...DIEX_STANDARD_OBJECT_EXTENSION_FIELDS.company,
       ...buildStandardObjectSystemFields(
         STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.company,
       ),
@@ -716,6 +718,9 @@ export const STANDARD_OBJECTS = {
     indexes: {
       accountOwnerIdIndex: {
         universalIdentifier: 'ec2ebfc9-0c9b-4597-a87d-aa295e2d8bfe',
+      },
+      legacyDiexIdUniqueIndex: {
+        universalIdentifier: '426bedbb-331e-53fd-9d34-3db78078f079',
       },
       domainNameUniqueIndex: {
         universalIdentifier: 'dd300c61-f422-467a-91f4-de4f83c4175b',
@@ -1414,6 +1419,7 @@ export const STANDARD_OBJECTS = {
   note: {
     universalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.note,
     fields: {
+      ...DIEX_STANDARD_OBJECT_EXTENSION_FIELDS.note,
       ...buildStandardObjectSystemFields(
         STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.note,
       ),
@@ -1442,6 +1448,9 @@ export const STANDARD_OBJECTS = {
       },
     },
     indexes: {
+      legacyDiexIdUniqueIndex: {
+        universalIdentifier: 'e05b253d-b2ce-5c67-b5d0-9ca5d380e1f5',
+      },
       searchVectorGinIndex: {
         universalIdentifier: '8183c8d2-9114-4b6e-8c5d-12a3b14a5a13',
       },
@@ -1587,6 +1596,7 @@ export const STANDARD_OBJECTS = {
   opportunity: {
     universalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.opportunity,
     fields: {
+      ...DIEX_STANDARD_OBJECT_EXTENSION_FIELDS.opportunity,
       ...buildStandardObjectSystemFields(
         STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.opportunity,
       ),
@@ -1643,6 +1653,9 @@ export const STANDARD_OBJECTS = {
       },
     },
     indexes: {
+      legacyDiexIdUniqueIndex: {
+        universalIdentifier: '8947c87b-4b21-5bf9-aa81-1160420f60e3',
+      },
       pointOfContactIdIndex: {
         universalIdentifier: 'b8c2a673-a981-4357-a43d-313a358e4daa',
       },
@@ -1792,6 +1805,7 @@ export const STANDARD_OBJECTS = {
   person: {
     universalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.person,
     fields: {
+      ...DIEX_STANDARD_OBJECT_EXTENSION_FIELDS.person,
       ...buildStandardObjectSystemFields(
         STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.person,
       ),
@@ -1863,6 +1877,12 @@ export const STANDARD_OBJECTS = {
       },
     },
     indexes: {
+      legacyDiexIdUniqueIndex: {
+        universalIdentifier: 'ba82c173-29bf-5341-840f-158682a06a01',
+      },
+      whatsappNormalizedPhoneUniqueIndex: {
+        universalIdentifier: 'df179faa-3de7-5d7f-a9e7-73c9425ec037',
+      },
       companyIdIndex: {
         universalIdentifier: '8a265a5c-d3ae-47dc-bdf9-b42cfa2ba639',
       },
@@ -1981,6 +2001,7 @@ export const STANDARD_OBJECTS = {
   task: {
     universalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.task,
     fields: {
+      ...DIEX_STANDARD_OBJECT_EXTENSION_FIELDS.task,
       ...buildStandardObjectSystemFields(
         STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.task,
       ),
@@ -2012,6 +2033,9 @@ export const STANDARD_OBJECTS = {
       },
     },
     indexes: {
+      legacyDiexIdUniqueIndex: {
+        universalIdentifier: 'df9ed33c-9aea-5114-a5d4-d437e069206d',
+      },
       assigneeIdIndex: {
         universalIdentifier: 'f48fa3b1-0cec-44da-a9e5-f8a5e766637e',
       },
@@ -2837,6 +2861,7 @@ export const STANDARD_OBJECTS = {
   workspaceMember: {
     universalIdentifier: '20202020-3319-4234-a34c-82d5c0e881a6',
     fields: {
+      ...DIEX_STANDARD_OBJECT_EXTENSION_FIELDS.workspaceMember,
       ...buildStandardObjectSystemFields(
         '20202020-3319-4234-a34c-82d5c0e881a6',
       ),

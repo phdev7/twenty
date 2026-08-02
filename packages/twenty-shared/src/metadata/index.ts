@@ -18,6 +18,8 @@ export { IDENTIFIER_MAX_CHAR_LENGTH } from './constants/identifier-max-char-leng
 export { INBOX_STANDARD_OBJECTS } from './constants/inbox-standard-object.constant';
 export { DIEX_STANDARD_RELATION_FIELDS } from './constants/diex-standard-relation-fields.constant';
 export { DIEX_STANDARD_OBJECTS } from './constants/diex-standard-object.constant';
+export { DIEX_STANDARD_OBJECT_EXTENSION_FIELDS } from './constants/diex-standard-object-extension-fields.constant';
+export { DIEX_STANDARD_EXTENSION_RELATION_FIELDS } from './constants/diex-standard-object-extension-relation-fields.constant';
 export { RESERVED_METADATA_NAME_KEYWORDS } from './constants/reserved-metadata-name-keywords.constant';
 export type { StandardObjectWithUniversalIdentifierName } from './constants/standard-object-universal-identifiers.constant';
 export { STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS } from './constants/standard-object-universal-identifiers.constant';

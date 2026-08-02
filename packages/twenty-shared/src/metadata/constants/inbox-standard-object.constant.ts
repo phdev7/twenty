@@ -1,11 +1,13 @@
 import { buildDiexStandardObjectSystemFields } from '@/metadata/utils/internal/build-standard-object-system-fields.util';
 import { INBOX_STANDARD_RELATION_FIELDS } from '@/metadata/constants/inbox-standard-relation-fields.constant';
 import { DIEX_STANDARD_RELATION_FIELDS } from '@/metadata/constants/diex-standard-relation-fields.constant';
+import { DIEX_STANDARD_EXTENSION_RELATION_FIELDS } from '@/metadata/constants/diex-standard-object-extension-relation-fields.constant';
 
 export const INBOX_STANDARD_OBJECTS = {
   inboxConversation: {
     universalIdentifier: 'b9ec457e-7da0-47b2-a3f5-3d9608e66331',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.inboxConversation,
       ...DIEX_STANDARD_RELATION_FIELDS.inboxConversation,
       ...INBOX_STANDARD_RELATION_FIELDS.inboxConversation,
       ...buildDiexStandardObjectSystemFields(
@@ -115,6 +117,7 @@ export const INBOX_STANDARD_OBJECTS = {
   inboxConversationEvent: {
     universalIdentifier: 'd1e0fc00-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.inboxConversationEvent,
       ...INBOX_STANDARD_RELATION_FIELDS.inboxConversationEvent,
       ...buildDiexStandardObjectSystemFields(
         'd1e0fc00-0000-4000-8000-000000000001',
@@ -222,6 +225,7 @@ export const INBOX_STANDARD_OBJECTS = {
   inboxTeamMember: {
     universalIdentifier: 'd1e0f500-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.inboxTeamMember,
       ...INBOX_STANDARD_RELATION_FIELDS.inboxTeamMember,
       ...buildDiexStandardObjectSystemFields(
         'd1e0f500-0000-4000-8000-000000000001',
@@ -242,6 +246,7 @@ export const INBOX_STANDARD_OBJECTS = {
   inboxMacro: {
     universalIdentifier: 'd1e0fb00-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.inboxMacro,
       ...INBOX_STANDARD_RELATION_FIELDS.inboxMacro,
       ...buildDiexStandardObjectSystemFields(
         'd1e0fb00-0000-4000-8000-000000000001',
@@ -310,6 +315,7 @@ export const INBOX_STANDARD_OBJECTS = {
   inboxMention: {
     universalIdentifier: 'd1e0fa00-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.inboxMention,
       ...INBOX_STANDARD_RELATION_FIELDS.inboxMention,
       ...buildDiexStandardObjectSystemFields(
         'd1e0fa00-0000-4000-8000-000000000001',
@@ -337,6 +343,7 @@ export const INBOX_STANDARD_OBJECTS = {
   inboxAutomation: {
     universalIdentifier: 'd1e0fd00-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.inboxAutomation,
       ...INBOX_STANDARD_RELATION_FIELDS.inboxAutomation,
       ...buildDiexStandardObjectSystemFields(
         'd1e0fd00-0000-4000-8000-000000000001',

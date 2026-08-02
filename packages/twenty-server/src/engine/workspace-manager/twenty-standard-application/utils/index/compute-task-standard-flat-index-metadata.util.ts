@@ -17,6 +17,19 @@ export const buildTaskStandardFlatIndexMetadatas = ({
   AllStandardObjectIndexName<'task'>,
   FlatIndexMetadata
 > => ({
+  legacyDiexIdUniqueIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'legacyDiexIdUniqueIndex',
+      relatedFieldNames: ['legacyDiexId'],
+      isUnique: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
   assigneeIdIndex: createStandardIndexFlatMetadata({
     objectName,
     workspaceId,

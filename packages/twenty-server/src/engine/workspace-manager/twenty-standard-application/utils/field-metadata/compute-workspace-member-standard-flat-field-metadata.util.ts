@@ -14,6 +14,7 @@ import {
   createStandardFieldFlatMetadata,
 } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/create-standard-field-flat-metadata.util';
 import { createStandardRelationFieldFlatMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/create-standard-relation-field-flat-metadata.util';
+import { buildDiexStandardObjectExtensionFlatFieldMetadatas } from 'src/modules/diex/standard-objects/build-diex-standard-object-extension-flat-field-metadata.util';
 import { WorkspaceMemberNumberFormatEnum } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
 export const buildWorkspaceMemberStandardFlatFieldMetadatas = ({
@@ -669,5 +670,13 @@ export const buildWorkspaceMemberStandardFlatFieldMetadatas = ({
     dependencyFlatEntityMaps,
     twentyStandardApplicationId,
     now,
+  }),
+  ...buildDiexStandardObjectExtensionFlatFieldMetadatas({
+    now,
+    objectName,
+    workspaceId,
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
   }),
 });

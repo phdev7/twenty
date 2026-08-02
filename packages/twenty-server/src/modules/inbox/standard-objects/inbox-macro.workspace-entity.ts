@@ -4,6 +4,7 @@ import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migr
 import { type InboxLabelWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-label.workspace-entity';
 import { type InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
 import { type InboxSavedReplyWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-saved-reply.workspace-entity';
+import { type WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
 export class InboxMacroWorkspaceEntity extends BaseWorkspaceEntity {
   name: string | null;
@@ -22,4 +23,6 @@ export class InboxMacroWorkspaceEntity extends BaseWorkspaceEntity {
   inboxTeamId: string | null;
   savedReply: EntityRelation<InboxSavedReplyWorkspaceEntity> | null;
   savedReplyId: string | null;
+  assignee: EntityRelation<WorkspaceMemberWorkspaceEntity> | null;
+  assigneeId: string | null;
 }

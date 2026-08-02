@@ -17,6 +17,19 @@ export const buildOpportunityStandardFlatIndexMetadatas = ({
   AllStandardObjectIndexName<'opportunity'>,
   FlatIndexMetadata
 > => ({
+  legacyDiexIdUniqueIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'legacyDiexIdUniqueIndex',
+      relatedFieldNames: ['legacyDiexId'],
+      isUnique: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
   pointOfContactIdIndex: createStandardIndexFlatMetadata({
     objectName,
     workspaceId,

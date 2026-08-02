@@ -5,12 +5,22 @@ import { type FullNameMetadata } from 'twenty-shared/types';
 import { type Relation } from 'typeorm';
 
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
+import { type AiActionWorkspaceEntity } from 'src/modules/ai-governance/standard-objects/ai-action.workspace-entity';
 import { type AttachmentWorkspaceEntity } from 'src/modules/attachment/standard-objects/attachment.workspace-entity';
 import { type BlocklistWorkspaceEntity } from 'src/modules/blocklist/standard-objects/blocklist.workspace-entity';
 import { type CalendarEventParticipantWorkspaceEntity } from 'src/modules/calendar/common/standard-objects/calendar-event-participant.workspace-entity';
 import { type CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/company.workspace-entity';
+import { type SuccessPlanWorkspaceEntity } from 'src/modules/customer-success/standard-objects/success-plan.workspace-entity';
+import { type InboxAutomationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-automation.workspace-entity';
+import { type InboxConversationEventWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation-event.workspace-entity';
+import { type InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
+import { type InboxMacroWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-macro.workspace-entity';
+import { type InboxMentionWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-mention.workspace-entity';
+import { type InboxTeamMemberWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team-member.workspace-entity';
 import { type MessageParticipantWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message-participant.workspace-entity';
 import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
+import { type CustomerRenewalEventWorkspaceEntity } from 'src/modules/renewal/standard-objects/customer-renewal-event.workspace-entity';
+import { type CustomerRenewalWorkspaceEntity } from 'src/modules/renewal/standard-objects/customer-renewal.workspace-entity';
 import { type TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
 import { type TimelineActivityWorkspaceEntity } from 'src/modules/timeline/standard-objects/timeline-activity.workspace-entity';
 
@@ -76,4 +86,18 @@ export class WorkspaceMemberWorkspaceEntity extends BaseWorkspaceEntity {
   ownedOpportunities: Relation<OpportunityWorkspaceEntity[]>;
   searchVector: string;
   numberFormat: string;
+  diexAssignedInboxConversations: Relation<InboxConversationWorkspaceEntity[]>;
+  diexAuthoredInboxMentions: Relation<InboxMentionWorkspaceEntity[]>;
+  diexCustomerRenewalEvents: Relation<CustomerRenewalEventWorkspaceEntity[]>;
+  diexExecutedAiActions: Relation<AiActionWorkspaceEntity[]>;
+  diexInboxAutomations: Relation<InboxAutomationWorkspaceEntity[]>;
+  diexInboxConversationEvents: Relation<
+    InboxConversationEventWorkspaceEntity[]
+  >;
+  diexInboxMacros: Relation<InboxMacroWorkspaceEntity[]>;
+  diexInboxMentions: Relation<InboxMentionWorkspaceEntity[]>;
+  diexInboxTeamMemberships: Relation<InboxTeamMemberWorkspaceEntity[]>;
+  diexOwnedCustomerRenewals: Relation<CustomerRenewalWorkspaceEntity[]>;
+  diexOwnedSuccessPlans: Relation<SuccessPlanWorkspaceEntity[]>;
+  diexReviewActions: Relation<AiActionWorkspaceEntity[]>;
 }

@@ -1,11 +1,16 @@
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
 import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migration/types/entity-relation.interface';
 import { type AiActionWorkspaceEntity } from 'src/modules/ai-governance/standard-objects/ai-action.workspace-entity';
+import { type CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/company.workspace-entity';
 import { type InboxConversationEventWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation-event.workspace-entity';
 import { type InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
 import { type InboxConversationLabelWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation-label.workspace-entity';
 import { type InboxMentionWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-mention.workspace-entity';
 import { type InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-message.workspace-entity';
+import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
+import { type PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
+import { type TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
+import { type WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
 export class InboxConversationWorkspaceEntity extends BaseWorkspaceEntity {
   name: string | null;
@@ -32,4 +37,13 @@ export class InboxConversationWorkspaceEntity extends BaseWorkspaceEntity {
   labelAssignments: EntityRelation<InboxConversationLabelWorkspaceEntity[]>;
   mentions: EntityRelation<InboxMentionWorkspaceEntity[]>;
   messages: EntityRelation<InboxMessageWorkspaceEntity[]>;
+  assignee: EntityRelation<WorkspaceMemberWorkspaceEntity> | null;
+  assigneeId: string | null;
+  company: EntityRelation<CompanyWorkspaceEntity> | null;
+  companyId: string | null;
+  opportunity: EntityRelation<OpportunityWorkspaceEntity> | null;
+  opportunityId: string | null;
+  person: EntityRelation<PersonWorkspaceEntity> | null;
+  personId: string | null;
+  tasks: EntityRelation<TaskWorkspaceEntity[]>;
 }

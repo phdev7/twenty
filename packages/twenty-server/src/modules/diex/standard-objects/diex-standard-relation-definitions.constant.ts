@@ -5,6 +5,8 @@ import {
   RelationType,
 } from 'twenty-shared/types';
 
+import { DIEX_STANDARD_OBJECT_EXTENSION_RELATION_DEFINITIONS } from 'src/modules/diex/standard-objects/diex-standard-object-extension-relation-definitions.constant';
+
 export const DIEX_STANDARD_RELATION_DEFINITIONS = [
   {
     universalIdentifier: 'd1e06000-0000-4000-8000-000000000032',
@@ -235,4 +237,5 @@ export const DIEX_STANDARD_RELATION_DEFINITIONS = [
       relationType: RelationType.ONE_TO_MANY,
     },
   },
+  ...DIEX_STANDARD_OBJECT_EXTENSION_RELATION_DEFINITIONS,
 ] as const satisfies readonly FieldManifest<FieldMetadataType.RELATION>[];

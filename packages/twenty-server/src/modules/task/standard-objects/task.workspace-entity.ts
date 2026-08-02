@@ -3,6 +3,9 @@ import { type ActorMetadata, type RichTextMetadata } from 'twenty-shared/types';
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
 import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migration/types/entity-relation.interface';
 import { type AttachmentWorkspaceEntity } from 'src/modules/attachment/standard-objects/attachment.workspace-entity';
+import { type AiActionWorkspaceEntity } from 'src/modules/ai-governance/standard-objects/ai-action.workspace-entity';
+import { type SuccessPlanWorkspaceEntity } from 'src/modules/customer-success/standard-objects/success-plan.workspace-entity';
+import { type InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
 import { type TaskTargetWorkspaceEntity } from 'src/modules/task/standard-objects/task-target.workspace-entity';
 import { type TimelineActivityWorkspaceEntity } from 'src/modules/timeline/standard-objects/timeline-activity.workspace-entity';
 import { type WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
@@ -21,4 +24,11 @@ export class TaskWorkspaceEntity extends BaseWorkspaceEntity {
   assigneeId: string | null;
   timelineActivities: EntityRelation<TimelineActivityWorkspaceEntity[]>;
   searchVector: string;
+  legacyDiexId: string | null;
+  taskCategory: string | null;
+  diexAiActions: EntityRelation<AiActionWorkspaceEntity[]>;
+  diexInboxConversation: EntityRelation<InboxConversationWorkspaceEntity> | null;
+  diexInboxConversationId: string | null;
+  diexSuccessPlan: EntityRelation<SuccessPlanWorkspaceEntity> | null;
+  diexSuccessPlanId: string | null;
 }

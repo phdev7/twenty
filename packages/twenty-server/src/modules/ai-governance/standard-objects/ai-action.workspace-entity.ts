@@ -5,7 +5,10 @@ import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migr
 import { type CommercialSignalWorkspaceEntity } from 'src/modules/commercial-intelligence/standard-objects/commercial-signal.workspace-entity';
 import { type SuccessPlanWorkspaceEntity } from 'src/modules/customer-success/standard-objects/success-plan.workspace-entity';
 import { type InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
+import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
 import { type CustomerRenewalWorkspaceEntity } from 'src/modules/renewal/standard-objects/customer-renewal.workspace-entity';
+import { type TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
+import { type WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
 export class AiActionWorkspaceEntity extends BaseWorkspaceEntity {
   name: string | null;
@@ -29,4 +32,12 @@ export class AiActionWorkspaceEntity extends BaseWorkspaceEntity {
   successPlanId: string | null;
   inboxConversation: EntityRelation<InboxConversationWorkspaceEntity> | null;
   inboxConversationId: string | null;
+  executionTask: EntityRelation<TaskWorkspaceEntity> | null;
+  executionTaskId: string | null;
+  executor: EntityRelation<WorkspaceMemberWorkspaceEntity> | null;
+  executorId: string | null;
+  opportunity: EntityRelation<OpportunityWorkspaceEntity> | null;
+  opportunityId: string | null;
+  reviewer: EntityRelation<WorkspaceMemberWorkspaceEntity> | null;
+  reviewerId: string | null;
 }

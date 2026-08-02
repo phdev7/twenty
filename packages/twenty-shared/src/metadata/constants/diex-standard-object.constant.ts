@@ -1,10 +1,12 @@
 import { buildDiexStandardObjectSystemFields } from '@/metadata/utils/internal/build-standard-object-system-fields.util';
 import { DIEX_STANDARD_RELATION_FIELDS } from '@/metadata/constants/diex-standard-relation-fields.constant';
+import { DIEX_STANDARD_EXTENSION_RELATION_FIELDS } from '@/metadata/constants/diex-standard-object-extension-relation-fields.constant';
 
 export const DIEX_STANDARD_OBJECTS = {
   successPlan: {
     universalIdentifier: 'd1e03000-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.successPlan,
       ...DIEX_STANDARD_RELATION_FIELDS.successPlan,
       ...buildDiexStandardObjectSystemFields(
         'd1e03000-0000-4000-8000-000000000001',
@@ -94,6 +96,7 @@ export const DIEX_STANDARD_OBJECTS = {
   customerRenewal: {
     universalIdentifier: 'd1e14000-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.customerRenewal,
       ...DIEX_STANDARD_RELATION_FIELDS.customerRenewal,
       ...buildDiexStandardObjectSystemFields(
         'd1e14000-0000-4000-8000-000000000001',
@@ -147,6 +150,7 @@ export const DIEX_STANDARD_OBJECTS = {
   customerRenewalEvent: {
     universalIdentifier: 'd1e14200-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.customerRenewalEvent,
       ...DIEX_STANDARD_RELATION_FIELDS.customerRenewalEvent,
       ...buildDiexStandardObjectSystemFields(
         'd1e14200-0000-4000-8000-000000000001',
@@ -169,6 +173,7 @@ export const DIEX_STANDARD_OBJECTS = {
   commercialSignal: {
     universalIdentifier: 'd1e02000-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.commercialSignal,
       ...DIEX_STANDARD_RELATION_FIELDS.commercialSignal,
       ...buildDiexStandardObjectSystemFields(
         'd1e02000-0000-4000-8000-000000000001',
@@ -215,6 +220,7 @@ export const DIEX_STANDARD_OBJECTS = {
   offer: {
     universalIdentifier: 'd1e01000-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.offer,
       ...buildDiexStandardObjectSystemFields(
         'd1e01000-0000-4000-8000-000000000001',
       ),
@@ -258,6 +264,7 @@ export const DIEX_STANDARD_OBJECTS = {
   aiAction: {
     universalIdentifier: 'd1e05000-0000-4000-8000-000000000001',
     fields: {
+      ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.aiAction,
       ...DIEX_STANDARD_RELATION_FIELDS.aiAction,
       ...buildDiexStandardObjectSystemFields(
         'd1e05000-0000-4000-8000-000000000001',

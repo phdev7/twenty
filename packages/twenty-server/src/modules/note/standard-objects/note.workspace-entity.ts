@@ -16,4 +16,5 @@ export class NoteWorkspaceEntity extends BaseWorkspaceEntity {
   attachments: EntityRelation<AttachmentWorkspaceEntity[]>;
   timelineActivities: EntityRelation<TimelineActivityWorkspaceEntity[]>;
   searchVector: string;
+  legacyDiexId: string | null;
 }

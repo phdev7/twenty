@@ -17,6 +17,32 @@ export const buildPersonStandardFlatIndexMetadatas = ({
   AllStandardObjectIndexName<'person'>,
   FlatIndexMetadata
 > => ({
+  legacyDiexIdUniqueIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'legacyDiexIdUniqueIndex',
+      relatedFieldNames: ['legacyDiexId'],
+      isUnique: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
+  whatsappNormalizedPhoneUniqueIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'whatsappNormalizedPhoneUniqueIndex',
+      relatedFieldNames: ['whatsappNormalizedPhone'],
+      isUnique: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
   companyIdIndex: createStandardIndexFlatMetadata({
     objectName,
     workspaceId,
