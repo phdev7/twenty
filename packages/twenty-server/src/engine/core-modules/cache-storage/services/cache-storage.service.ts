@@ -300,6 +300,66 @@ export class CacheStorageService {
     await this.del(key);
   }
 
+  async acquireOwnedLock(
+    key: string,
+    ownerToken: string,
+    ttl: Milliseconds,
+  ): Promise<boolean> {
+    if (!this.isRedisCache(this.cache)) {
+      throw new Error('acquireOwnedLock is only supported with Redis cache');
+    }
+
+    const result = await this.cache.store.client.set(
+      this.getKey(key),
+      ownerToken,
+      { NX: true, PX: ttl },
+    );
+
+    return result === 'OK';
+  }
+
+  async renewOwnedLock(
+    key: string,
+    ownerToken: string,
+    ttl: Milliseconds,
+  ): Promise<boolean> {
+    if (!this.isRedisCache(this.cache)) {
+      throw new Error('renewOwnedLock is only supported with Redis cache');
+    }
+
+    const result = await this.cache.store.client.eval(
+      `if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('PEXPIRE', KEYS[1], ARGV[2])
+      end
+      return 0`,
+      {
+        keys: [this.getKey(key)],
+        arguments: [ownerToken, String(ttl)],
+      },
+    );
+
+    return result === 1;
+  }
+
+  async releaseOwnedLock(key: string, ownerToken: string): Promise<boolean> {
+    if (!this.isRedisCache(this.cache)) {
+      throw new Error('releaseOwnedLock is only supported with Redis cache');
+    }
+
+    const result = await this.cache.store.client.eval(
+      `if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+      end
+      return 0`,
+      {
+        keys: [this.getKey(key)],
+        arguments: [ownerToken],
+      },
+    );
+
+    return result === 1;
+  }
+
   async incrBy(key: string, increment: number): Promise<number> {
     if (this.isRedisCache(this.cache)) {
       return this.cache.store.client.incrBy(this.getKey(key), increment);

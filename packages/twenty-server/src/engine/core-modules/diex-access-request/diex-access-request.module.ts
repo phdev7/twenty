@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
+import { CacheLockModule } from 'src/engine/core-modules/cache-lock/cache-lock.module';
 import { SubdomainManagerModule } from 'src/engine/core-modules/domain/subdomain-manager/subdomain-manager.module';
 import { WorkspaceDomainsModule } from 'src/engine/core-modules/domain/workspace-domains/workspace-domains.module';
 import { DiexAccessRequestController } from 'src/engine/core-modules/diex-access-request/diex-access-request.controller';
@@ -16,6 +17,7 @@ import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permi
 @Module({
   imports: [
     AuthModule,
+    CacheLockModule,
     UserModule,
     WorkspaceInvitationModule,
     SubdomainManagerModule,

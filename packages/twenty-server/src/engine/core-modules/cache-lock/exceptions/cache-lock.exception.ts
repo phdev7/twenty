@@ -23,4 +23,5 @@ export class CacheLockException extends CustomException<
 
 export const CacheLockExceptionCode = appendCommonExceptionCode({
   LOCK_ACQUISITION_TIMEOUT: 'LOCK_ACQUISITION_TIMEOUT',
+  LOCK_OWNERSHIP_LOST: 'LOCK_OWNERSHIP_LOST',
 } as const);

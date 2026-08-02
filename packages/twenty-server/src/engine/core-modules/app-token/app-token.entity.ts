@@ -27,6 +27,9 @@ export enum AppTokenType {
 }
 
 export enum AppTokenDeliveryStatus {
+  DISPATCHING = 'DISPATCHING',
+  FAILED = 'FAILED',
+  UNKNOWN = 'UNKNOWN',
   PENDING = 'PENDING',
   SENT = 'SENT',
 }

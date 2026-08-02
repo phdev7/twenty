@@ -8,6 +8,7 @@ import { FileModule } from 'src/engine/core-modules/file/file.module';
 import { OnboardingModule } from 'src/engine/core-modules/onboarding/onboarding.module';
 import { ThrottlerModule } from 'src/engine/core-modules/throttler/throttler.module';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
+import { WorkspaceInvitationStateEntity } from 'src/engine/core-modules/workspace-invitation/entities/workspace-invitation-state.entity';
 import { WorkspaceInvitationService } from 'src/engine/core-modules/workspace-invitation/services/workspace-invitation.service';
 import { WorkspaceInvitationResolver } from 'src/engine/core-modules/workspace-invitation/workspace-invitation.resolver';
 import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
@@ -16,7 +17,11 @@ import { RoleValidationModule } from 'src/engine/metadata-modules/role-validatio
 @Module({
   imports: [
     WorkspaceDomainsModule,
-    TypeOrmModule.forFeature([AppTokenEntity, UserWorkspaceEntity]),
+    TypeOrmModule.forFeature([
+      AppTokenEntity,
+      UserWorkspaceEntity,
+      WorkspaceInvitationStateEntity,
+    ]),
     RoleValidationModule,
     FileModule,
     OnboardingModule,

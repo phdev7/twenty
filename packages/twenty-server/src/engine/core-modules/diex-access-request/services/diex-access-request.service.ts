@@ -8,12 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { type ObjectLiteral, IsNull, Repository } from 'typeorm';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 
-import {
-  AppTokenDeliveryStatus,
-  type AppTokenEntity,
-} from 'src/engine/core-modules/app-token/app-token.entity';
 import { SignInUpService } from 'src/engine/core-modules/auth/services/sign-in-up.service';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
+import {
+  CacheLockService,
+  type RenewableCacheLock,
+} from 'src/engine/core-modules/cache-lock/cache-lock.service';
 import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomain-manager/services/subdomain-manager.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { UserService } from 'src/engine/core-modules/user/services/user.service';
@@ -101,6 +101,7 @@ export class DiexAccessRequestService {
     private readonly subdomainManagerService: SubdomainManagerService,
     private readonly workspaceDomainsService: WorkspaceDomainsService,
     private readonly workspaceInvitationService: WorkspaceInvitationService,
+    private readonly cacheLockService: CacheLockService,
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
   ) {}
@@ -125,21 +126,20 @@ export class DiexAccessRequestService {
     );
   }
 
-  private async withRequestTransactionLock<T>(
+  private async withRequestLock<T>(
     requestId: string,
-    operation: () => Promise<T>,
+    operation: (lock: RenewableCacheLock) => Promise<T>,
   ): Promise<T> {
-    return this.workspaceRepository.manager.transaction(async (manager) => {
-      // A transaction-scoped Postgres advisory lock belongs to this exact DB
-      // connection. It has no expiring lease and another execution cannot
-      // release it, so reserve/create/recover/release stay one critical cycle.
-      await manager.query(
-        'SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))',
-        [`diex-access-request:${requestId}`],
-      );
-
-      return operation();
-    });
+    return this.cacheLockService.withRenewableLock(
+      operation,
+      `diex-access-request:${requestId}`,
+      {
+        ttl: 30_000,
+        renewalIntervalMs: 10_000,
+        maxRetries: 300,
+        ms: 100,
+      },
+    );
   }
 
   async submitPublicRequest(
@@ -229,17 +229,22 @@ export class DiexAccessRequestService {
   async approveRequest(
     params: ApproveRequestParams,
   ): Promise<ApproveDiexAccessRequestDTO> {
-    return this.withRequestTransactionLock(params.requestId, () =>
-      this.approveRequestWithinLock(params),
+    return this.withRequestLock(params.requestId, (lock) =>
+      this.approveRequestWithinLock(params, lock),
     );
   }
 
-  private async approveRequestWithinLock({
-    requestId,
-    requestedSubdomain,
-    operatorWorkspaceId,
-    operator,
-  }: ApproveRequestParams): Promise<ApproveDiexAccessRequestDTO> {
+  private async approveRequestWithinLock(
+    {
+      requestId,
+      requestedSubdomain,
+      operatorWorkspaceId,
+      operator,
+    }: ApproveRequestParams,
+    lock: RenewableCacheLock,
+  ): Promise<ApproveDiexAccessRequestDTO> {
+    await lock.assertOwnership();
+
     const normalizedSubdomain = requestedSubdomain.trim().toLowerCase();
     let request = await this.withRepository(operatorWorkspaceId, (repository) =>
       repository.findOne({ where: { id: requestId } }),
@@ -264,7 +269,9 @@ export class DiexAccessRequestService {
         request,
         requestedSubdomain: normalizedSubdomain,
         operatorWorkspaceId,
+        lock,
       });
+      await lock.assertOwnership();
       workspace = await this.workspaceRepository.findOne({
         where: { id: requestId },
       });
@@ -288,6 +295,7 @@ export class DiexAccessRequestService {
       const fullUser = await this.userService.findUserByIdOrThrow(operator.id);
 
       try {
+        await lock.assertOwnership();
         const creation = await this.signInUpService.signUpOnNewWorkspace(
           { type: 'existingUser', existingUser: fullUser },
           {
@@ -300,17 +308,20 @@ export class DiexAccessRequestService {
         );
 
         workspace = creation.workspace;
+        await lock.assertOwnership();
       } catch (error) {
         workspace = await this.workspaceRepository.findOne({
           where: { id: requestId },
         });
 
         if (!workspace) {
+          await lock.assertOwnership();
           const reservationReleased =
             await this.releaseReservationIfSubdomainWasClaimed({
               requestId,
               reservedSubdomain,
               operatorWorkspaceId,
+              lock,
             });
 
           if (reservationReleased) {
@@ -324,6 +335,7 @@ export class DiexAccessRequestService {
       }
     }
 
+    await lock.assertOwnership();
     await this.withRepository(operatorWorkspaceId, (repository) =>
       repository.update(requestId, {
         status: DiexAccessRequestStatus.APPROVED,
@@ -352,10 +364,12 @@ export class DiexAccessRequestService {
     request,
     requestedSubdomain,
     operatorWorkspaceId,
+    lock,
   }: {
     request: DiexAccessRequestRecord;
     requestedSubdomain: string;
     operatorWorkspaceId: string;
+    lock: RenewableCacheLock;
   }): Promise<DiexAccessRequestRecord> {
     const currentReservation = request.provisionedSubdomain;
 
@@ -409,6 +423,7 @@ export class DiexAccessRequestService {
     const updateResult = await this.withRepository(
       operatorWorkspaceId,
       async (repository) => {
+        await lock.assertOwnership();
         const workspaceImmediatelyBeforeCas =
           await this.workspaceRepository.findOne({
             where: { id: request.id },
@@ -460,10 +475,12 @@ export class DiexAccessRequestService {
     requestId,
     reservedSubdomain,
     operatorWorkspaceId,
+    lock,
   }: {
     requestId: string;
     reservedSubdomain: string;
     operatorWorkspaceId: string;
+    lock: RenewableCacheLock;
   }): Promise<boolean> {
     const availability =
       await this.subdomainManagerService.getSubdomainAvailability(
@@ -485,6 +502,7 @@ export class DiexAccessRequestService {
     const releaseResult = await this.withRepository(
       operatorWorkspaceId,
       async (repository) => {
+        await lock.assertOwnership();
         const workspaceImmediatelyBeforeCas =
           await this.workspaceRepository.findOne({
             where: { id: requestId },
@@ -510,16 +528,17 @@ export class DiexAccessRequestService {
   async retryInvitation(
     params: RetryInvitationParams,
   ): Promise<RetryDiexAccessRequestInvitationDTO> {
-    return this.withRequestTransactionLock(params.requestId, () =>
-      this.retryInvitationWithinLock(params),
+    return this.withRequestLock(params.requestId, (lock) =>
+      this.retryInvitationWithinLock(params, lock),
     );
   }
 
-  private async retryInvitationWithinLock({
-    requestId,
-    operatorWorkspaceId,
-    operator,
-  }: RetryInvitationParams): Promise<RetryDiexAccessRequestInvitationDTO> {
+  private async retryInvitationWithinLock(
+    { requestId, operatorWorkspaceId, operator }: RetryInvitationParams,
+    lock: RenewableCacheLock,
+  ): Promise<RetryDiexAccessRequestInvitationDTO> {
+    await lock.assertOwnership();
+
     const request = await this.withRepository(
       operatorWorkspaceId,
       (repository) => repository.findOne({ where: { id: requestId } }),
@@ -572,6 +591,7 @@ export class DiexAccessRequestService {
       workspace,
       normalizedEmail,
       preferredUserId: operator.id,
+      lock,
     });
   }
 
@@ -579,51 +599,13 @@ export class DiexAccessRequestService {
     workspace,
     normalizedEmail,
     preferredUserId,
+    lock,
   }: {
     workspace: WorkspaceEntity;
     normalizedEmail: string;
     preferredUserId: string;
+    lock: RenewableCacheLock;
   }): Promise<RetryDiexAccessRequestInvitationDTO> {
-    const existingInvitations =
-      await this.workspaceInvitationService.getWorkspaceInvitationsForEmail(
-        workspace.id,
-        normalizedEmail,
-      );
-    const alreadySentInvitation = existingInvitations.find((invitation) =>
-      this.isActiveSentInvitation(invitation),
-    );
-
-    if (alreadySentInvitation) {
-      return {
-        invitationReady: true,
-        message: `O envio para ${normalizedEmail} já foi confirmado.`,
-      };
-    }
-
-    // PENDING means token persistence succeeded but dispatch did not. Legacy,
-    // expired, revoked and removed tokens are also not usable. Delete by exact
-    // token ID + workspace before generating one fresh, active invitation.
-    for (const invitation of existingInvitations) {
-      await this.workspaceInvitationService.deleteWorkspaceInvitation(
-        invitation.id,
-        workspace.id,
-      );
-    }
-
-    const invitationsAfterCleanup =
-      await this.workspaceInvitationService.getWorkspaceInvitationsForEmail(
-        workspace.id,
-        normalizedEmail,
-      );
-
-    if (invitationsAfterCleanup.length > 0) {
-      return {
-        invitationReady: false,
-        message:
-          'O estado do convite mudou durante a recuperação. Atualize a fila antes de tentar novamente.',
-      };
-    }
-
     const sender = await this.findInvitationSender({
       workspaceId: workspace.id,
       preferredUserId,
@@ -637,11 +619,13 @@ export class DiexAccessRequestService {
       };
     }
 
+    await lock.assertOwnership();
     const invitation = await this.workspaceInvitationService.sendInvitations(
       [normalizedEmail],
       workspace,
       sender,
     );
+    await lock.assertOwnership();
 
     if (!invitation.success) {
       return {
@@ -652,37 +636,10 @@ export class DiexAccessRequestService {
       };
     }
 
-    const deliveredInvitations =
-      await this.workspaceInvitationService.getWorkspaceInvitationsForEmail(
-        workspace.id,
-        normalizedEmail,
-      );
-    const sentInvitation = deliveredInvitations.find((invitation) =>
-      this.isActiveSentInvitation(invitation),
-    );
-
-    if (!sentInvitation) {
-      return {
-        invitationReady: false,
-        message:
-          'O token foi criado, mas o envio não pôde ser confirmado. Tente novamente.',
-      };
-    }
-
     return {
       invitationReady: true,
-      message: `Convite enviado para ${normalizedEmail}.`,
+      message: `Convite confirmado para ${normalizedEmail}.`,
     };
-  }
-
-  private isActiveSentInvitation(invitation: AppTokenEntity): boolean {
-    return (
-      invitation.deletedAt === null &&
-      invitation.revokedAt === null &&
-      invitation.expiresAt.getTime() > Date.now() &&
-      Boolean(invitation.value) &&
-      invitation.context?.deliveryStatus === AppTokenDeliveryStatus.SENT
-    );
   }
 
   private async findInvitationSender({
