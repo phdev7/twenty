@@ -12,6 +12,7 @@ import { NavigationMenuItemToolProvider } from 'src/engine/core-modules/tool-pro
 import { ViewToolProvider } from 'src/engine/core-modules/tool-provider/providers/view-tool.provider';
 import { WebhookToolProvider } from 'src/engine/core-modules/tool-provider/providers/webhook-tool.provider';
 import { WorkflowToolProvider } from 'src/engine/core-modules/tool-provider/providers/workflow-tool.provider';
+import { WorkspaceContextToolProvider } from 'src/engine/core-modules/tool-provider/providers/workspace-context-tool.provider';
 import { ToolExecutorService } from 'src/engine/core-modules/tool-provider/services/tool-executor.service';
 import { ToolModule } from 'src/engine/core-modules/tool/tool.module';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
@@ -30,6 +31,7 @@ import { ViewSortModule } from 'src/engine/metadata-modules/view-sort/view-sort.
 import { ViewModule } from 'src/engine/metadata-modules/view/view.module';
 import { WebhookModule } from 'src/engine/metadata-modules/webhook/webhook.module';
 import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
+import { WorkspaceContextModule } from 'src/modules/workspace-context/workspace-context.module';
 
 import { ToolIndexResolver } from './resolvers/tool-index.resolver';
 import { ToolRegistryService } from './services/tool-registry.service';
@@ -63,6 +65,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     NavigationMenuItemModule,
     WebhookModule,
     UserRoleModule,
+    WorkspaceContextModule,
     TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [
@@ -77,6 +80,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     ViewToolProvider,
     WebhookToolProvider,
     WorkflowToolProvider,
+    WorkspaceContextToolProvider,
     {
       // TOOL_PROVIDERS contains only providers implementing ToolProvider
       // (registry tools with descriptors). The native tool binder is a
@@ -93,6 +97,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         webhookProvider: WebhookToolProvider,
         workflowProvider: WorkflowToolProvider,
         dashboardProvider: DashboardToolProvider,
+        workspaceContextProvider: WorkspaceContextToolProvider,
       ) => [
         actionProvider,
         databaseProvider,
@@ -103,6 +108,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         webhookProvider,
         workflowProvider,
         dashboardProvider,
+        workspaceContextProvider,
       ],
       inject: [
         ActionToolProvider,
@@ -114,6 +120,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         WebhookToolProvider,
         WorkflowToolProvider,
         DashboardToolProvider,
+        WorkspaceContextToolProvider,
       ],
     },
     ToolRegistryService,
