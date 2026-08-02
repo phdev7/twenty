@@ -39,6 +39,7 @@ export type TwentyEmailSyncResult = {
   createdConversations: number;
   updatedConversations: number;
   createdMessages: number;
-  automationsApplied: number;
+  automationEvaluationsQueued: number;
+  automationEvaluationsPending: number;
   automationWarnings: string[];
 };

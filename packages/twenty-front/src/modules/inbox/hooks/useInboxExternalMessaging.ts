@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useApolloClient } from '@apollo/client/react';
 import { isDefined } from 'twenty-shared/utils';
 
+import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { EVOLUTION_CONFIGURE_ROUTE } from '@/inbox/constants/EVOLUTION_CONFIGURE_ROUTE';
 import { EVOLUTION_MEDIA_ROUTE } from '@/inbox/constants/EVOLUTION_MEDIA_ROUTE';
 import { EVOLUTION_SEND_TEXT_ROUTE } from '@/inbox/constants/EVOLUTION_SEND_TEXT_ROUTE';
@@ -23,10 +24,12 @@ import {
 import { getUnresolvedSavedReplyVariables } from '@/inbox/utils/renderSavedReplyTemplate';
 import { loadEligibleTwentyEmailChannels } from '@/inbox/utils/loadEligibleTwentyEmailChannels';
 import { postInboxAppRoute } from '@/inbox/utils/postInboxAppRoute';
+import { reconcileInboxAutomationEvaluations } from '@/inbox/utils/reconcileInboxAutomationEvaluations';
 import { readTwentyEmailConversationMetadata } from '@/inbox/utils/readTwentyEmailConversationMetadata';
 import { syncTwentyEmailToInbox } from '@/inbox/utils/syncTwentyEmailToInbox';
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 
 export const useInboxExternalMessaging = ({
   selectedConversation,
@@ -58,6 +61,7 @@ export const useInboxExternalMessaging = ({
   } = useSnackBar();
   const apolloClient = useApolloClient();
   const apolloCoreClient = useApolloCoreClient();
+  const workspaceId = useAtomStateValue(currentWorkspaceState)?.id ?? null;
   // A synchronous guard closes the re-entrant click window before sendEmail.
   // oxlint-disable-next-line twenty/no-state-useref
   const consumedEmailConfirmationTokensRef = useRef(new Set<string>());
@@ -66,6 +70,19 @@ export const useInboxExternalMessaging = ({
   useEffect(() => {
     setTriageResult(null);
   }, [selectedConversationId]);
+
+  // Automation evaluations queued in a previous session/tab stay in
+  // localStorage; flush them on reload instead of waiting for the next
+  // manual sync.
+  useEffect(() => {
+    if (workspaceId === null) {
+      return;
+    }
+
+    void reconcileInboxAutomationEvaluations({ workspaceId }).catch(
+      () => undefined,
+    );
+  }, [workspaceId]);
 
   const getEmailSyncRouting = useCallback(() => {
     const defaultTeam =
@@ -154,12 +171,21 @@ export const useInboxExternalMessaging = ({
   ]);
 
   const syncTwentyEmail = useCallback(async (): Promise<void> => {
+    if (workspaceId === null) {
+      enqueueErrorSnackBar({
+        message: 'A workspace ainda não está pronta para sincronizar.',
+      });
+
+      return;
+    }
+
     setBusyAction('email-sync');
 
     try {
       const result = await syncTwentyEmailToInbox({
         apolloClient,
         apolloCoreClient,
+        workspaceId,
         routing: getEmailSyncRouting(),
       });
 
@@ -174,12 +200,15 @@ export const useInboxExternalMessaging = ({
 
       await refreshInbox();
       const automationSummary =
-        result.automationsApplied > 0
-          ? ` ${result.automationsApplied} automação(ões) aplicada(s).`
+        result.automationEvaluationsQueued > 0
+          ? ` ${result.automationEvaluationsQueued} automação(ões) avaliada(s).`
           : '';
+      // Warnings already carry the honest, specific reason (including
+      // "N pendente(s), tentaremos novamente"); surface them verbatim
+      // instead of a generic pointer to nonexistent history.
       const warningSummary =
         result.automationWarnings.length > 0
-          ? ` ${result.automationWarnings.length} automação(ões) exigem revisão no histórico.`
+          ? ` ${result.automationWarnings.join(' ')}`
           : '';
       const message =
         result.createdMessages > 0
@@ -207,6 +236,7 @@ export const useInboxExternalMessaging = ({
     getEmailSyncRouting,
     refreshInbox,
     setBusyAction,
+    workspaceId,
   ]);
 
   const previewExternalMessage = useCallback(
@@ -479,16 +509,20 @@ export const useInboxExternalMessaging = ({
           );
         }
 
-        let reconciliationSucceeded = true;
+        let reconciliationSucceeded = false;
 
-        try {
-          await syncTwentyEmailToInbox({
-            apolloClient,
-            apolloCoreClient,
-            routing: getEmailSyncRouting(),
-          });
-        } catch {
-          reconciliationSucceeded = false;
+        if (workspaceId !== null) {
+          try {
+            await syncTwentyEmailToInbox({
+              apolloClient,
+              apolloCoreClient,
+              workspaceId,
+              routing: getEmailSyncRouting(),
+            });
+            reconciliationSucceeded = true;
+          } catch {
+            reconciliationSucceeded = false;
+          }
         }
 
         try {
@@ -534,6 +568,7 @@ export const useInboxExternalMessaging = ({
       selectedConversation,
       selectedConversationId,
       setBusyAction,
+      workspaceId,
     ],
   );
 

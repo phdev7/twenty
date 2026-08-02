@@ -18,7 +18,7 @@ import {
 } from '@/inbox/types/twentyEmailSyncTypes';
 import { getRecordName } from '@/inbox/utils/getRecordName';
 import { loadEligibleTwentyEmailChannels } from '@/inbox/utils/loadEligibleTwentyEmailChannels';
-import { triggerInboxAutomationsAfterEmailSync } from '@/inbox/utils/triggerInboxAutomationsAfterEmailSync';
+import { reconcileInboxAutomationEvaluations } from '@/inbox/utils/reconcileInboxAutomationEvaluations';
 
 type NativePersonReference = InboxRecordReference & {
   company?: InboxRecordReference | null;
@@ -370,10 +370,12 @@ const getFirstRespondedAt = (group: ConversationGroup): string | null => {
 export const syncTwentyEmailToInbox = async ({
   apolloClient,
   apolloCoreClient,
+  workspaceId,
   routing,
 }: {
   apolloClient: ApolloClient;
   apolloCoreClient: ApolloClient;
+  workspaceId: string;
   routing?: TwentyEmailSyncRouting;
 }): Promise<TwentyEmailSyncResult> => {
   const channels = await loadEligibleTwentyEmailChannels(apolloClient);
@@ -385,7 +387,8 @@ export const syncTwentyEmailToInbox = async ({
       createdConversations: 0,
       updatedConversations: 0,
       createdMessages: 0,
-      automationsApplied: 0,
+      automationEvaluationsQueued: 0,
+      automationEvaluationsPending: 0,
       automationWarnings: [],
     };
   }
@@ -425,8 +428,7 @@ export const syncTwentyEmailToInbox = async ({
   let createdConversations = 0;
   let updatedConversations = 0;
   let createdMessages = 0;
-  let automationsApplied = 0;
-  const automationWarnings: string[] = [];
+  const newIncomingMessageIds: string[] = [];
 
   for (const group of groups) {
     const contact = getRepresentativeContact(group);
@@ -461,7 +463,6 @@ export const syncTwentyEmailToInbox = async ({
       latestMessage,
     });
     let conversationId = existing?.id;
-    const conversationWasCreated = !conversationId;
 
     if (!conversationId) {
       const firstRespondedAt = getFirstRespondedAt(group);
@@ -569,7 +570,9 @@ export const syncTwentyEmailToInbox = async ({
       const providerMessageKey = buildProviderMessageKey(association);
       const sender = getSenderParticipant(association);
 
-      await apolloCoreClient.mutate({
+      const { data } = await apolloCoreClient.mutate<{
+        createInboxMessage?: { id?: string | null } | null;
+      }>({
         mutation: CREATE_EMAIL_INBOX_MESSAGE,
         variables: {
           data: {
@@ -604,36 +607,19 @@ export const syncTwentyEmailToInbox = async ({
 
       existingMessageKeys.add(providerMessageKey);
       createdMessages += 1;
-    }
 
-    const latestProviderMessageKey = buildProviderMessageKey(latestMessage);
-    const latestMessageWasCreated = missingMessages.some(
-      (message) =>
-        buildProviderMessageKey(message) === latestProviderMessageKey,
-    );
+      const createdInboxMessageId = data?.createInboxMessage?.id;
 
-    if (isIncoming(latestMessage) && latestMessageWasCreated) {
-      try {
-        const automationResult = await triggerInboxAutomationsAfterEmailSync({
-          conversationId,
-          trigger: conversationWasCreated
-            ? 'CONVERSATION_CREATED'
-            : 'INBOUND_MESSAGE_CREATED',
-          triggerKey: latestProviderMessageKey,
-          messageBody: latestMessage.message?.text,
-        });
-
-        automationsApplied += automationResult.applied;
-        automationWarnings.push(...automationResult.warnings);
-      } catch (error) {
-        automationWarnings.push(
-          error instanceof Error
-            ? error.message
-            : 'A automação da Inbox não pôde ser avaliada.',
-        );
+      if (isIncoming(association) && createdInboxMessageId) {
+        newIncomingMessageIds.push(createdInboxMessageId);
       }
     }
   }
+
+  const automationReconciliation = await reconcileInboxAutomationEvaluations({
+    workspaceId,
+    messageIds: newIncomingMessageIds,
+  });
 
   return {
     eligibleChannels: channels.length,
@@ -641,7 +627,10 @@ export const syncTwentyEmailToInbox = async ({
     createdConversations,
     updatedConversations,
     createdMessages,
-    automationsApplied,
-    automationWarnings,
+    automationEvaluationsQueued:
+      automationReconciliation.queuedCount +
+      automationReconciliation.alreadyQueuedCount,
+    automationEvaluationsPending: automationReconciliation.pendingCount,
+    automationWarnings: automationReconciliation.warnings,
   };
 };
