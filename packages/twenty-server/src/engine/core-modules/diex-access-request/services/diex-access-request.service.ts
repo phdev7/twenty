@@ -8,9 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { type ObjectLiteral, IsNull, Repository } from 'typeorm';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 
+import {
+  AppTokenDeliveryStatus,
+  type AppTokenEntity,
+} from 'src/engine/core-modules/app-token/app-token.entity';
 import { SignInUpService } from 'src/engine/core-modules/auth/services/sign-in-up.service';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
-import { CacheLockService } from 'src/engine/core-modules/cache-lock/cache-lock.service';
 import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomain-manager/services/subdomain-manager.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { UserService } from 'src/engine/core-modules/user/services/user.service';
@@ -34,6 +37,19 @@ const ACCESS_REQUEST_FIELD_MAX_LENGTH = 200;
 const ACCESS_REQUEST_GOAL_MAX_LENGTH = 1_000;
 const ACCESS_REQUEST_MAX_SUBMISSIONS_PER_EMAIL = 25;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+type ApproveRequestParams = {
+  requestId: string;
+  requestedSubdomain: string;
+  operatorWorkspaceId: string;
+  operator: AuthContextUser;
+};
+
+type RetryInvitationParams = {
+  requestId: string;
+  operatorWorkspaceId: string;
+  operator: AuthContextUser;
+};
 
 const readText = (value: unknown, maxLength: number): string | null => {
   if (typeof value !== 'string') {
@@ -80,7 +96,6 @@ const readSubdomain = (value: unknown): string | null => {
 export class DiexAccessRequestService {
   constructor(
     private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
-    private readonly cacheLockService: CacheLockService,
     private readonly signInUpService: SignInUpService,
     private readonly userService: UserService,
     private readonly subdomainManagerService: SubdomainManagerService,
@@ -108,6 +123,23 @@ export class DiexAccessRequestService {
       },
       buildSystemAuthContext(workspaceId),
     );
+  }
+
+  private async withRequestTransactionLock<T>(
+    requestId: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    return this.workspaceRepository.manager.transaction(async (manager) => {
+      // A transaction-scoped Postgres advisory lock belongs to this exact DB
+      // connection. It has no expiring lease and another execution cannot
+      // release it, so reserve/create/recover/release stay one critical cycle.
+      await manager.query(
+        'SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))',
+        [`diex-access-request:${requestId}`],
+      );
+
+      return operation();
+    });
   }
 
   async submitPublicRequest(
@@ -194,17 +226,20 @@ export class DiexAccessRequestService {
     });
   }
 
-  async approveRequest({
+  async approveRequest(
+    params: ApproveRequestParams,
+  ): Promise<ApproveDiexAccessRequestDTO> {
+    return this.withRequestTransactionLock(params.requestId, () =>
+      this.approveRequestWithinLock(params),
+    );
+  }
+
+  private async approveRequestWithinLock({
     requestId,
     requestedSubdomain,
     operatorWorkspaceId,
     operator,
-  }: {
-    requestId: string;
-    requestedSubdomain: string;
-    operatorWorkspaceId: string;
-    operator: AuthContextUser;
-  }): Promise<ApproveDiexAccessRequestDTO> {
+  }: ApproveRequestParams): Promise<ApproveDiexAccessRequestDTO> {
     const normalizedSubdomain = requestedSubdomain.trim().toLowerCase();
     let request = await this.withRepository(operatorWorkspaceId, (repository) =>
       repository.findOne({ where: { id: requestId } }),
@@ -219,21 +254,9 @@ export class DiexAccessRequestService {
     });
 
     if (!workspace && request.status === DiexAccessRequestStatus.APPROVED) {
-      if (!request.provisionedSubdomain) {
-        throw new BadRequestException(
-          'A solicitação aprovada não possui um endereço recuperável.',
-        );
-      }
-
-      workspace = await this.workspaceRepository.findOne({
-        where: { subdomain: request.provisionedSubdomain },
-      });
-
-      if (!workspace) {
-        throw new BadRequestException(
-          'A solicitação consta como aprovada, mas o workspace entregue não foi encontrado.',
-        );
-      }
+      throw new BadRequestException(
+        'A solicitação consta como aprovada, mas o workspace determinístico não foi encontrado.',
+      );
     }
 
     if (!workspace) {
@@ -383,18 +406,34 @@ export class DiexAccessRequestService {
       );
     }
 
-    await this.withRepository(operatorWorkspaceId, (repository) =>
-      repository.update(
-        {
-          id: request.id,
-          provisionedSubdomain: currentReservation ?? IsNull(),
-        },
-        {
-          provisionedSubdomain: requestedSubdomain,
-          status: DiexAccessRequestStatus.NEGOTIATING,
-        },
-      ),
+    const updateResult = await this.withRepository(
+      operatorWorkspaceId,
+      async (repository) => {
+        const workspaceImmediatelyBeforeCas =
+          await this.workspaceRepository.findOne({
+            where: { id: request.id },
+          });
+
+        if (workspaceImmediatelyBeforeCas) {
+          return null;
+        }
+
+        return repository.update(
+          {
+            id: request.id,
+            provisionedSubdomain: currentReservation ?? IsNull(),
+          },
+          {
+            provisionedSubdomain: requestedSubdomain,
+            status: DiexAccessRequestStatus.NEGOTIATING,
+          },
+        );
+      },
     );
+
+    if (updateResult === null) {
+      return request;
+    }
 
     const refreshedRequest = await this.withRepository(
       operatorWorkspaceId,
@@ -405,7 +444,10 @@ export class DiexAccessRequestService {
       throw new NotFoundException('Solicitação de acesso não encontrada.');
     }
 
-    if (refreshedRequest.provisionedSubdomain !== requestedSubdomain) {
+    if (
+      (updateResult.affected ?? 0) === 0 ||
+      refreshedRequest.provisionedSubdomain !== requestedSubdomain
+    ) {
       throw new BadRequestException(
         'A reserva mudou durante a aprovação. Atualize a fila antes de tentar novamente.',
       );
@@ -440,30 +482,44 @@ export class DiexAccessRequestService {
       return false;
     }
 
-    const updateResult = await this.withRepository(
+    const releaseResult = await this.withRepository(
       operatorWorkspaceId,
-      (repository) =>
-        repository.update(
+      async (repository) => {
+        const workspaceImmediatelyBeforeCas =
+          await this.workspaceRepository.findOne({
+            where: { id: requestId },
+          });
+
+        if (workspaceImmediatelyBeforeCas) {
+          return null;
+        }
+
+        return repository.update(
           { id: requestId, provisionedSubdomain: reservedSubdomain },
           {
             provisionedSubdomain: null,
             status: DiexAccessRequestStatus.NEGOTIATING,
           },
-        ),
+        );
+      },
     );
 
-    return (updateResult.affected ?? 0) > 0;
+    return releaseResult !== null && (releaseResult.affected ?? 0) > 0;
   }
 
-  async retryInvitation({
+  async retryInvitation(
+    params: RetryInvitationParams,
+  ): Promise<RetryDiexAccessRequestInvitationDTO> {
+    return this.withRequestTransactionLock(params.requestId, () =>
+      this.retryInvitationWithinLock(params),
+    );
+  }
+
+  private async retryInvitationWithinLock({
     requestId,
     operatorWorkspaceId,
     operator,
-  }: {
-    requestId: string;
-    operatorWorkspaceId: string;
-    operator: AuthContextUser;
-  }): Promise<RetryDiexAccessRequestInvitationDTO> {
+  }: RetryInvitationParams): Promise<RetryDiexAccessRequestInvitationDTO> {
     const request = await this.withRepository(
       operatorWorkspaceId,
       (repository) => repository.findOne({ where: { id: requestId } }),
@@ -482,15 +538,9 @@ export class DiexAccessRequestService {
       );
     }
 
-    let workspace = await this.workspaceRepository.findOne({
+    const workspace = await this.workspaceRepository.findOne({
       where: { id: requestId },
     });
-
-    if (!workspace) {
-      workspace = await this.workspaceRepository.findOne({
-        where: { subdomain: request.provisionedSubdomain },
-      });
-    }
 
     if (!workspace || workspace.subdomain !== request.provisionedSubdomain) {
       throw new BadRequestException(
@@ -518,58 +568,120 @@ export class DiexAccessRequestService {
 
     const normalizedEmail = request.email.toLowerCase();
 
-    return this.cacheLockService.withLock(
-      async () => {
-        const existingInvitation =
-          await this.workspaceInvitationService.getOneWorkspaceInvitation(
-            workspace.id,
-            normalizedEmail,
-          );
+    return this.retryInvitationDelivery({
+      workspace,
+      normalizedEmail,
+      preferredUserId: operator.id,
+    });
+  }
 
-        if (existingInvitation) {
-          return {
-            invitationReady: true,
-            message:
-              'O convite já está gerado. Use Membros no workspace para reenviá-lo, se necessário.',
-          };
-        }
+  private async retryInvitationDelivery({
+    workspace,
+    normalizedEmail,
+    preferredUserId,
+  }: {
+    workspace: WorkspaceEntity;
+    normalizedEmail: string;
+    preferredUserId: string;
+  }): Promise<RetryDiexAccessRequestInvitationDTO> {
+    const existingInvitations =
+      await this.workspaceInvitationService.getWorkspaceInvitationsForEmail(
+        workspace.id,
+        normalizedEmail,
+      );
+    const alreadySentInvitation = existingInvitations.find((invitation) =>
+      this.isActiveSentInvitation(invitation),
+    );
 
-        const sender = await this.findInvitationSender({
-          workspaceId: workspace.id,
-          preferredUserId: operator.id,
-        });
+    if (alreadySentInvitation) {
+      return {
+        invitationReady: true,
+        message: `O envio para ${normalizedEmail} já foi confirmado.`,
+      };
+    }
 
-        if (!sender) {
-          return {
-            invitationReady: false,
-            message:
-              'O workspace está ativo, mas ainda não possui um membro remetente. Abra o workspace e tente novamente.',
-          };
-        }
+    // PENDING means token persistence succeeded but dispatch did not. Legacy,
+    // expired, revoked and removed tokens are also not usable. Delete by exact
+    // token ID + workspace before generating one fresh, active invitation.
+    for (const invitation of existingInvitations) {
+      await this.workspaceInvitationService.deleteWorkspaceInvitation(
+        invitation.id,
+        workspace.id,
+      );
+    }
 
-        const invitation =
-          await this.workspaceInvitationService.sendInvitations(
-            [normalizedEmail],
-            workspace,
-            sender,
-          );
+    const invitationsAfterCleanup =
+      await this.workspaceInvitationService.getWorkspaceInvitationsForEmail(
+        workspace.id,
+        normalizedEmail,
+      );
 
-        if (!invitation.success) {
-          return {
-            invitationReady: false,
-            message:
-              invitation.errors[0] ??
-              'Não foi possível gerar o convite. Tente novamente pela fila ou por Membros.',
-          };
-        }
+    if (invitationsAfterCleanup.length > 0) {
+      return {
+        invitationReady: false,
+        message:
+          'O estado do convite mudou durante a recuperação. Atualize a fila antes de tentar novamente.',
+      };
+    }
 
-        return {
-          invitationReady: true,
-          message: `Convite enviado para ${normalizedEmail}.`,
-        };
-      },
-      `diex-access-request-invitation:${requestId}`,
-      { ttl: 60_000, maxRetries: 300 },
+    const sender = await this.findInvitationSender({
+      workspaceId: workspace.id,
+      preferredUserId,
+    });
+
+    if (!sender) {
+      return {
+        invitationReady: false,
+        message:
+          'O workspace está ativo, mas ainda não possui um membro remetente. Abra o workspace e tente novamente.',
+      };
+    }
+
+    const invitation = await this.workspaceInvitationService.sendInvitations(
+      [normalizedEmail],
+      workspace,
+      sender,
+    );
+
+    if (!invitation.success) {
+      return {
+        invitationReady: false,
+        message:
+          invitation.errors[0] ??
+          'Não foi possível enviar o convite. Tente novamente pela fila ou por Membros.',
+      };
+    }
+
+    const deliveredInvitations =
+      await this.workspaceInvitationService.getWorkspaceInvitationsForEmail(
+        workspace.id,
+        normalizedEmail,
+      );
+    const sentInvitation = deliveredInvitations.find((invitation) =>
+      this.isActiveSentInvitation(invitation),
+    );
+
+    if (!sentInvitation) {
+      return {
+        invitationReady: false,
+        message:
+          'O token foi criado, mas o envio não pôde ser confirmado. Tente novamente.',
+      };
+    }
+
+    return {
+      invitationReady: true,
+      message: `Convite enviado para ${normalizedEmail}.`,
+    };
+  }
+
+  private isActiveSentInvitation(invitation: AppTokenEntity): boolean {
+    return (
+      invitation.deletedAt === null &&
+      invitation.revokedAt === null &&
+      invitation.expiresAt.getTime() > Date.now() &&
+      Boolean(invitation.value) &&
+      invitation.context?.deliveryStatus === AppTokenDeliveryStatus.SENT
     );
   }
 

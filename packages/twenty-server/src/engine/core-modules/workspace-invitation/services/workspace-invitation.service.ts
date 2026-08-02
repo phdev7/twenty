@@ -13,6 +13,7 @@ import { getAppPath, isDefined } from 'twenty-shared/utils';
 import { In, IsNull, Repository } from 'typeorm';
 
 import {
+  AppTokenDeliveryStatus,
   AppTokenEntity,
   AppTokenType,
 } from 'src/engine/core-modules/app-token/app-token.entity';
@@ -120,6 +121,22 @@ export class WorkspaceInvitationService {
       })
       .andWhere('"appToken".context->>\'email\' = :email', { email })
       .getOne();
+  }
+
+  async getWorkspaceInvitationsForEmail(workspaceId: string, email: string) {
+    return await this.appTokenRepository
+      .createQueryBuilder('appToken')
+      .where('"appToken"."workspaceId" = :workspaceId', {
+        workspaceId,
+      })
+      .andWhere('"appToken".type IN (:...types)', {
+        types: INVITATION_APP_TOKEN_TYPES,
+      })
+      .andWhere('"appToken".context->>\'email\' = :email', {
+        email: email.toLowerCase(),
+      })
+      .orderBy('"appToken"."createdAt"', 'DESC')
+      .getMany();
   }
 
   async getAppTokenByInvitationToken(invitationToken: string) {
@@ -377,6 +394,8 @@ export class WorkspaceInvitationService {
           text,
           html,
         });
+
+        await this.markInvitationAsSent(invitation.value.appToken);
       }
     }
 
@@ -445,11 +464,44 @@ export class WorkspaceInvitationService {
       value: crypto.randomBytes(32).toString('hex'),
       context: {
         email,
+        deliveryStatus: AppTokenDeliveryStatus.PENDING,
         ...(isDefined(roleId) ? { roleId } : {}),
       },
     });
 
     return this.appTokenRepository.save(invitationToken);
+  }
+
+  private async markInvitationAsSent(appToken: AppTokenEntity): Promise<void> {
+    if (!appToken.context?.email) {
+      throw new WorkspaceInvitationException(
+        'Invitation email is missing before delivery confirmation',
+        WorkspaceInvitationExceptionCode.EMAIL_MISSING,
+      );
+    }
+
+    const context = {
+      ...appToken.context,
+      deliveryStatus: AppTokenDeliveryStatus.SENT,
+      sentAt: new Date().toISOString(),
+    };
+    const updateResult = await this.appTokenRepository.update(
+      {
+        id: appToken.id,
+        deletedAt: IsNull(),
+        revokedAt: IsNull(),
+      },
+      { context },
+    );
+
+    if ((updateResult.affected ?? 0) === 0) {
+      throw new WorkspaceInvitationException(
+        'Invitation became unavailable before delivery could be confirmed',
+        WorkspaceInvitationExceptionCode.INVALID_INVITATION,
+      );
+    }
+
+    appToken.context = context;
   }
 
   private async throwIfOnboardingInvitationLimitReached(

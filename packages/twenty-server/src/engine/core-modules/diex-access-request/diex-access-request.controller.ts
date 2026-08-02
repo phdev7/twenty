@@ -46,28 +46,6 @@ export class DiexAccessRequestController {
     }
   }
 
-  private readPublicOrigin(request: Request): string | null {
-    const origin = request.get('origin');
-
-    if (origin) {
-      return this.parseOrigin(origin);
-    }
-
-    const referer = request.get('referer');
-
-    if (referer) {
-      const refererOrigin = this.parseOrigin(referer);
-
-      if (refererOrigin) {
-        return refererOrigin;
-      }
-
-      return null;
-    }
-
-    return this.parseOrigin(getRequestBaseUrl(request));
-  }
-
   private readConfiguredPublicOrigin(): string | null {
     const configuredOrigin = this.twentyConfigService
       .get('ACCESS_REQUEST_INBOX_PUBLIC_ORIGIN')
@@ -88,11 +66,18 @@ export class DiexAccessRequestController {
       .get('ACCESS_REQUEST_INBOX_WORKSPACE_ID')
       .trim();
     const configuredPublicOrigin = this.readConfiguredPublicOrigin();
+    const receivedPublicOrigin = this.parseOrigin(getRequestBaseUrl(request));
+    const originHeader = request.get('origin');
+    const refererHeader = request.get('referer');
 
     if (
       !isValidUuid(configuredWorkspaceId) ||
       !configuredPublicOrigin ||
-      this.readPublicOrigin(request) !== configuredPublicOrigin
+      receivedPublicOrigin !== configuredPublicOrigin ||
+      (originHeader !== undefined &&
+        this.parseOrigin(originHeader) !== configuredPublicOrigin) ||
+      (refererHeader !== undefined &&
+        this.parseOrigin(refererHeader) !== configuredPublicOrigin)
     ) {
       throw new NotFoundException();
     }
