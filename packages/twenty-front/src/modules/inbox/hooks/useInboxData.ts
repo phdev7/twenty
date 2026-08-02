@@ -54,11 +54,15 @@ export const useInboxData = () => {
     refetchMessages,
   } = useInboxMessagesQuery(selectedConversationId);
 
-  const { conversationMentions, pendingMentions, refetchMentions } =
-    useInboxMentionsQuery({
-      selectedConversationId,
-      currentWorkspaceMemberId,
-    });
+  const {
+    conversationMentions,
+    pendingMentions,
+    arePendingMentionsLoaded,
+    refetchMentions,
+  } = useInboxMentionsQuery({
+    selectedConversationId,
+    currentWorkspaceMemberId,
+  });
 
   const {
     conversationEvents,
@@ -161,14 +165,32 @@ export const useInboxData = () => {
     [setSelectedConversationId],
   );
 
-  // A failed optimistic mark-as-read may roll the cache back. That rollback
-  // must not retry until the operator makes a new selection.
+  // A failed optimistic mark-as-read may roll the cache back. Track the
+  // conversation operation and each concrete mention separately, so rollback
+  // cannot retry forever while mentions loaded after auto-selection still get
+  // one attempt.
   // oxlint-disable-next-line twenty/no-state-useref
-  const readSideEffectsAttemptedConversationIdRef = useRef<string | null>(null);
+  const readSideEffectsStateRef = useRef<{
+    conversationId: string;
+    conversationReadAttempted: boolean;
+    attemptedMentionIds: Set<string>;
+  } | null>(null);
+  // oxlint-disable-next-line twenty/no-state-useref
+  const selectedConversationIdRef = useRef(selectedConversationId);
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId;
+
+    return () => {
+      if (selectedConversationIdRef.current === selectedConversationId) {
+        selectedConversationIdRef.current = null;
+      }
+    };
+  }, [selectedConversationId]);
 
   useEffect(() => {
     if (selectedConversationId === null) {
-      readSideEffectsAttemptedConversationIdRef.current = null;
+      readSideEffectsStateRef.current = null;
 
       return;
     }
@@ -178,19 +200,56 @@ export const useInboxData = () => {
       selectedConversation ??
       undefined;
 
-    if (
-      conversation === undefined ||
-      readSideEffectsAttemptedConversationIdRef.current ===
-        selectedConversationId
-    ) {
+    if (conversation === undefined) {
       return;
     }
 
-    readSideEffectsAttemptedConversationIdRef.current = selectedConversationId;
+    if (
+      readSideEffectsStateRef.current?.conversationId !== selectedConversationId
+    ) {
+      readSideEffectsStateRef.current = {
+        conversationId: selectedConversationId,
+        conversationReadAttempted: false,
+        attemptedMentionIds: new Set(),
+      };
+    }
 
-    void selectConversationSideEffects(conversation);
+    const readState = readSideEffectsStateRef.current;
+    const markConversationAsRead =
+      !readState.conversationReadAttempted && conversation.unreadCount > 0;
+
+    readState.conversationReadAttempted = true;
+
+    const unreadMentions = arePendingMentionsLoaded
+      ? pendingMentions.filter(
+          (mention) =>
+            mention.inboxConversation?.id === selectedConversationId &&
+            mention.mentionedWorkspaceMember?.id === currentWorkspaceMemberId &&
+            mention.status === 'UNREAD' &&
+            !readState.attemptedMentionIds.has(mention.id),
+        )
+      : [];
+
+    for (const mention of unreadMentions) {
+      readState.attemptedMentionIds.add(mention.id);
+    }
+
+    if (!markConversationAsRead && unreadMentions.length === 0) {
+      return;
+    }
+
+    void selectConversationSideEffects({
+      conversation,
+      markConversationAsRead,
+      unreadMentions,
+      isSelectionCurrent: () =>
+        selectedConversationIdRef.current === selectedConversationId,
+    });
   }, [
+    arePendingMentionsLoaded,
     conversations,
+    currentWorkspaceMemberId,
+    pendingMentions,
     selectConversationSideEffects,
     selectedConversation,
     selectedConversationId,

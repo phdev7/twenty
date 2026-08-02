@@ -241,18 +241,29 @@ export const useInboxNotesAndMentions = ({
   );
 
   const selectConversationSideEffects = useCallback(
-    async (conversation: InboxConversation | undefined): Promise<void> => {
-      const unreadMentions = pendingMentions.filter(
+    async ({
+      conversation,
+      markConversationAsRead,
+      unreadMentions,
+      isSelectionCurrent,
+    }: {
+      conversation: InboxConversation;
+      markConversationAsRead: boolean;
+      unreadMentions: InboxMention[];
+      isSelectionCurrent: () => boolean;
+    }): Promise<void> => {
+      if (!isSelectionCurrent()) {
+        return;
+      }
+
+      const mentionsToMarkAsRead = unreadMentions.filter(
         (mention) =>
-          mention.inboxConversation?.id === conversation?.id &&
+          mention.inboxConversation?.id === conversation.id &&
           mention.mentionedWorkspaceMember?.id === currentWorkspaceMemberId &&
           mention.status === 'UNREAD',
       );
 
-      if (
-        (!conversation || conversation.unreadCount <= 0) &&
-        unreadMentions.length === 0
-      ) {
+      if (!markConversationAsRead && mentionsToMarkAsRead.length === 0) {
         return;
       }
 
@@ -260,7 +271,7 @@ export const useInboxNotesAndMentions = ({
 
       try {
         const results = await Promise.allSettled([
-          ...(conversation && conversation.unreadCount > 0
+          ...(markConversationAsRead
             ? [
                 updateConversation({
                   objectNameSingular: 'inboxConversation',
@@ -269,7 +280,7 @@ export const useInboxNotesAndMentions = ({
                 }),
               ]
             : []),
-          ...unreadMentions.map((mention) =>
+          ...mentionsToMarkAsRead.map((mention) =>
             updateMention({
               objectNameSingular: 'inboxMention',
               idToUpdate: mention.id,
@@ -278,24 +289,25 @@ export const useInboxNotesAndMentions = ({
           ),
         ]);
 
-        if (unreadMentions.length > 0) {
-          void refetchMentions();
+        if (mentionsToMarkAsRead.length > 0) {
+          void refetchMentions().catch(() => undefined);
         }
 
         if (results.some(({ status }) => status === 'rejected')) {
           throw new Error('partial-sync-failure');
         }
       } catch {
-        enqueueWarningSnackBar({
-          message:
-            'A conversa foi aberta, mas parte dos indicadores não pôde ser sincronizada.',
-        });
+        if (isSelectionCurrent()) {
+          enqueueWarningSnackBar({
+            message:
+              'A conversa foi aberta, mas parte dos indicadores não pôde ser sincronizada.',
+          });
+        }
       }
     },
     [
       currentWorkspaceMemberId,
       enqueueWarningSnackBar,
-      pendingMentions,
       refetchMentions,
       updateConversation,
       updateMention,
