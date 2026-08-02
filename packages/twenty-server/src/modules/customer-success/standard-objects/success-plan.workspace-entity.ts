@@ -11,9 +11,9 @@ import { type SuccessMilestoneWorkspaceEntity } from 'src/modules/customer-succe
 import { type CustomerRenewalWorkspaceEntity } from 'src/modules/renewal/standard-objects/customer-renewal.workspace-entity';
 
 export class SuccessPlanWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  lifecycle: string;
-  health: string;
+  name: string | null;
+  lifecycle: string | null;
+  health: string | null;
   healthScore: number | null;
   activeUseRating: string | null;
   valueEvidenceRating: string | null;

@@ -5,10 +5,10 @@ import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migr
 import { type AiActionWorkspaceEntity } from 'src/modules/ai-governance/standard-objects/ai-action.workspace-entity';
 
 export class CommercialSignalWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  signalType: string;
-  source: string;
-  status: string;
+  name: string | null;
+  signalType: string | null;
+  source: string | null;
+  status: string | null;
   strength: string | null;
   evidence: RichTextMetadata | null;
   recommendedAction: RichTextMetadata | null;

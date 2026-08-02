@@ -56,6 +56,9 @@ export const DIEX_STANDARD_OBJECTS = {
       legacyDiexIdUniqueIndex: {
         universalIdentifier: '10fa8bca-ea90-5a0b-95cb-7fc2de1e8ed3',
       },
+      searchVectorGinIndex: {
+        universalIdentifier: 'be4a9232-bbe2-536b-a71a-99567f6af1e9',
+      },
     },
   },
   successMilestone: {
@@ -82,6 +85,9 @@ export const DIEX_STANDARD_OBJECTS = {
     indexes: {
       legacyDiexIdUniqueIndex: {
         universalIdentifier: '92710c86-3fdd-5142-8c77-74bdaf13cffe',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: 'a71298fe-e74c-58f2-bfd7-3693b88b7f72',
       },
     },
   },
@@ -133,6 +139,9 @@ export const DIEX_STANDARD_OBJECTS = {
       legacyDiexIdUniqueIndex: {
         universalIdentifier: '3b5b6dec-1bf5-519e-b5e1-6b72492fc4b9',
       },
+      searchVectorGinIndex: {
+        universalIdentifier: '145331c0-28f7-5f7e-84ef-0099fb0f6b8a',
+      },
     },
   },
   customerRenewalEvent: {
@@ -151,7 +160,11 @@ export const DIEX_STANDARD_OBJECTS = {
         universalIdentifier: 'd1e14300-0000-4000-8000-000000000004',
       },
     },
-    indexes: {},
+    indexes: {
+      searchVectorGinIndex: {
+        universalIdentifier: '4fe31400-be4a-5a11-be85-9e83979d1f29',
+      },
+    },
   },
   commercialSignal: {
     universalIdentifier: 'd1e02000-0000-4000-8000-000000000001',
@@ -194,6 +207,9 @@ export const DIEX_STANDARD_OBJECTS = {
       legacyDiexIdUniqueIndex: {
         universalIdentifier: 'd09f0f5b-40a5-567c-99de-bcb31662eed6',
       },
+      searchVectorGinIndex: {
+        universalIdentifier: 'b9415b25-3396-583c-91fe-2d27c5b6c704',
+      },
     },
   },
   offer: {
@@ -233,6 +249,9 @@ export const DIEX_STANDARD_OBJECTS = {
     indexes: {
       legacyDiexIdUniqueIndex: {
         universalIdentifier: '950b86fd-0fbb-5a47-84c9-1f1908916dea',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: 'ada7e0e3-a5dd-5f5f-99f9-f0f25f8497e2',
       },
     },
   },
@@ -282,6 +301,9 @@ export const DIEX_STANDARD_OBJECTS = {
     indexes: {
       idempotencyKeyUniqueIndex: {
         universalIdentifier: '6f16603f-70e6-5c55-a406-4a1200b1e6d9',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: 'fc602e66-bc04-575b-8e55-5749c34359b7',
       },
     },
   },

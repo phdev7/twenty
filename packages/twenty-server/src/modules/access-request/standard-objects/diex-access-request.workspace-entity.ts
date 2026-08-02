@@ -3,8 +3,8 @@ import { type RichTextMetadata } from 'twenty-shared/types';
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
 
 export class DiexAccessRequestWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  status: string;
+  name: string | null;
+  status: string | null;
   contactName: string | null;
   email: string | null;
   whatsapp: string | null;
