@@ -11,10 +11,10 @@ import { type CustomerRenewalEventWorkspaceEntity } from 'src/modules/renewal/st
 import { type SuccessPlanWorkspaceEntity } from 'src/modules/customer-success/standard-objects/success-plan.workspace-entity';
 
 export class CustomerRenewalWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  stage: string;
-  risk: string;
-  forecast: string;
+  name: string | null;
+  stage: string | null;
+  risk: string | null;
+  forecast: string | null;
   renewalValue: CurrencyMetadata | null;
   probability: number | null;
   targetDate: Date | null;

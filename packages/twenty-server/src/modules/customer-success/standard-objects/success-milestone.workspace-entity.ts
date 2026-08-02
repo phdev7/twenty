@@ -5,9 +5,9 @@ import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migr
 import { type SuccessPlanWorkspaceEntity } from 'src/modules/customer-success/standard-objects/success-plan.workspace-entity';
 
 export class SuccessMilestoneWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  category: string;
-  status: string;
+  name: string | null;
+  category: string | null;
+  status: string | null;
   dueAt: Date | null;
   completedAt: Date | null;
   outcome: RichTextMetadata | null;

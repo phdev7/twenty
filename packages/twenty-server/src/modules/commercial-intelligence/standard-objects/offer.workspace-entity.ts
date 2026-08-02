@@ -6,8 +6,8 @@ import {
 import { BaseWorkspaceEntity } from 'src/engine/twenty-orm/base.workspace-entity';
 
 export class OfferWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  status: string;
+  name: string | null;
+  status: string | null;
   category: string | null;
   pricingModel: string | null;
   basePrice: CurrencyMetadata | null;

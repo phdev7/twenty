@@ -33,6 +33,7 @@ import { type CreateStandardIndexArgs } from 'src/engine/workspace-manager/twent
 import {
   buildAiActionStandardFlatIndexMetadatas,
   buildCommercialSignalStandardFlatIndexMetadatas,
+  buildCustomerRenewalEventStandardFlatIndexMetadatas,
   buildCustomerRenewalStandardFlatIndexMetadatas,
   buildDiexAccessRequestStandardFlatIndexMetadatas,
   buildDiexWorkspaceContextStandardFlatIndexMetadatas,
@@ -70,6 +71,7 @@ const STANDARD_FLAT_INDEX_METADATA_BUILDERS_BY_OBJECT_NAME = {
   company: buildCompanyStandardFlatIndexMetadatas,
   commercialSignal: buildCommercialSignalStandardFlatIndexMetadatas,
   customerRenewal: buildCustomerRenewalStandardFlatIndexMetadatas,
+  customerRenewalEvent: buildCustomerRenewalEventStandardFlatIndexMetadatas,
   dashboard: buildDashboardStandardFlatIndexMetadatas,
   diexAccessRequest: buildDiexAccessRequestStandardFlatIndexMetadatas,
   diexWorkspaceContext: buildDiexWorkspaceContextStandardFlatIndexMetadatas,

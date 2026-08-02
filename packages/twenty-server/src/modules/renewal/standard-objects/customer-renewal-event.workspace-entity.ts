@@ -3,10 +3,10 @@ import { type EntityRelation } from 'src/engine/workspace-manager/workspace-migr
 import { type CustomerRenewalWorkspaceEntity } from 'src/modules/renewal/standard-objects/customer-renewal.workspace-entity';
 
 export class CustomerRenewalEventWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  eventType: string;
-  summary: string;
-  occurredAt: Date;
+  name: string | null;
+  eventType: string | null;
+  summary: string | null;
+  occurredAt: Date | null;
   customerRenewal: EntityRelation<CustomerRenewalWorkspaceEntity> | null;
   customerRenewalId: string | null;
 }

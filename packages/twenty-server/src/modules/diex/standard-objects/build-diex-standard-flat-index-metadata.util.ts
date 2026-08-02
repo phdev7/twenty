@@ -15,7 +15,7 @@ const DIEX_STANDARD_INDEX_CONFIGS = {
         indexName: 'idempotencyKeyUniqueIndex',
       },
     ],
-    isSearchable: false,
+    isSearchable: true,
   },
   commercialSignal: {
     uniqueIndexes: [
@@ -28,7 +28,7 @@ const DIEX_STANDARD_INDEX_CONFIGS = {
         indexName: 'legacyDiexIdUniqueIndex',
       },
     ],
-    isSearchable: false,
+    isSearchable: true,
   },
   customerRenewal: {
     uniqueIndexes: [
@@ -37,7 +37,11 @@ const DIEX_STANDARD_INDEX_CONFIGS = {
         indexName: 'legacyDiexIdUniqueIndex',
       },
     ],
-    isSearchable: false,
+    isSearchable: true,
+  },
+  customerRenewalEvent: {
+    uniqueIndexes: [],
+    isSearchable: true,
   },
   diexAccessRequest: {
     uniqueIndexes: [],
@@ -54,7 +58,7 @@ const DIEX_STANDARD_INDEX_CONFIGS = {
         indexName: 'legacyDiexIdUniqueIndex',
       },
     ],
-    isSearchable: false,
+    isSearchable: true,
   },
   successMilestone: {
     uniqueIndexes: [
@@ -63,7 +67,7 @@ const DIEX_STANDARD_INDEX_CONFIGS = {
         indexName: 'legacyDiexIdUniqueIndex',
       },
     ],
-    isSearchable: false,
+    isSearchable: true,
   },
   successPlan: {
     uniqueIndexes: [
@@ -72,7 +76,7 @@ const DIEX_STANDARD_INDEX_CONFIGS = {
         indexName: 'legacyDiexIdUniqueIndex',
       },
     ],
-    isSearchable: false,
+    isSearchable: true,
   },
 } as const;
 
@@ -128,6 +132,10 @@ export const buildCommercialSignalStandardFlatIndexMetadatas = (
 
 export const buildCustomerRenewalStandardFlatIndexMetadatas = (
   args: Omit<CreateStandardIndexArgs<'customerRenewal'>, 'context'>,
+) => buildDiexStandardFlatIndexMetadatas(args);
+
+export const buildCustomerRenewalEventStandardFlatIndexMetadatas = (
+  args: Omit<CreateStandardIndexArgs<'customerRenewalEvent'>, 'context'>,
 ) => buildDiexStandardFlatIndexMetadatas(args);
 
 export const buildDiexAccessRequestStandardFlatIndexMetadatas = (

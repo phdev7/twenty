@@ -8,9 +8,9 @@ import { type InboxConversationWorkspaceEntity } from 'src/modules/inbox/standar
 import { type CustomerRenewalWorkspaceEntity } from 'src/modules/renewal/standard-objects/customer-renewal.workspace-entity';
 
 export class AiActionWorkspaceEntity extends BaseWorkspaceEntity {
-  name: string;
-  actionType: string;
-  status: string;
+  name: string | null;
+  actionType: string | null;
+  status: string | null;
   confidence: number | null;
   rationale: RichTextMetadata | null;
   proposedAction: RichTextMetadata | null;
@@ -19,7 +19,7 @@ export class AiActionWorkspaceEntity extends BaseWorkspaceEntity {
   approvedAt: Date | null;
   executedAt: Date | null;
   executionReceipt: RichTextMetadata | null;
-  requiresApproval: boolean;
+  requiresApproval: boolean | null;
   idempotencyKey: string | null;
   commercialSignal: EntityRelation<CommercialSignalWorkspaceEntity> | null;
   commercialSignalId: string | null;
