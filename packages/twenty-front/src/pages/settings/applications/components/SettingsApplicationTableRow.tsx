@@ -27,7 +27,7 @@ export const APPLICATION_TABLE_ROW_GRID_TEMPLATE_COLUMNS =
   '164px 80px minmax(0, 1fr) 36px';
 
 const SOURCE_TYPE_LABELS: Record<ApplicationRegistrationSourceType, string> = {
-  [ApplicationRegistrationSourceType.BUNDLED]: 'Diex Core',
+  [ApplicationRegistrationSourceType.BUNDLED]: 'Bundled',
   [ApplicationRegistrationSourceType.LOCAL]: 'Local',
   [ApplicationRegistrationSourceType.NPM]: 'NPM',
   [ApplicationRegistrationSourceType.OAUTH_ONLY]: 'OAuth',

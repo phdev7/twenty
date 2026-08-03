@@ -142,7 +142,7 @@ export const SettingsAdminApps = () => {
         return 'Local';
       }
       case ApplicationRegistrationSourceType.BUNDLED: {
-        return 'Diex Core';
+        return 'Bundled';
       }
       default:
         return assertUnreachable(registration.sourceType);
