@@ -919,21 +919,24 @@ export class InboxAutomationEngineService {
 
     const body = rendered.text.trim();
 
-    await inboxMessageRepository.insert({
-      name: body.length > 70 ? `${body.slice(0, 67)}...` : body,
-      providerMessageKey: `INTERNAL:AUTOMATION:${automation.id}:${runHash}`,
-      direction: 'OUTBOUND',
-      messageType: 'TEXT',
-      body,
-      deliveryStatus: 'SENT',
-      sentAt: occurredAt,
-      isInternalNote: true,
-      inboxConversationId: conversation.id,
-      metadata: {
-        source: 'DIEX_INBOX_AUTOMATION',
-        automationId: automation.id,
+    await inboxMessageRepository.upsert(
+      {
+        name: body.length > 70 ? `${body.slice(0, 67)}...` : body,
+        providerMessageKey: `INTERNAL:AUTOMATION:${automation.id}:${runHash}`,
+        direction: 'OUTBOUND',
+        messageType: 'TEXT',
+        body,
+        deliveryStatus: 'SENT',
+        sentAt: occurredAt,
+        isInternalNote: true,
+        inboxConversationId: conversation.id,
+        metadata: {
+          source: 'DIEX_INBOX_AUTOMATION',
+          automationId: automation.id,
+        },
       },
-    });
+      ['providerMessageKey'],
+    );
 
     return 'Nota interna registrada';
   }
@@ -956,13 +959,22 @@ export class InboxAutomationEngineService {
         ? { targetOpportunityId: conversation.opportunityId }
         : null,
     ].filter(isDefined);
-    const results = await Promise.allSettled(
-      targets.map((target) =>
-        taskTargetRepository.insert({ taskId, ...target }),
-      ),
-    );
+    let linkedTargets = 0;
 
-    return results.filter(({ status }) => status === 'fulfilled').length;
+    for (const target of targets) {
+      const existingTarget = await taskTargetRepository.findOneBy({
+        taskId,
+        ...target,
+      });
+
+      if (!existingTarget) {
+        await taskTargetRepository.insert({ taskId, ...target });
+      }
+
+      linkedTargets += 1;
+    }
+
+    return linkedTargets;
   }
 
   private async createAutomationTask({
@@ -973,6 +985,7 @@ export class InboxAutomationEngineService {
     conversation,
     messageBody,
     occurredAt,
+    runHash,
   }: {
     taskRepository: WorkspaceRepository<TaskWorkspaceEntity>;
     taskTargetRepository: WorkspaceRepository<TaskTargetWorkspaceEntity>;
@@ -981,6 +994,7 @@ export class InboxAutomationEngineService {
     conversation: ConversationSnapshot;
     messageBody: string;
     occurredAt: string;
+    runHash: string;
   }): Promise<{ action: string; dueAt: string } | null> {
     const template = automation.taskTitleTemplate?.trim();
 
@@ -1013,25 +1027,43 @@ export class InboxAutomationEngineService {
       name: `Automação: ${automation.name}`,
       context: {},
     };
-    const inserted = await taskRepository.insert({
-      title,
-      status: 'TODO',
-      dueAt: new Date(dueAt),
-      assigneeId,
-      diexInboxConversationId: conversation.id,
-      createdBy: actor,
-      updatedBy: actor,
-      bodyV2: {
-        markdown: [
-          `Tarefa criada pela automação da Inbox: ${automation.name}.`,
-          `Conversa: ${conversation.name}`,
-          `Canal: ${conversation.channel}`,
-          'Nenhuma comunicação externa foi enviada.',
-        ].join('\n\n'),
-        blocknote: null,
-      },
+    const legacyDiexId =
+      `INBOX_AUTOMATION_TASK:${automation.id}:${conversation.id}:${runHash}`;
+    const existingTask = await taskRepository.findOne({
+      where: { legacyDiexId },
     });
-    const taskId = inserted.identifiers[0]?.id as string | undefined;
+
+    if (!existingTask) {
+      await taskRepository.upsert(
+        {
+          legacyDiexId,
+          title,
+          status: 'TODO',
+          dueAt: new Date(dueAt),
+          assigneeId,
+          diexInboxConversationId: conversation.id,
+          createdBy: actor,
+          updatedBy: actor,
+          bodyV2: {
+            markdown: [
+              `Tarefa criada pela automação da Inbox: ${automation.name}.`,
+              `Conversa: ${conversation.name}`,
+              `Canal: ${conversation.channel}`,
+              'Nenhuma comunicação externa foi enviada.',
+            ].join('\n\n'),
+            blocknote: null,
+          },
+        },
+        ['legacyDiexId'],
+      );
+    }
+
+    const task =
+      existingTask ??
+      (await taskRepository.findOne({
+        where: { legacyDiexId },
+      }));
+    const taskId = task?.id;
 
     if (!taskId) {
       throw new Error('A tarefa da automação não retornou um identificador.');
@@ -1189,6 +1221,7 @@ export class InboxAutomationEngineService {
         conversation,
         messageBody,
         occurredAt,
+        runHash,
       });
 
       if (task) {
