@@ -1,25 +1,31 @@
 import { access } from 'fs/promises';
-import { resolve } from 'path';
+import { isAbsolute, relative, resolve } from 'path';
 
-export const DIEX_CORE_BUNDLED_PACKAGE_NAME = 'diex-crm-core';
-
-const getDiexCorePackageCandidates = (): string[] => [
-  ...(process.env.DIEX_CORE_BUNDLED_APP_PATH
-    ? [resolve(process.env.DIEX_CORE_BUNDLED_APP_PATH)]
+const getBundledApplicationRoots = (): string[] => [
+  ...(process.env.BUNDLED_APPLICATIONS_PATH
+    ? [resolve(process.env.BUNDLED_APPLICATIONS_PATH)]
     : []),
-  '/app/bundled-apps/diex-crm-core',
-  resolve(process.cwd(), 'packages/twenty-apps/internal/diex/.twenty/output'),
-  resolve(process.cwd(), '../twenty-apps/internal/diex/.twenty/output'),
+  '/app/bundled-apps',
+  resolve(process.cwd(), 'bundled-apps'),
 ];
 
 export const resolveBundledApplicationPackagePath = async (
   sourcePackage: string,
 ): Promise<string> => {
-  if (sourcePackage !== DIEX_CORE_BUNDLED_PACKAGE_NAME) {
-    throw new Error(`Unknown bundled application package: ${sourcePackage}`);
+  if (!sourcePackage || sourcePackage.trim() !== sourcePackage) {
+    throw new Error('Bundled application package name must be non-empty');
   }
 
-  for (const candidate of getDiexCorePackageCandidates()) {
+  for (const root of getBundledApplicationRoots()) {
+    const candidate = resolve(root, sourcePackage);
+    const relativeCandidate = relative(root, candidate);
+
+    if (relativeCandidate.startsWith('..') || isAbsolute(relativeCandidate)) {
+      throw new Error(
+        `Bundled application package path escapes configured root: ${sourcePackage}`,
+      );
+    }
+
     try {
       await access(resolve(candidate, 'manifest.json'));
       await access(resolve(candidate, 'package.json'));
@@ -31,6 +37,6 @@ export const resolveBundledApplicationPackagePath = async (
   }
 
   throw new Error(
-    `Bundled application package "${sourcePackage}" was not found`,
+    `Bundled application package "${sourcePackage}" was not found in the configured bundled-app roots`,
   );
 };

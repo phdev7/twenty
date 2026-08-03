@@ -37,31 +37,6 @@ COPY ./packages/twenty-client-sdk/package.json /app/packages/twenty-client-sdk/
 RUN yarn workspaces focus twenty twenty-server twenty-emails twenty-shared twenty-client-sdk && yarn cache clean && npx nx reset
 
 
-FROM node:24.18.0-alpine3.23@sha256:595398b0081eacda8e1c4c5b97b76cd1020e4d58a8ebcb4843b9bca1e79e7436 AS diex-core-build
-
-WORKDIR /app/diex-crm-core
-
-ARG DIEX_CORE_BUILD_VERSION=development
-
-COPY ./packages/twenty-apps/internal/diex/package.json ./
-COPY ./packages/twenty-apps/internal/diex/yarn.lock ./
-COPY ./packages/twenty-apps/internal/diex/.yarnrc.yml ./
-
-RUN corepack enable && yarn install --immutable
-
-COPY ./packages/twenty-apps/internal/diex/public ./public
-COPY ./packages/twenty-apps/internal/diex/src ./src
-COPY ./packages/twenty-apps/internal/diex/tsconfig.json ./
-COPY ./packages/twenty-apps/internal/diex/README.md ./
-
-# The release version is intentionally consumed by this layer. It prevents
-# BuildKit from reusing an older precompiled Diex bundle when only app source
-# files changed between image tags.
-RUN rm -rf .twenty && \
-    echo "Building Diex CRM Core for image $DIEX_CORE_BUILD_VERSION" && \
-    yarn twenty dev:build .
-
-
 FROM server-deps AS twenty-server-build
 
 COPY ./packages/twenty-emails /app/packages/twenty-emails
@@ -148,10 +123,8 @@ COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-emails/package
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-emails/dist /app/packages/twenty-emails/dist
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-client-sdk/package.json /app/packages/twenty-client-sdk/
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-client-sdk/dist /app/packages/twenty-client-sdk/dist
-COPY --chown=1000 --from=diex-core-build /app/diex-crm-core/.twenty/output /app/bundled-apps/diex-crm-core
-
 LABEL org.opencontainers.image.source=https://github.com/phdev7/twenty
-LABEL org.opencontainers.image.description="Diex CRM server image (server only)."
+LABEL org.opencontainers.image.description="Twenty CRM server image (server only)."
 
 # Remove unused, unpatchable components the scanner flags (none are executed at
 # runtime, and none can be fixed by upgrading our deps or Node):
@@ -279,8 +252,6 @@ COPY --from=twenty-server-build /app/packages/twenty-emails/package.json /app/pa
 COPY --from=twenty-server-build /app/packages/twenty-emails/dist /app/packages/twenty-emails/dist
 COPY --from=twenty-server-build /app/packages/twenty-client-sdk/package.json /app/packages/twenty-client-sdk/
 COPY --from=twenty-server-build /app/packages/twenty-client-sdk/dist /app/packages/twenty-client-sdk/dist
-COPY --from=diex-core-build /app/diex-crm-core/.twenty/output /app/bundled-apps/diex-crm-core
-
 # Frontend static build
 COPY --from=twenty-front-build /app/packages/twenty-front/build /app/packages/twenty-server/dist/front
 

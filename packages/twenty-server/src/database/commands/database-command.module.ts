@@ -9,6 +9,7 @@ import { GenerateInstanceCommandCommand } from 'src/database/commands/generate-i
 import { InstallPreInstalledAppsCommand } from 'src/database/commands/install-pre-installed-apps.command';
 import { InstanceCommandGenerationService } from 'src/database/commands/instance-command-generation.service';
 import { ListOrphanedWorkspaceEntitiesCommand } from 'src/database/commands/list-and-delete-orphaned-workspace-entities.command';
+import { UpgradeDiexUninstallResidualCommand } from 'src/database/commands/upgrade-diex-uninstall-residual.command';
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
 import { RebuildApplicationDefaultDepsCommand } from 'src/database/commands/rebuild-application-default-deps.command';
 import { RunInstanceCommandsCommand } from 'src/database/commands/run-instance-commands.command';
@@ -112,6 +113,7 @@ import { WorkflowCoreConsistencyModule } from 'src/modules/workflow/workflow-cor
     UpgradeStatusCommand,
     RebuildApplicationDefaultDepsCommand,
     InstallPreInstalledAppsCommand,
+    UpgradeDiexUninstallResidualCommand,
     provideWorkspaceScopedRepository(RoleEntity),
   ],
 })

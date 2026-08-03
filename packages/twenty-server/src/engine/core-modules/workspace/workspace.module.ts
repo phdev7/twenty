@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
 import { ApplicationModule } from 'src/engine/core-modules/application/application.module';
-import { PreInstalledAppsModule } from 'src/engine/core-modules/application/pre-installed-apps/pre-installed-apps.module';
 import { TokenModule } from 'src/engine/core-modules/auth/token/token.module';
 import { BillingModule } from 'src/engine/core-modules/billing/billing.module';
 import { BillingSubscriptionEntity } from 'src/engine/core-modules/billing/entities/billing-subscription.entity';
@@ -73,7 +72,6 @@ import { StandardObjectsPrefillModule } from 'src/engine/workspace-manager/stand
     ViewModule,
     WorkspaceManyOrAllFlatEntityMapsCacheModule,
     ApplicationModule,
-    PreInstalledAppsModule,
     EnterpriseModule,
     WorkspaceMigrationModule,
     CoreEntityCacheModule,
