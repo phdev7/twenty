@@ -4,8 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { createHash } from 'node:crypto';
-
 import { In, Not } from 'typeorm';
 
 import {
@@ -30,6 +28,10 @@ import { type TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { type InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
+import {
+  issueConfirmationToken,
+  verifyConfirmationToken,
+} from 'src/modules/diex/utils/confirmation-token.util';
 
 const DAY_MS = 86_400_000;
 const readMarkdown = (
@@ -77,15 +79,6 @@ const readName = (value: unknown): string | null => {
     [name?.firstName, name?.lastName].filter(Boolean).join(' ').trim() || null
   );
 };
-
-const tokenFor = (
-  workspaceId: string,
-  scope: string,
-  fingerprint: string,
-): string =>
-  createHash('sha256')
-    .update(`${workspaceId}:${scope}:${fingerprint}`)
-    .digest('hex');
 
 const toDate = (value: string, field: string): Date => {
   const date = new Date(value);
@@ -387,12 +380,11 @@ export class CustomerSuccessService {
           : 0;
         const planId = existingPlan?.id ?? `diex-success-plan:${opportunityId}`;
         const fingerprint = `${opportunityId}:${input.ownerId}:${renewalDate.toISOString()}:${recurringRevenueMicros}:${input.objectives}:${input.successCriteria}`;
-        const confirmationToken = tokenFor(
-          input.workspaceId,
-          'handoff',
+        const confirmation = issueConfirmationToken({
+          workspaceId: input.workspaceId,
+          scope: 'handoff',
           fingerprint,
-        );
-        const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
+        });
         const startDate = new Date().toISOString();
         const nextReviewAt = new Date(Date.now() + 7 * DAY_MS).toISOString();
         const milestoneDefinitions = [
@@ -474,13 +466,20 @@ export class CustomerSuccessService {
             supported: true,
             opportunityId,
             preview,
-            confirmationToken,
-            expiresAt,
+            confirmationToken: confirmation.token,
+            expiresAt: confirmation.expiresAt,
             message: 'Prévia do handoff gerada sem criar registros.',
           };
         }
 
-        if (input.confirmationToken !== confirmationToken) {
+        if (
+          !verifyConfirmationToken({
+            token: input.confirmationToken,
+            workspaceId: input.workspaceId,
+            scope: 'handoff',
+            fingerprint,
+          })
+        ) {
           throw new BadRequestException(
             'Token de confirmação do handoff inválido ou expirado. Gere uma nova prévia.',
           );
@@ -614,12 +613,11 @@ export class CustomerSuccessService {
               : 'COMPLETED';
         const generatedAt = new Date();
         const fingerprint = `${milestone.id}:${previousStatus}:${nextStatus}:${input.outcome}:${input.evidence}:${input.impact}`;
-        const confirmationToken = tokenFor(
-          input.workspaceId,
-          'milestone',
+        const confirmation = issueConfirmationToken({
+          workspaceId: input.workspaceId,
+          scope: 'milestone',
           fingerprint,
-        );
-        const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
+        });
         const plan = milestone.successPlan;
         const nextHealth =
           nextStatus === 'BLOCKED' ? 'CRITICAL' : (plan.health ?? 'UNKNOWN');
@@ -689,12 +687,19 @@ export class CustomerSuccessService {
             supported: true,
             milestoneId: input.milestoneId,
             preview,
-            confirmationToken,
-            expiresAt,
+            confirmationToken: confirmation.token,
+            expiresAt: confirmation.expiresAt,
             message: 'Prévia do marco gerada sem alterar registros.',
           };
         }
-        if (input.confirmationToken !== confirmationToken) {
+        if (
+          !verifyConfirmationToken({
+            token: input.confirmationToken,
+            workspaceId: input.workspaceId,
+            scope: 'milestone',
+            fingerprint,
+          })
+        ) {
           throw new BadRequestException(
             'Token de confirmação do marco inválido ou expirado. Gere uma nova prévia.',
           );

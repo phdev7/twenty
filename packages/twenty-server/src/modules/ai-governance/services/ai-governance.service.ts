@@ -4,8 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { createHash } from 'node:crypto';
-
 import {
   AiActionStatus,
   AiActionType,
@@ -15,6 +13,10 @@ import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standar
 import { type TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
+import {
+  issueConfirmationToken,
+  verifyConfirmationToken,
+} from 'src/modules/diex/utils/confirmation-token.util';
 
 const DAY_MS = 86_400_000;
 
@@ -38,15 +40,6 @@ const PIPELINE_STAGES = [
 
 const readMarkdown = (value: { markdown?: string | null } | null): string =>
   value?.markdown?.trim() ?? '';
-
-const tokenFor = (
-  workspaceId: string,
-  actionId: string,
-  fingerprint: string,
-): string =>
-  createHash('sha256')
-    .update(`${workspaceId}:ai-action:${actionId}:${fingerprint}`)
-    .digest('hex');
 
 export type ProposeAiActionInput = {
   workspaceId: string;
@@ -277,12 +270,11 @@ export class AiGovernanceService {
         }
 
         const fingerprint = `${action.status}:${targetStage}:${proposedAction}`;
-        const confirmationToken = tokenFor(
-          input.workspaceId,
-          action.id,
+        const confirmation = issueConfirmationToken({
+          workspaceId: input.workspaceId,
+          scope: `ai-action:${action.id}`,
           fingerprint,
-        );
-        const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
+        });
 
         if (input.previewOnly || !input.confirmExecute) {
           if (isPipelineUpdate) {
@@ -313,8 +305,8 @@ export class AiGovernanceService {
                 label: value,
                 position,
               })),
-              confirmationToken,
-              expiresAt,
+              confirmationToken: confirmation.token,
+              expiresAt: confirmation.expiresAt,
               message:
                 'Prévia de atualização do pipeline gerada sem alterar o CRM.',
             };
@@ -356,13 +348,20 @@ export class AiGovernanceService {
               ],
               body: proposedAction,
             },
-            confirmationToken,
-            expiresAt,
+            confirmationToken: confirmation.token,
+            expiresAt: confirmation.expiresAt,
             message: 'Prévia da tarefa gerada sem alterar o CRM.',
           };
         }
 
-        if (input.confirmationToken !== confirmationToken) {
+        if (
+          !verifyConfirmationToken({
+            token: input.confirmationToken,
+            workspaceId: input.workspaceId,
+            scope: `ai-action:${action.id}`,
+            fingerprint,
+          })
+        ) {
           throw new BadRequestException(
             'Token de confirmação inválido ou expirado. Gere uma nova prévia.',
           );
