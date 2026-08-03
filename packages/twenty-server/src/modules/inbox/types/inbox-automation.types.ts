@@ -15,15 +15,24 @@ export type InboxAutomationEvaluationStatus =
   | 'alreadyQueued'
   | 'skipped';
 
+export type InboxAutomationEvaluationState =
+  | 'pending'
+  | 'running'
+  | 'done'
+  | 'done_with_warnings'
+  | 'failed';
+
 export type InboxAutomationEvaluationResponse = {
   status: InboxAutomationEvaluationStatus;
   evaluationId: string | null;
   messageId: string;
   reason?: string;
+  evaluationState?: InboxAutomationEvaluationState;
 };
 
 export type InboxAutomationEvaluationMetadata = {
   evaluationId: string;
+  trigger?: InboxAutomationTriggerValue;
   status: 'queued' | 'running' | 'done' | 'done_with_warnings' | 'failed';
   queuedAt: string;
   completedAt?: string;

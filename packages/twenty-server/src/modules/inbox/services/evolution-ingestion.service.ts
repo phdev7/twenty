@@ -13,10 +13,12 @@ import { InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/
 import { InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
 import {
   type IngestMessageResult,
+  type InboxMessageDirection,
   type NormalizedEvolutionMessage,
   type NormalizedEvolutionStatus,
   type ProcessEvolutionWebhookResult,
 } from 'src/modules/inbox/types/inbox-evolution.types';
+import { type InboxAutomationTriggerValue } from 'src/modules/inbox/types/inbox-automation.types';
 import {
   buildMessagePreview,
   extractEvolutionInstanceName,
@@ -41,9 +43,20 @@ type InboxConversationRecord = {
   id: string;
   unreadCount: number | null;
   firstRespondedAt: string | null;
+  lastMessageAt: string | null;
+  lastMessageDirection: string | null;
   personId: string | null;
   companyId: string | null;
   opportunityId: string | null;
+  metadata: Record<string, unknown> | null;
+};
+
+type ExistingInboxMessageRecord = {
+  id: string;
+  inboxConversationId: string | null;
+  direction: InboxMessageDirection;
+  sentAt: string | null;
+  metadata: Record<string, unknown> | null;
 };
 
 type InboxTeamAssignment = {
@@ -205,53 +218,56 @@ export class EvolutionIngestionService {
     repositories: IngestionRepositories;
     message: NormalizedEvolutionMessage;
   }): Promise<IngestMessageResult> {
-    if (
-      await this.inboxMessageExists(
-        repositories.messageRepository,
-        message.providerMessageKey,
-      )
-    ) {
-      // A conversation stored while the contact could not be resolved would stay
-      // orphaned forever, since the message that could repair it is now a
-      // duplicate. A redelivery is the second chance.
-      if (message.direction === 'INBOUND') {
-        const existingConversation = await this.findInboxConversation(
-          repositories.conversationRepository,
-          message.providerThreadKey,
-        );
+    const existingMessage = await this.findInboxMessage(
+      repositories.messageRepository,
+      message.providerMessageKey,
+    );
 
-        if (existingConversation && !existingConversation.personId) {
-          await this.linkConversationToPerson({
-            repositories,
-            conversation: existingConversation,
-            message,
-          });
-        }
-      }
-
-      return {
-        status: 'DUPLICATE',
-        automationsApplied: 0,
-        automationWarnings: [],
-      };
+    if (existingMessage) {
+      return this.repairDuplicateMessage({
+        workspaceId,
+        repositories,
+        message,
+        existingMessage,
+      });
     }
 
-    const { conversation } = await this.resolveConversation({
-      repositories,
-      message,
-    });
+    const { conversation, created: conversationCreated } =
+      await this.resolveConversation({
+        repositories,
+        message,
+      });
+    const automationTrigger: InboxAutomationTriggerValue | undefined =
+      message.direction === 'INBOUND'
+        ? conversationCreated
+          ? 'CONVERSATION_CREATED'
+          : 'INBOUND_MESSAGE_CREATED'
+        : undefined;
     const createdMessageId = await this.createInboxMessage({
       messageRepository: repositories.messageRepository,
       conversation,
       message,
+      automationTrigger,
     });
 
     if (!createdMessageId) {
-      return {
-        status: 'DUPLICATE',
-        automationsApplied: 0,
-        automationWarnings: [],
-      };
+      const persistedMessage = await this.findInboxMessage(
+        repositories.messageRepository,
+        message.providerMessageKey,
+      );
+
+      return persistedMessage
+        ? this.repairDuplicateMessage({
+            workspaceId,
+            repositories,
+            message,
+            existingMessage: persistedMessage,
+          })
+        : {
+            status: 'DUPLICATE',
+            automationsApplied: 0,
+            automationWarnings: [],
+          };
     }
 
     await this.updateConversationAfterMessage({
@@ -273,6 +289,7 @@ export class EvolutionIngestionService {
       await this.inboxAutomationEvaluationService.enqueue({
         workspaceId,
         messageId: createdMessageId,
+        trigger: automationTrigger,
       });
 
       return {
@@ -290,6 +307,90 @@ export class EvolutionIngestionService {
           error instanceof Error
             ? error.message
             : 'A automação da Inbox não pôde ser avaliada.',
+        ],
+      };
+    }
+  }
+
+  private async repairDuplicateMessage({
+    workspaceId,
+    repositories,
+    message,
+    existingMessage,
+  }: {
+    workspaceId: string;
+    repositories: IngestionRepositories;
+    message: NormalizedEvolutionMessage;
+    existingMessage: ExistingInboxMessageRecord;
+  }): Promise<IngestMessageResult> {
+    const existingConversation =
+      (existingMessage.inboxConversationId
+        ? await this.findInboxConversationById(
+            repositories.conversationRepository,
+            existingMessage.inboxConversationId,
+          )
+        : null) ??
+      (await this.findInboxConversation(
+        repositories.conversationRepository,
+        message.providerThreadKey,
+      ));
+    const persistedMessage = {
+      ...message,
+      direction: existingMessage.direction,
+      sentAt: existingMessage.sentAt ?? message.sentAt,
+    } as NormalizedEvolutionMessage;
+
+    if (existingConversation) {
+      if (existingMessage.inboxConversationId !== existingConversation.id) {
+        await repositories.messageRepository.update(existingMessage.id, {
+          inboxConversationId: existingConversation.id,
+        });
+      }
+
+      const linkedConversation = await this.linkConversationToPerson({
+        repositories,
+        conversation: existingConversation,
+        message: persistedMessage,
+      });
+
+      await this.updateConversationAfterMessage({
+        conversationRepository: repositories.conversationRepository,
+        conversation: linkedConversation,
+        message: persistedMessage,
+      });
+    }
+
+    if (existingMessage.direction !== 'INBOUND') {
+      return {
+        status: 'DUPLICATE',
+        messageId: existingMessage.id,
+        automationsApplied: 0,
+        automationWarnings: [],
+      };
+    }
+
+    try {
+      await this.inboxAutomationEvaluationService.enqueue({
+        workspaceId,
+        messageId: existingMessage.id,
+        force: true,
+      });
+
+      return {
+        status: 'DUPLICATE',
+        messageId: existingMessage.id,
+        automationsApplied: 0,
+        automationWarnings: [],
+      };
+    } catch (error) {
+      return {
+        status: 'DUPLICATE',
+        messageId: existingMessage.id,
+        automationsApplied: 0,
+        automationWarnings: [
+          error instanceof Error
+            ? error.message
+            : 'A automação da Inbox não pôde ser reavaliada.',
         ],
       };
     }
@@ -464,9 +565,35 @@ export class EvolutionIngestionService {
           id: conversation.id,
           unreadCount: conversation.unreadCount,
           firstRespondedAt: conversation.firstRespondedAt,
+          lastMessageAt: conversation.lastMessageAt,
+          lastMessageDirection: conversation.lastMessageDirection,
           personId: conversation.personId,
           companyId: conversation.companyId,
           opportunityId: conversation.opportunityId,
+          metadata: conversation.metadata,
+        }
+      : null;
+  }
+
+  private async findInboxConversationById(
+    conversationRepository: WorkspaceRepository<InboxConversationWorkspaceEntity>,
+    conversationId: string,
+  ): Promise<InboxConversationRecord | null> {
+    const conversation = await conversationRepository.findOne({
+      where: { id: conversationId },
+    });
+
+    return conversation
+      ? {
+          id: conversation.id,
+          unreadCount: conversation.unreadCount,
+          firstRespondedAt: conversation.firstRespondedAt,
+          lastMessageAt: conversation.lastMessageAt,
+          lastMessageDirection: conversation.lastMessageDirection,
+          personId: conversation.personId,
+          companyId: conversation.companyId,
+          opportunityId: conversation.opportunityId,
+          metadata: conversation.metadata,
         }
       : null;
   }
@@ -622,9 +749,16 @@ export class EvolutionIngestionService {
       unreadCount: 0,
       firstRespondedAt:
         message.direction === 'OUTBOUND' ? message.sentAt : null,
+      lastMessageAt: message.sentAt,
+      lastMessageDirection: message.direction,
       personId: person?.id ?? null,
       companyId: person?.companyId ?? null,
       opportunityId,
+      metadata: {
+        provider: 'evolution',
+        instanceName: message.instanceName,
+        remoteJid: message.remoteJid,
+      },
     };
   }
 
@@ -726,26 +860,44 @@ export class EvolutionIngestionService {
     }
   }
 
+  private async findInboxMessage(
+    messageRepository: WorkspaceRepository<InboxMessageWorkspaceEntity>,
+    providerMessageKey: string,
+  ): Promise<ExistingInboxMessageRecord | null> {
+    const message = await messageRepository.findOne({
+      where: { providerMessageKey },
+    });
+
+    return message
+      ? {
+          id: message.id,
+          inboxConversationId: message.inboxConversationId,
+          direction: message.direction as InboxMessageDirection,
+          sentAt: message.sentAt,
+          metadata: message.metadata,
+        }
+      : null;
+  }
+
   private async inboxMessageExists(
     messageRepository: WorkspaceRepository<InboxMessageWorkspaceEntity>,
     providerMessageKey: string,
   ): Promise<boolean> {
-    const existing = await messageRepository.findOne({
-      where: { providerMessageKey },
-      select: { id: true },
-    });
-
-    return existing !== null;
+    return Boolean(
+      await this.findInboxMessage(messageRepository, providerMessageKey),
+    );
   }
 
   private async createInboxMessage({
     messageRepository,
     conversation,
     message,
+    automationTrigger,
   }: {
     messageRepository: WorkspaceRepository<InboxMessageWorkspaceEntity>;
     conversation: InboxConversationRecord;
     message: NormalizedEvolutionMessage;
+    automationTrigger?: InboxAutomationTriggerValue;
   }): Promise<string | null> {
     if (
       await this.inboxMessageExists(
@@ -775,6 +927,7 @@ export class EvolutionIngestionService {
           eventName: message.eventName,
           instanceName: message.instanceName,
           remoteJid: message.remoteJid,
+          ...(automationTrigger ? { automationTrigger } : {}),
         },
       });
 
@@ -802,6 +955,26 @@ export class EvolutionIngestionService {
     conversation: InboxConversationRecord;
     message: NormalizedEvolutionMessage;
   }): Promise<void> {
+    const lastProcessedProviderMessageKey =
+      conversation.metadata?.lastProcessedProviderMessageKey;
+
+    if (lastProcessedProviderMessageKey === message.providerMessageKey) {
+      return;
+    }
+
+    const currentMessageAt = conversation.lastMessageAt
+      ? Date.parse(conversation.lastMessageAt)
+      : Number.NaN;
+    const nextMessageAt = Date.parse(message.sentAt);
+
+    if (
+      Number.isFinite(currentMessageAt) &&
+      Number.isFinite(nextMessageAt) &&
+      nextMessageAt < currentMessageAt
+    ) {
+      return;
+    }
+
     const isInbound = message.direction === 'INBOUND';
     const isFirstOutboundReply =
       message.direction === 'OUTBOUND' && !conversation.firstRespondedAt;
@@ -820,6 +993,10 @@ export class EvolutionIngestionService {
       ...(conversation.opportunityId
         ? { opportunityId: conversation.opportunityId }
         : {}),
+      metadata: {
+        ...(conversation.metadata ?? {}),
+        lastProcessedProviderMessageKey: message.providerMessageKey,
+      },
     });
   }
 

@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 
-import { isDefined } from 'twenty-shared/utils';
+import { DataSource, type QueryRunner } from 'typeorm';
 
 import { KeyValuePairType } from 'src/engine/core-modules/key-value-pair/key-value-pair.entity';
 import { KeyValuePairService } from 'src/engine/core-modules/key-value-pair/key-value-pair.service';
+import { NodeEnvironment } from 'src/engine/core-modules/twenty-config/interfaces/node-environment.interface';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import {
   EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
@@ -37,6 +39,8 @@ export class EvolutionProvisioningService {
     private readonly twentyConfigService: TwentyConfigService,
     private readonly keyValuePairService: KeyValuePairService,
     private readonly evolutionHttpService: EvolutionHttpService,
+    @InjectDataSource()
+    private readonly coreDataSource: DataSource,
   ) {}
 
   // The instance name has to be stable per workspace and safe for a URL path,
@@ -150,10 +154,19 @@ export class EvolutionProvisioningService {
 
     const { hostname } = new URL(apiUrl);
 
-    if (
-      hostname.split('.').length < 2 &&
-      !['localhost', '127.0.0.1'].includes(hostname)
-    ) {
+    const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(hostname);
+    const isLocalEnvironment = [
+      NodeEnvironment.DEVELOPMENT,
+      NodeEnvironment.TEST,
+    ].includes(this.twentyConfigService.get('NODE_ENV'));
+
+    if (isLocalHost && !isLocalEnvironment) {
+      throw new Error(
+        'O webhook da Evolution não pode usar localhost fora de um ambiente local. Configure SERVER_URL com o endereço público.',
+      );
+    }
+
+    if (hostname.split('.').length < 2 && !isLocalHost) {
       throw new Error(
         `O webhook apontaria para "${hostname}", um host que a Evolution não alcança. Configure SERVER_URL com o endereço público.`,
       );
@@ -162,48 +175,71 @@ export class EvolutionProvisioningService {
     return `${apiUrl}/rest/inbox/evolution/webhook`;
   }
 
-  private async readClaim(key: string): Promise<string | null> {
-    const [claim] = await this.keyValuePairService.get<string>({
-      userId: null,
-      workspaceId: null,
-      type: KeyValuePairType.APPLICATION_VARIABLE,
-      key,
-    });
-
-    return asString((claim as { value?: unknown } | undefined)?.value);
-  }
-
-  private async writeClaim(key: string, value: string): Promise<void> {
-    await this.keyValuePairService.set({
-      userId: null,
-      workspaceId: null,
-      type: KeyValuePairType.APPLICATION_VARIABLE,
-      key,
-      value,
-    });
-  }
-
-  private async deleteClaim(key: string): Promise<void> {
-    await this.keyValuePairService
-      .delete({
+  private async readClaim(
+    key: string,
+    queryRunner?: QueryRunner,
+  ): Promise<string | null> {
+    const [claim] = await this.keyValuePairService.get<string>(
+      {
         userId: null,
         workspaceId: null,
         type: KeyValuePairType.APPLICATION_VARIABLE,
         key,
-      })
-      .catch(() => undefined);
+      },
+      queryRunner,
+    );
+
+    return asString((claim as { value?: unknown } | undefined)?.value);
+  }
+
+  private async writeClaim(
+    key: string,
+    value: string,
+    queryRunner?: QueryRunner,
+  ): Promise<void> {
+    await this.keyValuePairService.set(
+      {
+        userId: null,
+        workspaceId: null,
+        type: KeyValuePairType.APPLICATION_VARIABLE,
+        key,
+        value,
+      },
+      queryRunner,
+    );
+  }
+
+  private async deleteClaimIfOwned(
+    key: string,
+    workspaceId: string,
+    queryRunner: QueryRunner,
+  ): Promise<void> {
+    await queryRunner.query(
+      `DELETE FROM core."keyValuePair"
+       WHERE key = $1
+         AND "userId" IS NULL
+         AND "workspaceId" IS NULL
+         AND "applicationId" IS NULL
+         AND type = $2
+         AND value = $3::jsonb`,
+      [key, KeyValuePairType.APPLICATION_VARIABLE, JSON.stringify(workspaceId)],
+    );
   }
 
   private async readWorkspaceClaim(
     workspaceId: string,
     key: string,
+    queryRunner?: QueryRunner,
   ): Promise<string | null> {
-    const [claim] = await this.keyValuePairService.get<string>({
-      userId: null,
-      workspaceId,
-      type: KeyValuePairType.APPLICATION_VARIABLE,
-      key,
-    });
+    const [claim] = await this.keyValuePairService.get<string>(
+      {
+        userId: null,
+        workspaceId,
+        type: KeyValuePairType.APPLICATION_VARIABLE,
+        key,
+      },
+      queryRunner,
+    );
 
     return asString((claim as { value?: unknown } | undefined)?.value);
   }
@@ -212,14 +248,49 @@ export class EvolutionProvisioningService {
     workspaceId: string,
     key: string,
     value: string,
+    queryRunner?: QueryRunner,
   ): Promise<void> {
-    await this.keyValuePairService.set({
-      userId: null,
-      workspaceId,
-      type: KeyValuePairType.APPLICATION_VARIABLE,
-      key,
-      value,
-    });
+    await this.keyValuePairService.set(
+      {
+        userId: null,
+        workspaceId,
+        type: KeyValuePairType.APPLICATION_VARIABLE,
+        key,
+        value,
+      },
+      queryRunner,
+    );
+  }
+
+  private async withClaimReservation<T>(
+    operation: (queryRunner: QueryRunner) => Promise<T>,
+  ): Promise<T> {
+    const queryRunner = this.coreDataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const lockDigest = createHash('sha256')
+        .update('diex:evolution:claim-reservation')
+        .digest();
+
+      await queryRunner.query('SELECT pg_advisory_xact_lock($1, $2)', [
+        lockDigest.readInt32BE(0),
+        lockDigest.readInt32BE(4),
+      ]);
+
+      const result = await operation(queryRunner);
+
+      await queryRunner.commitTransaction();
+
+      return result;
+    } catch (error) {
+      await queryRunner.rollbackTransaction().catch(() => undefined);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   // The webhook arrives unauthenticated from outside, carrying only its secret.
@@ -266,35 +337,45 @@ export class EvolutionProvisioningService {
     const instanceClaimKey = buildEvolutionInstanceClaimKey(
       configuration.instanceName,
     );
-    const [
-      previousSecretOwner,
-      previousInstanceOwner,
-      previousActiveSecretClaim,
-      previousActiveInstanceClaim,
-    ] = await Promise.all([
-      this.readClaim(secretClaimKey),
-      this.readClaim(instanceClaimKey),
-      this.readWorkspaceClaim(workspaceId, EVOLUTION_ACTIVE_SECRET_CLAIM_KEY),
-      this.readWorkspaceClaim(workspaceId, EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY),
-    ]);
-    const claimedSecretDuringThisAttempt = !isDefined(previousSecretOwner);
-    const claimedInstanceDuringThisAttempt = !isDefined(previousInstanceOwner);
 
-    if (previousSecretOwner && previousSecretOwner !== workspaceId) {
-      throw new Error(
-        'Este segredo de webhook da Evolution já pertence a outra workspace.',
-      );
-    }
+    // The reservation covers every tenant registration. It is deliberately
+    // coarse because the old active claim keys are only known after reading the
+    // workspace row; the transaction keeps the read, claim and owner-checked
+    // cleanup atomic across application instances.
+    return this.withClaimReservation(async (queryRunner) => {
+      const [previousSecretOwner, previousInstanceOwner] = await Promise.all([
+        this.readClaim(secretClaimKey, queryRunner),
+        this.readClaim(instanceClaimKey, queryRunner),
+      ]);
 
-    if (previousInstanceOwner && previousInstanceOwner !== workspaceId) {
-      throw new Error(
-        'Esta instância da Evolution já pertence a outra workspace.',
-      );
-    }
+      if (previousSecretOwner && previousSecretOwner !== workspaceId) {
+        throw new Error(
+          'Este segredo de webhook da Evolution já pertence a outra workspace.',
+        );
+      }
 
-    try {
-      await this.writeClaim(secretClaimKey, workspaceId);
-      await this.writeClaim(instanceClaimKey, workspaceId);
+      if (previousInstanceOwner && previousInstanceOwner !== workspaceId) {
+        throw new Error(
+          'Esta instância da Evolution já pertence a outra workspace.',
+        );
+      }
+
+      const [previousActiveSecretClaim, previousActiveInstanceClaim] =
+        await Promise.all([
+          this.readWorkspaceClaim(
+            workspaceId,
+            EVOLUTION_ACTIVE_SECRET_CLAIM_KEY,
+            queryRunner,
+          ),
+          this.readWorkspaceClaim(
+            workspaceId,
+            EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
+            queryRunner,
+          ),
+        ]);
+
+      await this.writeClaim(secretClaimKey, workspaceId, queryRunner);
+      await this.writeClaim(instanceClaimKey, workspaceId, queryRunner);
 
       const response = await this.postWebhookConfiguration({
         ...configuration,
@@ -311,25 +392,35 @@ export class EvolutionProvisioningService {
         workspaceId,
         EVOLUTION_ACTIVE_SECRET_CLAIM_KEY,
         secretClaimKey,
+        queryRunner,
       );
       await this.writeWorkspaceClaim(
         workspaceId,
         EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
         instanceClaimKey,
+        queryRunner,
       );
 
       if (
         previousActiveSecretClaim &&
         previousActiveSecretClaim !== secretClaimKey
       ) {
-        await this.deleteClaim(previousActiveSecretClaim);
+        await this.deleteClaimIfOwned(
+          previousActiveSecretClaim,
+          workspaceId,
+          queryRunner,
+        );
       }
 
       if (
         previousActiveInstanceClaim &&
         previousActiveInstanceClaim !== instanceClaimKey
       ) {
-        await this.deleteClaim(previousActiveInstanceClaim);
+        await this.deleteClaimIfOwned(
+          previousActiveInstanceClaim,
+          workspaceId,
+          queryRunner,
+        );
       }
 
       return {
@@ -338,17 +429,7 @@ export class EvolutionProvisioningService {
         providerStatus: response.status,
         events: EVOLUTION_EVENTS,
       };
-    } catch (error) {
-      if (claimedInstanceDuringThisAttempt) {
-        await this.deleteClaim(instanceClaimKey);
-      }
-
-      if (claimedSecretDuringThisAttempt) {
-        await this.deleteClaim(secretClaimKey);
-      }
-
-      throw error;
-    }
+    });
   }
 
   private async postWebhookConfiguration({

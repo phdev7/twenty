@@ -142,7 +142,7 @@ export class InboxAutomationEvaluationJob {
       !message?.inboxConversationId ||
       !evaluation ||
       evaluation.evaluationId !== evaluationId ||
-      !['queued', 'running'].includes(evaluation.status) ||
+      !['queued', 'running', 'failed'].includes(evaluation.status) ||
       message.direction !== 'INBOUND' ||
       message.isInternalNote ||
       !message.providerMessageKey
@@ -150,16 +150,12 @@ export class InboxAutomationEvaluationJob {
       return null;
     }
 
-    const conversationMessageCount = await messageRepository.count({
-      where: { inboxConversationId: message.inboxConversationId },
-    });
-
     return {
       conversationId: message.inboxConversationId,
-      trigger:
-        conversationMessageCount <= 1
-          ? 'CONVERSATION_CREATED'
-          : 'INBOUND_MESSAGE_CREATED',
+      // The trigger is an outbox decision made before the queue call. Older
+      // rows may not have it yet; use the non-creation trigger without
+      // re-inferring from a mutable conversation count in the worker.
+      trigger: evaluation.trigger ?? 'INBOUND_MESSAGE_CREATED',
       triggerKey: message.providerMessageKey ?? message.id,
       messageBody: message.body ?? '',
     };
@@ -201,6 +197,7 @@ export class InboxAutomationEvaluationJob {
 
     const metadata: InboxAutomationEvaluationMetadata = {
       evaluationId,
+      trigger: current?.trigger ?? 'INBOUND_MESSAGE_CREATED',
       status,
       queuedAt: current?.queuedAt ?? new Date().toISOString(),
       attempts: current?.attempts,

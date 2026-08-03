@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -12,12 +13,15 @@ import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decora
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { type WorkspaceRepository } from 'src/engine/twenty-orm/repository/workspace.repository';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { InboxAutomationEvaluationJob } from 'src/modules/inbox/jobs/inbox-automation-evaluation.job';
 import { InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-message.workspace-entity';
 import {
   type InboxAutomationEvaluationResponse,
   type InboxAutomationEvaluationMetadata,
+  type InboxAutomationEvaluationState,
+  type InboxAutomationTriggerValue,
 } from 'src/modules/inbox/types/inbox-automation.types';
 import {
   mergeInboxAutomationEvaluationMetadata,
@@ -27,10 +31,25 @@ import {
 export type EnqueueInboxAutomationEvaluationInput = {
   workspaceId: string;
   messageId: string;
+  trigger?: InboxAutomationTriggerValue;
+  force?: boolean;
+};
+
+const evaluationStateByStatus: Record<
+  InboxAutomationEvaluationMetadata['status'],
+  InboxAutomationEvaluationState
+> = {
+  queued: 'pending',
+  running: 'running',
+  done: 'done',
+  done_with_warnings: 'done_with_warnings',
+  failed: 'failed',
 };
 
 @Injectable()
 export class InboxAutomationEvaluationService {
+  private readonly logger = new Logger(InboxAutomationEvaluationService.name);
+
   constructor(
     private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     @InjectMessageQueue(MessageQueue.inboxQueue)
@@ -40,7 +59,16 @@ export class InboxAutomationEvaluationService {
   async enqueue(
     input: EnqueueInboxAutomationEvaluationInput,
   ): Promise<InboxAutomationEvaluationResponse> {
-    const { workspaceId, messageId } = input;
+    const { workspaceId } = input;
+    const authContext = buildSystemAuthContext(workspaceId);
+
+    return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      () => this.enqueueInWorkspace(input),
+      authContext,
+    );
+  }
+
+  async reconcilePendingEvaluations(workspaceId: string): Promise<number> {
     const authContext = buildSystemAuthContext(workspaceId);
 
     return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
@@ -50,100 +78,226 @@ export class InboxAutomationEvaluationService {
             workspaceId,
             InboxMessageWorkspaceEntity,
           );
-        const message = await messageRepository.findOne({
-          where: { id: messageId },
+        const messages = await messageRepository.find({
+          where: { direction: 'INBOUND' },
+          order: { createdAt: 'ASC' },
+          take: 100,
         });
+        let reconciled = 0;
 
-        if (!message || !message.inboxConversationId) {
-          throw new NotFoundException('Inbox message not found.');
-        }
-
-        if (message.isInternalNote) {
-          throw new BadRequestException('A mensagem é uma nota interna.');
-        }
-
-        if (message.direction !== 'INBOUND') {
-          throw new BadRequestException(
-            'A automação só é avaliada para mensagens recebidas.',
-          );
-        }
-
-        if (!message.providerMessageKey) {
-          throw new BadRequestException(
-            'A mensagem não possui identidade externa persistida.',
-          );
-        }
-
-        const current = readInboxAutomationEvaluationMetadata(message.metadata);
-
-        if (
-          current &&
-          ['queued', 'running', 'done', 'done_with_warnings'].includes(
-            current.status,
-          )
-        ) {
-          return {
-            status: 'alreadyQueued',
-            evaluationId: current.evaluationId,
-            messageId,
-          };
-        }
-
-        const evaluationId =
-          current?.evaluationId ??
-          createHash('sha256')
-            .update(`${workspaceId}:${message.providerMessageKey}`)
-            .digest('hex');
-        const attempts = (current?.attempts ?? 0) + 1;
-        const queuedMetadata: InboxAutomationEvaluationMetadata = {
-          evaluationId,
-          status: 'queued',
-          queuedAt: new Date().toISOString(),
-          attempts,
-        };
-
-        const update: QueryDeepPartialEntity<InboxMessageWorkspaceEntity> = {
-          metadata: mergeInboxAutomationEvaluationMetadata(
+        for (const message of messages) {
+          const evaluation = readInboxAutomationEvaluationMetadata(
             message.metadata,
-            queuedMetadata,
-          ),
-        };
-
-        await messageRepository.update(messageId, update);
-
-        try {
-          await this.inboxQueueService.add(
-            InboxAutomationEvaluationJob.name,
-            { workspaceId, messageId, evaluationId },
-            {
-              id: `${evaluationId}:${attempts}`,
-              retryLimit: 3,
-            },
           );
-        } catch (error) {
-          const failedMetadata: InboxAutomationEvaluationMetadata = {
-            ...queuedMetadata,
-            status: 'failed',
-            completedAt: new Date().toISOString(),
-            lastError: error instanceof Error ? error.message : String(error),
-          };
 
-          const failedUpdate: QueryDeepPartialEntity<InboxMessageWorkspaceEntity> =
-            {
-              metadata: mergeInboxAutomationEvaluationMetadata(
-                message.metadata,
-                failedMetadata,
-              ),
-            };
+          if (
+            !message.inboxConversationId ||
+            !message.providerMessageKey ||
+            !evaluation ||
+            !['queued', 'failed'].includes(evaluation.status)
+          ) {
+            continue;
+          }
 
-          await messageRepository.update(messageId, failedUpdate);
+          try {
+            const result = await this.enqueueInWorkspace({
+              workspaceId,
+              messageId: message.id,
+              force: true,
+            });
 
-          throw error;
+            if (result.status === 'queued') {
+              reconciled += 1;
+            }
+          } catch (error) {
+            this.logger.warn(
+              `Inbox automation reconciliation failed for message ${message.id}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }
         }
 
-        return { status: 'queued', evaluationId, messageId };
+        return reconciled;
       },
       authContext,
     );
+  }
+
+  private async enqueueInWorkspace(
+    input: EnqueueInboxAutomationEvaluationInput,
+  ): Promise<InboxAutomationEvaluationResponse> {
+    const { workspaceId, messageId, force = false } = input;
+    const messageRepository =
+      await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
+        workspaceId,
+        InboxMessageWorkspaceEntity,
+      );
+    const message = await messageRepository.findOne({
+      where: { id: messageId },
+    });
+
+    if (!message || !message.inboxConversationId) {
+      throw new NotFoundException('Inbox message not found.');
+    }
+
+    if (message.isInternalNote) {
+      throw new BadRequestException('A mensagem é uma nota interna.');
+    }
+
+    if (message.direction !== 'INBOUND') {
+      throw new BadRequestException(
+        'A automação só é avaliada para mensagens recebidas.',
+      );
+    }
+
+    if (!message.providerMessageKey) {
+      throw new BadRequestException(
+        'A mensagem não possui identidade externa persistida.',
+      );
+    }
+
+    const current = readInboxAutomationEvaluationMetadata(message.metadata);
+
+    if (
+      current?.status === 'done' ||
+      current?.status === 'done_with_warnings'
+    ) {
+      return {
+        status: 'skipped',
+        evaluationId: current.evaluationId,
+        messageId,
+        evaluationState: evaluationStateByStatus[current.status],
+      };
+    }
+
+    if (current?.status === 'running') {
+      return {
+        status: 'alreadyQueued',
+        evaluationId: current.evaluationId,
+        messageId,
+        evaluationState: evaluationStateByStatus[current.status],
+      };
+    }
+
+    if (
+      current?.status === 'failed' &&
+      (await this.hasInFlightEvaluation(current.evaluationId))
+    ) {
+      return {
+        status: 'alreadyQueued',
+        evaluationId: current.evaluationId,
+        messageId,
+        evaluationState: evaluationStateByStatus[current.status],
+      };
+    }
+
+    if (
+      current?.status === 'queued' &&
+      (!force || (await this.hasInFlightEvaluation(current.evaluationId)))
+    ) {
+      return {
+        status: 'alreadyQueued',
+        evaluationId: current.evaluationId,
+        messageId,
+        evaluationState: evaluationStateByStatus[current.status],
+      };
+    }
+
+    const evaluationId =
+      current?.evaluationId ??
+      createHash('sha256')
+        .update(`${workspaceId}:${message.providerMessageKey}`)
+        .digest('hex');
+    const persistedTrigger = message.metadata?.automationTrigger;
+    const trigger =
+      input.trigger ??
+      current?.trigger ??
+      (persistedTrigger === 'CONVERSATION_CREATED' ||
+      persistedTrigger === 'INBOUND_MESSAGE_CREATED'
+        ? persistedTrigger
+        : await this.resolveTrigger(
+            messageRepository,
+            message.inboxConversationId,
+          ));
+    const attempts = (current?.attempts ?? 0) + 1;
+    const queuedMetadata: InboxAutomationEvaluationMetadata = {
+      evaluationId,
+      trigger,
+      status: 'queued',
+      queuedAt: current?.queuedAt ?? new Date().toISOString(),
+      attempts,
+    };
+
+    const update: QueryDeepPartialEntity<InboxMessageWorkspaceEntity> = {
+      metadata: mergeInboxAutomationEvaluationMetadata(
+        message.metadata,
+        queuedMetadata,
+      ),
+    };
+
+    await messageRepository.update(messageId, update);
+
+    try {
+      await this.inboxQueueService.add(
+        InboxAutomationEvaluationJob.name,
+        { workspaceId, messageId, evaluationId },
+        {
+          id: evaluationId,
+          retryLimit: 3,
+        },
+      );
+    } catch (error) {
+      const failedMetadata: InboxAutomationEvaluationMetadata = {
+        ...queuedMetadata,
+        status: 'failed',
+        completedAt: new Date().toISOString(),
+        lastError: error instanceof Error ? error.message : String(error),
+      };
+
+      const failedUpdate: QueryDeepPartialEntity<InboxMessageWorkspaceEntity> =
+        {
+          metadata: mergeInboxAutomationEvaluationMetadata(
+            message.metadata,
+            failedMetadata,
+          ),
+        };
+
+      await messageRepository.update(messageId, failedUpdate);
+
+      throw error;
+    }
+
+    return {
+      status: 'queued',
+      evaluationId,
+      messageId,
+      evaluationState: 'pending',
+    };
+  }
+
+  private async resolveTrigger(
+    messageRepository: WorkspaceRepository<InboxMessageWorkspaceEntity>,
+    conversationId: string,
+  ): Promise<InboxAutomationTriggerValue> {
+    const conversationMessageCount = await messageRepository.count({
+      where: { inboxConversationId: conversationId },
+    });
+
+    return conversationMessageCount <= 1
+      ? 'CONVERSATION_CREATED'
+      : 'INBOUND_MESSAGE_CREATED';
+  }
+
+  private async hasInFlightEvaluation(evaluationId: string): Promise<boolean> {
+    const jobs = await this.inboxQueueService
+      .getInFlightJobs<{
+        workspaceId: string;
+        messageId: string;
+        evaluationId: string;
+      }>()
+      .catch(() => []);
+
+    return jobs.some((job) => job.data?.evaluationId === evaluationId);
   }
 }
