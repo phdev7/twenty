@@ -16,6 +16,7 @@ import { CheckPublicDomainsValidRecordsCronCommand } from 'src/engine/core-modul
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { CheckCustomDomainValidRecordsCronCommand } from 'src/engine/core-modules/workspace/crons/commands/check-custom-domain-valid-records.cron.command';
 import { WebhookSubscriptionRenewalCronCommand } from 'src/modules/connected-account/webhook-subscription-manager/crons/commands/webhook-subscription-renewal.cron.command';
+import { InboxMaintenanceCronCommand } from 'src/modules/inbox/crons/commands/inbox-maintenance.cron.command';
 import { TrashCleanupCronCommand } from 'src/engine/trash-cleanup/commands/trash-cleanup.cron.command';
 import { CleanOnboardingWorkspacesCronCommand } from 'src/engine/workspace-manager/workspace-cleaner/commands/clean-onboarding-workspaces.cron.command';
 import { CleanSuspendedWorkspacesCronCommand } from 'src/engine/workspace-manager/workspace-cleaner/commands/clean-suspended-workspaces.cron.command';
@@ -73,6 +74,7 @@ export class CronRegisterAllCommand extends CommandRunner {
     private readonly staleRegistrationCleanupCronCommand: StaleRegistrationCleanupCronCommand,
     private readonly pendingFileCleanupCronCommand: PendingFileCleanupCronCommand,
     private readonly billingReminderCronCommand: BillingReminderCronCommand,
+    private readonly inboxMaintenanceCronCommand: InboxMaintenanceCronCommand,
     private readonly twentyConfigService: TwentyConfigService,
   ) {
     super();
@@ -206,6 +208,10 @@ export class CronRegisterAllCommand extends CommandRunner {
         name: 'BillingReminder',
         command: this.billingReminderCronCommand,
         isEnabled: isBillingEnabled,
+      },
+      {
+        name: 'InboxMaintenance',
+        command: this.inboxMaintenanceCronCommand,
       },
     ];
 

@@ -177,4 +177,13 @@ export const MESSAGE_QUEUE_WORKER_CONFIG: Record<
       boundedShutdownDrain: true,
     },
   },
+  [MessageQueue.inboxQueue]: {
+    priority: 4,
+    workerOptions: {
+      concurrency: 5,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
 };

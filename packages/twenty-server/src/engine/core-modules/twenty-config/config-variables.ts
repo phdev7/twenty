@@ -1325,6 +1325,75 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.SERVER_CONFIG,
+    description: 'Evolution API origin used by the native Diex inbox',
+    type: ConfigVariableType.STRING,
+    isSensitive: true,
+  })
+  @IsString()
+  @IsOptional()
+  DIEX_EVOLUTION_SERVER_BASE_URL?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description: 'Evolution API key used by the native Diex inbox',
+    type: ConfigVariableType.STRING,
+    isSensitive: true,
+  })
+  @IsString()
+  @IsOptional()
+  DIEX_EVOLUTION_SERVER_API_KEY?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description: 'Root secret used to derive isolated Evolution webhooks',
+    type: ConfigVariableType.STRING,
+    isSensitive: true,
+  })
+  @IsString()
+  @IsOptional()
+  DIEX_EVOLUTION_SERVER_WEBHOOK_SECRET?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'Comma-separated Evolution origins allowed for outbound requests',
+    type: ConfigVariableType.STRING,
+  })
+  @IsString()
+  @IsOptional()
+  DIEX_EVOLUTION_ALLOWED_ORIGINS = '';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description: 'Allow Evolution to resolve to a private network address',
+    type: ConfigVariableType.BOOLEAN,
+  })
+  @IsOptional()
+  DIEX_EVOLUTION_ALLOW_PRIVATE_NETWORK = false;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'Default first-response SLA for native Diex inbox conversations',
+    type: ConfigVariableType.NUMBER,
+  })
+  @CastToPositiveNumber()
+  @IsOptional()
+  DIEX_INBOX_DEFAULT_RESPONSE_SLA_MINUTES = 60;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'OpenAI key used to transcribe Diex inbox audio messages, falls back to OPENAI_API_KEY',
+    type: ConfigVariableType.STRING,
+    isSensitive: true,
+  })
+  @IsString()
+  @IsOptional()
+  DIEX_OPENAI_API_KEY?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
     description:
       'Address the server reaches itself on from inside its own network, ' +
       'used by logic functions calling back into the API. SERVER_URL is the ' +
@@ -1775,7 +1844,8 @@ export class ConfigVariables {
     type: ConfigVariableType.NUMBER,
   })
   @IsOptional()
-  MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY = MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY_DEFAULT;
+  MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY =
+    MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY_DEFAULT;
 
   // Enterprise validity is granted by a token this instance fetches from
   // twenty.com, not by the key itself, so a version the vendor no longer serves
