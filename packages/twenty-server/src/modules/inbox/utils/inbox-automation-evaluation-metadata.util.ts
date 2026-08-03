@@ -24,6 +24,6 @@ export const mergeInboxAutomationEvaluationMetadata = (
   metadata: Record<string, unknown> | null,
   evaluation: InboxAutomationEvaluationMetadata,
 ): Record<string, unknown> => ({
-  ...(metadata ?? {}),
+  ...(metadata ?? undefined),
   [METADATA_KEY]: evaluation,
 });

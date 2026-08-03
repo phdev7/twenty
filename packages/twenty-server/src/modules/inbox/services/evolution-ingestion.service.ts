@@ -917,18 +917,19 @@ export class EvolutionIngestionService {
     }
 
     try {
-      const automationEvaluation: InboxAutomationEvaluationMetadata | undefined =
-        automationTrigger
-          ? {
-              evaluationId: createHash('sha256')
-                .update(`${workspaceId}:${message.providerMessageKey}`)
-                .digest('hex'),
-              trigger: automationTrigger,
-              status: 'queued',
-              queuedAt: new Date().toISOString(),
-              attempts: 0,
-            }
-          : undefined;
+      const automationEvaluation:
+        | InboxAutomationEvaluationMetadata
+        | undefined = automationTrigger
+        ? {
+            evaluationId: createHash('sha256')
+              .update(`${workspaceId}:${message.providerMessageKey}`)
+              .digest('hex'),
+            trigger: automationTrigger,
+            status: 'queued',
+            queuedAt: new Date().toISOString(),
+            attempts: 0,
+          }
+        : undefined;
       const inserted = await messageRepository.insert({
         name: buildMessagePreview(message),
         providerMessageKey: message.providerMessageKey,
@@ -948,9 +949,7 @@ export class EvolutionIngestionService {
           instanceName: message.instanceName,
           remoteJid: message.remoteJid,
           ...(automationTrigger ? { automationTrigger } : {}),
-          ...(automationEvaluation
-            ? { automationEvaluation }
-            : {}),
+          ...(automationEvaluation ? { automationEvaluation } : {}),
         },
       });
 
@@ -1017,7 +1016,7 @@ export class EvolutionIngestionService {
         ? { opportunityId: conversation.opportunityId }
         : {}),
       metadata: {
-        ...(conversation.metadata ?? {}),
+        ...(conversation.metadata ?? undefined),
         lastProcessedProviderMessageKey: message.providerMessageKey,
       },
     });
