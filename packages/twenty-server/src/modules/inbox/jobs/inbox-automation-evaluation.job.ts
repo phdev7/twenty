@@ -94,6 +94,13 @@ export class InboxAutomationEvaluationJob {
           ...pendingEvaluation,
         });
 
+      if (evaluationResult.failed > 0) {
+        throw new Error(
+          evaluationResult.warnings.join(' ') ||
+            'Uma ou mais ações da automação falharam.',
+        );
+      }
+
       await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
         () =>
           this.markEvaluationStatus({

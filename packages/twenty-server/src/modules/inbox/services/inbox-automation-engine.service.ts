@@ -244,6 +244,7 @@ export class InboxAutomationEngineService {
       evaluated: rules.length,
       matched: 0,
       applied: 0,
+      failed: 0,
       skippedAsDuplicate: 0,
       warnings: [],
     };
@@ -313,6 +314,7 @@ export class InboxAutomationEngineService {
             : 'Falha interna da automação.';
 
         result.warnings.push(`${automation.name}: ${message}`);
+        result.failed += 1;
         this.logger.warn(
           `Inbox automation ${automation.id} failed for conversation ${conversationId}: ${message}`,
         );
@@ -320,6 +322,8 @@ export class InboxAutomationEngineService {
           summary: `Automação falhou: ${automation.name}`,
           details: `${message}\nEnvio externo: bloqueado`,
         });
+
+        break;
       }
 
       if (automation.stopAfterMatch && wasApplied) {
@@ -1216,6 +1220,10 @@ export class InboxAutomationEngineService {
         warnings.join(' ') ||
           `A automação ${automation.name} não produziu nenhuma ação.`,
       );
+    }
+
+    if (warnings.length > 0) {
+      throw new Error(warnings.join(' '));
     }
 
     const nextRunCount = Math.max(0, automation.runCount ?? 0) + 1;

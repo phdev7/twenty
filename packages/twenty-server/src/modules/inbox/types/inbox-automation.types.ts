@@ -6,6 +6,7 @@ export type ExecuteInboxAutomationsResult = {
   evaluated: number;
   matched: number;
   applied: number;
+  failed: number;
   skippedAsDuplicate: number;
   warnings: string[];
 };
