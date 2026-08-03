@@ -13,6 +13,8 @@ export const TWENTY_STANDARD_ALL_METADATA_NAME = [
   'navigationMenuItem',
   'permissionFlag',
   'role',
+  'rolePermissionFlag',
+  'objectPermission',
   'agent',
   'skill',
   'pageLayout',

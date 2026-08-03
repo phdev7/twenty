@@ -2,10 +2,18 @@ import { v4 } from 'uuid';
 
 import { createEmptyFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/constant/create-empty-flat-entity-maps.constant';
 import { type FlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-maps.type';
+import { findFlatEntityByUniversalIdentifier } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-universal-identifier.util';
 import { type FlatNavigationMenuItemMaps } from 'src/engine/metadata-modules/flat-navigation-menu-item/types/flat-navigation-menu-item-maps.type';
+import { type FlatNavigationMenuItem } from 'src/engine/metadata-modules/flat-navigation-menu-item/types/flat-navigation-menu-item.type';
 import { addFlatNavigationMenuItemToMapsAndUpdateIndex } from 'src/engine/metadata-modules/flat-navigation-menu-item/utils/add-flat-navigation-menu-item-to-maps-and-update-index.util';
+import { type FlatPageLayout } from 'src/engine/metadata-modules/flat-page-layout/types/flat-page-layout.type';
+import { NavigationMenuItemType } from 'src/engine/metadata-modules/navigation-menu-item/enums/navigation-menu-item-type.enum';
 import { type FlatView } from 'src/engine/metadata-modules/flat-view/types/flat-view.type';
-import { STANDARD_NAVIGATION_MENU_ITEMS } from 'src/engine/workspace-manager/twenty-standard-application/constants/standard-navigation-menu-item.constant';
+import {
+  STANDARD_NAVIGATION_MENU_ITEMS,
+  type StandardNavigationMenuItemDefinition,
+} from 'src/engine/workspace-manager/twenty-standard-application/constants/standard-navigation-menu-item.constant';
+import { TWENTY_STANDARD_APPLICATION } from 'src/engine/workspace-manager/twenty-standard-application/constants/twenty-standard-applications';
 import { createStandardNavigationMenuItemFlatMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/navigation-menu-item/create-standard-navigation-menu-item-flat-metadata.util';
 import {
   createStandardNavigationMenuItemFolderFlatMetadata,
@@ -27,17 +35,127 @@ const WORKFLOWS_FOLDER_ITEM_NAMES = [
   'workflowsFolderAllWorkflowVersions',
 ] as const;
 
+const DIEX_NAVIGATION_MENU_ITEM_NAMES = [
+  'diexFolder',
+  'offers',
+  'commercialSignals',
+  'customerSuccess',
+  'successMilestones',
+  'aiGovernance',
+  'commercialTasks',
+  'operationalTasks',
+  'workspaceContext',
+  'inboxSavedReplies',
+  'inboxLabels',
+  'inboxTeams',
+  'inboxTeamMembers',
+  'inboxMentions',
+  'inboxMacros',
+  'inboxAutomations',
+  'inboxConversationEvents',
+  'accessRequests',
+  'aiCommandCenter',
+  'commercialIntelligence',
+  'customerSuccessCommandCenter',
+  'inbox',
+  'onboarding',
+  'renewalCommandCenter',
+] as const;
+
+const createStandardDiexNavigationMenuItemFlatMetadata = ({
+  definition,
+  workspaceId,
+  twentyStandardApplicationId,
+  flatViewMaps,
+  flatPageLayoutMaps,
+  folderId,
+  now,
+}: {
+  definition: StandardNavigationMenuItemDefinition;
+  workspaceId: string;
+  twentyStandardApplicationId: string;
+  flatViewMaps: FlatEntityMaps<FlatView>;
+  flatPageLayoutMaps: FlatEntityMaps<FlatPageLayout>;
+  folderId: string | null;
+  now: string;
+}): FlatNavigationMenuItem => {
+  const flatView = definition.viewUniversalIdentifier
+    ? findFlatEntityByUniversalIdentifier({
+        flatEntityMaps: flatViewMaps,
+        universalIdentifier: definition.viewUniversalIdentifier,
+      })
+    : undefined;
+  const flatPageLayout = definition.pageLayoutUniversalIdentifier
+    ? findFlatEntityByUniversalIdentifier({
+        flatEntityMaps: flatPageLayoutMaps,
+        universalIdentifier: definition.pageLayoutUniversalIdentifier,
+      })
+    : undefined;
+
+  if (definition.viewUniversalIdentifier && !flatView) {
+    throw new Error(
+      `View not found for universal identifier ${definition.viewUniversalIdentifier}`,
+    );
+  }
+
+  if (definition.pageLayoutUniversalIdentifier && !flatPageLayout) {
+    throw new Error(
+      `Page layout not found for universal identifier ${definition.pageLayoutUniversalIdentifier}`,
+    );
+  }
+
+  return {
+    id: v4(),
+    type: definition.type,
+    universalIdentifier: definition.universalIdentifier,
+    applicationId: twentyStandardApplicationId,
+    applicationUniversalIdentifier:
+      TWENTY_STANDARD_APPLICATION.universalIdentifier,
+    workspaceId,
+    userWorkspaceId: null,
+    targetRecordId: null,
+    targetObjectMetadataId: null,
+    targetObjectMetadataUniversalIdentifier: null,
+    viewId:
+      definition.type === NavigationMenuItemType.VIEW
+        ? (flatView?.id ?? null)
+        : null,
+    viewUniversalIdentifier:
+      definition.type === NavigationMenuItemType.VIEW
+        ? (flatView?.universalIdentifier ?? null)
+        : null,
+    folderId: definition.folderUniversalIdentifier ? folderId : null,
+    folderUniversalIdentifier: definition.folderUniversalIdentifier ?? null,
+    pageLayoutId:
+      definition.type === NavigationMenuItemType.PAGE_LAYOUT
+        ? (flatPageLayout?.id ?? null)
+        : null,
+    pageLayoutUniversalIdentifier:
+      definition.type === NavigationMenuItemType.PAGE_LAYOUT
+        ? (flatPageLayout?.universalIdentifier ?? null)
+        : null,
+    name: definition.name ?? null,
+    link: null,
+    icon: definition.icon ?? null,
+    color: definition.color ?? null,
+    position: definition.position,
+    createdAt: now,
+    updatedAt: now,
+  };
+};
+
 export const buildStandardFlatNavigationMenuItemMaps = ({
   now,
   workspaceId,
   twentyStandardApplicationId,
-  dependencyFlatEntityMaps: { flatViewMaps },
+  dependencyFlatEntityMaps: { flatPageLayoutMaps, flatViewMaps },
 }: {
   now: string;
   workspaceId: string;
   twentyStandardApplicationId: string;
   dependencyFlatEntityMaps: {
     flatViewMaps: FlatEntityMaps<FlatView>;
+    flatPageLayoutMaps: FlatEntityMaps<FlatPageLayout>;
   };
 }): FlatNavigationMenuItemMaps => {
   const flatNavigationMenuItemMaps: FlatNavigationMenuItemMaps = {
@@ -64,6 +182,49 @@ export const buildStandardFlatNavigationMenuItemMaps = ({
         now,
       },
     );
+
+    addFlatNavigationMenuItemToMapsAndUpdateIndex({
+      flatNavigationMenuItem,
+      flatNavigationMenuItemMaps,
+    });
+  }
+
+  const diexFolderDefinition = STANDARD_NAVIGATION_MENU_ITEMS.diexFolder;
+  const diexFolder = createStandardDiexNavigationMenuItemFlatMetadata({
+    definition: diexFolderDefinition,
+    workspaceId,
+    twentyStandardApplicationId,
+    flatViewMaps,
+    flatPageLayoutMaps,
+    folderId: null,
+    now,
+  });
+
+  const diexFolderId = diexFolder.id;
+
+  addFlatNavigationMenuItemToMapsAndUpdateIndex({
+    flatNavigationMenuItem: diexFolder,
+    flatNavigationMenuItemMaps,
+  });
+
+  for (const navigationMenuItemName of DIEX_NAVIGATION_MENU_ITEM_NAMES) {
+    if (navigationMenuItemName === 'diexFolder') {
+      continue;
+    }
+
+    const navigationMenuItemDefinition =
+      STANDARD_NAVIGATION_MENU_ITEMS[navigationMenuItemName];
+
+    const flatNavigationMenuItem =
+      createStandardDiexNavigationMenuItemFlatMetadata({
+        definition: navigationMenuItemDefinition,
+        workspaceId,
+        twentyStandardApplicationId,
+        flatViewMaps,
+        flatPageLayoutMaps,
+        folderId: diexFolderId,
+        now,
+      });
 
     addFlatNavigationMenuItemToMapsAndUpdateIndex({
       flatNavigationMenuItem,

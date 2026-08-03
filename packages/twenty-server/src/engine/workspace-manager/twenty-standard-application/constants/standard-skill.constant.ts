@@ -41,6 +41,21 @@ export const STANDARD_SKILL = {
   'custom-objects-cleanup': {
     universalIdentifier: '20202020-a1d3-4e5f-b6c7-8d9e0f1a2b3c',
   },
+  diexCommercialIntelligence: {
+    universalIdentifier: 'd1e0a100-0000-4000-8000-000000000001',
+  },
+  diexCustomerSuccess: {
+    universalIdentifier: 'd1e0a100-0000-4000-8000-000000000002',
+  },
+  diexAiActionGovernance: {
+    universalIdentifier: 'd1e0a100-0000-4000-8000-000000000003',
+  },
+  diexWorkspaceContext: {
+    universalIdentifier: 'd1e0a100-0000-4000-8000-000000000004',
+  },
+  diexCommercialOperatingLoop: {
+    universalIdentifier: 'a7f2c4d1-59be-4d0e-9a3b-6c0f8e2d4b17',
+  },
 } as const satisfies Record<
   string,
   {

@@ -16,7 +16,9 @@ import { buildStandardFlatPageLayoutTabMetadataMaps } from 'src/engine/workspace
 import { buildStandardFlatPageLayoutWidgetMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/page-layout-widget/build-standard-flat-page-layout-widget-metadata-maps.util';
 import { buildStandardFlatPageLayoutMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/page-layout/build-standard-flat-page-layout-metadata-maps.util';
 import { buildStandardFlatPermissionFlagMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/permission-flag/build-standard-flat-permission-flag-metadata-maps.util';
+import { buildStandardFlatObjectPermissionMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-permission/build-standard-flat-object-permission-metadata-maps.util';
 import { buildStandardFlatRoleMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/role-metadata/build-standard-flat-role-metadata-maps.util';
+import { buildStandardFlatRolePermissionFlagMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/role-permission-flag/build-standard-flat-role-permission-flag-metadata-maps.util';
 import { buildStandardFlatSearchFieldMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/search-field-metadata/build-standard-flat-search-field-metadata-maps.util';
 import { buildStandardFlatSkillMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/skill-metadata/build-standard-flat-skill-metadata-maps.util';
 import { buildStandardFlatViewFieldMetadataMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/view-field/build-standard-flat-view-field-metadata-maps.util';
@@ -159,6 +161,20 @@ export const computeTwentyStandardApplicationAllFlatEntityMaps = ({
     twentyStandardApplicationId,
   });
 
+  const flatObjectPermissionMaps =
+    buildStandardFlatObjectPermissionMetadataMaps({
+      now,
+      workspaceId,
+      twentyStandardApplicationId,
+    });
+
+  const flatRolePermissionFlagMaps =
+    buildStandardFlatRolePermissionFlagMetadataMaps({
+      now,
+      workspaceId,
+      twentyStandardApplicationId,
+    });
+
   const flatAgentMaps = buildStandardFlatAgentMetadataMaps({
     now,
     workspaceId,
@@ -210,6 +226,7 @@ export const computeTwentyStandardApplicationAllFlatEntityMaps = ({
     twentyStandardApplicationId,
     dependencyFlatEntityMaps: {
       flatViewMaps,
+      flatPageLayoutMaps,
     },
   });
 
@@ -232,9 +249,11 @@ export const computeTwentyStandardApplicationAllFlatEntityMaps = ({
     flatSearchFieldMetadataMaps,
     flatFieldMetadataMaps,
     flatObjectMetadataMaps,
+    flatObjectPermissionMaps,
     flatNavigationMenuItemMaps,
     flatPermissionFlagMaps,
     flatRoleMaps,
+    flatRolePermissionFlagMaps,
     flatAgentMaps,
     flatSkillMaps,
     flatPageLayoutMaps,

@@ -21,6 +21,9 @@ export type CreateStandardRoleContext = {
   canBeAssignedToUsers: boolean;
   canBeAssignedToAgents: boolean;
   canBeAssignedToApiKeys: boolean;
+  rolePermissionFlagUniversalIdentifiers?: string[];
+  objectPermissionUniversalIdentifiers?: string[];
+  fieldPermissionUniversalIdentifiers?: string[];
 };
 
 export type CreateStandardRoleArgs = StandardBuilderArgs<'role'> & {
@@ -43,6 +46,9 @@ export const createStandardRoleFlatMetadata = ({
     canBeAssignedToUsers,
     canBeAssignedToAgents,
     canBeAssignedToApiKeys,
+    rolePermissionFlagUniversalIdentifiers = [],
+    objectPermissionUniversalIdentifiers = [],
+    fieldPermissionUniversalIdentifiers = [],
   },
   workspaceId,
   twentyStandardApplicationId,
@@ -73,10 +79,10 @@ export const createStandardRoleFlatMetadata = ({
     createdAt: now,
     updatedAt: now,
     rolePermissionFlagIds: [],
-    rolePermissionFlagUniversalIdentifiers: [],
-    objectPermissionUniversalIdentifiers: [],
+    rolePermissionFlagUniversalIdentifiers,
+    objectPermissionUniversalIdentifiers,
     fieldPermissionIds: [],
-    fieldPermissionUniversalIdentifiers: [],
+    fieldPermissionUniversalIdentifiers,
     objectPermissionIds: [],
     roleTargetIds: [],
     roleTargetUniversalIdentifiers: [],

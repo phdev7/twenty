@@ -2,6 +2,9 @@ import { createEmptyFlatEntityMaps } from 'src/engine/metadata-modules/flat-enti
 import { type FlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-maps.type';
 import { addFlatEntityToFlatEntityMapsOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/add-flat-entity-to-flat-entity-maps-or-throw.util';
 import { type FlatViewField } from 'src/engine/metadata-modules/flat-view-field/types/flat-view-field.type';
+import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
+import { TWENTY_STANDARD_APPLICATION } from 'src/engine/workspace-manager/twenty-standard-application/constants/twenty-standard-applications';
+import { STANDARD_DIEX_VIEWS } from 'src/engine/workspace-manager/twenty-standard-application/constants/standard-diex-view.constant';
 import { type AllStandardObjectName } from 'src/engine/workspace-manager/twenty-standard-application/types/all-standard-object-name.type';
 import { computeStandardAttachmentViewFields } from 'src/engine/workspace-manager/twenty-standard-application/utils/view-field/compute-standard-attachment-view-fields.util';
 import { computeStandardBlocklistViewFields } from 'src/engine/workspace-manager/twenty-standard-application/utils/view-field/compute-standard-blocklist-view-fields.util';
@@ -35,6 +38,68 @@ import { type CreateStandardViewFieldArgs } from 'src/engine/workspace-manager/t
 type StandardViewFieldBuilder<P extends AllStandardObjectName> = (
   args: Omit<CreateStandardViewFieldArgs<P>, 'context'>,
 ) => Record<string, FlatViewField>;
+
+const createStandardDiexViewFieldFlatMetadata = ({
+  args,
+  view,
+  viewField,
+}: {
+  args: BuildStandardFlatViewFieldMetadataMapsArgs;
+  view: (typeof STANDARD_DIEX_VIEWS)[number];
+  viewField: (typeof STANDARD_DIEX_VIEWS)[number]['fields'][number];
+}): FlatViewField => {
+  const objectName = view.objectName as keyof typeof STANDARD_OBJECTS;
+  const objectDefinition = STANDARD_OBJECTS[objectName] as {
+    fields: Record<string, { universalIdentifier: string }>;
+  };
+  const relatedIds = args.standardObjectMetadataRelatedEntityIds[
+    objectName as keyof typeof args.standardObjectMetadataRelatedEntityIds
+  ] as {
+    views: Record<
+      string,
+      { id: string; viewFields: Record<string, { id: string }> }
+    >;
+  };
+  const fieldDefinition = objectDefinition.fields[viewField.fieldName];
+  const fieldMetadata = fieldDefinition
+    ? args.dependencyFlatEntityMaps.flatFieldMetadataMaps.byUniversalIdentifier[
+        fieldDefinition.universalIdentifier
+      ]
+    : undefined;
+  const viewIds = relatedIds.views[view.viewName];
+
+  if (!fieldDefinition || !fieldMetadata || !viewIds?.viewFields) {
+    throw new Error(
+      `Invalid standard Diex view field ${view.objectName}.${view.viewName}.${viewField.fieldName}`,
+    );
+  }
+
+  return {
+    id: viewIds.viewFields[viewField.fieldName].id,
+    universalIdentifier: viewField.universalIdentifier,
+    applicationId: args.twentyStandardApplicationId,
+    applicationUniversalIdentifier:
+      TWENTY_STANDARD_APPLICATION.universalIdentifier,
+    workspaceId: args.workspaceId,
+    viewId: viewIds.id,
+    viewUniversalIdentifier: view.universalIdentifier,
+    fieldMetadataId: fieldMetadata.id,
+    fieldMetadataUniversalIdentifier: fieldDefinition.universalIdentifier,
+    viewFieldGroupId: null,
+    viewFieldGroupUniversalIdentifier: null,
+    position: viewField.position,
+    isVisible: viewField.isVisible,
+    size: viewField.size,
+    aggregateOperation: null,
+    isActive: true,
+    isSystemSideEffect: false,
+    overrides: null,
+    universalOverrides: null,
+    createdAt: args.now,
+    updatedAt: args.now,
+    deletedAt: null,
+  };
+};
 
 const STANDARD_FLAT_VIEW_FIELD_METADATA_BUILDERS_BY_OBJECT_NAME = {
   attachment: computeStandardAttachmentViewFields,
@@ -81,7 +146,7 @@ export const buildStandardFlatViewFieldMetadataMaps = (
 ): FlatEntityMaps<FlatViewField> => {
   const { flatViewMaps } = args.dependencyFlatEntityMaps;
 
-  const allViewFieldMetadatas: FlatViewField[] = (
+  const standardViewFieldMetadatas: FlatViewField[] = (
     Object.keys(
       STANDARD_FLAT_VIEW_FIELD_METADATA_BUILDERS_BY_OBJECT_NAME,
     ) as (keyof typeof STANDARD_FLAT_VIEW_FIELD_METADATA_BUILDERS_BY_OBJECT_NAME)[]
@@ -96,6 +161,17 @@ export const buildStandardFlatViewFieldMetadataMaps = (
 
     return Object.values(result);
   });
+
+  const diexViewFieldMetadatas = STANDARD_DIEX_VIEWS.flatMap((view) =>
+    view.fields.map((viewField) =>
+      createStandardDiexViewFieldFlatMetadata({ args, view, viewField }),
+    ),
+  );
+
+  const allViewFieldMetadatas = [
+    ...standardViewFieldMetadatas,
+    ...diexViewFieldMetadatas,
+  ];
 
   let flatViewFieldMaps = createEmptyFlatEntityMaps();
 

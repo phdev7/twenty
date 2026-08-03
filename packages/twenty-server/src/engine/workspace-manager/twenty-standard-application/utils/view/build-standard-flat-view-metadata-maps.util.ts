@@ -2,6 +2,10 @@ import { createEmptyFlatEntityMaps } from 'src/engine/metadata-modules/flat-enti
 import { type FlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-maps.type';
 import { addFlatEntityToFlatEntityMapsOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/add-flat-entity-to-flat-entity-maps-or-throw.util';
 import { type FlatView } from 'src/engine/metadata-modules/flat-view/types/flat-view.type';
+import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
+import { ViewOpenRecordIn, ViewVisibility } from 'twenty-shared/types';
+import { TWENTY_STANDARD_APPLICATION } from 'src/engine/workspace-manager/twenty-standard-application/constants/twenty-standard-applications';
+import { STANDARD_DIEX_VIEWS } from 'src/engine/workspace-manager/twenty-standard-application/constants/standard-diex-view.constant';
 import { type AllStandardObjectName } from 'src/engine/workspace-manager/twenty-standard-application/types/all-standard-object-name.type';
 import { computeStandardAttachmentViews } from 'src/engine/workspace-manager/twenty-standard-application/utils/view/compute-standard-attachment-views.util';
 import { computeStandardBlocklistViews } from 'src/engine/workspace-manager/twenty-standard-application/utils/view/compute-standard-blocklist-views.util';
@@ -76,10 +80,95 @@ export type BuildStandardFlatViewMetadataMapsArgs = Omit<
   'context' | 'objectName'
 >;
 
+const createStandardDiexViewFlatMetadata = ({
+  args,
+  view,
+}: {
+  args: BuildStandardFlatViewMetadataMapsArgs;
+  view: (typeof STANDARD_DIEX_VIEWS)[number];
+}): FlatView => {
+  const objectName = view.objectName as keyof typeof STANDARD_OBJECTS;
+  const objectDefinition = STANDARD_OBJECTS[objectName] as {
+    universalIdentifier: string;
+    fields: Record<string, { universalIdentifier: string }>;
+  };
+  const relatedIds = args.standardObjectMetadataRelatedEntityIds[
+    objectName as keyof typeof args.standardObjectMetadataRelatedEntityIds
+  ] as {
+    id: string;
+    fields: Record<string, { id: string }>;
+    views: Record<string, { id: string }>;
+  };
+  const mainGroupByFieldMetadataUniversalIdentifier = view.mainGroupByFieldName
+    ? objectDefinition.fields[view.mainGroupByFieldName]?.universalIdentifier
+    : null;
+
+  if (!relatedIds?.views?.[view.viewName]) {
+    throw new Error(
+      `Missing related ids for standard Diex view ${view.objectName}.${view.viewName}`,
+    );
+  }
+
+  return {
+    id: relatedIds.views[view.viewName].id,
+    universalIdentifier: view.universalIdentifier,
+    applicationId: args.twentyStandardApplicationId,
+    applicationUniversalIdentifier:
+      TWENTY_STANDARD_APPLICATION.universalIdentifier,
+    workspaceId: args.workspaceId,
+    objectMetadataId: relatedIds.id,
+    objectMetadataUniversalIdentifier: objectDefinition.universalIdentifier,
+    name: view.name,
+    type: view.type,
+    key: view.key,
+    icon: view.icon,
+    position: view.position,
+    isCompact: false,
+    isCustom: false,
+    openRecordIn: ViewOpenRecordIn.SIDE_PANEL,
+    kanbanAggregateOperation: null,
+    kanbanAggregateOperationFieldMetadataId: null,
+    kanbanAggregateOperationFieldMetadataUniversalIdentifier: null,
+    mainGroupByFieldMetadataId: view.mainGroupByFieldName
+      ? (relatedIds.fields[view.mainGroupByFieldName]?.id ?? null)
+      : null,
+    mainGroupByFieldMetadataUniversalIdentifier,
+    shouldHideEmptyGroups: false,
+    kanbanColumnWidth: null,
+    calendarLayout: null,
+    calendarFieldMetadataId: null,
+    calendarFieldMetadataUniversalIdentifier: null,
+    calendarEndFieldMetadataId: null,
+    calendarEndFieldMetadataUniversalIdentifier: null,
+    anyFieldFilterValue: null,
+    visibility: ViewVisibility.WORKSPACE,
+    createdByUserWorkspaceId: null,
+    isActive: true,
+    isSystemSideEffect: false,
+    overrides: null,
+    universalOverrides: null,
+    viewFieldIds: [],
+    viewFieldUniversalIdentifiers: [],
+    viewFieldGroupIds: [],
+    viewFieldGroupUniversalIdentifiers: [],
+    viewFilterIds: [],
+    viewFilterUniversalIdentifiers: [],
+    viewGroupIds: [],
+    viewGroupUniversalIdentifiers: [],
+    viewFilterGroupIds: [],
+    viewFilterGroupUniversalIdentifiers: [],
+    viewSortIds: [],
+    viewSortUniversalIdentifiers: [],
+    createdAt: args.now,
+    updatedAt: args.now,
+    deletedAt: null,
+  };
+};
+
 export const buildStandardFlatViewMetadataMaps = (
   args: BuildStandardFlatViewMetadataMapsArgs,
 ): FlatEntityMaps<FlatView> => {
-  const allViewMetadatas: FlatView[] = (
+  const standardViewMetadatas: FlatView[] = (
     Object.keys(
       STANDARD_FLAT_VIEW_METADATA_BUILDERS_BY_OBJECT_NAME,
     ) as (keyof typeof STANDARD_FLAT_VIEW_METADATA_BUILDERS_BY_OBJECT_NAME)[]
@@ -94,6 +183,12 @@ export const buildStandardFlatViewMetadataMaps = (
 
     return Object.values(result);
   });
+
+  const diexViewMetadatas = STANDARD_DIEX_VIEWS.map((view) =>
+    createStandardDiexViewFlatMetadata({ args, view }),
+  );
+
+  const allViewMetadatas = [...standardViewMetadatas, ...diexViewMetadatas];
 
   let flatViewMaps = createEmptyFlatEntityMaps();
 

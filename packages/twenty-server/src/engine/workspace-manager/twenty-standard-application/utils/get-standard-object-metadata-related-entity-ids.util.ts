@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
 
+import { STANDARD_DIEX_VIEWS } from 'src/engine/workspace-manager/twenty-standard-application/constants/standard-diex-view.constant';
 import { type AllStandardObjectFieldName } from 'src/engine/workspace-manager/twenty-standard-application/types/all-standard-object-field-name.type';
 import { type AllStandardObjectName } from 'src/engine/workspace-manager/twenty-standard-application/types/all-standard-object-name.type';
 import { type AllStandardObjectViewFieldName } from 'src/engine/workspace-manager/twenty-standard-application/types/all-standard-object-view-field-name.type';
@@ -125,6 +126,40 @@ const computeStandardViewObjectIds = <O extends AllStandardObjectName>({
   return viewIds;
 };
 
+const addStandardDiexViewObjectIds = ({
+  objectName,
+  viewIds,
+}: {
+  objectName: string;
+  viewIds: Record<
+    string,
+    {
+      id: string;
+      viewFields: Record<string, { id: string }>;
+      viewGroups: Record<string, { id: string }>;
+      viewFieldGroups: Record<string, { id: string }>;
+    }
+  >;
+}) => {
+  for (const view of STANDARD_DIEX_VIEWS.filter(
+    (candidate) => candidate.objectName === objectName,
+  )) {
+    viewIds[view.viewName] = {
+      id: v4(),
+      viewFields: Object.fromEntries(
+        view.fields.map((viewField) => [viewField.fieldName, { id: v4() }]),
+      ),
+      viewGroups: Object.fromEntries(
+        (view.groups ?? []).map((viewGroup) => [
+          viewGroup.fieldValue,
+          { id: v4() },
+        ]),
+      ),
+      viewFieldGroups: {},
+    };
+  }
+};
+
 // TODO remove once we have refactored the builder to iterate over universalIdentifier only
 export const getStandardObjectMetadataRelatedEntityIds =
   (): StandardObjectMetadataRelatedEntityIds => {
@@ -146,8 +181,23 @@ export const getStandardObjectMetadataRelatedEntityIds =
         fieldIds[fieldName] = { id: v4() };
       }
 
-      const viewIds = computeStandardViewObjectIds({
+      const standardViewIds = computeStandardViewObjectIds({
         objectName,
+      });
+
+      const viewIds = (standardViewIds ?? {}) as Record<
+        string,
+        {
+          id: string;
+          viewFields: Record<string, { id: string }>;
+          viewGroups: Record<string, { id: string }>;
+          viewFieldGroups: Record<string, { id: string }>;
+        }
+      >;
+
+      addStandardDiexViewObjectIds({
+        objectName,
+        viewIds,
       });
 
       result[objectName] = {
