@@ -100,7 +100,7 @@ export const InboxAiTriagePanel = ({
         Diagnóstico comercial
       </StyledTitle>
       <StyledConfidence>
-        {Math.round(triageResult.confidence * 100)}% confiança
+        {Math.round(triageResult.confidence)}% confiança
       </StyledConfidence>
     </StyledHeader>
     <StyledSummary>{triageResult.summary}</StyledSummary>

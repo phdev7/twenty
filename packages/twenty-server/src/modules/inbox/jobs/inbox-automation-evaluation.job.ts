@@ -7,6 +7,7 @@ import { Processor } from 'src/engine/core-modules/message-queue/decorators/proc
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
+import { INBOX_AUTOMATION_EVALUATION_LEASE_MS } from 'src/modules/inbox/constants/inbox-automation.constants';
 import { InboxAutomationEngineService } from 'src/modules/inbox/services/inbox-automation-engine.service';
 import { InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-message.workspace-entity';
 import {
@@ -22,6 +23,7 @@ export type InboxAutomationEvaluationJobData = {
   workspaceId: string;
   messageId: string;
   evaluationId: string;
+  attempts?: number;
 };
 
 type PendingEvaluation = {
@@ -29,6 +31,7 @@ type PendingEvaluation = {
   trigger: InboxAutomationTriggerValue;
   triggerKey: string;
   messageBody: string;
+  attempts: number;
 };
 
 @Processor(MessageQueue.inboxQueue)
@@ -45,14 +48,21 @@ export class InboxAutomationEvaluationJob {
     workspaceId,
     messageId,
     evaluationId,
+    attempts,
   }: InboxAutomationEvaluationJobData): Promise<void> {
     const authContext = buildSystemAuthContext(workspaceId);
+    let runAttempts = attempts;
 
     try {
       const pendingEvaluation =
         await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
           () =>
-            this.loadPendingEvaluation(workspaceId, messageId, evaluationId),
+            this.loadPendingEvaluation(
+              workspaceId,
+              messageId,
+              evaluationId,
+              attempts,
+            ),
           authContext,
         );
 
@@ -64,12 +74,15 @@ export class InboxAutomationEvaluationJob {
         return;
       }
 
+      runAttempts = pendingEvaluation.attempts;
+
       await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
         () =>
           this.markEvaluationStatus({
             workspaceId,
             messageId,
             evaluationId,
+            attempts: runAttempts,
             status: 'running',
           }),
         authContext,
@@ -87,6 +100,7 @@ export class InboxAutomationEvaluationJob {
             workspaceId,
             messageId,
             evaluationId,
+            attempts: runAttempts,
             status:
               evaluationResult.warnings.length > 0
                 ? 'done_with_warnings'
@@ -109,6 +123,7 @@ export class InboxAutomationEvaluationJob {
               workspaceId,
               messageId,
               evaluationId,
+              attempts: runAttempts,
               status: 'failed',
               lastError: message,
             }),
@@ -124,6 +139,7 @@ export class InboxAutomationEvaluationJob {
     workspaceId: string,
     messageId: string,
     evaluationId: string,
+    attempts?: number,
   ): Promise<PendingEvaluation | null> {
     const messageRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
@@ -145,7 +161,10 @@ export class InboxAutomationEvaluationJob {
       !['queued', 'running', 'failed'].includes(evaluation.status) ||
       message.direction !== 'INBOUND' ||
       message.isInternalNote ||
-      !message.providerMessageKey
+      !message.providerMessageKey ||
+      (attempts !== undefined
+        ? evaluation.attempts !== attempts
+        : evaluation.attempts !== undefined)
     ) {
       return null;
     }
@@ -158,6 +177,7 @@ export class InboxAutomationEvaluationJob {
       trigger: evaluation.trigger ?? 'INBOUND_MESSAGE_CREATED',
       triggerKey: message.providerMessageKey ?? message.id,
       messageBody: message.body ?? '',
+      attempts: evaluation.attempts ?? 0,
     };
   }
 
@@ -165,6 +185,7 @@ export class InboxAutomationEvaluationJob {
     workspaceId,
     messageId,
     evaluationId,
+    attempts,
     status,
     warnings,
     lastError,
@@ -172,6 +193,7 @@ export class InboxAutomationEvaluationJob {
     workspaceId: string;
     messageId: string;
     evaluationId: string;
+    attempts?: number;
     status: InboxAutomationEvaluationMetadata['status'];
     warnings?: string[];
     lastError?: string;
@@ -195,12 +217,31 @@ export class InboxAutomationEvaluationJob {
       return;
     }
 
+    if (
+      attempts !== undefined &&
+      current?.attempts !== undefined &&
+      current.attempts !== attempts
+    ) {
+      return;
+    }
+
+    const startedAt =
+      status === 'running' ? new Date().toISOString() : undefined;
+    const leaseExpiresAt =
+      status === 'running'
+        ? new Date(
+            Date.now() + INBOX_AUTOMATION_EVALUATION_LEASE_MS,
+          ).toISOString()
+        : undefined;
+
     const metadata: InboxAutomationEvaluationMetadata = {
       evaluationId,
       trigger: current?.trigger ?? 'INBOUND_MESSAGE_CREATED',
       status,
       queuedAt: current?.queuedAt ?? new Date().toISOString(),
       attempts: current?.attempts,
+      startedAt,
+      leaseExpiresAt,
       completedAt:
         status === 'done' ||
         status === 'done_with_warnings' ||

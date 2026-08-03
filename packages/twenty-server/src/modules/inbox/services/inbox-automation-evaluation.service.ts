@@ -46,6 +46,20 @@ const evaluationStateByStatus: Record<
   failed: 'failed',
 };
 
+const isExpiredAutomationLease = (
+  evaluation: InboxAutomationEvaluationMetadata,
+): boolean => {
+  if (evaluation.status !== 'running') {
+    return false;
+  }
+
+  const expiresAt = evaluation.leaseExpiresAt
+    ? Date.parse(evaluation.leaseExpiresAt)
+    : Number.NaN;
+
+  return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
+};
+
 @Injectable()
 export class InboxAutomationEvaluationService {
   private readonly logger = new Logger(InboxAutomationEvaluationService.name);
@@ -104,7 +118,8 @@ export class InboxAutomationEvaluationService {
               !message.inboxConversationId ||
               !message.providerMessageKey ||
               (evaluation &&
-                !['queued', 'failed'].includes(evaluation.status))
+                !['queued', 'failed'].includes(evaluation.status) &&
+                !isExpiredAutomationLease(evaluation))
             ) {
               continue;
             }
@@ -183,12 +198,17 @@ export class InboxAutomationEvaluationService {
     }
 
     if (current?.status === 'running') {
-      return {
-        status: 'alreadyQueued',
-        evaluationId: current.evaluationId,
-        messageId,
-        evaluationState: evaluationStateByStatus[current.status],
-      };
+      if (
+        !isExpiredAutomationLease(current) ||
+        (await this.hasInFlightEvaluation(current.evaluationId))
+      ) {
+        return {
+          status: 'alreadyQueued',
+          evaluationId: current.evaluationId,
+          messageId,
+          evaluationState: evaluationStateByStatus[current.status],
+        };
+      }
     }
 
     if (
@@ -253,7 +273,7 @@ export class InboxAutomationEvaluationService {
     try {
       await this.inboxQueueService.add(
         InboxAutomationEvaluationJob.name,
-        { workspaceId, messageId, evaluationId },
+        { workspaceId, messageId, evaluationId, attempts },
         {
           id: evaluationId,
           retryLimit: 3,
@@ -307,6 +327,7 @@ export class InboxAutomationEvaluationService {
         workspaceId: string;
         messageId: string;
         evaluationId: string;
+        attempts?: number;
       }>()
       .catch(() => []);
 

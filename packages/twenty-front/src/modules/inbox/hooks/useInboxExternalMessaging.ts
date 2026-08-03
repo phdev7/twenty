@@ -161,7 +161,7 @@ export const useInboxExternalMessaging = ({
           `Intenção: ${response.intent}`,
           `Sentimento: ${response.sentiment}`,
           `Urgência: ${response.urgency}`,
-          `Confiança: ${Math.round(response.confidence * 100)}%`,
+          `Confiança: ${Math.round(response.confidence)}%`,
           `Próxima ação: ${response.recommendedAction}`,
         ].join('\n'),
       });

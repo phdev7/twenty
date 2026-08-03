@@ -6,7 +6,6 @@ import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspac
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import {
   EVOLUTION_SYNC_MAX_BACKFILL_DAYS,
-  EVOLUTION_SYNC_MAX_PAGES,
   EVOLUTION_SYNC_OVERLAP_SECONDS,
   EVOLUTION_SYNC_WATERMARK_KEY,
 } from 'src/modules/inbox/constants/inbox-evolution.constants';
@@ -101,7 +100,7 @@ export class EvolutionSyncService {
             );
         const floor = watermark - EVOLUTION_SYNC_OVERLAP_SECONDS * 1_000;
 
-        const { records, fetched, isProvisioned } =
+        const { records, fetched, isProvisioned, complete } =
           await this.fetchRecordsSince({
             baseUrl: configuration.baseUrl,
             apiKey: configuration.apiKey,
@@ -160,9 +159,13 @@ export class EvolutionSyncService {
           );
         }
 
-        const nextWatermark = new Date(newestTimestamp).toISOString();
+        const nextWatermark = complete
+          ? new Date(newestTimestamp).toISOString()
+          : new Date(watermark).toISOString();
 
-        await this.writeWatermark(workspaceId, nextWatermark);
+        if (complete) {
+          await this.writeWatermark(workspaceId, nextWatermark);
+        }
 
         return {
           fetched,
@@ -171,10 +174,11 @@ export class EvolutionSyncService {
           duplicateMessages,
           transcribedAudios: 0,
           watermark: nextWatermark,
-          message:
-            createdMessages > 0
+          message: complete
+            ? createdMessages > 0
               ? `${createdMessages} mensagem(ns) que o webhook não entregou foram recuperadas.`
-              : 'Nenhuma mensagem pendente: o webhook está entregando.',
+              : 'Nenhuma mensagem pendente: o webhook está entregando.'
+            : 'Lote parcial sincronizado; o watermark foi preservado para continuar o backfill com segurança.',
         };
       },
       authContext,
@@ -241,11 +245,15 @@ export class EvolutionSyncService {
     records: ProviderMessageRecord[];
     fetched: number;
     isProvisioned: boolean;
+    complete: boolean;
   }> {
     const collected: ProviderMessageRecord[] = [];
     let fetched = 0;
+    let page = 1;
+    let previousPageFingerprint: string | null = null;
+    let complete = false;
 
-    for (let page = 1; page <= EVOLUTION_SYNC_MAX_PAGES; page += 1) {
+    while (true) {
       const response = await this.evolutionHttpService.request({
         baseUrl,
         path: `/chat/findMessages/${encodeURIComponent(instanceName)}`,
@@ -260,7 +268,12 @@ export class EvolutionSyncService {
 
       if (response.status === 404) {
         // No instance for this workspace yet: nobody connected WhatsApp here.
-        return { records: [], fetched: 0, isProvisioned: false };
+        return {
+          records: [],
+          fetched: 0,
+          isProvisioned: false,
+          complete: true,
+        };
       }
 
       if (!response.ok) {
@@ -270,6 +283,22 @@ export class EvolutionSyncService {
       }
 
       const records = readProviderRecords(await response.json());
+
+      const pageFingerprint = JSON.stringify(
+        records.map((record) => [
+          readRecordTimestamp(record),
+          record.key ?? record.id ?? record.messageId ?? null,
+        ]),
+      );
+
+      if (records.length > 0 && pageFingerprint === previousPageFingerprint) {
+        this.logger.warn(
+          `A Evolution repetiu a página ${page}; o watermark não será avançado além do lote seguro.`,
+        );
+        break;
+      }
+
+      previousPageFingerprint = pageFingerprint;
 
       fetched += records.length;
       collected.push(
@@ -283,10 +312,13 @@ export class EvolutionSyncService {
         records.some((record) => readRecordTimestamp(record) < floor);
 
       if (reachedFloor) {
+        complete = true;
         break;
       }
+
+      page += 1;
     }
 
-    return { records: collected, fetched, isProvisioned: true };
+    return { records: collected, fetched, isProvisioned: true, complete };
   }
 }

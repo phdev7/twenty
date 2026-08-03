@@ -25,10 +25,6 @@ export const EVOLUTION_SYNC_WATERMARK_KEY =
 // unrelated history into it.
 export const EVOLUTION_SYNC_MAX_BACKFILL_DAYS = 7;
 
-// The provider ignores the requested page size and answers with 50 records, so
-// reaching further back means walking pages.
-export const EVOLUTION_SYNC_MAX_PAGES = 5;
-
 // A message can reach the provider's storage slightly after its own timestamp,
 // so the window reaches a little behind the watermark. Deduplication makes the
 // overlap free.

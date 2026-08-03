@@ -76,6 +76,7 @@ export type EvolutionMedia = {
 };
 
 export type EvolutionWebhookRegistration = {
+  configured: true;
   instanceName: string;
   webhookUrl: string;
   providerStatus: number;

@@ -424,6 +424,7 @@ export class EvolutionProvisioningService {
       }
 
       return {
+        configured: true,
         instanceName: configuration.instanceName,
         webhookUrl,
         providerStatus: response.status,

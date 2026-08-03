@@ -35,6 +35,8 @@ export type InboxAutomationEvaluationMetadata = {
   trigger?: InboxAutomationTriggerValue;
   status: 'queued' | 'running' | 'done' | 'done_with_warnings' | 'failed';
   queuedAt: string;
+  startedAt?: string;
+  leaseExpiresAt?: string;
   completedAt?: string;
   attempts?: number;
   warnings?: string[];

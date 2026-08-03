@@ -1,6 +1,11 @@
 export const INBOX_AUTOMATION_UNIVERSAL_IDENTIFIER =
   'd1e0fd00-0000-4000-8000-000000000001';
 
+// A crashed worker can leave a message marked as running. The maintenance
+// reconciler may reclaim it only after this lease expires, while the attempt
+// token prevents a stale worker from completing a newer retry.
+export const INBOX_AUTOMATION_EVALUATION_LEASE_MS = 15 * 60_000;
+
 export const INBOX_AUTOMATION_FIELD_IDS = {
   name: 'd1e0fd10-0000-4000-8000-000000000001',
   key: 'd1e0fd10-0000-4000-8000-000000000002',
