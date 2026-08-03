@@ -76,6 +76,7 @@ import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.serv
     EvolutionIngestionService,
     InboxAutomationEngineService,
     InboxAutomationEvaluationService,
+    InboxMaintenanceCronCommand,
   ],
 })
 export class InboxModule {}
