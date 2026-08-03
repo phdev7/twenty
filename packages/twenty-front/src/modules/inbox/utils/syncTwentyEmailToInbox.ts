@@ -75,6 +75,10 @@ type ExistingConversation = {
 
 type ExistingInboxMessage = { id: string; providerMessageKey: string };
 
+type InboxAutomationTrigger =
+  | 'CONVERSATION_CREATED'
+  | 'INBOUND_MESSAGE_CREATED';
+
 type NativeOpportunity = InboxRecordReference & {
   pointOfContact?: InboxRecordReference | null;
 };
@@ -442,9 +446,28 @@ export const syncTwentyEmailToInbox = async ({
     const contactHandle = normalizeEmail(contact.handle);
     const latestMessage = group.messages[group.messages.length - 1];
     const existing = conversationByKey.get(group.providerThreadKey);
+    const conversationWasCreated = existing === undefined;
     const missingMessages = group.messages.filter(
       (message) => !existingMessageKeys.has(buildProviderMessageKey(message)),
     );
+    const firstIncoming = group.messages.find(isIncoming);
+    const firstIncomingProviderMessageKey = firstIncoming
+      ? buildProviderMessageKey(firstIncoming)
+      : null;
+    const existingConversationMetadata = parseExistingMetadata(
+      existing?.metadata,
+    );
+    const persistedAutomationTriggerMessageKey =
+      typeof existingConversationMetadata.automationTriggerMessageKey ===
+      'string'
+        ? existingConversationMetadata.automationTriggerMessageKey
+        : null;
+    let firstIncomingNeedsConversationCreated =
+      conversationWasCreated ||
+      (persistedAutomationTriggerMessageKey ===
+        firstIncomingProviderMessageKey &&
+        firstIncomingProviderMessageKey !== null &&
+        !existingMessageKeys.has(firstIncomingProviderMessageKey));
     const newIncomingCount = missingMessages.filter(isIncoming).length;
     const latestMessageAt = getOccurredAt(latestMessage);
     const latestIsNewer =
@@ -459,16 +482,20 @@ export const syncTwentyEmailToInbox = async ({
     const opportunity = person?.id
       ? (opportunityByPersonId.get(person.id) ?? null)
       : null;
-    const metadata = buildConversationMetadata({
-      existingMetadata: existing?.metadata,
-      group,
-      latestMessage,
-    });
+    const metadata = {
+      ...buildConversationMetadata({
+        existingMetadata: existing?.metadata,
+        group,
+        latestMessage,
+      }),
+      ...(conversationWasCreated && firstIncomingProviderMessageKey
+        ? { automationTriggerMessageKey: firstIncomingProviderMessageKey }
+        : {}),
+    };
     let conversationId = existing?.id;
 
     if (!conversationId) {
       const firstRespondedAt = getFirstRespondedAt(group);
-      const firstIncoming = group.messages.find(isIncoming);
       const responseSlaMinutes = Math.max(1, routing?.responseSlaMinutes ?? 60);
       const { data } = await apolloCoreClient.mutate<{
         createInboxConversation?: { id?: string | null } | null;
@@ -571,6 +598,13 @@ export const syncTwentyEmailToInbox = async ({
     for (const association of missingMessages) {
       const providerMessageKey = buildProviderMessageKey(association);
       const sender = getSenderParticipant(association);
+      const automationTrigger: InboxAutomationTrigger | undefined = isIncoming(
+        association,
+      )
+        ? firstIncomingNeedsConversationCreated
+          ? 'CONVERSATION_CREATED'
+          : 'INBOUND_MESSAGE_CREATED'
+        : undefined;
 
       const { data } = await apolloCoreClient.mutate<{
         createInboxMessage?: { id?: string | null } | null;
@@ -601,6 +635,7 @@ export const syncTwentyEmailToInbox = async ({
               messageThreadExternalId: group.messageThreadExternalId,
               headerMessageId: association.message?.headerMessageId ?? null,
               subject: getSubject(association),
+              ...(automationTrigger ? { automationTrigger } : {}),
             },
             inboxConversationId: conversationId,
           },
@@ -623,6 +658,7 @@ export const syncTwentyEmailToInbox = async ({
           workspaceId,
           messageIds: [createdInboxMessageId],
         });
+        firstIncomingNeedsConversationCreated = false;
       }
 
       existingMessageKeys.add(providerMessageKey);

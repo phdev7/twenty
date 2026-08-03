@@ -32,6 +32,8 @@ import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 
+const AUTOMATION_RECONCILIATION_INTERVAL_MS = 30_000;
+
 export const useInboxExternalMessaging = ({
   selectedConversation,
   teams,
@@ -73,16 +75,35 @@ export const useInboxExternalMessaging = ({
   }, [selectedConversationId]);
 
   // Automation evaluations queued in a previous session/tab stay in
-  // localStorage; flush them on reload instead of waiting for the next
-  // manual sync.
+  // localStorage. Wake the queue conservatively so worker failures converge
+  // without requiring another manual sync; the queue itself applies backoff.
   useEffect(() => {
     if (workspaceId === null) {
       return;
     }
 
-    void reconcileInboxAutomationEvaluations({ workspaceId }).catch(
-      () => undefined,
+    let reconciliationRunning = false;
+    const reconcile = () => {
+      if (reconciliationRunning) {
+        return;
+      }
+
+      reconciliationRunning = true;
+
+      void reconcileInboxAutomationEvaluations({ workspaceId })
+        .catch(() => undefined)
+        .finally(() => {
+          reconciliationRunning = false;
+        });
+    };
+
+    reconcile();
+    const intervalId = setInterval(
+      reconcile,
+      AUTOMATION_RECONCILIATION_INTERVAL_MS,
     );
+
+    return () => clearInterval(intervalId);
   }, [workspaceId]);
 
   const getEmailSyncRouting = useCallback(() => {
