@@ -18,7 +18,10 @@ import {
 } from '@/inbox/types/twentyEmailSyncTypes';
 import { getRecordName } from '@/inbox/utils/getRecordName';
 import { loadEligibleTwentyEmailChannels } from '@/inbox/utils/loadEligibleTwentyEmailChannels';
-import { reconcileInboxAutomationEvaluations } from '@/inbox/utils/reconcileInboxAutomationEvaluations';
+import {
+  queueInboxAutomationEvaluations,
+  reconcileInboxAutomationEvaluations,
+} from '@/inbox/utils/reconcileInboxAutomationEvaluations';
 
 type NativePersonReference = InboxRecordReference & {
   company?: InboxRecordReference | null;
@@ -428,7 +431,6 @@ export const syncTwentyEmailToInbox = async ({
   let createdConversations = 0;
   let updatedConversations = 0;
   let createdMessages = 0;
-  const newIncomingMessageIds: string[] = [];
 
   for (const group of groups) {
     const contact = getRepresentativeContact(group);
@@ -613,18 +615,23 @@ export const syncTwentyEmailToInbox = async ({
         );
       }
 
+      // Persist the server id before any later mutation can fail. The next
+      // reconciliation can then recover this message even though the sync
+      // no longer considers it missing on the provider side.
+      if (isIncoming(association)) {
+        queueInboxAutomationEvaluations({
+          workspaceId,
+          messageIds: [createdInboxMessageId],
+        });
+      }
+
       existingMessageKeys.add(providerMessageKey);
       createdMessages += 1;
-
-      if (isIncoming(association)) {
-        newIncomingMessageIds.push(createdInboxMessageId);
-      }
     }
   }
 
   const automationReconciliation = await reconcileInboxAutomationEvaluations({
     workspaceId,
-    messageIds: newIncomingMessageIds,
   });
 
   return {

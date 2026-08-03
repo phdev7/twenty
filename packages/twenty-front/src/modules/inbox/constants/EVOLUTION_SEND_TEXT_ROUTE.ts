@@ -1,1 +1,2 @@
-export const EVOLUTION_SEND_TEXT_ROUTE = '/s/diex/inbox/evolution/send-text';
+export const getEvolutionSendTextRoute = (conversationId: string): string =>
+  `/rest/inbox/conversations/${encodeURIComponent(conversationId)}/evolution-messages`;

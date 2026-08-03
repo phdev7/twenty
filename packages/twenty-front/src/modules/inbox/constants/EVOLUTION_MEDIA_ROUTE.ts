@@ -1,1 +1,2 @@
-export const EVOLUTION_MEDIA_ROUTE = '/s/diex/inbox/evolution/media';
+export const getEvolutionMediaRoute = (messageId: string): string =>
+  `/rest/inbox/messages/${encodeURIComponent(messageId)}/evolution-media`;

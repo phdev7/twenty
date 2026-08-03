@@ -7,10 +7,18 @@ export type InboxAutomationEvaluationStatus =
   | 'alreadyQueued'
   | 'skipped';
 
+export type InboxAutomationEvaluationState =
+  | 'pending'
+  | 'running'
+  | 'done'
+  | 'done_with_warnings'
+  | 'failed';
+
 export type InboxAutomationEvaluationResult = {
   status: InboxAutomationEvaluationStatus;
   evaluationId: string | null;
   messageId: string;
+  evaluationState?: InboxAutomationEvaluationState;
   reason?: string;
 };
 
@@ -29,6 +37,15 @@ const isEvaluationStatus = (
   value: unknown,
 ): value is InboxAutomationEvaluationStatus =>
   value === 'queued' || value === 'alreadyQueued' || value === 'skipped';
+
+const isEvaluationState = (
+  value: unknown,
+): value is InboxAutomationEvaluationState =>
+  value === 'pending' ||
+  value === 'running' ||
+  value === 'done' ||
+  value === 'done_with_warnings' ||
+  value === 'failed';
 
 const parseResponseBody = (rawBody: string): unknown => {
   if (rawBody.trim().length === 0) {
@@ -103,6 +120,9 @@ export const triggerInboxAutomationsAfterEmailSync = async ({
     !('evaluationId' in parsedBody) ||
     (parsedBody.evaluationId !== null &&
       typeof parsedBody.evaluationId !== 'string') ||
+    ('evaluationState' in parsedBody &&
+      parsedBody.evaluationState !== undefined &&
+      !isEvaluationState(parsedBody.evaluationState)) ||
     ('reason' in parsedBody &&
       parsedBody.reason !== undefined &&
       typeof parsedBody.reason !== 'string')

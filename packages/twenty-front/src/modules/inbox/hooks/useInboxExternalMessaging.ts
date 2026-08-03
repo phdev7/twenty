@@ -5,8 +5,8 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { EVOLUTION_CONFIGURE_ROUTE } from '@/inbox/constants/EVOLUTION_CONFIGURE_ROUTE';
-import { EVOLUTION_MEDIA_ROUTE } from '@/inbox/constants/EVOLUTION_MEDIA_ROUTE';
-import { EVOLUTION_SEND_TEXT_ROUTE } from '@/inbox/constants/EVOLUTION_SEND_TEXT_ROUTE';
+import { getEvolutionMediaRoute } from '@/inbox/constants/EVOLUTION_MEDIA_ROUTE';
+import { getEvolutionSendTextRoute } from '@/inbox/constants/EVOLUTION_SEND_TEXT_ROUTE';
 import { INBOX_TRIAGE_ROUTE } from '@/inbox/constants/INBOX_TRIAGE_ROUTE';
 import { SEND_TWENTY_EMAIL } from '@/inbox/graphql/inboxEmailSyncQueries';
 import {
@@ -21,11 +21,12 @@ import {
   type InboxExternalMessagePreview,
   type InboxTriageResult,
 } from '@/inbox/types/inboxExternalMessageTypes';
-import { getUnresolvedSavedReplyVariables } from '@/inbox/utils/renderSavedReplyTemplate';
+import { getInboxAppRoute } from '@/inbox/utils/getInboxAppRoute';
 import { loadEligibleTwentyEmailChannels } from '@/inbox/utils/loadEligibleTwentyEmailChannels';
 import { postInboxAppRoute } from '@/inbox/utils/postInboxAppRoute';
 import { reconcileInboxAutomationEvaluations } from '@/inbox/utils/reconcileInboxAutomationEvaluations';
 import { readTwentyEmailConversationMetadata } from '@/inbox/utils/readTwentyEmailConversationMetadata';
+import { getUnresolvedSavedReplyVariables } from '@/inbox/utils/renderSavedReplyTemplate';
 import { syncTwentyEmailToInbox } from '@/inbox/utils/syncTwentyEmailToInbox';
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
@@ -201,7 +202,7 @@ export const useInboxExternalMessaging = ({
       await refreshInbox();
       const automationSummary =
         result.automationEvaluationsQueued > 0
-          ? ` ${result.automationEvaluationsQueued} automação(ões) avaliada(s).`
+          ? ` ${result.automationEvaluationsQueued} automação(ões) enfileirada(s).`
           : '';
       // Warnings already carry the honest, specific reason (including
       // "N pendente(s), tentaremos novamente"); surface them verbatim
@@ -277,7 +278,7 @@ export const useInboxExternalMessaging = ({
           selectedConversation.provider === 'EVOLUTION'
         ) {
           const response = await postInboxAppRoute<EvolutionTextPreview>(
-            EVOLUTION_SEND_TEXT_ROUTE,
+            getEvolutionSendTextRoute(selectedConversationId),
             {
               conversationId: selectedConversationId,
               text: trimmedText,
@@ -444,7 +445,7 @@ export const useInboxExternalMessaging = ({
       try {
         if (preview.channel === 'WHATSAPP') {
           const response = await postInboxAppRoute<EvolutionTextReceipt>(
-            EVOLUTION_SEND_TEXT_ROUTE,
+            getEvolutionSendTextRoute(selectedConversationId),
             {
               conversationId: selectedConversationId,
               text: preview.textPreview.trim(),
@@ -601,9 +602,8 @@ export const useInboxExternalMessaging = ({
   const loadMessageMedia = useCallback(
     async (inboxMessageId: string): Promise<EvolutionMediaPayload | null> => {
       try {
-        return await postInboxAppRoute<EvolutionMediaPayload>(
-          EVOLUTION_MEDIA_ROUTE,
-          { inboxMessageId },
+        return await getInboxAppRoute<EvolutionMediaPayload>(
+          getEvolutionMediaRoute(inboxMessageId),
         );
       } catch {
         enqueueErrorSnackBar({
