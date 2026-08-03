@@ -26,6 +26,14 @@ export enum AppTokenType {
   EnterpriseValidityToken = 'ENTERPRISE_VALIDITY_TOKEN',
 }
 
+export enum AppTokenDeliveryStatus {
+  DISPATCHING = 'DISPATCHING',
+  FAILED = 'FAILED',
+  UNKNOWN = 'UNKNOWN',
+  PENDING = 'PENDING',
+  SENT = 'SENT',
+}
+
 @Entity({ name: 'appToken', schema: 'core' })
 export class AppTokenEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -86,5 +94,7 @@ export class AppTokenEntity {
     clientId?: string;
     codeChallenge?: string;
     scope?: string;
+    deliveryStatus?: AppTokenDeliveryStatus;
+    sentAt?: string;
   } | null;
 }

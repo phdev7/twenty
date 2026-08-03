@@ -2,11 +2,9 @@ import { lazy, useMemo } from 'react';
 import {
   createBrowserRouter,
   createRoutesFromElements,
-  Navigate,
   Route,
 } from 'react-router-dom';
-import { AppPath, SettingsPath } from 'twenty-shared/types';
-import { getSettingsPath } from 'twenty-shared/utils';
+import { AppPath } from 'twenty-shared/types';
 
 import { LazyRoute } from '@/app/components/LazyRoute';
 import { SettingsRoutes } from '@/app/components/SettingsRoutes';
@@ -111,6 +109,26 @@ const StandalonePageLayoutPage = lazy(() =>
   })),
 );
 
+const InboxPage = lazy(() =>
+  import('~/pages/inbox/InboxPage').then((module) => ({
+    default: module.InboxPage,
+  })),
+);
+
+const DiexOnboardingPage = lazyWithPreload(() =>
+  import('~/pages/diex-onboarding/DiexOnboardingPage').then((module) => ({
+    default: module.DiexOnboardingPage,
+  })),
+);
+
+const DiexAccessRequestsPage = lazy(() =>
+  import('~/pages/diex-access-requests/DiexAccessRequestsPage').then(
+    (module) => ({
+      default: module.DiexAccessRequestsPage,
+    }),
+  ),
+);
+
 const WorkspaceSetup = lazyWithPreload(() =>
   import('~/pages/onboarding/WorkspaceSetup').then((module) => ({
     default: module.WorkspaceSetup,
@@ -131,6 +149,7 @@ const preloadOnboardingPages = () => {
   void InviteTeam.preload();
   void ChooseYourPlan.preload();
   void WorkspaceSetup.preload();
+  void DiexOnboardingPage.preload();
 
   return null;
 };
@@ -181,6 +200,22 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <StandalonePageLayoutPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.Inbox}
+                element={
+                  <LazyRoute>
+                    <InboxPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.DiexAccessRequests}
+                element={
+                  <LazyRoute>
+                    <DiexAccessRequestsPage />
                   </LazyRoute>
                 }
               />
@@ -272,6 +307,14 @@ const createWorkspaceAppRouter = (
             element={<OnboardingStepLayout />}
             loader={preloadOnboardingPages}
           >
+            <Route
+              path={AppPath.DiexOnboarding}
+              element={
+                <LazyRoute fallback={<OnboardingStepPageLoader />}>
+                  <DiexOnboardingPage />
+                </LazyRoute>
+              }
+            />
             <Route
               path={AppPath.CreateProfile}
               element={

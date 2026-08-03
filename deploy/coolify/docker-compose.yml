@@ -10,6 +10,9 @@ x-diex-environment: &diex-environment
   # "TypeError: fetch failed" (ECONNREFUSED 127.0.1.1:443). Keep the hop on
   # the compose service name.
   SERVER_INTERNAL_URL: ${SERVER_INTERNAL_URL:-http://server:3000}
+  # Trust only the private/loopback proxy hop that terminates TLS and replaces
+  # forwarded headers. Public request-origin checks depend on this boundary.
+  TRUST_PROXY: ${TRUST_PROXY:-loopback,linklocal,uniquelocal}
   PG_DATABASE_URL: ${PG_DATABASE_URL}
   REDIS_URL: ${REDIS_URL}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY}
@@ -47,6 +50,12 @@ x-diex-environment: &diex-environment
   DIEX_EVOLUTION_ALLOWED_ORIGINS: ${DIEX_EVOLUTION_ALLOWED_ORIGINS:-}
   DIEX_EVOLUTION_ALLOW_PRIVATE_NETWORK: ${DIEX_EVOLUTION_ALLOW_PRIVATE_NETWORK:-false}
   DIEX_MIGRATION_API_ENABLED: ${DIEX_MIGRATION_API_ENABLED:-false}
+  # The unauthenticated request form opens only when all three values are set.
+  # PUBLIC_ORIGIN is an exact origin (scheme + host, without path or slash) and
+  # maps only to the operator workspace UUID below.
+  ACCESS_REQUEST_INBOX_ENABLED: ${ACCESS_REQUEST_INBOX_ENABLED:-false}
+  ACCESS_REQUEST_INBOX_WORKSPACE_ID: ${ACCESS_REQUEST_INBOX_WORKSPACE_ID:-}
+  ACCESS_REQUEST_INBOX_PUBLIC_ORIGIN: ${ACCESS_REQUEST_INBOX_PUBLIC_ORIGIN:-}
   LOG_LEVELS: ${LOG_LEVELS:-error,warn}
 
 x-diex-runtime: &diex-runtime
