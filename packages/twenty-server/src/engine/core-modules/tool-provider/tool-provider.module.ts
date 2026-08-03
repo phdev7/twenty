@@ -4,7 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecordCrudModule } from 'src/engine/core-modules/record-crud/record-crud.module';
 import { TOOL_PROVIDERS } from 'src/engine/core-modules/tool-provider/constants/tool-providers.token';
 import { ActionToolProvider } from 'src/engine/core-modules/tool-provider/providers/action-tool.provider';
+import { AiGovernanceToolProvider } from 'src/engine/core-modules/tool-provider/providers/ai-governance-tool.provider';
 import { CommercialIntelligenceToolProvider } from 'src/engine/core-modules/tool-provider/providers/commercial-intelligence-tool.provider';
+import { CustomerSuccessToolProvider } from 'src/engine/core-modules/tool-provider/providers/customer-success-tool.provider';
+import { RenewalToolProvider } from 'src/engine/core-modules/tool-provider/providers/renewal-tool.provider';
+import { MeetingsToolProvider } from 'src/engine/core-modules/tool-provider/providers/meetings-tool.provider';
 import { DashboardToolProvider } from 'src/engine/core-modules/tool-provider/providers/dashboard-tool.provider';
 import { DatabaseToolProvider } from 'src/engine/core-modules/tool-provider/providers/database-tool.provider';
 import { LogicFunctionToolProvider } from 'src/engine/core-modules/tool-provider/providers/logic-function-tool.provider';
@@ -33,6 +37,10 @@ import { ViewModule } from 'src/engine/metadata-modules/view/view.module';
 import { WebhookModule } from 'src/engine/metadata-modules/webhook/webhook.module';
 import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
 import { CommercialIntelligenceModule } from 'src/modules/commercial-intelligence/commercial-intelligence.module';
+import { CustomerSuccessModule } from 'src/modules/customer-success/customer-success.module';
+import { RenewalModule } from 'src/modules/renewal/renewal.module';
+import { MeetingsModule } from 'src/modules/meetings/meetings.module';
+import { AiGovernanceModule } from 'src/modules/ai-governance/ai-governance.module';
 import { WorkspaceContextModule } from 'src/modules/workspace-context/workspace-context.module';
 
 import { ToolIndexResolver } from './resolvers/tool-index.resolver';
@@ -69,6 +77,10 @@ import { ToolRegistryService } from './services/tool-registry.service';
     UserRoleModule,
     WorkspaceContextModule,
     CommercialIntelligenceModule,
+    CustomerSuccessModule,
+    AiGovernanceModule,
+    RenewalModule,
+    MeetingsModule,
     TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [
@@ -85,6 +97,10 @@ import { ToolRegistryService } from './services/tool-registry.service';
     WorkflowToolProvider,
     WorkspaceContextToolProvider,
     CommercialIntelligenceToolProvider,
+    CustomerSuccessToolProvider,
+    AiGovernanceToolProvider,
+    RenewalToolProvider,
+    MeetingsToolProvider,
     {
       // TOOL_PROVIDERS contains only providers implementing ToolProvider
       // (registry tools with descriptors). The native tool binder is a
@@ -103,6 +119,10 @@ import { ToolRegistryService } from './services/tool-registry.service';
         dashboardProvider: DashboardToolProvider,
         workspaceContextProvider: WorkspaceContextToolProvider,
         commercialIntelligenceProvider: CommercialIntelligenceToolProvider,
+        customerSuccessProvider: CustomerSuccessToolProvider,
+        aiGovernanceProvider: AiGovernanceToolProvider,
+        renewalProvider: RenewalToolProvider,
+        meetingsProvider: MeetingsToolProvider,
       ) => [
         actionProvider,
         databaseProvider,
@@ -115,6 +135,10 @@ import { ToolRegistryService } from './services/tool-registry.service';
         dashboardProvider,
         workspaceContextProvider,
         commercialIntelligenceProvider,
+        customerSuccessProvider,
+        aiGovernanceProvider,
+        renewalProvider,
+        meetingsProvider,
       ],
       inject: [
         ActionToolProvider,
@@ -128,6 +152,10 @@ import { ToolRegistryService } from './services/tool-registry.service';
         DashboardToolProvider,
         WorkspaceContextToolProvider,
         CommercialIntelligenceToolProvider,
+        CustomerSuccessToolProvider,
+        AiGovernanceToolProvider,
+        RenewalToolProvider,
+        MeetingsToolProvider,
       ],
     },
     ToolRegistryService,

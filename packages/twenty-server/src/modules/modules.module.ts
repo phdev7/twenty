@@ -8,6 +8,8 @@ import { ConnectedAccountModule } from 'src/modules/connected-account/connected-
 import { CustomerSuccessModule } from 'src/modules/customer-success/customer-success.module';
 import { InboxModule } from 'src/modules/inbox/inbox.module';
 import { MessagingModule } from 'src/modules/messaging/messaging.module';
+import { MeetingsModule } from 'src/modules/meetings/meetings.module';
+import { MigrationModule } from 'src/modules/migration/migration.module';
 import { OnboardingInviteSuggestionsModule } from 'src/modules/onboarding-invite-suggestions/onboarding-invite-suggestions.module';
 import { RenewalModule } from 'src/modules/renewal/renewal.module';
 import { WorkflowModule } from 'src/modules/workflow/workflow.module';
@@ -19,6 +21,8 @@ import { WorkspaceContextModule } from 'src/modules/workspace-context/workspace-
     AccessRequestModule,
     AiGovernanceModule,
     MessagingModule,
+    MeetingsModule,
+    MigrationModule,
     CalendarModule,
     CommercialIntelligenceModule,
     ConnectedAccountModule,
