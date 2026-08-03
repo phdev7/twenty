@@ -4,6 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecordCrudModule } from 'src/engine/core-modules/record-crud/record-crud.module';
 import { TOOL_PROVIDERS } from 'src/engine/core-modules/tool-provider/constants/tool-providers.token';
 import { ActionToolProvider } from 'src/engine/core-modules/tool-provider/providers/action-tool.provider';
+import { AiGovernanceToolProvider } from 'src/engine/core-modules/tool-provider/providers/ai-governance-tool.provider';
+import { CommercialIntelligenceToolProvider } from 'src/engine/core-modules/tool-provider/providers/commercial-intelligence-tool.provider';
+import { CustomerSuccessToolProvider } from 'src/engine/core-modules/tool-provider/providers/customer-success-tool.provider';
+import { RenewalToolProvider } from 'src/engine/core-modules/tool-provider/providers/renewal-tool.provider';
+import { MeetingsToolProvider } from 'src/engine/core-modules/tool-provider/providers/meetings-tool.provider';
 import { DashboardToolProvider } from 'src/engine/core-modules/tool-provider/providers/dashboard-tool.provider';
 import { DatabaseToolProvider } from 'src/engine/core-modules/tool-provider/providers/database-tool.provider';
 import { LogicFunctionToolProvider } from 'src/engine/core-modules/tool-provider/providers/logic-function-tool.provider';
@@ -12,6 +17,7 @@ import { NavigationMenuItemToolProvider } from 'src/engine/core-modules/tool-pro
 import { ViewToolProvider } from 'src/engine/core-modules/tool-provider/providers/view-tool.provider';
 import { WebhookToolProvider } from 'src/engine/core-modules/tool-provider/providers/webhook-tool.provider';
 import { WorkflowToolProvider } from 'src/engine/core-modules/tool-provider/providers/workflow-tool.provider';
+import { WorkspaceContextToolProvider } from 'src/engine/core-modules/tool-provider/providers/workspace-context-tool.provider';
 import { ToolExecutorService } from 'src/engine/core-modules/tool-provider/services/tool-executor.service';
 import { ToolModule } from 'src/engine/core-modules/tool/tool.module';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
@@ -30,6 +36,12 @@ import { ViewSortModule } from 'src/engine/metadata-modules/view-sort/view-sort.
 import { ViewModule } from 'src/engine/metadata-modules/view/view.module';
 import { WebhookModule } from 'src/engine/metadata-modules/webhook/webhook.module';
 import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
+import { CommercialIntelligenceModule } from 'src/modules/commercial-intelligence/commercial-intelligence.module';
+import { CustomerSuccessModule } from 'src/modules/customer-success/customer-success.module';
+import { RenewalModule } from 'src/modules/renewal/renewal.module';
+import { MeetingsModule } from 'src/modules/meetings/meetings.module';
+import { AiGovernanceModule } from 'src/modules/ai-governance/ai-governance.module';
+import { WorkspaceContextModule } from 'src/modules/workspace-context/workspace-context.module';
 
 import { ToolIndexResolver } from './resolvers/tool-index.resolver';
 import { ToolRegistryService } from './services/tool-registry.service';
@@ -63,6 +75,12 @@ import { ToolRegistryService } from './services/tool-registry.service';
     NavigationMenuItemModule,
     WebhookModule,
     UserRoleModule,
+    WorkspaceContextModule,
+    CommercialIntelligenceModule,
+    CustomerSuccessModule,
+    AiGovernanceModule,
+    RenewalModule,
+    MeetingsModule,
     TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [
@@ -77,6 +95,12 @@ import { ToolRegistryService } from './services/tool-registry.service';
     ViewToolProvider,
     WebhookToolProvider,
     WorkflowToolProvider,
+    WorkspaceContextToolProvider,
+    CommercialIntelligenceToolProvider,
+    CustomerSuccessToolProvider,
+    AiGovernanceToolProvider,
+    RenewalToolProvider,
+    MeetingsToolProvider,
     {
       // TOOL_PROVIDERS contains only providers implementing ToolProvider
       // (registry tools with descriptors). The native tool binder is a
@@ -93,6 +117,12 @@ import { ToolRegistryService } from './services/tool-registry.service';
         webhookProvider: WebhookToolProvider,
         workflowProvider: WorkflowToolProvider,
         dashboardProvider: DashboardToolProvider,
+        workspaceContextProvider: WorkspaceContextToolProvider,
+        commercialIntelligenceProvider: CommercialIntelligenceToolProvider,
+        customerSuccessProvider: CustomerSuccessToolProvider,
+        aiGovernanceProvider: AiGovernanceToolProvider,
+        renewalProvider: RenewalToolProvider,
+        meetingsProvider: MeetingsToolProvider,
       ) => [
         actionProvider,
         databaseProvider,
@@ -103,6 +133,12 @@ import { ToolRegistryService } from './services/tool-registry.service';
         webhookProvider,
         workflowProvider,
         dashboardProvider,
+        workspaceContextProvider,
+        commercialIntelligenceProvider,
+        customerSuccessProvider,
+        aiGovernanceProvider,
+        renewalProvider,
+        meetingsProvider,
       ],
       inject: [
         ActionToolProvider,
@@ -114,6 +150,12 @@ import { ToolRegistryService } from './services/tool-registry.service';
         WebhookToolProvider,
         WorkflowToolProvider,
         DashboardToolProvider,
+        WorkspaceContextToolProvider,
+        CommercialIntelligenceToolProvider,
+        CustomerSuccessToolProvider,
+        AiGovernanceToolProvider,
+        RenewalToolProvider,
+        MeetingsToolProvider,
       ],
     },
     ToolRegistryService,

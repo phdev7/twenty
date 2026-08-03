@@ -410,6 +410,8 @@ ${tools
         return 'Navigation Menu Item Tools (sidebar entries, folders, and user favorites)';
       case ToolCategory.WEBHOOK:
         return 'Webhook Tools (outgoing webhooks)';
+      case ToolCategory.DIEX:
+        return 'Diex Tools (commercial, customer success, and AI governance)';
       default:
         return assertUnreachable(category);
     }
