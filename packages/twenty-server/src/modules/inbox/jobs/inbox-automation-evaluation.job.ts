@@ -210,12 +210,12 @@ export class InboxAutomationEvaluationJob {
       warnings,
       lastError,
     };
-    const update: QueryDeepPartialEntity<InboxMessageWorkspaceEntity> = {
+    const update = {
       metadata: mergeInboxAutomationEvaluationMetadata(
         message.metadata,
         metadata,
       ),
-    };
+    } as unknown as QueryDeepPartialEntity<InboxMessageWorkspaceEntity>;
 
     await messageRepository.update(messageId, update);
   }

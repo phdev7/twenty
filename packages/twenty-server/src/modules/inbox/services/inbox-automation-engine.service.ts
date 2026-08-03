@@ -523,10 +523,37 @@ export class InboxAutomationEngineService {
     });
 
     if (existingEvent) {
+      if (existingEvent.summary?.startsWith('Automação falhou:')) {
+        const retryResult = await eventRepository
+          .createQueryBuilder()
+          .update()
+          .set({
+            summary: `Automação reiniciada: ${automation.name}`,
+            details: `Gatilho: ${trigger}`,
+            occurredAt,
+          })
+          .where('id = :eventId', { eventId: existingEvent.id })
+          .andWhere('summary LIKE :failedSummary', {
+            failedSummary: 'Automação falhou:%',
+          })
+          .execute();
+
+        if (retryResult.affected === 1) {
+          return {
+            event: { id: existingEvent.id },
+            duplicateWasApplied: false,
+          };
+        }
+      }
+
+      const currentEvent = await eventRepository.findOne({
+        where: { name: eventName },
+      });
+
       return {
         event: null,
         duplicateWasApplied:
-          existingEvent.summary?.startsWith('Automação falhou:') !== true,
+          currentEvent?.summary?.startsWith('Automação falhou:') !== true,
       };
     }
 
@@ -559,12 +586,43 @@ export class InboxAutomationEngineService {
       });
 
       if (eventCreatedByAnotherExecution) {
+        if (
+          eventCreatedByAnotherExecution.summary?.startsWith(
+            'Automação falhou:',
+          )
+        ) {
+          const retryResult = await eventRepository
+            .createQueryBuilder()
+            .update()
+            .set({
+              summary: `Automação reiniciada: ${automation.name}`,
+              details: `Gatilho: ${trigger}`,
+              occurredAt,
+            })
+            .where('id = :eventId', {
+              eventId: eventCreatedByAnotherExecution.id,
+            })
+            .andWhere('summary LIKE :failedSummary', {
+              failedSummary: 'Automação falhou:%',
+            })
+            .execute();
+
+          if (retryResult.affected === 1) {
+            return {
+              event: { id: eventCreatedByAnotherExecution.id },
+              duplicateWasApplied: false,
+            };
+          }
+        }
+
+        const currentEvent = await eventRepository.findOne({
+          where: { name: eventName },
+        });
+
         return {
           event: null,
           duplicateWasApplied:
-            eventCreatedByAnotherExecution.summary?.startsWith(
-              'Automação falhou:',
-            ) !== true,
+            currentEvent?.summary?.startsWith('Automação falhou:') !== true,
         };
       }
 

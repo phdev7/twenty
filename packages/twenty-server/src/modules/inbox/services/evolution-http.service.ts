@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
 import { lookup } from 'node:dns/promises';
-import { request as requestHttp } from 'node:http';
+import {
+  request as requestHttp,
+  type ClientRequestArgs,
+  type IncomingMessage,
+} from 'node:http';
 import { request as requestHttps } from 'node:https';
 import { isIP } from 'node:net';
 
@@ -110,80 +114,81 @@ export class EvolutionHttpService {
       target.hostname,
       allowPrivateNetwork,
     );
-    const request = target.protocol === 'https:' ? requestHttps : requestHttp;
-
     return await new Promise<Response>((resolve, reject) => {
-      const outgoingRequest = request(
-        {
-          protocol: target.protocol,
-          hostname: pinnedAddress.address,
-          port: target.port ? Number(target.port) : undefined,
-          path: `${target.pathname}${target.search}`,
-          method,
-          servername:
-            target.protocol === 'https:' ? target.hostname : undefined,
-          headers: {
-            Host: target.host,
-            ...headers,
-            ...(body === undefined
-              ? {}
-              : { 'Content-Length': Buffer.byteLength(body).toString() }),
-          },
+      const requestOptions: ClientRequestArgs & { servername?: string } = {
+        protocol: target.protocol,
+        hostname: pinnedAddress.address,
+        port: target.port || (target.protocol === 'https:' ? '443' : '80'),
+        path: `${target.pathname}${target.search}`,
+        method,
+        servername: target.protocol === 'https:' ? target.hostname : undefined,
+        headers: {
+          Host: target.host,
+          ...headers,
+          ...(body === undefined
+            ? {}
+            : { 'Content-Length': Buffer.byteLength(body).toString() }),
         },
-        (incomingResponse) => {
-          const status = incomingResponse.statusCode ?? 502;
+      };
+      let outgoingRequest: ReturnType<typeof requestHttp>;
+      const handleResponse = (incomingResponse: IncomingMessage): void => {
+        const status = incomingResponse.statusCode ?? 502;
 
-          if (status >= 300 && status < 400) {
-            incomingResponse.resume();
-            reject(new Error('Evolution redirects are not allowed.'));
+        if (status >= 300 && status < 400) {
+          incomingResponse.resume();
+          reject(new Error('Evolution redirects are not allowed.'));
+
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        let receivedBytes = 0;
+
+        incomingResponse.on('data', (chunk: Buffer | string) => {
+          const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+
+          receivedBytes += buffer.length;
+
+          if (receivedBytes > MAX_RESPONSE_BYTES) {
+            outgoingRequest.destroy(
+              new Error('Evolution returned an oversized response.'),
+            );
 
             return;
           }
 
-          const chunks: Buffer[] = [];
-          let receivedBytes = 0;
+          chunks.push(buffer);
+        });
+        incomingResponse.on('end', () => {
+          const responseHeaders = new Headers();
 
-          incomingResponse.on('data', (chunk: Buffer | string) => {
-            const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-
-            receivedBytes += buffer.length;
-
-            if (receivedBytes > MAX_RESPONSE_BYTES) {
-              outgoingRequest.destroy(
-                new Error('Evolution returned an oversized response.'),
-              );
-
-              return;
-            }
-
-            chunks.push(buffer);
-          });
-          incomingResponse.on('end', () => {
-            const responseHeaders = new Headers();
-
-            for (const [name, value] of Object.entries(
-              incomingResponse.headers,
-            )) {
-              if (Array.isArray(value)) {
-                for (const item of value) {
-                  responseHeaders.append(name, item);
-                }
-              } else if (value !== undefined) {
-                responseHeaders.set(name, value);
+          for (const [name, value] of Object.entries(
+            incomingResponse.headers,
+          )) {
+            if (Array.isArray(value)) {
+              for (const item of value) {
+                responseHeaders.append(name, item);
               }
+            } else if (value !== undefined) {
+              responseHeaders.set(name, value);
             }
+          }
 
-            resolve(
-              new Response(Buffer.concat(chunks), {
-                status,
-                statusText: incomingResponse.statusMessage,
-                headers: responseHeaders,
-              }),
-            );
-          });
-          incomingResponse.on('error', reject);
-        },
-      );
+          resolve(
+            new Response(Buffer.concat(chunks), {
+              status,
+              statusText: incomingResponse.statusMessage,
+              headers: responseHeaders,
+            }),
+          );
+        });
+        incomingResponse.on('error', reject);
+      };
+
+      outgoingRequest =
+        target.protocol === 'https:'
+          ? requestHttps(requestOptions, handleResponse)
+          : requestHttp(requestOptions, handleResponse);
 
       outgoingRequest.setTimeout(REQUEST_TIMEOUT_MS, () => {
         outgoingRequest.destroy(new Error('The Evolution request timed out.'));
