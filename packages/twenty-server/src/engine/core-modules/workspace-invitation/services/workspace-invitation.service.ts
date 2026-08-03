@@ -71,6 +71,7 @@ export class WorkspaceInvitationService {
     private readonly appTokenRepository: Repository<AppTokenEntity>,
     @InjectRepository(UserWorkspaceEntity)
     private readonly userWorkspaceRepository: Repository<UserWorkspaceEntity>,
+    // eslint-disable-next-line twenty/prefer-workspace-scoped-repository -- This durable state lives in core; every access is pinned to workspaceId and immutable state/token IDs.
     @InjectRepository(WorkspaceInvitationStateEntity)
     private readonly workspaceInvitationStateRepository: Repository<WorkspaceInvitationStateEntity>,
     private readonly roleValidationService: RoleValidationService,
