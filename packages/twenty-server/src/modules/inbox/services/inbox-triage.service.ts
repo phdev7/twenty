@@ -109,7 +109,8 @@ const readNumber = (
   minimum: number,
   maximum: number,
 ): number => {
-  const value = typeof record[key] === 'number' ? record[key] : Number(record[key]);
+  const value =
+    typeof record[key] === 'number' ? record[key] : Number(record[key]);
 
   return Number.isFinite(value) ? clamp(value, minimum, maximum) : minimum;
 };
@@ -169,102 +170,108 @@ export class InboxTriageService {
     }
 
     const authContext = buildSystemAuthContext(workspaceId);
-    const context = await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
-      async () => {
-        const [conversationRepository, messageRepository] =
-          await Promise.all([
-            this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
-              workspaceId,
-              InboxConversationWorkspaceEntity,
-            ),
-            this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
-              workspaceId,
-              InboxMessageWorkspaceEntity,
-            ),
+    const context =
+      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+        async () => {
+          const [conversationRepository, messageRepository] = await Promise.all(
+            [
+              this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
+                workspaceId,
+                InboxConversationWorkspaceEntity,
+              ),
+              this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
+                workspaceId,
+                InboxMessageWorkspaceEntity,
+              ),
+            ],
+          );
+
+          const [conversation, messages] = await Promise.all([
+            conversationRepository.findOne({
+              where: { id: normalizedConversationId },
+              relations: { person: true, company: true, opportunity: true },
+            }),
+            messageRepository.find({
+              where: { inboxConversationId: normalizedConversationId },
+              order: { sentAt: 'DESC' },
+              take: 80,
+            }),
           ]);
+          const agent = await this.agentRepository.findOne(workspaceId, {
+            where: { universalIdentifier: TRIAGE_AGENT_UNIVERSAL_IDENTIFIER },
+          });
 
-        const [conversation, messages] = await Promise.all([
-          conversationRepository.findOne({
-            where: { id: normalizedConversationId },
-            relations: { person: true, company: true, opportunity: true },
-          }),
-          messageRepository.find({
-            where: { inboxConversationId: normalizedConversationId },
-            order: { sentAt: 'DESC' },
-            take: 80,
-          }),
-        ]);
-        const agent = await this.agentRepository.findOne(workspaceId, {
-          where: { universalIdentifier: TRIAGE_AGENT_UNIVERSAL_IDENTIFIER },
-        });
+          if (!conversation) {
+            throw new Error('A conversa da inbox não foi encontrada.');
+          }
 
-        if (!conversation) {
-          throw new Error('A conversa da inbox não foi encontrada.');
-        }
+          if (!agent) {
+            throw new Error(
+              'O agente standard de triagem da inbox não está disponível.',
+            );
+          }
 
-        if (!agent) {
-          throw new Error('O agente standard de triagem da inbox não está disponível.');
-        }
+          if (messages.length === 0) {
+            throw new Error(
+              'A conversa ainda não possui mensagens para análise.',
+            );
+          }
 
-        if (messages.length === 0) {
-          throw new Error('A conversa ainda não possui mensagens para análise.');
-        }
-
-        return {
-          conversation: {
-            id: conversation.id,
-            name: conversation.name,
-            channel: conversation.channel,
-            provider: conversation.provider,
-            status: conversation.status,
-            priority: conversation.priority,
-            contactHandle: conversation.contactHandle,
-            lastMessageAt: conversation.lastMessageAt,
-            person: conversation.person
-              ? {
-                  id: conversation.person.id,
-                  name: conversation.person.name,
-                  buyingRole: conversation.person.buyingRole,
-                  buyingIntent: conversation.person.buyingIntent,
-                }
-              : null,
-            company: conversation.company
-              ? {
-                  id: conversation.company.id,
-                  name: conversation.company.name,
-                  icpFit: conversation.company.icpFit,
-                }
-              : null,
-            opportunity: conversation.opportunity
-              ? {
-                  id: conversation.opportunity.id,
-                  name: conversation.opportunity.name,
-                  stage: conversation.opportunity.stage,
-                  commercialScore: conversation.opportunity.commercialScore,
-                  dealRisk: conversation.opportunity.dealRisk,
-                  nextCommercialAction:
-                    conversation.opportunity.nextCommercialAction,
-                  nextCommercialActionAt:
-                    conversation.opportunity.nextCommercialActionAt,
-                }
-              : null,
-          },
-          messages: messages.reverse().map((message) => ({
-            id: message.id,
-            direction: message.direction,
-            messageType: message.messageType,
-            body: message.body,
-            transcription: message.transcription,
-            transcriptionStatus: message.transcriptionStatus,
-            sentAt: message.sentAt,
-            senderDisplayName: message.senderDisplayName,
-            isInternalNote: message.isInternalNote,
-          })),
-          agent,
-        } satisfies TriageContext;
-      },
-      authContext,
-    );
+          return {
+            conversation: {
+              id: conversation.id,
+              name: conversation.name,
+              channel: conversation.channel,
+              provider: conversation.provider,
+              status: conversation.status,
+              priority: conversation.priority,
+              contactHandle: conversation.contactHandle,
+              lastMessageAt: conversation.lastMessageAt,
+              person: conversation.person
+                ? {
+                    id: conversation.person.id,
+                    name: conversation.person.name,
+                    buyingRole: conversation.person.buyingRole,
+                    buyingIntent: conversation.person.buyingIntent,
+                  }
+                : null,
+              company: conversation.company
+                ? {
+                    id: conversation.company.id,
+                    name: conversation.company.name,
+                    icpFit: conversation.company.icpFit,
+                  }
+                : null,
+              opportunity: conversation.opportunity
+                ? {
+                    id: conversation.opportunity.id,
+                    name: conversation.opportunity.name,
+                    stage: conversation.opportunity.stage,
+                    commercialScore: conversation.opportunity.commercialScore,
+                    dealRisk: conversation.opportunity.dealRisk,
+                    nextCommercialAction:
+                      conversation.opportunity.nextCommercialAction,
+                    nextCommercialActionAt:
+                      conversation.opportunity.nextCommercialActionAt,
+                  }
+                : null,
+            },
+            messages: messages.reverse().map((message) => ({
+              id: message.id,
+              direction: message.direction,
+              messageType: message.messageType,
+              body: message.body,
+              transcription: message.transcription,
+              transcriptionStatus: message.transcriptionStatus,
+              sentAt: message.sentAt,
+              senderDisplayName: message.senderDisplayName,
+              isInternalNote: message.isInternalNote,
+            })),
+            agent,
+          } satisfies TriageContext;
+        },
+        authContext,
+      );
 
     const execution = await this.agentAsyncExecutorService.executeAgent({
       agent: context.agent,
@@ -374,7 +381,9 @@ export class InboxTriageService {
             CommercialSignalWorkspaceEntity,
           );
         const sourceReference = `inbox:${conversation.id}:${latestMessageId}:${signalType}`;
-        const existing = await repository.findOne({ where: { sourceReference } });
+        const existing = await repository.findOne({
+          where: { sourceReference },
+        });
         const data = {
           name: `${signalType}: ${conversation.name || 'Conversa da inbox'}`.slice(
             0,
