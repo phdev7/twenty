@@ -1326,6 +1326,16 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.SERVER_CONFIG,
     description:
+      'Enables the Diex legacy batch migration endpoint. Disabled by default; when enabled it still requires an authenticated workspace API key.',
+    type: ConfigVariableType.BOOLEAN,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  DIEX_MIGRATION_API_ENABLED = false;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
       'Address the server reaches itself on from inside its own network, ' +
       'used by logic functions calling back into the API. SERVER_URL is the ' +
       'public address, and resolving it from inside a container is not ' +
