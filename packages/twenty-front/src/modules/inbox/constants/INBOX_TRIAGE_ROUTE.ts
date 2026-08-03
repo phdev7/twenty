@@ -1,1 +1,1 @@
-export const INBOX_TRIAGE_ROUTE = '/s/diex/inbox/ai/triage';
+export const INBOX_TRIAGE_ROUTE = '/rest/inbox/conversations/triage';

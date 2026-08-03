@@ -16,20 +16,26 @@ export class KeyValuePairService<
     private readonly keyValuePairRepository: Repository<KeyValuePairEntity>,
   ) {}
 
-  async get<K extends keyof KeyValueTypesMap>({
-    userId,
-    workspaceId,
-    applicationId,
-    type,
-    key,
-  }: {
-    userId?: string | null;
-    workspaceId?: string | null;
-    applicationId?: string | null;
-    type: KeyValuePairType;
-    key?: Extract<K, string>;
-  }): Promise<Array<KeyValueTypesMap[K]>> {
-    const keyValuePairs = (await this.keyValuePairRepository.find({
+  async get<K extends keyof KeyValueTypesMap>(
+    {
+      userId,
+      workspaceId,
+      applicationId,
+      type,
+      key,
+    }: {
+      userId?: string | null;
+      workspaceId?: string | null;
+      applicationId?: string | null;
+      type: KeyValuePairType;
+      key?: Extract<K, string>;
+    },
+    queryRunner?: QueryRunner,
+  ): Promise<Array<KeyValueTypesMap[K]>> {
+    const keyValuePairRepository = queryRunner
+      ? queryRunner.manager.getRepository(KeyValuePairEntity)
+      : this.keyValuePairRepository;
+    const keyValuePairs = (await keyValuePairRepository.find({
       where: {
         ...(userId === undefined
           ? {}

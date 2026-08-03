@@ -21,11 +21,11 @@ import {
   type InboxAutomationTriggerValue,
 } from 'src/modules/inbox/types/inbox-automation.types';
 
-// Ported from packages/twenty-apps/internal/diex/src/modules/inbox/utils/inbox-automation.ts.
-// The original ran against a GraphQL client from inside the app sandbox; this
-// version runs the exact same decision/action logic directly against the
-// workspace ORM. Business behavior is preserved intentionally, including the
-// per-rule idempotency claim through the InboxConversationEvent unique name.
+// Ported from the legacy Diex inbox automation contract. The original ran
+// against a GraphQL client from an app sandbox; this version runs the same
+// decision/action logic directly against the workspace ORM. Business behavior
+// is preserved intentionally, including the per-rule idempotency claim through
+// the InboxConversationEvent unique name.
 
 type ConversationSnapshot = {
   id: string;

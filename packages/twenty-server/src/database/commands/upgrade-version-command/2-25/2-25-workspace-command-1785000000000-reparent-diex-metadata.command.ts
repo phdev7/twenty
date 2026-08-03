@@ -1,6 +1,6 @@
 import { Command, Option } from 'nest-commander';
 import {
-  DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
+  LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER,
   TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER,
 } from 'twenty-shared/application';
 import {
@@ -193,12 +193,12 @@ const getDirectionApplicationUniversalIdentifiers = (
 ): { source: string; target: string } =>
   direction === 'up'
     ? {
-        source: DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
+        source: LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER,
         target: TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER,
       }
     : {
         source: TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER,
-        target: DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
+        target: LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER,
       };
 
 const getExpectedRenameState = ({
@@ -791,7 +791,7 @@ export class ReparentDiexMetadataCommand extends ProvisionedWorkspaceCommandRunn
         flatObjectMetadata: {
           ...flatObjectMetadata,
           applicationUniversalIdentifier:
-            DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
+            LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER,
         },
         objectFlatFieldMetadatas,
         indexFields: flatIndexMetadata.universalFlatIndexFieldMetadatas,

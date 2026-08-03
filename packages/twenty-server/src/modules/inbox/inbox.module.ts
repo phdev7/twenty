@@ -2,14 +2,19 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { KeyValuePairModule } from 'src/engine/core-modules/key-value-pair/key-value-pair.module';
-import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+import { AiAgentExecutionModule } from 'src/engine/metadata-modules/ai/ai-agent-execution/ai-agent-execution.module';
+import { AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entities/agent.entity';
+import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
+import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/provide-workspace-scoped-repository';
 import { EvolutionConfigureController } from 'src/modules/inbox/controllers/evolution-configure.controller';
 import { EvolutionConnectionController } from 'src/modules/inbox/controllers/evolution-connection.controller';
 import { EvolutionMediaController } from 'src/modules/inbox/controllers/evolution-media.controller';
 import { EvolutionSendTextController } from 'src/modules/inbox/controllers/evolution-send-text.controller';
+import { EvolutionSyncController } from 'src/modules/inbox/controllers/evolution-sync.controller';
 import { EvolutionWebhookController } from 'src/modules/inbox/controllers/evolution-webhook.controller';
 import { InboxAutomationEvaluationController } from 'src/modules/inbox/controllers/inbox-automation-evaluation.controller';
+import { InboxTriageController } from 'src/modules/inbox/controllers/inbox-triage.controller';
 import { InboxAudioTranscriptionJob } from 'src/modules/inbox/jobs/inbox-audio-transcription.job';
 import { InboxAutomationEvaluationJob } from 'src/modules/inbox/jobs/inbox-automation-evaluation.job';
 import { InboxEvolutionSyncJob } from 'src/modules/inbox/jobs/inbox-evolution-sync.job';
@@ -27,20 +32,24 @@ import { EvolutionSyncService } from 'src/modules/inbox/services/evolution-sync.
 import { InboxAudioTranscriptionRunnerService } from 'src/modules/inbox/services/inbox-audio-transcription-runner.service';
 import { InboxSlaBreachService } from 'src/modules/inbox/services/inbox-sla-breach.service';
 import { InboxTranscriptionService } from 'src/modules/inbox/services/inbox-transcription.service';
+import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.service';
 
 @Module({
   imports: [
     KeyValuePairModule,
+    AiAgentExecutionModule,
     PermissionsModule,
-    TypeOrmModule.forFeature([WorkspaceEntity]),
+    TypeOrmModule.forFeature([WorkspaceEntity, AgentEntity]),
   ],
   controllers: [
     EvolutionConfigureController,
     EvolutionConnectionController,
     EvolutionMediaController,
     EvolutionSendTextController,
+    EvolutionSyncController,
     EvolutionWebhookController,
     InboxAutomationEvaluationController,
+    InboxTriageController,
   ],
   providers: [
     EvolutionHttpService,
@@ -54,12 +63,14 @@ import { InboxTranscriptionService } from 'src/modules/inbox/services/inbox-tran
     InboxAutomationEvaluationService,
     InboxSlaBreachService,
     InboxTranscriptionService,
+    InboxTriageService,
     InboxAudioTranscriptionJob,
     InboxAutomationEvaluationJob,
     InboxEvolutionSyncJob,
     InboxSlaBreachJob,
     InboxMaintenanceCronCommand,
     InboxMaintenanceCronJob,
+    provideWorkspaceScopedRepository(AgentEntity),
   ],
   exports: [
     EvolutionIngestionService,

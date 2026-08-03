@@ -78,43 +78,54 @@ export class InboxAutomationEvaluationService {
             workspaceId,
             InboxMessageWorkspaceEntity,
           );
-        const messages = await messageRepository.find({
-          where: { direction: 'INBOUND' },
-          order: { createdAt: 'ASC' },
-          take: 100,
-        });
         let reconciled = 0;
+        let offset = 0;
 
-        for (const message of messages) {
-          const evaluation = readInboxAutomationEvaluationMetadata(
-            message.metadata,
-          );
+        while (true) {
+          const messages = await messageRepository.find({
+            where: { direction: 'INBOUND' },
+            order: { createdAt: 'ASC' },
+            skip: offset,
+            take: 100,
+          });
 
-          if (
-            !message.inboxConversationId ||
-            !message.providerMessageKey ||
-            !evaluation ||
-            !['queued', 'failed'].includes(evaluation.status)
-          ) {
-            continue;
+          if (messages.length === 0) {
+            break;
           }
 
-          try {
-            const result = await this.enqueueInWorkspace({
-              workspaceId,
-              messageId: message.id,
-              force: true,
-            });
+          offset += messages.length;
 
-            if (result.status === 'queued') {
-              reconciled += 1;
-            }
-          } catch (error) {
-            this.logger.warn(
-              `Inbox automation reconciliation failed for message ${message.id}: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+          for (const message of messages) {
+            const evaluation = readInboxAutomationEvaluationMetadata(
+              message.metadata,
             );
+
+            if (
+              !message.inboxConversationId ||
+              !message.providerMessageKey ||
+              (evaluation &&
+                !['queued', 'failed'].includes(evaluation.status))
+            ) {
+              continue;
+            }
+
+            try {
+              const result = await this.enqueueInWorkspace({
+                workspaceId,
+                messageId: message.id,
+                force: true,
+              });
+
+              if (result.status === 'queued') {
+                reconciled += 1;
+              }
+            } catch (error) {
+              this.logger.warn(
+                `Inbox automation reconciliation failed for message ${message.id}: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              );
+            }
           }
         }
 

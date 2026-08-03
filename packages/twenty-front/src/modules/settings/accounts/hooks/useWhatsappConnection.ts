@@ -3,8 +3,7 @@ import { useLingui } from '@lingui/react/macro';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { REACT_APP_SERVER_BASE_URL } from '~/config';
 
-// App routes are served by the API server under /s, not by the frontend origin.
-const WHATSAPP_CONNECTION_ROUTE = '/s/diex/accounts/whatsapp/connection';
+const WHATSAPP_CONNECTION_ROUTE = '/rest/inbox/evolution/connection';
 
 export type WhatsappConnection = {
   state:

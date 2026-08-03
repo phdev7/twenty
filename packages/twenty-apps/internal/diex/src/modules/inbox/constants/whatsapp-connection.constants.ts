@@ -1,4 +1,0 @@
-export const WHATSAPP_CONNECTION_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER =
-  'd1e0c000-0000-4000-8000-000000000005';
-
-export const WHATSAPP_CONNECTION_ROUTE = '/diex/accounts/whatsapp/connection';

@@ -1,5 +1,5 @@
 import { TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER } from '@/application/constants/TwentyStandardApplicationUniversalIdentifier';
-import { DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER } from '@/application/constants/DiexCoreApplicationUniversalIdentifier';
+import { LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER } from '@/application/constants/LegacyMetadataApplicationUniversalIdentifier';
 import { getFieldUniversalIdentifier } from '@/application/deterministic-identifier/get-field-universal-identifier.util';
 
 export const STANDARD_OBJECT_SYSTEM_FIELD_NAMES = [
@@ -47,7 +47,7 @@ export const buildDiexStandardObjectSystemFields = (
       {
         universalIdentifier: getFieldUniversalIdentifier({
           applicationUniversalIdentifier:
-            DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
+            LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER,
           objectUniversalIdentifier,
           name: fieldName,
         }),

@@ -1,8 +1,10 @@
 import { Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+
+import { createHash } from 'node:crypto';
 
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { SentryCronMonitor } from 'src/engine/core-modules/cron/sentry-cron-monitor.decorator';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
@@ -34,6 +36,8 @@ export class InboxMaintenanceCronJob {
   constructor(
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
+    @InjectDataSource()
+    private readonly coreDataSource: DataSource,
     @InjectMessageQueue(MessageQueue.inboxQueue)
     private readonly inboxQueueService: MessageQueueService,
     private readonly exceptionHandlerService: ExceptionHandlerService,
@@ -52,7 +56,9 @@ export class InboxMaintenanceCronJob {
 
     for (const workspace of activeWorkspaces) {
       try {
-        await this.enqueueWorkspaceJobs(workspace.id);
+        await this.withWorkspaceSchedulingLock(workspace.id, () =>
+          this.enqueueWorkspaceJobs(workspace.id),
+        );
       } catch (error) {
         this.logger.error(
           `Inbox maintenance scheduling failed for workspace ${workspace.id}: ${
@@ -63,6 +69,43 @@ export class InboxMaintenanceCronJob {
           workspace: { id: workspace.id },
         });
       }
+    }
+  }
+
+  private async withWorkspaceSchedulingLock(
+    workspaceId: string,
+    callback: () => Promise<void>,
+  ): Promise<void> {
+    const queryRunner = this.coreDataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const lockDigest = createHash('sha256')
+        .update(`diex:inbox:maintenance:${workspaceId}`)
+        .digest();
+      const [lockResult] = await queryRunner.query(
+        'SELECT pg_try_advisory_xact_lock($1, $2) AS locked',
+        [lockDigest.readInt32BE(0), lockDigest.readInt32BE(4)],
+      );
+
+      if (!lockResult?.locked || lockResult.locked === 'f') {
+        await queryRunner.rollbackTransaction();
+
+        return;
+      }
+
+      await callback();
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
+
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 

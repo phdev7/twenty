@@ -21,20 +21,12 @@ if (!exportDirectory) {
   );
 }
 
-const apiBaseUrl = process.env.TWENTY_API_URL?.replace(/\/+$/, '');
-const functionsBaseUrl =
-  process.env.TWENTY_FUNCTIONS_URL?.replace(/\/+$/, '');
 const apiKey = process.env.TWENTY_API_KEY?.trim();
-const routeUrl =
-  process.env.TWENTY_MIGRATION_ROUTE_URL?.trim() ||
-  (functionsBaseUrl
-    ? `${functionsBaseUrl}/diex/migration/import`
-    : undefined) ||
-  (apiBaseUrl ? `${apiBaseUrl}/s/diex/migration/import` : undefined);
+const routeUrl = process.env.TWENTY_MIGRATION_ROUTE_URL?.trim();
 
 if (!routeUrl || !apiKey) {
   throw new Error(
-    'TWENTY_API_KEY and one function route source are required: TWENTY_MIGRATION_ROUTE_URL, TWENTY_FUNCTIONS_URL or TWENTY_API_URL.',
+    'TWENTY_API_KEY and TWENTY_MIGRATION_ROUTE_URL are required. The legacy Diex app route is no longer available.',
   );
 }
 

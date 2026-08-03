@@ -55,17 +55,16 @@ dados isolados. Não deve ser criada uma segunda camada paralela de tenant.
 
 ### Produto nativo sobre o framework
 
-As mudanças ficam separadas por responsabilidade:
+As capacidades Diex vivem no standard application e nos módulos nativos do
+fork. Não existe mais um pacote interno compilado, bootstrap automático ou
+aplicativo residual instalado por workspace. O framework público de apps segue
+disponível para extensões independentes.
 
-1. `packages/twenty-apps/internal/diex`: fonte versionada dos metadados, páginas,
-   agentes, skills, conectores e automações oficiais do produto.
-2. A imagem compila esse pacote como `Diex CRM Core`.
-3. O servidor registra e sincroniza o core automaticamente em todos os
-   workspaces, inclusive os existentes.
-4. O usuário não instala, publica nem remove o core Diex.
-5. MCP, GraphQL dinâmico, permissões, views, busca, side panels, auditoria,
-   workflows, e-mail e calendário continuam usando os mecanismos nativos do
-   framework.
+MCP, GraphQL dinâmico, permissões, views, busca, side panels, auditoria,
+workflows, e-mail e calendário continuam usando os mecanismos nativos do
+framework. O comando supervisionado de remoção residual só pode apagar uma
+linha de aplicação depois de confirmar que nenhum objeto ou campo ainda a
+referencia.
 
 O pacote existe como fronteira técnica de manutenção, não como aplicativo
 opcional percebido pelo cliente. A interface e a operação são integralmente
@@ -163,13 +162,12 @@ O Diex CRM Core contém:
 
 Isso ainda não autoriza o cutover. Os gates restantes são:
 
-1. publicar a imagem única com o Diex CRM Core compilado;
-2. confirmar a sincronização automática do core no workspace de homologação;
-3. configurar IA, Evolution e armazenamento pelos painéis e secrets corretos;
-4. executar prévia e aplicação da migração com reconciliação;
-5. validar os fluxos reais de venda, atendimento e CS em homologação;
-6. gerar backup final, importar o delta e obter aceite operacional;
-7. só então trocar `crm.bydiex.com` e manter o Laravel recuperável durante a
+1. publicar a imagem única com a plataforma nativa;
+2. configurar IA, Evolution e armazenamento pelos painéis e secrets corretos;
+3. executar prévia e aplicação da migração com reconciliação;
+4. validar os fluxos reais de venda, atendimento e CS em homologação;
+5. gerar backup final, importar o delta e obter aceite operacional;
+6. só então trocar `crm.bydiex.com` e manter o Laravel recuperável durante a
    janela de rollback.
 
 ## Regra de evolução

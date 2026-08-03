@@ -1,17 +1,15 @@
-import { InjectDataSource } from '@nestjs/typeorm';
-
 import { Command, Option } from 'nest-commander';
-import { DataSource } from 'typeorm';
-import { DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER } from 'twenty-shared/application';
+import { LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER } from 'twenty-shared/application';
 
 import { ProvisionedWorkspaceCommandRunner } from 'src/database/commands/command-runners/provisioned-workspace.command-runner';
 import { type ProvisionedWorkspaceCommandOptions } from 'src/database/commands/command-runners/provisioned-workspace.command-runner';
 import { WorkspaceIteratorService } from 'src/database/commands/command-runners/workspace-iterator.service';
 import { type RunOnWorkspaceArgs } from 'src/database/commands/command-runners/workspace.command-runner';
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
-import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
 import { FieldMetadataEntity } from 'src/engine/metadata-modules/field-metadata/field-metadata.entity';
 import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadata/object-metadata.entity';
+import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 
 type DiexResidualUninstallOptions = ProvisionedWorkspaceCommandOptions & {
   confirm?: boolean;
@@ -38,8 +36,7 @@ export class UpgradeDiexUninstallResidualCommand extends ProvisionedWorkspaceCom
   constructor(
     protected readonly workspaceIteratorService: WorkspaceIteratorService,
     private readonly applicationService: ApplicationService,
-    @InjectDataSource()
-    private readonly dataSource: DataSource,
+    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
   ) {
     super(workspaceIteratorService);
   }
@@ -73,19 +70,12 @@ export class UpgradeDiexUninstallResidualCommand extends ProvisionedWorkspaceCom
     index,
     total,
   }: DiexResidualUninstallArgs): Promise<void> {
-    const applicationRepository =
-      this.dataSource.getRepository(ApplicationEntity);
-    const objectMetadataRepository =
-      this.dataSource.getRepository(ObjectMetadataEntity);
-    const fieldMetadataRepository =
-      this.dataSource.getRepository(FieldMetadataEntity);
-
-    const application = await applicationRepository.findOne({
-      where: {
+    const application = await this.applicationService.findByUniversalIdentifier(
+      {
         workspaceId,
-        universalIdentifier: DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
+        universalIdentifier: LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER,
       },
-    });
+    );
 
     if (!application) {
       this.logger.log(
@@ -95,22 +85,33 @@ export class UpgradeDiexUninstallResidualCommand extends ProvisionedWorkspaceCom
       return;
     }
 
-    const [objects, fields] = await Promise.all([
-      objectMetadataRepository.find({
-        where: {
-          workspaceId,
-          applicationId: application.id,
+    const { objects, fields } =
+      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+        async () => {
+          const objectMetadataRepository =
+            await this.globalWorkspaceOrmManager.getRepository<ObjectMetadataEntity>(
+              workspaceId,
+              ObjectMetadataEntity,
+            );
+          const fieldMetadataRepository =
+            await this.globalWorkspaceOrmManager.getRepository<FieldMetadataEntity>(
+              workspaceId,
+              FieldMetadataEntity,
+            );
+
+          return {
+            objects: await objectMetadataRepository.find({
+              where: { applicationId: application.id },
+              select: ['id', 'universalIdentifier'],
+            }),
+            fields: await fieldMetadataRepository.find({
+              where: { applicationId: application.id },
+              select: ['id', 'universalIdentifier'],
+            }),
+          };
         },
-        select: ['id', 'universalIdentifier'],
-      }),
-      fieldMetadataRepository.find({
-        where: {
-          workspaceId,
-          applicationId: application.id,
-        },
-        select: ['id', 'universalIdentifier'],
-      }),
-    ]);
+        buildSystemAuthContext(workspaceId),
+      );
 
     if (objects.length > 0 || fields.length > 0) {
       throw new Error(
@@ -129,7 +130,7 @@ export class UpgradeDiexUninstallResidualCommand extends ProvisionedWorkspaceCom
     }
 
     await this.applicationService.delete(
-      DIEX_CORE_APPLICATION_UNIVERSAL_IDENTIFIER,
+      LEGACY_METADATA_APPLICATION_UNIVERSAL_IDENTIFIER,
       workspaceId,
     );
 
