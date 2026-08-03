@@ -169,7 +169,7 @@ export const SettingsApplicationRegistrationGeneralInfo = ({
         items.push({
           Icon: IconBox,
           label: t`Source`,
-          value: 'Diex CRM Core',
+          value: 'Bundled',
         });
         break;
       case ApplicationRegistrationSourceType.OAUTH_ONLY:

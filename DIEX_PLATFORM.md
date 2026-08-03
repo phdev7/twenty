@@ -134,7 +134,7 @@ desabilitados.
 
 ## Estado operacional
 
-O Diex CRM Core contém:
+O Diex CRM nativo contém:
 
 - Inbox em três painéis, contexto de pessoa, empresa e oportunidade, SLA,
   prioridade, responsável, tarefas, notas internas e triagem por IA;

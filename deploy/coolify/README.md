@@ -13,7 +13,7 @@ A topologia de produção é:
 - Redis 7 dedicado e sem exposição pública;
 - armazenamento S3 compatível;
 - Evolution API existente, acessada somente por origin autorizada;
-- Diex CRM Core compilado na mesma imagem e sincronizado automaticamente em
+- capacidades nativas do Diex CRM entregues pela mesma imagem e disponíveis em
   todos os workspaces.
 
 Isso substitui os três processos Laravel atuais (`app`, `horizon`,
@@ -40,7 +40,7 @@ O novo stack corrige os dois riscos operacionais principais:
 
 - domínio inicial: `next-crm.bydiex.com`;
 - PostgreSQL, Redis, bucket e chave de criptografia exclusivos;
-- app Diex publicado no workspace de homologação;
+- capacidades nativas disponíveis no workspace de homologação;
 - Evolution com instância exclusiva;
 - sem acesso ao banco de produção.
 
@@ -85,7 +85,7 @@ router aceitaria hostnames de terceiros.
 
 ## Implantação no Coolify
 
-1. Publicar uma imagem imutável pelo workflow `Diex CRM image`.
+1. Publicar uma imagem imutável pelo pipeline de imagem do servidor.
 2. Criar PostgreSQL 16 e Redis 7 dedicados no ambiente alvo.
 3. Criar um serviço Docker Compose usando
    `deploy/coolify/docker-compose.yml`.
@@ -98,8 +98,8 @@ router aceitaria hostnames de terceiros.
    subdomínios de tenant; na homologação, manter `noindex`.
 6. Habilitar health check em `/healthz`.
 7. Criar backup do banco a cada seis horas com cópia S3.
-8. Confirmar nos logs a sincronização automática de `Diex CRM Core`; nenhuma
-   API key ou instalação manual é necessária.
+8. Confirmar nos logs que o servidor iniciou corretamente; nenhuma API key ou
+   instalação manual é necessária.
 
 O arquivo de exemplo contém placeholders, nunca credenciais reais.
 
@@ -107,8 +107,8 @@ O arquivo de exemplo contém placeholders, nunca credenciais reais.
 
 1. O administrador cria a primeira conta e o primeiro workspace diretamente
    em `next-crm.bydiex.com`.
-2. O servidor sincroniza o Diex CRM Core durante a inicialização e também
-   retroalimenta workspaces já existentes.
+2. O servidor inicializa o conjunto nativo de capacidades e o workspace já
+   nasce completo, sem instalação de aplicativo.
 3. Confirma no workspace os objetos e as páginas `Inbox Comercial`,
    `Inteligência Comercial`, `Governança de IA`, `Customer Success` e
    `Renovações`.
@@ -136,8 +136,8 @@ migração. Depois do aceite, a chave deve ser revogada e a variável removida.
 ## Regra de release
 
 - Imagem: usar tag de release ou SHA, nunca `latest`.
-- **Publicar a imagem não implanta nada.** O workflow `Diex CRM image` só envia
-  a tag para o GHCR; enquanto `DIEX_IMAGE_TAG` no Coolify não for atualizado
+- **Publicar a imagem não implanta nada.** O processo de publicação só envia a
+  tag para o GHCR; enquanto `DIEX_IMAGE_TAG` no Coolify não for atualizado
   para essa tag, o redeploy reinstala a imagem anterior e o ambiente segue
   idêntico. Toda entrega termina com o passo de verificação abaixo.
 - Verificação obrigatória após cada deploy:
@@ -145,7 +145,8 @@ migração. Depois do aceite, a chave deve ser revogada e a variável removida.
   O valor precisa ser igual à tag publicada, sem o prefixo `diex-v`. Se
   divergir, a implantação não aconteceu — não investigar o código antes de
   fechar essa diferença.
-- Diex CRM Core: aumentar o `version` antes de cada imagem que altere metadados.
+- Metadados nativos: aumentar o `version` antes de cada imagem que altere
+  objetos, campos ou rotas.
 - Banco: apenas o `server` executa migrações.
 - Worker: inicia somente depois do health check do `server`.
 - Cutover: somente depois de backup final, delta de migração e aceite
