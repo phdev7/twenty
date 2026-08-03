@@ -605,12 +605,18 @@ export const syncTwentyEmailToInbox = async ({
         },
       });
 
+      const createdInboxMessageId = data?.createInboxMessage?.id;
+
+      if (!createdInboxMessageId) {
+        throw new Error(
+          `A mensagem nativa de e-mail ${providerMessageKey} não retornou um identificador.`,
+        );
+      }
+
       existingMessageKeys.add(providerMessageKey);
       createdMessages += 1;
 
-      const createdInboxMessageId = data?.createInboxMessage?.id;
-
-      if (isIncoming(association) && createdInboxMessageId) {
+      if (isIncoming(association)) {
         newIncomingMessageIds.push(createdInboxMessageId);
       }
     }

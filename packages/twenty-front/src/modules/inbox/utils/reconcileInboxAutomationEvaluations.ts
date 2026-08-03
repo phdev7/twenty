@@ -65,7 +65,7 @@ const readQueueState = (
     const parsedState = JSON.parse(
       window.localStorage.getItem(getStorageKey(workspaceId)) ?? 'null',
     ) as Partial<AutomationEvaluationQueueState> | null;
-    const state =
+    const state: AutomationEvaluationQueueState =
       parsedState?.version === AUTOMATION_EVALUATION_QUEUE_VERSION &&
       Array.isArray(parsedState.pendingMessageIds) &&
       Array.isArray(parsedState.terminalMessageIds)
