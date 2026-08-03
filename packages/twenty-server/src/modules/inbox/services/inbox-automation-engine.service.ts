@@ -1027,8 +1027,7 @@ export class InboxAutomationEngineService {
       name: `Automação: ${automation.name}`,
       context: {},
     };
-    const legacyDiexId =
-      `INBOX_AUTOMATION_TASK:${automation.id}:${conversation.id}:${runHash}`;
+    const legacyDiexId = `INBOX_AUTOMATION_TASK:${automation.id}:${conversation.id}:${runHash}`;
     const existingTask = await taskRepository.findOne({
       where: { legacyDiexId },
     });
