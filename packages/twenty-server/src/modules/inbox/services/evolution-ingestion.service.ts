@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { createHash } from 'node:crypto';
+
 import { ILike } from 'typeorm';
 import { FieldActorSource } from 'twenty-shared/types';
 
@@ -18,7 +20,10 @@ import {
   type NormalizedEvolutionStatus,
   type ProcessEvolutionWebhookResult,
 } from 'src/modules/inbox/types/inbox-evolution.types';
-import { type InboxAutomationTriggerValue } from 'src/modules/inbox/types/inbox-automation.types';
+import {
+  type InboxAutomationEvaluationMetadata,
+  type InboxAutomationTriggerValue,
+} from 'src/modules/inbox/types/inbox-automation.types';
 import {
   buildMessagePreview,
   extractEvolutionInstanceName,
@@ -244,6 +249,7 @@ export class EvolutionIngestionService {
           : 'INBOUND_MESSAGE_CREATED'
         : undefined;
     const createdMessageId = await this.createInboxMessage({
+      workspaceId,
       messageRepository: repositories.messageRepository,
       conversation,
       message,
@@ -889,11 +895,13 @@ export class EvolutionIngestionService {
   }
 
   private async createInboxMessage({
+    workspaceId,
     messageRepository,
     conversation,
     message,
     automationTrigger,
   }: {
+    workspaceId: string;
     messageRepository: WorkspaceRepository<InboxMessageWorkspaceEntity>;
     conversation: InboxConversationRecord;
     message: NormalizedEvolutionMessage;
@@ -909,6 +917,18 @@ export class EvolutionIngestionService {
     }
 
     try {
+      const automationEvaluation: InboxAutomationEvaluationMetadata | undefined =
+        automationTrigger
+          ? {
+              evaluationId: createHash('sha256')
+                .update(`${workspaceId}:${message.providerMessageKey}`)
+                .digest('hex'),
+              trigger: automationTrigger,
+              status: 'queued',
+              queuedAt: new Date().toISOString(),
+              attempts: 0,
+            }
+          : undefined;
       const inserted = await messageRepository.insert({
         name: buildMessagePreview(message),
         providerMessageKey: message.providerMessageKey,
@@ -928,6 +948,9 @@ export class EvolutionIngestionService {
           instanceName: message.instanceName,
           remoteJid: message.remoteJid,
           ...(automationTrigger ? { automationTrigger } : {}),
+          ...(automationEvaluation
+            ? { automationEvaluation }
+            : {}),
         },
       });
 

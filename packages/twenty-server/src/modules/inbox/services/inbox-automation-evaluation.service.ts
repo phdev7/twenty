@@ -205,7 +205,8 @@ export class InboxAutomationEvaluationService {
 
     if (
       current?.status === 'queued' &&
-      (!force || (await this.hasInFlightEvaluation(current.evaluationId)))
+      ((current.attempts !== 0 && !force) ||
+        (await this.hasInFlightEvaluation(current.evaluationId)))
     ) {
       return {
         status: 'alreadyQueued',
