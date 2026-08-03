@@ -239,7 +239,7 @@ export class InboxAutomationEvaluationJob {
       trigger: current?.trigger ?? 'INBOUND_MESSAGE_CREATED',
       status,
       queuedAt: current?.queuedAt ?? new Date().toISOString(),
-      attempts: current?.attempts,
+      attempts: attempts ?? current?.attempts,
       startedAt,
       leaseExpiresAt,
       completedAt:
