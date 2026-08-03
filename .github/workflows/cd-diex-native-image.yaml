@@ -1,0 +1,44 @@
+name: Build native Diex production image
+
+permissions:
+  contents: read
+  packages: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional image tag (defaults to the commit SHA)
+        required: false
+        type: string
+
+jobs:
+  build-and-push:
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Build and push native image
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          file: packages/twenty-docker/twenty/Dockerfile
+          target: twenty
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/twenty-diex:${{ inputs.image_tag || github.sha }}
+          build-args: |
+            APP_VERSION=${{ inputs.image_tag || github.sha }}
+          cache-from: type=gha,scope=diex-native-image
+          cache-to: type=gha,mode=max,scope=diex-native-image
