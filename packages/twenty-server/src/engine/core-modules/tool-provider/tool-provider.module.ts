@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecordCrudModule } from 'src/engine/core-modules/record-crud/record-crud.module';
 import { TOOL_PROVIDERS } from 'src/engine/core-modules/tool-provider/constants/tool-providers.token';
 import { ActionToolProvider } from 'src/engine/core-modules/tool-provider/providers/action-tool.provider';
+import { CommercialIntelligenceToolProvider } from 'src/engine/core-modules/tool-provider/providers/commercial-intelligence-tool.provider';
 import { DashboardToolProvider } from 'src/engine/core-modules/tool-provider/providers/dashboard-tool.provider';
 import { DatabaseToolProvider } from 'src/engine/core-modules/tool-provider/providers/database-tool.provider';
 import { LogicFunctionToolProvider } from 'src/engine/core-modules/tool-provider/providers/logic-function-tool.provider';
@@ -31,6 +32,7 @@ import { ViewSortModule } from 'src/engine/metadata-modules/view-sort/view-sort.
 import { ViewModule } from 'src/engine/metadata-modules/view/view.module';
 import { WebhookModule } from 'src/engine/metadata-modules/webhook/webhook.module';
 import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
+import { CommercialIntelligenceModule } from 'src/modules/commercial-intelligence/commercial-intelligence.module';
 import { WorkspaceContextModule } from 'src/modules/workspace-context/workspace-context.module';
 
 import { ToolIndexResolver } from './resolvers/tool-index.resolver';
@@ -66,6 +68,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     WebhookModule,
     UserRoleModule,
     WorkspaceContextModule,
+    CommercialIntelligenceModule,
     TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [
@@ -81,6 +84,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     WebhookToolProvider,
     WorkflowToolProvider,
     WorkspaceContextToolProvider,
+    CommercialIntelligenceToolProvider,
     {
       // TOOL_PROVIDERS contains only providers implementing ToolProvider
       // (registry tools with descriptors). The native tool binder is a
@@ -98,6 +102,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         workflowProvider: WorkflowToolProvider,
         dashboardProvider: DashboardToolProvider,
         workspaceContextProvider: WorkspaceContextToolProvider,
+        commercialIntelligenceProvider: CommercialIntelligenceToolProvider,
       ) => [
         actionProvider,
         databaseProvider,
@@ -109,6 +114,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         workflowProvider,
         dashboardProvider,
         workspaceContextProvider,
+        commercialIntelligenceProvider,
       ],
       inject: [
         ActionToolProvider,
@@ -121,6 +127,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         WorkflowToolProvider,
         DashboardToolProvider,
         WorkspaceContextToolProvider,
+        CommercialIntelligenceToolProvider,
       ],
     },
     ToolRegistryService,
