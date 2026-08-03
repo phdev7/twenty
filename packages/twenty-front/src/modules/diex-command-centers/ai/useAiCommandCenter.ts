@@ -7,6 +7,7 @@ import {
   type AiAction,
   type AiActionExecutionResult,
 } from '@/diex-command-centers/ai/types';
+import { DIEX_CONTROLLER_ROUTES } from '@/diex-command-centers/constants/DiexControllerRoutes';
 import { postLogicFunction } from '@/diex-command-centers/utils/useLogicFunctionRequest';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
@@ -220,7 +221,7 @@ export const useAiCommandCenter = () => {
       setBusyExecution({ actionId: id, mode });
       try {
         const result = await postLogicFunction<AiActionExecutionResult>(
-          '/diex/ai-actions/execute',
+          DIEX_CONTROLLER_ROUTES.aiExecuteAction,
           {
             actionId: id,
             previewOnly: mode === 'PREVIEW',

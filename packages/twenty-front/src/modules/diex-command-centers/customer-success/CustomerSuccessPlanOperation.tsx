@@ -14,6 +14,7 @@ import {
   type CustomerSuccessPlan,
   type CustomerSuccessReviewResult,
 } from '@/diex-command-centers/customer-success/types';
+import { DIEX_CONTROLLER_ROUTES } from '@/diex-command-centers/constants/DiexControllerRoutes';
 import {
   formatDate,
   formatPlanMoney,
@@ -142,7 +143,7 @@ export const CustomerSuccessPlanOperation = ({
     setIsBusy(true);
     try {
       const result = await postLogicFunction<CustomerSuccessReviewResult>(
-        '/diex/customer-success/review',
+        DIEX_CONTROLLER_ROUTES.customerSuccessReview,
         { successPlanId: plan.id, mode },
       );
       setReview(result);
@@ -166,7 +167,7 @@ export const CustomerSuccessPlanOperation = ({
     setIsBusy(true);
     try {
       const result = await postLogicFunction<CustomerSuccessMilestonePreview>(
-        '/diex/customer-success/milestone-action',
+        DIEX_CONTROLLER_ROUTES.customerSuccessMilestoneAction,
         {
           milestoneId: milestone.id,
           ...milestoneDraft,
@@ -199,7 +200,7 @@ export const CustomerSuccessPlanOperation = ({
       const result = await postLogicFunction<{
         milestoneUpdated: boolean;
         message: string;
-      }>('/diex/customer-success/milestone-action', {
+      }>(DIEX_CONTROLLER_ROUTES.customerSuccessMilestoneAction, {
         milestoneId: milestone.id,
         ...milestoneDraft,
         previewOnly: false,

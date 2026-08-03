@@ -13,6 +13,7 @@ import {
   type CustomerSuccessHandoffPreview,
   type CustomerSuccessWorkspaceMember,
 } from '@/diex-command-centers/customer-success/types';
+import { DIEX_CONTROLLER_ROUTES } from '@/diex-command-centers/constants/DiexControllerRoutes';
 import {
   buildHandoffDraft,
   formatPlanMoney,
@@ -130,7 +131,7 @@ export const CustomerSuccessHandoff = ({
     setIsBusy(true);
     try {
       const result = await postLogicFunction<CustomerSuccessHandoffPreview>(
-        '/diex/customer-success/handoff',
+        DIEX_CONTROLLER_ROUTES.customerSuccessHandoff,
         {
           opportunityId: selectedOpportunity.id,
           ...draft,
@@ -165,7 +166,7 @@ export const CustomerSuccessHandoff = ({
         successPlanId?: string;
         message: string;
         warnings: string[];
-      }>('/diex/customer-success/handoff', {
+      }>(DIEX_CONTROLLER_ROUTES.customerSuccessHandoff, {
         opportunityId: selectedOpportunity.id,
         ...draft,
         previewOnly: false,
