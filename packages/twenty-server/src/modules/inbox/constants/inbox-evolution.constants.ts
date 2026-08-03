@@ -25,6 +25,11 @@ export const EVOLUTION_SYNC_WATERMARK_KEY =
 // unrelated history into it.
 export const EVOLUTION_SYNC_MAX_BACKFILL_DAYS = 7;
 
+// Providers must eventually return an empty page or a record below the floor.
+// This bound is only a safety brake: hitting it keeps the old watermark so the
+// next run can continue the gap instead of silently discarding history.
+export const EVOLUTION_SYNC_MAX_SAFE_PAGES = 1_000;
+
 // A message can reach the provider's storage slightly after its own timestamp,
 // so the window reaches a little behind the watermark. Deduplication makes the
 // overlap free.

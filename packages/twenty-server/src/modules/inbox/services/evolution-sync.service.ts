@@ -6,6 +6,7 @@ import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspac
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import {
   EVOLUTION_SYNC_MAX_BACKFILL_DAYS,
+  EVOLUTION_SYNC_MAX_SAFE_PAGES,
   EVOLUTION_SYNC_OVERLAP_SECONDS,
   EVOLUTION_SYNC_WATERMARK_KEY,
 } from 'src/modules/inbox/constants/inbox-evolution.constants';
@@ -254,6 +255,13 @@ export class EvolutionSyncService {
     let complete = false;
 
     while (true) {
+      if (page > EVOLUTION_SYNC_MAX_SAFE_PAGES) {
+        this.logger.warn(
+          `A Evolution excedeu ${EVOLUTION_SYNC_MAX_SAFE_PAGES} páginas sem alcançar o floor; o watermark permanecerá inalterado para preservar o gap.`,
+        );
+        break;
+      }
+
       const response = await this.evolutionHttpService.request({
         baseUrl,
         path: `/chat/findMessages/${encodeURIComponent(instanceName)}`,
