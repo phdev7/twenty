@@ -1,7 +1,7 @@
 import { getTokenPair } from '@/apollo/utils/getTokenPair';
 import { REACT_APP_SERVER_BASE_URL } from '~/config';
 
-export const postLogicFunction = async <TResponse,>(
+export const postLogicFunction = async <TResponse>(
   route: string,
   body: Record<string, unknown>,
 ): Promise<TResponse> => {

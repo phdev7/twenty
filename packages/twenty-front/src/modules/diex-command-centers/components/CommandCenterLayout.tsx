@@ -66,7 +66,10 @@ const StyledContentGrid = styled.section<{ columns?: number }>`
   display: grid;
   flex-shrink: 0;
   gap: ${themeCssVariables.spacing[4]};
-  grid-template-columns: repeat(${({ columns = 2 }) => columns}, minmax(0, 1fr));
+  grid-template-columns: repeat(
+    ${({ columns = 2 }) => columns},
+    minmax(0, 1fr)
+  );
 
   @media (max-width: 1000px) {
     grid-template-columns: 1fr;

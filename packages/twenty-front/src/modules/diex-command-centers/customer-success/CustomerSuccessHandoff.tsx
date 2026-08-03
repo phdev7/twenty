@@ -21,7 +21,7 @@ import {
 import { postLogicFunction } from '@/diex-command-centers/utils/useLogicFunctionRequest';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
-import { Button, Tag } from 'twenty-ui';
+import { Button } from 'twenty-ui';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 const StyledForm = styled.div`
@@ -139,13 +139,15 @@ export const CustomerSuccessHandoff = ({
         },
       );
       setPreview(result);
-      result.supported
-        ? enqueueSuccessSnackBar({
-            message: 'Prévia do handoff gerada sem criar registros.',
-          })
-        : enqueueWarningSnackBar({
-            message: result.blockedReason ?? result.message,
-          });
+      if (result.supported) {
+        enqueueSuccessSnackBar({
+          message: 'Prévia do handoff gerada sem criar registros.',
+        });
+      } else {
+        enqueueWarningSnackBar({
+          message: result.blockedReason ?? result.message,
+        });
+      }
     } catch {
       enqueueErrorSnackBar({
         message: 'Não foi possível gerar a prévia do handoff.',

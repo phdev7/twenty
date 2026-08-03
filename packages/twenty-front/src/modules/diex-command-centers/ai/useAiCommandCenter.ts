@@ -237,11 +237,13 @@ export const useAiCommandCenter = () => {
           if (result.mode !== 'PREVIEW' || result.actionId !== id)
             throw new Error('invalid-preview');
           setExecutionPreviews((current) => ({ ...current, [id]: result }));
-          result.supported
-            ? enqueueSuccessSnackBar({
-                message: 'Prévia gerada sem alterar o CRM.',
-              })
-            : enqueueWarningSnackBar({ message: result.blockedReason });
+          if (result.supported) {
+            enqueueSuccessSnackBar({
+              message: 'Prévia gerada sem alterar o CRM.',
+            });
+          } else {
+            enqueueWarningSnackBar({ message: result.blockedReason });
+          }
           return result.supported;
         }
         if (

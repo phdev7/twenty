@@ -175,13 +175,15 @@ export const CustomerSuccessPlanOperation = ({
         },
       );
       setMilestonePreview(result);
-      result.supported
-        ? enqueueSuccessSnackBar({
-            message: 'Prévia do marco gerada sem alterar registros.',
-          })
-        : enqueueWarningSnackBar({
-            message: result.blockedReason ?? result.message,
-          });
+      if (result.supported) {
+        enqueueSuccessSnackBar({
+          message: 'Prévia do marco gerada sem alterar registros.',
+        });
+      } else {
+        enqueueWarningSnackBar({
+          message: result.blockedReason ?? result.message,
+        });
+      }
     } catch {
       enqueueErrorSnackBar({
         message: 'Não foi possível gerar a prévia do marco.',

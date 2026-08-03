@@ -12,10 +12,7 @@ import {
   CommandCenterPage,
   CommandCenterRow,
 } from '@/diex-command-centers/components/CommandCenterLayout';
-import {
-  type AiAction,
-  type AiActionExecutionPreview,
-} from '@/diex-command-centers/ai/types';
+import { type AiAction } from '@/diex-command-centers/ai/types';
 import { useAiCommandCenter } from '@/diex-command-centers/ai/useAiCommandCenter';
 import { getRecordName } from '@/diex-command-centers/customer-success/utils';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';

@@ -10,7 +10,6 @@ import {
 import {
   CommandCenterCard,
   CommandCenterEmptyState,
-  CommandCenterGrid,
   CommandCenterLoadingState,
   CommandCenterMetric,
   CommandCenterMetrics,
