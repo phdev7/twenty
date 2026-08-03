@@ -60,6 +60,12 @@ const isExpiredAutomationLease = (
   return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
 };
 
+const hasRetryableWarnings = (
+  evaluation: InboxAutomationEvaluationMetadata,
+): boolean =>
+  evaluation.status === 'done_with_warnings' &&
+  (evaluation.warnings?.length ?? 0) > 0;
+
 @Injectable()
 export class InboxAutomationEvaluationService {
   private readonly logger = new Logger(InboxAutomationEvaluationService.name);
@@ -119,7 +125,8 @@ export class InboxAutomationEvaluationService {
               !message.providerMessageKey ||
               (evaluation &&
                 !['queued', 'failed'].includes(evaluation.status) &&
-                !isExpiredAutomationLease(evaluation))
+                !isExpiredAutomationLease(evaluation) &&
+                !hasRetryableWarnings(evaluation))
             ) {
               continue;
             }
@@ -187,7 +194,8 @@ export class InboxAutomationEvaluationService {
 
     if (
       current?.status === 'done' ||
-      current?.status === 'done_with_warnings'
+      (current?.status === 'done_with_warnings' &&
+        !hasRetryableWarnings(current))
     ) {
       return {
         status: 'skipped',
