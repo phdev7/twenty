@@ -8,6 +8,7 @@ import { AiAgentExecutionModule } from 'src/engine/metadata-modules/ai/ai-agent-
 import { AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entities/agent.entity';
 import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
 import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/provide-workspace-scoped-repository';
+import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { EvolutionConfigureController } from 'src/modules/inbox/controllers/evolution-configure.controller';
 import { EvolutionConnectionController } from 'src/modules/inbox/controllers/evolution-connection.controller';
 import { EvolutionMediaController } from 'src/modules/inbox/controllers/evolution-media.controller';
@@ -42,6 +43,7 @@ import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.serv
     AiAgentExecutionModule,
     PermissionsModule,
     TypeOrmModule.forFeature([WorkspaceEntity, AgentEntity]),
+    WorkspaceCacheStorageModule,
   ],
   controllers: [
     EvolutionConfigureController,
