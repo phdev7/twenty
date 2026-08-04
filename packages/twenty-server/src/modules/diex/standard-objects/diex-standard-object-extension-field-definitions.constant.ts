@@ -151,20 +151,6 @@ export const DIEX_STANDARD_OBJECT_EXTENSION_FIELD_DEFINITIONS = [
         position: 5,
         color: 'orange',
       },
-      {
-        id: 'd1e05510-0000-4000-8000-000000000007',
-        value: 'MQL',
-        label: 'MQL',
-        position: 6,
-        color: 'blue',
-      },
-      {
-        id: 'd1e05510-0000-4000-8000-000000000008',
-        value: 'SQL',
-        label: 'SQL',
-        position: 7,
-        color: 'sky',
-      },
     ],
   },
   {
