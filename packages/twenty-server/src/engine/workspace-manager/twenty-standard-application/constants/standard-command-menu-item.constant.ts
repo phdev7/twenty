@@ -1043,4 +1043,22 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
     engineComponentKey: EngineComponentKey.COMPOSE_EMAIL,
     hotKeys: null,
   },
+  openWhatsappConversationForPerson: {
+    universalIdentifier: 'd1e05800-0000-4000-8000-000000000001',
+    label: 'Enviar WhatsApp',
+    icon: 'IconBrandWhatsapp',
+    isPinned: true,
+    position: 67,
+    shortLabel: 'WhatsApp',
+    availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
+    // A thread belongs to exactly one contact, so a multi-record selection has
+    // no conversation to open. Whether the contact has a usable phone is only
+    // known server-side, so that check stays in the endpoint.
+    conditionalAvailabilityExpression: 'numberOfSelectedRecords == 1',
+    availabilityObjectMetadataUniversalIdentifier:
+      STANDARD_OBJECTS.person.universalIdentifier,
+    frontComponentUniversalIdentifier: null,
+    engineComponentKey: EngineComponentKey.OPEN_WHATSAPP_CONVERSATION,
+    hotKeys: null,
+  },
 } as const;
