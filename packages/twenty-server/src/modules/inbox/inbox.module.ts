@@ -13,6 +13,9 @@ import { EvolutionConfigureController } from 'src/modules/inbox/controllers/evol
 import { EvolutionConnectionController } from 'src/modules/inbox/controllers/evolution-connection.controller';
 import { EvolutionMediaController } from 'src/modules/inbox/controllers/evolution-media.controller';
 import { EvolutionSendTextController } from 'src/modules/inbox/controllers/evolution-send-text.controller';
+import { InboxPersonConversationController } from 'src/modules/inbox/controllers/inbox-person-conversation.controller';
+import { InboxPersonConversationService } from 'src/modules/inbox/services/inbox-person-conversation.service';
+import { InboxToolWorkspaceService } from 'src/modules/inbox/tools/services/inbox-tool.workspace-service';
 import { EvolutionSyncController } from 'src/modules/inbox/controllers/evolution-sync.controller';
 import { EvolutionWebhookController } from 'src/modules/inbox/controllers/evolution-webhook.controller';
 import { InboxAutomationEvaluationController } from 'src/modules/inbox/controllers/inbox-automation-evaluation.controller';
@@ -53,6 +56,7 @@ import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.serv
     EvolutionSyncController,
     EvolutionWebhookController,
     InboxAutomationEvaluationController,
+    InboxPersonConversationController,
     InboxTriageController,
   ],
   providers: [
@@ -65,7 +69,9 @@ import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.serv
     InboxAudioTranscriptionRunnerService,
     InboxAutomationEngineService,
     InboxAutomationEvaluationService,
+    InboxPersonConversationService,
     InboxSlaBreachService,
+    InboxToolWorkspaceService,
     InboxTranscriptionService,
     InboxTriageService,
     InboxAudioTranscriptionJob,
@@ -81,6 +87,8 @@ import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.serv
     InboxAutomationEngineService,
     InboxAutomationEvaluationService,
     InboxMaintenanceCronCommand,
+    InboxPersonConversationService,
+    InboxToolWorkspaceService,
   ],
 })
 export class InboxModule {}

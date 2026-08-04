@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { inboxConversationGqlFields } from '@/inbox/graphql/inboxRecordGqlFields';
 import { INBOX_CONVERSATION_PAGE_SIZE } from '@/inbox/constants/INBOX_CONVERSATION_PAGE_SIZE';
@@ -11,9 +12,13 @@ import {
 } from '@/inbox/types/inboxEntityTypes';
 import { buildInboxConversationServerFilter } from '@/inbox/utils/buildInboxConversationServerFilter';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
+import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
 
+const DEEP_LINK_CONVERSATION_PARAM = 'conversationId';
+
 export const useInboxConversationsQuery = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [filter, setFilter] = useState<InboxConversationFilter>('ACTIVE');
@@ -24,9 +29,11 @@ export const useInboxConversationsQuery = () => {
   const [conversationLimit, setConversationLimit] = useState(
     INBOX_CONVERSATION_PAGE_SIZE,
   );
+  // Seeded from the URL so opening WhatsApp from a person record lands on that
+  // thread instead of whatever sits at the top of the list.
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
-  >(null);
+  >(() => searchParams.get(DEEP_LINK_CONVERSATION_PARAM));
   const [cachedSelectedConversation, setCachedSelectedConversation] =
     useState<InboxConversation | null>(null);
   const [reopenedSnoozeKeys, setReopenedSnoozeKeys] = useState<Set<string>>(
@@ -135,6 +142,41 @@ export const useInboxConversationsQuery = () => {
     }
   }, [conversations, selectedConversationId]);
 
+  // The deep link is consumed once. Leaving it in the URL would drag the
+  // operator back to this thread on every reload, undoing later selections.
+  useEffect(() => {
+    if (!searchParams.has(DEEP_LINK_CONVERSATION_PARAM)) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams);
+
+    nextParams.delete(DEEP_LINK_CONVERSATION_PARAM);
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const isSelectionOnCurrentPage =
+    selectedConversationId !== null &&
+    conversations.some(({ id }) => id === selectedConversationId);
+  const isSelectionCached =
+    cachedSelectedConversation?.id === selectedConversationId;
+
+  // A conversation just opened from a person record has no messages yet, and
+  // the list is ordered DescNullsLast, so it sorts to the very bottom and is
+  // usually not on the first page. Fetching it directly keeps the thread from
+  // rendering empty.
+  const { record: directlyFetchedRecord } = useFindOneRecord({
+    objectNameSingular: 'inboxConversation',
+    objectRecordId: selectedConversationId ?? undefined,
+    recordGqlFields: inboxConversationGqlFields,
+    skip:
+      selectedConversationId === null ||
+      isSelectionOnCurrentPage ||
+      isSelectionCached,
+  });
+  const directlyFetchedConversation =
+    (directlyFetchedRecord as InboxConversation | undefined) ?? null;
+
   const selectedConversation = useMemo(() => {
     const fromCurrentPage =
       conversations.find(({ id }) => id === selectedConversationId) ?? null;
@@ -147,10 +189,19 @@ export const useInboxConversationsQuery = () => {
       return null;
     }
 
-    return cachedSelectedConversation?.id === selectedConversationId
-      ? cachedSelectedConversation
+    if (cachedSelectedConversation?.id === selectedConversationId) {
+      return cachedSelectedConversation;
+    }
+
+    return directlyFetchedConversation?.id === selectedConversationId
+      ? directlyFetchedConversation
       : null;
-  }, [cachedSelectedConversation, conversations, selectedConversationId]);
+  }, [
+    cachedSelectedConversation,
+    conversations,
+    directlyFetchedConversation,
+    selectedConversationId,
+  ]);
 
   // The open conversation has to survive a filter change, a search and a page
   // that no longer lists it: the last loaded copy is kept so the thread keeps
