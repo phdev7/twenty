@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
 import { TwentyORMModule } from 'src/engine/twenty-orm/twenty-orm.module';
 import { MeetingsController } from 'src/modules/meetings/controllers/meetings.controller';
 import { MeetingTranscriptService } from 'src/modules/meetings/services/meeting-transcript.service';
 import { MeetingsToolWorkspaceService } from 'src/modules/meetings/tools/services/meetings-tool.workspace-service';
 
 @Module({
-  imports: [TwentyORMModule],
+  imports: [AuthModule, TwentyORMModule],
   controllers: [MeetingsController],
   providers: [MeetingTranscriptService, MeetingsToolWorkspaceService],
   exports: [MeetingTranscriptService, MeetingsToolWorkspaceService],

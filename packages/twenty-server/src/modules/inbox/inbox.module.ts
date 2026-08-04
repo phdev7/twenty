@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
 import { KeyValuePairModule } from 'src/engine/core-modules/key-value-pair/key-value-pair.module';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AiAgentExecutionModule } from 'src/engine/metadata-modules/ai/ai-agent-execution/ai-agent-execution.module';
@@ -36,6 +37,7 @@ import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.serv
 
 @Module({
   imports: [
+    AuthModule,
     KeyValuePairModule,
     AiAgentExecutionModule,
     PermissionsModule,
