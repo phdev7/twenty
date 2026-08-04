@@ -7,6 +7,7 @@ import { ActionToolProvider } from 'src/engine/core-modules/tool-provider/provid
 import { AiGovernanceToolProvider } from 'src/engine/core-modules/tool-provider/providers/ai-governance-tool.provider';
 import { CommercialIntelligenceToolProvider } from 'src/engine/core-modules/tool-provider/providers/commercial-intelligence-tool.provider';
 import { CustomerSuccessToolProvider } from 'src/engine/core-modules/tool-provider/providers/customer-success-tool.provider';
+import { DiexBadgeToolProvider } from 'src/engine/core-modules/tool-provider/providers/diex-badge-tool.provider';
 import { RenewalToolProvider } from 'src/engine/core-modules/tool-provider/providers/renewal-tool.provider';
 import { MeetingsToolProvider } from 'src/engine/core-modules/tool-provider/providers/meetings-tool.provider';
 import { DashboardToolProvider } from 'src/engine/core-modules/tool-provider/providers/dashboard-tool.provider';
@@ -38,6 +39,7 @@ import { WebhookModule } from 'src/engine/metadata-modules/webhook/webhook.modul
 import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
 import { CommercialIntelligenceModule } from 'src/modules/commercial-intelligence/commercial-intelligence.module';
 import { CustomerSuccessModule } from 'src/modules/customer-success/customer-success.module';
+import { DiexToolsModule } from 'src/modules/diex/tools/diex-tools.module';
 import { RenewalModule } from 'src/modules/renewal/renewal.module';
 import { MeetingsModule } from 'src/modules/meetings/meetings.module';
 import { AiGovernanceModule } from 'src/modules/ai-governance/ai-governance.module';
@@ -81,6 +83,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     AiGovernanceModule,
     RenewalModule,
     MeetingsModule,
+    DiexToolsModule,
     TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [
@@ -99,6 +102,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     CommercialIntelligenceToolProvider,
     CustomerSuccessToolProvider,
     AiGovernanceToolProvider,
+    DiexBadgeToolProvider,
     RenewalToolProvider,
     MeetingsToolProvider,
     {
@@ -123,6 +127,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         aiGovernanceProvider: AiGovernanceToolProvider,
         renewalProvider: RenewalToolProvider,
         meetingsProvider: MeetingsToolProvider,
+        diexBadgeProvider: DiexBadgeToolProvider,
       ) => [
         actionProvider,
         databaseProvider,
@@ -139,6 +144,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         aiGovernanceProvider,
         renewalProvider,
         meetingsProvider,
+        diexBadgeProvider,
       ],
       inject: [
         ActionToolProvider,
@@ -156,6 +162,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         AiGovernanceToolProvider,
         RenewalToolProvider,
         MeetingsToolProvider,
+        DiexBadgeToolProvider,
       ],
     },
     ToolRegistryService,

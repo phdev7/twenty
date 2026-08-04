@@ -38,6 +38,7 @@ export class CompanyWorkspaceEntity {
   addressOld: string | null;
   searchVector: string;
   diexAnnualRevenueRange: string | null;
+  diexBadges: string[] | null;
   diexEmployeeRange: string | null;
   diexLifecycle: string | null;
   diexNiche: string | null;

@@ -51,6 +51,7 @@ export class PersonWorkspaceEntity extends BaseWorkspaceEntity {
   searchVector: string;
   buyingIntent: string | null;
   buyingRole: string | null;
+  diexBadges: string[] | null;
   doNotContact: boolean | null;
   legacyDiexId: string | null;
   whatsappConsentAt: Date | null;

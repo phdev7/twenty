@@ -6,6 +6,9 @@ export const DIEX_STANDARD_OBJECT_EXTENSION_FIELDS = {
     diexAnnualRevenueRange: {
       universalIdentifier: 'd1e05500-0000-4000-8000-000000000013',
     },
+    diexBadges: {
+      universalIdentifier: 'd1e05700-0000-4000-8000-000000000002',
+    },
     diexEmployeeRange: {
       universalIdentifier: 'd1e05500-0000-4000-8000-000000000014',
     },
@@ -58,6 +61,9 @@ export const DIEX_STANDARD_OBJECT_EXTENSION_FIELDS = {
     ...DIEX_STANDARD_EXTENSION_RELATION_FIELDS.person,
     buyingIntent: {
       universalIdentifier: 'd1e05500-0000-4000-8000-000000000004',
+    },
+    diexBadges: {
+      universalIdentifier: 'd1e05700-0000-4000-8000-000000000001',
     },
     buyingRole: { universalIdentifier: 'd1e05500-0000-4000-8000-000000000003' },
     doNotContact: {

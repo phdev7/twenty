@@ -1,5 +1,5 @@
 import { type FieldManifest } from 'twenty-shared/application';
-import { FieldMetadataType } from 'twenty-shared/types';
+import { FieldMetadataType, type TagColor } from 'twenty-shared/types';
 
 const STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS = {
   company: '20202020-b374-4779-a561-80086cb2e17f',
@@ -8,6 +8,45 @@ const STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS = {
   person: '20202020-e674-48e5-a542-72570eee7213',
   task: '20202020-1ba1-48ba-bc83-ef7e5990ed10',
 } as const;
+
+// Badges are deliberately MULTI_SELECT: a record is in exactly one lifecycle
+// stage (diexLifecycle) but can carry several badges at once, and operators
+// add their own values in Settings without a release.
+const BADGE_OPTIONS: { value: string; label: string; color: TagColor }[] = [
+  { value: 'PROSPECT', label: 'Prospect', color: 'gray' },
+  { value: 'MQL', label: 'MQL', color: 'blue' },
+  { value: 'SQL', label: 'SQL', color: 'sky' },
+  { value: 'CUSTOMER', label: 'Cliente', color: 'green' },
+  { value: 'AT_RISK', label: 'Em risco', color: 'red' },
+  { value: 'CANCELLED', label: 'Cancelado', color: 'orange' },
+];
+
+const buildBadgesFieldDefinition = ({
+  objectUniversalIdentifier,
+  universalIdentifier,
+  optionIdPrefix,
+}: {
+  objectUniversalIdentifier: string;
+  universalIdentifier: string;
+  optionIdPrefix: string;
+}): FieldManifest<FieldMetadataType.MULTI_SELECT> => ({
+  universalIdentifier,
+  objectUniversalIdentifier,
+  type: FieldMetadataType.MULTI_SELECT,
+  name: 'diexBadges',
+  label: 'Badges',
+  description:
+    'Marcadores comerciais acumuláveis do registro. As opções são editáveis pelo próprio operador.',
+  icon: 'IconTags',
+  isNullable: true,
+  options: BADGE_OPTIONS.map((option, index) => ({
+    id: `${optionIdPrefix}-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+    value: option.value,
+    label: option.label,
+    position: index,
+    color: option.color,
+  })),
+});
 
 const buildLegacyDiexIdFieldDefinition = ({
   objectUniversalIdentifier,
@@ -29,6 +68,16 @@ const buildLegacyDiexIdFieldDefinition = ({
 });
 
 export const DIEX_STANDARD_OBJECT_EXTENSION_FIELD_DEFINITIONS = [
+  buildBadgesFieldDefinition({
+    objectUniversalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.person,
+    universalIdentifier: 'd1e05700-0000-4000-8000-000000000001',
+    optionIdPrefix: 'd1e05710',
+  }),
+  buildBadgesFieldDefinition({
+    objectUniversalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.company,
+    universalIdentifier: 'd1e05700-0000-4000-8000-000000000002',
+    optionIdPrefix: 'd1e05720',
+  }),
   {
     universalIdentifier: 'd1e05500-0000-4000-8000-000000000013',
     objectUniversalIdentifier: STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.company,
@@ -101,6 +150,20 @@ export const DIEX_STANDARD_OBJECT_EXTENSION_FIELD_DEFINITIONS = [
         label: 'Churn',
         position: 5,
         color: 'orange',
+      },
+      {
+        id: 'd1e05510-0000-4000-8000-000000000007',
+        value: 'MQL',
+        label: 'MQL',
+        position: 6,
+        color: 'blue',
+      },
+      {
+        id: 'd1e05510-0000-4000-8000-000000000008',
+        value: 'SQL',
+        label: 'SQL',
+        position: 7,
+        color: 'sky',
       },
     ],
   },
