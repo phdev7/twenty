@@ -2,4 +2,4 @@
 // the server can boot against a database whose fast instance command has not
 // run yet.
 export const ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME =
-  'AddDiexOnboardingProfileToWorkspaceFastInstanceCommand';
+  '2.26.0_AddDiexOnboardingProfileToWorkspaceFastInstanceCommand_1785900000000';
