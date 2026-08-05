@@ -1,8 +1,8 @@
 import { workspacePublicDataState } from '@/auth/states/workspacePublicDataState';
-import { BRAND_MARK_PATH } from '@/constants/Brand';
 import { Helmet } from '@dr.pogodin/react-helmet';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { getImageAbsoluteURI } from 'twenty-shared/utils';
+import { BRAND_MARK_PATH } from '~/constants/Brand';
 import { REACT_APP_SERVER_BASE_URL } from '~/config';
 
 export const PageFavicon = () => {
