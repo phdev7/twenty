@@ -7,6 +7,7 @@ import { isCreatingWorkspaceState } from '@/auth/states/isCreatingWorkspaceState
 import { isMultiWorkspaceEnabledState } from '@/client-config/states/isMultiWorkspaceEnabledState';
 import { domainConfigurationState } from '@/domain-manager/states/domainConfigurationState';
 import { TextInput } from '@/ui/input/components/TextInput';
+import { TextArea } from '@/ui/input/components/TextArea';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 import { styled } from '@linaria/react';
@@ -135,6 +136,19 @@ const StyledAvailabilityDot = styled.div`
   width: 6px;
 `;
 
+const StyledStepIndicator = styled.div`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
+  font-weight: ${themeCssVariables.font.weight.medium};
+`;
+
+const StyledActions = styled.div`
+  display: grid;
+  gap: ${themeCssVariables.spacing[2]};
+  grid-template-columns: 120px minmax(0, 1fr);
+  width: 100%;
+`;
+
 export const SignInUpWorkspaceCreationForm = () => {
   const { t } = useLingui();
   const { createWorkspace } = useSignUpInNewWorkspace();
@@ -150,6 +164,16 @@ export const SignInUpWorkspaceCreationForm = () => {
     undefined,
   );
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
+  const [formStep, setFormStep] = useState<'workspace' | 'operation'>(
+    'workspace',
+  );
+  const [whatsapp, setWhatsapp] = useState('');
+  const [companyDescription, setCompanyDescription] = useState('');
+  const [idealCustomerProfile, setIdealCustomerProfile] = useState('');
+  const [toneOfVoice, setToneOfVoice] = useState('');
+  const [primaryGoal, setPrimaryGoal] = useState('');
+  const [companySize, setCompanySize] = useState('');
+  const [currentProcess, setCurrentProcess] = useState('');
 
   const {
     workspaceName,
@@ -165,10 +189,21 @@ export const SignInUpWorkspaceCreationForm = () => {
     isSubdomainEnabled: isMultiWorkspaceEnabled,
   });
 
-  const isContinueDisabled =
+  const isWorkspaceStepDisabled =
     workspaceName.trim() === '' ||
     isCreatingWorkspace ||
     (isMultiWorkspaceEnabled && !isAvailable);
+  const whatsappDigits = whatsapp.replace(/\D/g, '');
+  const isOperationStepDisabled =
+    whatsappDigits.length < 10 ||
+    whatsappDigits.length > 15 ||
+    companyDescription.trim().length < 10 ||
+    idealCustomerProfile.trim().length < 5 ||
+    toneOfVoice.trim().length < 3 ||
+    primaryGoal.trim().length < 5 ||
+    companySize.trim() === '' ||
+    currentProcess.trim().length < 5 ||
+    isCreatingWorkspace;
 
   const openFilePicker = () => {
     hiddenFileInputRef.current?.click();
@@ -198,7 +233,7 @@ export const SignInUpWorkspaceCreationForm = () => {
   }, [logoPreviewUrl]);
 
   const handleSubmit = async () => {
-    if (isContinueDisabled) {
+    if (isWorkspaceStepDisabled || isOperationStepDisabled) {
       return;
     }
 
@@ -208,6 +243,13 @@ export const SignInUpWorkspaceCreationForm = () => {
       displayName: workspaceName.trim(),
       ...(isMultiWorkspaceEnabled ? { subdomain } : {}),
       logo,
+      whatsapp: whatsapp.trim(),
+      companyDescription: companyDescription.trim(),
+      idealCustomerProfile: idealCustomerProfile.trim(),
+      toneOfVoice: toneOfVoice.trim(),
+      primaryGoal: primaryGoal.trim(),
+      companySize: companySize.trim(),
+      currentProcess: currentProcess.trim(),
     });
 
     if (!isWorkspaceCreated) {
@@ -221,7 +263,11 @@ export const SignInUpWorkspaceCreationForm = () => {
     }
     if (event.key === Key.Enter) {
       event.preventDefault();
-      handleSubmit();
+      if (formStep === 'workspace' && !isWorkspaceStepDisabled) {
+        setFormStep('operation');
+      } else if (formStep === 'operation') {
+        void handleSubmit();
+      }
     }
   };
 
@@ -238,119 +284,231 @@ export const SignInUpWorkspaceCreationForm = () => {
     <StyledContentContainer>
       <StyledHeading>
         <OnboardingStepAnimatedItem index={0}>
-          <StyledTitle>{t`Create your workspace`}</StyledTitle>
+          <StyledStepIndicator>
+            Etapa {formStep === 'workspace' ? '1' : '2'} de 2
+          </StyledStepIndicator>
+          <StyledTitle>
+            {formStep === 'workspace'
+              ? 'Crie seu workspace'
+              : 'Conte como sua empresa opera'}
+          </StyledTitle>
         </OnboardingStepAnimatedItem>
         <OnboardingStepAnimatedItem index={1}>
           <StyledSubtitle>
-            {t`Move work forward across teams and agents`}
+            {formStep === 'workspace'
+              ? 'Defina a identidade e o endereço do seu CRM.'
+              : 'Essas respostas vão para a aprovação e já configuram o contexto inicial da IA.'}
           </StyledSubtitle>
         </OnboardingStepAnimatedItem>
       </StyledHeading>
-      <StyledFormSection>
-        <OnboardingStepAnimatedItem index={2}>
-          <StyledLogoRow>
-            <StyledLogoAvatar
-              avatarUrl={logoPreviewUrl}
-              placeholder={
-                isNonEmptyString(workspaceName) ? workspaceName : '?'
-              }
-              placeholderColorSeed={workspaceName}
-              type="squared"
-              size="xl"
-              onClick={openFilePicker}
-            />
-            <StyledHiddenFileInput
-              type="file"
-              ref={hiddenFileInputRef}
-              accept="image/jpeg, image/png, image/gif"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (isDefined(file)) {
-                  handleLogoUpload(file);
-                }
-                event.target.value = '';
-              }}
-            />
-            <StyledLogoButtons>
-              <Button
-                Icon={IconUpload}
-                title={t`Upload logo`}
-                variant="secondary"
-                onClick={openFilePicker}
-              />
-              <LightIconButton
-                Icon={IconTrash}
-                accent="tertiary"
-                size="medium"
-                onClick={handleLogoRemove}
-                disabled={!isDefined(logoPreviewUrl)}
-                aria-label={t`Remove logo`}
-              />
-            </StyledLogoButtons>
-          </StyledLogoRow>
-        </OnboardingStepAnimatedItem>
-        <OnboardingStepAnimatedItem index={3}>
-          <TextInput
-            autoFocus
-            label={t`Name`}
-            value={workspaceName}
-            placeholder={t`Apple`}
-            onChange={handleWorkspaceNameChange}
-            onKeyDown={handleKeyDown}
-            fullWidth
-          />
-        </OnboardingStepAnimatedItem>
-        {isMultiWorkspaceEnabled && (
-          <OnboardingStepAnimatedItem index={4}>
-            <StyledSubdomainSection>
+      {formStep === 'workspace' ? (
+        <>
+          <StyledFormSection>
+            <OnboardingStepAnimatedItem index={2}>
+              <StyledLogoRow>
+                <StyledLogoAvatar
+                  avatarUrl={logoPreviewUrl}
+                  placeholder={
+                    isNonEmptyString(workspaceName) ? workspaceName : '?'
+                  }
+                  placeholderColorSeed={workspaceName}
+                  type="squared"
+                  size="xl"
+                  onClick={openFilePicker}
+                />
+                <StyledHiddenFileInput
+                  type="file"
+                  ref={hiddenFileInputRef}
+                  accept="image/jpeg, image/png, image/gif"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (isDefined(file)) {
+                      handleLogoUpload(file);
+                    }
+                    event.target.value = '';
+                  }}
+                />
+                <StyledLogoButtons>
+                  <Button
+                    Icon={IconUpload}
+                    title={t`Upload logo`}
+                    variant="secondary"
+                    onClick={openFilePicker}
+                  />
+                  <LightIconButton
+                    Icon={IconTrash}
+                    accent="tertiary"
+                    size="medium"
+                    onClick={handleLogoRemove}
+                    disabled={!isDefined(logoPreviewUrl)}
+                    aria-label={t`Remove logo`}
+                  />
+                </StyledLogoButtons>
+              </StyledLogoRow>
+            </OnboardingStepAnimatedItem>
+            <OnboardingStepAnimatedItem index={3}>
               <TextInput
-                label={t`Subdomain`}
-                value={subdomain}
-                placeholder={t`apple`}
-                onChange={handleSubdomainChange}
+                autoFocus
+                label="Nome da empresa"
+                value={workspaceName}
+                placeholder="Sua empresa"
+                onChange={handleWorkspaceNameChange}
                 onKeyDown={handleKeyDown}
-                rightAdornment={
-                  isNonEmptyString(frontDomain) ? `.${frontDomain}` : undefined
-                }
-                error={subdomainError}
-                noErrorHelper={
-                  status === 'unavailable' || !isDefined(subdomainError)
-                }
                 fullWidth
               />
-              <OnboardingAnimatedReveal isVisible={status === 'unavailable'}>
-                <StyledAlternativesBox>
-                  <StyledAlternativesLabel>
-                    {t`Subdomain already in use, here are some alternatives:`}
-                  </StyledAlternativesLabel>
-                  <StyledAlternativeRows>
-                    {suggestions.map((alternative) => (
-                      <StyledAlternativeRow
-                        key={alternative}
-                        type="button"
-                        onClick={() => applySuggestionValue(alternative)}
-                      >
-                        <StyledAvailabilityDotBox>
-                          <StyledAvailabilityDot />
-                        </StyledAvailabilityDotBox>
-                        {alternative}
-                      </StyledAlternativeRow>
-                    ))}
-                  </StyledAlternativeRows>
-                </StyledAlternativesBox>
-              </OnboardingAnimatedReveal>
-            </StyledSubdomainSection>
+            </OnboardingStepAnimatedItem>
+            {isMultiWorkspaceEnabled && (
+              <OnboardingStepAnimatedItem index={4}>
+                <StyledSubdomainSection>
+                  <TextInput
+                    label="Endereço"
+                    value={subdomain}
+                    placeholder="sua-empresa"
+                    onChange={handleSubdomainChange}
+                    onKeyDown={handleKeyDown}
+                    rightAdornment={
+                      isNonEmptyString(frontDomain)
+                        ? `.${frontDomain}`
+                        : undefined
+                    }
+                    error={subdomainError}
+                    noErrorHelper={
+                      status === 'unavailable' || !isDefined(subdomainError)
+                    }
+                    fullWidth
+                  />
+                  <OnboardingAnimatedReveal
+                    isVisible={status === 'unavailable'}
+                  >
+                    <StyledAlternativesBox>
+                      <StyledAlternativesLabel>
+                        Este endereço já está em uso. Escolha uma alternativa:
+                      </StyledAlternativesLabel>
+                      <StyledAlternativeRows>
+                        {suggestions.map((alternative) => (
+                          <StyledAlternativeRow
+                            key={alternative}
+                            type="button"
+                            onClick={() => applySuggestionValue(alternative)}
+                          >
+                            <StyledAvailabilityDotBox>
+                              <StyledAvailabilityDot />
+                            </StyledAvailabilityDotBox>
+                            {alternative}
+                          </StyledAlternativeRow>
+                        ))}
+                      </StyledAlternativeRows>
+                    </StyledAlternativesBox>
+                  </OnboardingAnimatedReveal>
+                </StyledSubdomainSection>
+              </OnboardingStepAnimatedItem>
+            )}
+          </StyledFormSection>
+          <OnboardingStepAnimatedItem index={isMultiWorkspaceEnabled ? 5 : 4}>
+            <MainButton
+              title="Continuar"
+              onClick={() => setFormStep('operation')}
+              disabled={isWorkspaceStepDisabled}
+              fullWidth
+            />
           </OnboardingStepAnimatedItem>
-        )}
-      </StyledFormSection>
-      <OnboardingStepAnimatedItem index={isMultiWorkspaceEnabled ? 5 : 4}>
-        <MainButton
-          title={t`Create workspace`}
-          onClick={handleSubmit}
-          disabled={isContinueDisabled}
-          fullWidth
-        />
-      </OnboardingStepAnimatedItem>
+        </>
+      ) : (
+        <>
+          <StyledFormSection>
+            <OnboardingStepAnimatedItem index={2}>
+              <TextInput
+                autoFocus
+                label="WhatsApp do responsável"
+                value={whatsapp}
+                placeholder="+55 31 99999-9999"
+                onChange={setWhatsapp}
+                onKeyDown={handleKeyDown}
+                fullWidth
+              />
+            </OnboardingStepAnimatedItem>
+            <OnboardingStepAnimatedItem index={3}>
+              <TextArea
+                textAreaId="workspace-company-description"
+                label="O que a empresa faz"
+                value={companyDescription}
+                placeholder="Explique o serviço, produto, mercado e como a empresa gera receita."
+                minRows={3}
+                maxRows={6}
+                onChange={setCompanyDescription}
+              />
+            </OnboardingStepAnimatedItem>
+            <OnboardingStepAnimatedItem index={4}>
+              <TextArea
+                textAreaId="workspace-ideal-customer"
+                label="Quem é o cliente ideal"
+                value={idealCustomerProfile}
+                placeholder="Segmento, porte, problema e momento de compra."
+                minRows={2}
+                maxRows={5}
+                onChange={setIdealCustomerProfile}
+              />
+            </OnboardingStepAnimatedItem>
+            <OnboardingStepAnimatedItem index={5}>
+              <TextArea
+                textAreaId="workspace-primary-goal"
+                label="Principal objetivo com o CRM"
+                value={primaryGoal}
+                placeholder="Ex.: organizar vendas, reduzir perda de leads e acompanhar pós-venda."
+                minRows={2}
+                maxRows={5}
+                onChange={setPrimaryGoal}
+              />
+            </OnboardingStepAnimatedItem>
+            <OnboardingStepAnimatedItem index={6}>
+              <TextInput
+                label="Tamanho da operação"
+                value={companySize}
+                placeholder="Ex.: 8 pessoas, sendo 3 em vendas"
+                onChange={setCompanySize}
+                onKeyDown={handleKeyDown}
+                fullWidth
+              />
+            </OnboardingStepAnimatedItem>
+            <OnboardingStepAnimatedItem index={7}>
+              <TextArea
+                textAreaId="workspace-current-process"
+                label="Como vocês trabalham hoje"
+                value={currentProcess}
+                placeholder="Ferramentas atuais, etapas comerciais e principais gargalos."
+                minRows={2}
+                maxRows={5}
+                onChange={setCurrentProcess}
+              />
+            </OnboardingStepAnimatedItem>
+            <OnboardingStepAnimatedItem index={8}>
+              <TextInput
+                label="Tom de voz da empresa"
+                value={toneOfVoice}
+                placeholder="Ex.: consultivo, direto, técnico e humano"
+                onChange={setToneOfVoice}
+                onKeyDown={handleKeyDown}
+                fullWidth
+              />
+            </OnboardingStepAnimatedItem>
+          </StyledFormSection>
+          <OnboardingStepAnimatedItem index={9}>
+            <StyledActions>
+              <Button
+                title="Voltar"
+                variant="secondary"
+                onClick={() => setFormStep('workspace')}
+              />
+              <MainButton
+                title="Enviar para aprovação"
+                onClick={() => void handleSubmit()}
+                disabled={isOperationStepDisabled}
+                fullWidth
+              />
+            </StyledActions>
+          </OnboardingStepAnimatedItem>
+        </>
+      )}
     </StyledContentContainer>
   );
 };

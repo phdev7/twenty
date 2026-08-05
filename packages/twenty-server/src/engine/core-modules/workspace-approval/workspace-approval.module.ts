@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { WORKSPACE_APPROVAL_TOOL_SERVICE_TOKEN } from 'src/engine/core-modules/tool-provider/constants/workspace-approval-tool-service.token';
 import { TwentyConfigModule } from 'src/engine/core-modules/twenty-config/twenty-config.module';
+import { WorkspaceDomainsModule } from 'src/engine/core-modules/domain/workspace-domains/workspace-domains.module';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceApprovalGateModule } from 'src/engine/core-modules/workspace-approval/workspace-approval-gate.module';
@@ -20,6 +21,7 @@ import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permi
 @Module({
   imports: [
     TwentyConfigModule,
+    WorkspaceDomainsModule,
     WorkspaceApprovalGateModule,
     WorkspaceModule,
     PermissionsModule,

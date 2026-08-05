@@ -6,6 +6,13 @@ export type PendingWorkspaceApproval = {
   requesterEmail: string | null;
   requesterName: string | null;
   memberCount: number;
+  whatsapp: string | null;
+  companyDescription: string | null;
+  idealCustomerProfile: string | null;
+  toneOfVoice: string | null;
+  primaryGoal: string | null;
+  companySize: string | null;
+  currentProcess: string | null;
 };
 
 export type WorkspaceApprovalResult = {

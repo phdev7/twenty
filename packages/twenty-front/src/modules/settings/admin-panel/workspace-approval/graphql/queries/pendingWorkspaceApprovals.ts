@@ -10,6 +10,13 @@ export const PENDING_WORKSPACE_APPROVALS = gql`
       requesterEmail
       requesterName
       memberCount
+      whatsapp
+      companyDescription
+      idealCustomerProfile
+      toneOfVoice
+      primaryGoal
+      companySize
+      currentProcess
     }
   }
 `;

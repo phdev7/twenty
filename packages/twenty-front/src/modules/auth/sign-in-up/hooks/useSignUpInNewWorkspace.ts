@@ -34,14 +34,40 @@ export const useSignUpInNewWorkspace = () => {
     displayName,
     subdomain,
     logo,
+    whatsapp,
+    companyDescription,
+    idealCustomerProfile,
+    toneOfVoice,
+    primaryGoal,
+    companySize,
+    currentProcess,
   }: {
     displayName?: string;
     subdomain?: string;
     logo?: File;
-  } = {}): Promise<boolean> => {
+    whatsapp: string;
+    companyDescription: string;
+    idealCustomerProfile: string;
+    toneOfVoice: string;
+    primaryGoal: string;
+    companySize: string;
+    currentProcess: string;
+  }): Promise<boolean> => {
     try {
       const { data } = await signUpInNewWorkspaceMutation({
-        variables: { input: { displayName, subdomain } },
+        variables: {
+          input: {
+            displayName,
+            subdomain,
+            whatsapp,
+            companyDescription,
+            idealCustomerProfile,
+            toneOfVoice,
+            primaryGoal,
+            companySize,
+            currentProcess,
+          },
+        },
       });
       assertIsDefinedOrThrow(data?.signUpInNewWorkspace);
 

@@ -1,9 +1,11 @@
 import { styled } from '@linaria/react';
+import { useState } from 'react';
 import { IconRefresh } from 'twenty-ui/icon';
 import { Button } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { DiexOnboardingContextStep } from '@/diex-onboarding/components/DiexOnboardingContextStep';
+import { DiexOnboardingAiTriageStep } from '@/diex-onboarding/components/DiexOnboardingAiTriageStep';
 import { DiexOnboardingDataFlowStep } from '@/diex-onboarding/components/DiexOnboardingDataFlowStep';
 import { DiexOnboardingWhatsappStep } from '@/diex-onboarding/components/DiexOnboardingWhatsappStep';
 import { useDiexOnboarding } from '@/diex-onboarding/hooks/useDiexOnboarding';
@@ -80,6 +82,7 @@ export const DiexOnboarding = ({
   isContinuing: boolean;
   onContinue: () => void;
 }) => {
+  const [isAiTriageStarted, setIsAiTriageStarted] = useState(false);
   const {
     workspaceContext,
     workspaceContextReadState,
@@ -101,9 +104,12 @@ export const DiexOnboarding = ({
   const isWhatsappDone = connection?.state === 'CONNECTED';
   const isContextDone = workspaceContext?.status === 'ACTIVE';
   const isDataFlowing = dataFlow.messageCount > 0;
-  const doneCount = [isWhatsappDone, isContextDone, isDataFlowing].filter(
-    Boolean,
-  ).length;
+  const doneCount = [
+    isWhatsappDone,
+    isContextDone,
+    isDataFlowing,
+    isAiTriageStarted,
+  ].filter(Boolean).length;
 
   return (
     <StyledRoot>
@@ -111,11 +117,11 @@ export const DiexOnboarding = ({
         <div>
           <StyledHeaderTitle>Primeiros passos</StyledHeaderTitle>
           <StyledHeaderSubtitle>
-            Três coisas separam este workspace de um CRM que trabalha sozinho: o
-            número de WhatsApp conectado, o contexto que a IA usa para falar
-            como a sua empresa, e a primeira conversa entrando.
+            Conecte o WhatsApp, revise o contexto criado com suas respostas,
+            valide a primeira conversa no Inbox Comercial e peça à IA para
+            desenhar o CRM ideal para a operação.
           </StyledHeaderSubtitle>
-          <StyledProgressLine>{doneCount} de 3 concluídos</StyledProgressLine>
+          <StyledProgressLine>{doneCount} de 4 concluídos</StyledProgressLine>
         </div>
         <Button
           variant="secondary"
@@ -147,6 +153,10 @@ export const DiexOnboarding = ({
           onRetry={() => void load()}
         />
         <DiexOnboardingDataFlowStep dataFlow={dataFlow} />
+        <DiexOnboardingAiTriageStep
+          isDone={isAiTriageStarted}
+          onStart={() => setIsAiTriageStarted(true)}
+        />
       </StyledSteps>
       <StyledFooter>
         <Button

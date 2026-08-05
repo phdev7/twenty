@@ -557,6 +557,15 @@ export class SignInUpService {
       displayName?: string;
       subdomain?: string;
       workspaceId?: string;
+      onboardingProfile?: {
+        whatsapp: string;
+        companyDescription: string;
+        idealCustomerProfile: string;
+        toneOfVoice: string;
+        primaryGoal: string;
+        companySize: string;
+        currentProcess: string;
+      };
     },
   ) {
     const email =
@@ -602,6 +611,17 @@ export class SignInUpService {
 
     const workspaceId = options?.workspaceId ?? v4();
     const workspaceCustomApplicationId = v4();
+    const onboardingProfile = options?.onboardingProfile;
+    const whatsappDigits = onboardingProfile?.whatsapp.replace(/\D/g, '') ?? '';
+    const normalizedWhatsapp =
+      whatsappDigits.length > 0
+        ? `+${
+            whatsappDigits.length <= 11 &&
+            !onboardingProfile?.whatsapp.trim().startsWith('+')
+              ? `55${whatsappDigits}`
+              : whatsappDigits
+          }`
+        : null;
 
     try {
       const { user, workspace } = await this.dataSource.transaction(
@@ -619,6 +639,19 @@ export class SignInUpService {
             displayName,
             inviteHash: v4(),
             activationStatus: WorkspaceActivationStatus.PENDING_CREATION,
+            onboardingWhatsapp: normalizedWhatsapp,
+            onboardingCompanyDescription:
+              onboardingProfile?.companyDescription.trim() ?? null,
+            onboardingIdealCustomerProfile:
+              onboardingProfile?.idealCustomerProfile.trim() ?? null,
+            onboardingToneOfVoice:
+              onboardingProfile?.toneOfVoice.trim() ?? null,
+            onboardingPrimaryGoal:
+              onboardingProfile?.primaryGoal.trim() ?? null,
+            onboardingCompanySize:
+              onboardingProfile?.companySize.trim() ?? null,
+            onboardingCurrentProcess:
+              onboardingProfile?.currentProcess.trim() ?? null,
           });
 
           const workspace = await queryRunner.manager.save(

@@ -549,7 +549,21 @@ export class AuthResolver {
 
     const { user, workspace } = await this.signInUpService.signUpOnNewWorkspace(
       { type: 'existingUser', existingUser: fullUser },
-      { displayName: input?.displayName, subdomain: input?.subdomain },
+      {
+        displayName: input?.displayName,
+        subdomain: input?.subdomain,
+        onboardingProfile: input
+          ? {
+              whatsapp: input.whatsapp,
+              companyDescription: input.companyDescription,
+              idealCustomerProfile: input.idealCustomerProfile,
+              toneOfVoice: input.toneOfVoice,
+              primaryGoal: input.primaryGoal,
+              companySize: input.companySize,
+              currentProcess: input.currentProcess,
+            }
+          : undefined,
+      },
     );
 
     const loginToken = await this.loginTokenService.generateLoginToken(

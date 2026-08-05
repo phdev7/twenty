@@ -19,6 +19,7 @@ import {
 } from 'typeorm';
 
 import { ADD_WORKSPACE_DISCOVERABILITY_TO_WORKSPACE_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-19/add-workspace-discoverability-to-workspace-upgrade-command-name.constant';
+import { ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-26/add-diex-onboarding-profile-to-workspace-upgrade-command-name.constant';
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
 import { ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
 import { AppTokenEntity } from 'src/engine/core-modules/app-token/app-token.entity';
@@ -82,6 +83,62 @@ export class WorkspaceEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   displayName?: string;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'varchar', length: 40, nullable: true })
+  onboardingWhatsapp: string | null;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'text', nullable: true })
+  onboardingCompanyDescription: string | null;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'text', nullable: true })
+  onboardingIdealCustomerProfile: string | null;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'text', nullable: true })
+  onboardingToneOfVoice: string | null;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'text', nullable: true })
+  onboardingPrimaryGoal: string | null;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'varchar', length: 80, nullable: true })
+  onboardingCompanySize: string | null;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'text', nullable: true })
+  onboardingCurrentProcess: string | null;
 
   //deprecated
   @Field({ nullable: true })

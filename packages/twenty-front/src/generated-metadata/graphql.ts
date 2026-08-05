@@ -5233,8 +5233,15 @@ export type SignUp = {
 };
 
 export type SignUpInNewWorkspaceInput = {
+  companyDescription: Scalars['String']['input'];
+  companySize: Scalars['String']['input'];
+  currentProcess: Scalars['String']['input'];
   displayName?: InputMaybe<Scalars['String']['input']>;
+  idealCustomerProfile: Scalars['String']['input'];
+  primaryGoal: Scalars['String']['input'];
   subdomain?: InputMaybe<Scalars['String']['input']>;
+  toneOfVoice: Scalars['String']['input'];
+  whatsapp: Scalars['String']['input'];
 };
 
 export type Skill = {

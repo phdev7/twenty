@@ -1,12 +1,16 @@
 import { styled } from '@linaria/react';
+import { AppPath } from 'twenty-shared/types';
+import { Button } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { DiexOnboardingBadge } from '@/diex-onboarding/components/DiexOnboardingBadge';
 import {
   DiexOnboardingStepCard,
+  StyledActions,
   StyledText,
 } from '@/diex-onboarding/components/DiexOnboardingStepCard';
 import { type DataFlowSummary } from '@/diex-onboarding/types/diexOnboardingTypes';
+import { useNavigateApp } from '~/hooks/useNavigateApp';
 
 const StyledMetrics = styled.div`
   display: grid;
@@ -39,6 +43,7 @@ type DiexOnboardingDataFlowStepProps = {
 export const DiexOnboardingDataFlowStep = ({
   dataFlow,
 }: DiexOnboardingDataFlowStepProps) => {
+  const navigateApp = useNavigateApp();
   const isDataFlowing = dataFlow.messageCount > 0;
 
   return (
@@ -71,6 +76,13 @@ export const DiexOnboardingDataFlowStep = ({
           <StyledMetricLabel>Contatos</StyledMetricLabel>
         </StyledMetric>
       </StyledMetrics>
+      <StyledActions>
+        <Button
+          title="Abrir Inbox Comercial"
+          variant="secondary"
+          onClick={() => navigateApp(AppPath.Inbox)}
+        />
+      </StyledActions>
     </DiexOnboardingStepCard>
   );
 };

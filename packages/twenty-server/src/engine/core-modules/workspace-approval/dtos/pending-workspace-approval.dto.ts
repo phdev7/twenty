@@ -24,4 +24,25 @@ export class PendingWorkspaceApprovalDTO {
 
   @Field(() => Number)
   memberCount: number;
+
+  @Field(() => String, { nullable: true })
+  whatsapp: string | null;
+
+  @Field(() => String, { nullable: true })
+  companyDescription: string | null;
+
+  @Field(() => String, { nullable: true })
+  idealCustomerProfile: string | null;
+
+  @Field(() => String, { nullable: true })
+  toneOfVoice: string | null;
+
+  @Field(() => String, { nullable: true })
+  primaryGoal: string | null;
+
+  @Field(() => String, { nullable: true })
+  companySize: string | null;
+
+  @Field(() => String, { nullable: true })
+  currentProcess: string | null;
 }

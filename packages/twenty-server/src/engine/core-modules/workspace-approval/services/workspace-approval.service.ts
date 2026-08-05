@@ -6,10 +6,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { render } from '@react-email/render';
+import { WorkspaceApprovedEmail } from 'twenty-emails';
+import { AppPath } from 'twenty-shared/types';
+import { SOURCE_LOCALE } from 'twenty-shared/translations';
 import { isDefined } from 'twenty-shared/utils';
 import { In, IsNull, Repository } from 'typeorm';
 
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
+import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
+import { EmailService } from 'src/engine/core-modules/email/email.service';
+import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceService } from 'src/engine/core-modules/workspace/services/workspace.service';
@@ -23,6 +30,10 @@ import {
   type PendingWorkspaceApproval,
   type WorkspaceApprovalResult,
 } from 'src/engine/core-modules/workspace-approval/types/workspace-approval.types';
+import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
+import { type DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
+import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
 
 @Injectable()
 // The rule fires because this class injects WorkspaceService, but it is a core
@@ -36,6 +47,10 @@ export class WorkspaceApprovalService {
   constructor(
     private readonly workspaceApprovalGateService: WorkspaceApprovalGateService,
     private readonly workspaceService: WorkspaceService,
+    private readonly workspaceDomainsService: WorkspaceDomainsService,
+    private readonly emailService: EmailService,
+    private readonly twentyConfigService: TwentyConfigService,
+    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
     @InjectRepository(UserEntity)
@@ -84,6 +99,13 @@ export class WorkspaceApprovalService {
             null
           : null,
         memberCount: members.length,
+        whatsapp: workspace.onboardingWhatsapp,
+        companyDescription: workspace.onboardingCompanyDescription,
+        idealCustomerProfile: workspace.onboardingIdealCustomerProfile,
+        toneOfVoice: workspace.onboardingToneOfVoice,
+        primaryGoal: workspace.onboardingPrimaryGoal,
+        companySize: workspace.onboardingCompanySize,
+        currentProcess: workspace.onboardingCurrentProcess,
       };
     });
   }
@@ -133,7 +155,116 @@ export class WorkspaceApprovalService {
       `Workspace ${workspaceId} approved by user ${approver.id ?? 'unknown'}`,
     );
 
-    return this.toResult(activatedWorkspace ?? workspace);
+    const resolvedWorkspace = activatedWorkspace ?? workspace;
+    const postApprovalResults = await Promise.allSettled([
+      this.seedWorkspaceContext(resolvedWorkspace),
+      this.sendApprovalEmail({ workspace: resolvedWorkspace, owner }),
+    ]);
+
+    for (const [index, result] of postApprovalResults.entries()) {
+      if (result.status === 'rejected') {
+        const operation = index === 0 ? 'seed AI context' : 'send email';
+
+        this.logger.error(
+          `Workspace ${workspaceId} was approved but failed to ${operation}`,
+          result.reason instanceof Error
+            ? result.reason.stack
+            : String(result.reason),
+        );
+      }
+    }
+
+    return this.toResult(resolvedWorkspace);
+  }
+
+  private async seedWorkspaceContext(
+    workspace: WorkspaceEntity,
+  ): Promise<void> {
+    const businessDescription = workspace.onboardingCompanyDescription?.trim();
+    const idealCustomerProfile =
+      workspace.onboardingIdealCustomerProfile?.trim();
+    const toneOfVoice = workspace.onboardingToneOfVoice?.trim();
+
+    if (!businessDescription || !idealCustomerProfile || !toneOfVoice) {
+      return;
+    }
+
+    const commercialRules = [
+      workspace.onboardingPrimaryGoal
+        ? `Objetivo principal: ${workspace.onboardingPrimaryGoal.trim()}`
+        : null,
+      workspace.onboardingCompanySize
+        ? `Tamanho da operação: ${workspace.onboardingCompanySize.trim()}`
+        : null,
+      workspace.onboardingCurrentProcess
+        ? `Processo atual e gargalos: ${workspace.onboardingCurrentProcess.trim()}`
+        : null,
+    ]
+      .filter(isDefined)
+      .join('\n\n');
+    const authContext = buildSystemAuthContext(workspace.id);
+
+    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+      const repository =
+        await this.globalWorkspaceOrmManager.getRepository<DiexWorkspaceContextWorkspaceEntity>(
+          workspace.id,
+          'diexWorkspaceContext',
+          { shouldBypassPermissionChecks: true },
+        );
+      const [existingContext] = await repository.find({
+        order: { createdAt: 'ASC' },
+        take: 1,
+      });
+
+      if (isDefined(existingContext)) {
+        return;
+      }
+
+      await repository.save(
+        repository.create({
+          name: 'Contexto inicial do cadastro',
+          status: WorkspaceContextStatus.ACTIVE,
+          businessDescription: { markdown: businessDescription },
+          idealCustomerProfile: { markdown: idealCustomerProfile },
+          toneOfVoice: { markdown: toneOfVoice },
+          commercialRules: commercialRules
+            ? { markdown: commercialRules }
+            : null,
+          reviewedAt: new Date(),
+        }),
+      );
+    }, authContext);
+  }
+
+  private async sendApprovalEmail({
+    workspace,
+    owner,
+  }: {
+    workspace: WorkspaceEntity;
+    owner: AuthContextUser;
+  }): Promise<void> {
+    const workspaceUrls =
+      this.workspaceDomainsService.getWorkspaceUrls(workspace);
+    const onboardingUrl = new URL(
+      AppPath.DiexOnboarding,
+      workspaceUrls.customUrl ?? workspaceUrls.subdomainUrl,
+    ).toString();
+    const workspaceName = workspace.displayName ?? workspace.subdomain;
+    const emailTemplate = WorkspaceApprovedEmail({
+      workspaceName,
+      link: onboardingUrl,
+      locale: owner.locale ?? SOURCE_LOCALE,
+    });
+    const html = await render(emailTemplate, { pretty: true });
+    const text = await render(emailTemplate, { plainText: true });
+
+    await this.emailService.send({
+      from: `${this.twentyConfigService.get('EMAIL_FROM_NAME')} <${this.twentyConfigService.get('EMAIL_FROM_ADDRESS')}>`,
+      to: owner.email,
+      subject: `${workspaceName} foi aprovado no Diex CRM`,
+      html,
+      text,
+    });
   }
 
   // Activation is performed on behalf of the workspace owner, not the approving
