@@ -28,6 +28,7 @@ export class InboxSlaBreachService {
           await this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
             workspaceId,
             InboxConversationWorkspaceEntity,
+            { shouldBypassPermissionChecks: true },
           );
         const breached = await conversationRepository.find({
           where: {

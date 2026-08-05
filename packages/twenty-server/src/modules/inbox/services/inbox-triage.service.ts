@@ -178,10 +178,12 @@ export class InboxTriageService {
               this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
                 workspaceId,
                 InboxConversationWorkspaceEntity,
+                { shouldBypassPermissionChecks: true },
               ),
               this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
                 workspaceId,
                 InboxMessageWorkspaceEntity,
+                { shouldBypassPermissionChecks: true },
               ),
             ],
           );
@@ -379,6 +381,7 @@ export class InboxTriageService {
           await this.globalWorkspaceOrmManager.getRepository<CommercialSignalWorkspaceEntity>(
             workspaceId,
             CommercialSignalWorkspaceEntity,
+            { shouldBypassPermissionChecks: true },
           );
         const sourceReference = `inbox:${conversation.id}:${latestMessageId}:${signalType}`;
         const existing = await repository.findOne({
@@ -443,6 +446,7 @@ export class InboxTriageService {
           await this.globalWorkspaceOrmManager.getRepository<AiActionWorkspaceEntity>(
             workspaceId,
             AiActionWorkspaceEntity,
+            { shouldBypassPermissionChecks: true },
           );
         const idempotencyKey = `inbox-reply:${conversation.id}:${latestMessageId}`;
         const existing = await repository.findOne({

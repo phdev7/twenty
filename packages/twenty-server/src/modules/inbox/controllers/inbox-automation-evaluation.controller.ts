@@ -9,6 +9,7 @@ import {
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { AuthWorkspaceMemberId } from 'src/engine/decorators/auth/auth-workspace-member-id.decorator';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
@@ -25,6 +26,7 @@ export class InboxAutomationEvaluationController {
     private readonly inboxAutomationEvaluationService: InboxAutomationEvaluationService,
   ) {}
 
+  @UseGuards(NoPermissionGuard)
   @Post(':messageId/automation-evaluations')
   async createAutomationEvaluation(
     @AuthWorkspace() workspace: WorkspaceEntity,
@@ -44,6 +46,7 @@ export class InboxAutomationEvaluationController {
             await this.globalWorkspaceOrmManager.getRepository<WorkspaceMemberWorkspaceEntity>(
               workspace.id,
               WorkspaceMemberWorkspaceEntity,
+              { shouldBypassPermissionChecks: true },
             );
 
           return Boolean(

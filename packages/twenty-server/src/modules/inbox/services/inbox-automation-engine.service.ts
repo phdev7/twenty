@@ -183,41 +183,49 @@ export class InboxAutomationEngineService {
       await this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
         workspaceId,
         InboxConversationWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const automationRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxAutomationWorkspaceEntity>(
         workspaceId,
         InboxAutomationWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const eventRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxConversationEventWorkspaceEntity>(
         workspaceId,
         InboxConversationEventWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const conversationLabelRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxConversationLabelWorkspaceEntity>(
         workspaceId,
         InboxConversationLabelWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const labelRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxLabelWorkspaceEntity>(
         workspaceId,
         InboxLabelWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const taskRepository =
       await this.globalWorkspaceOrmManager.getRepository<TaskWorkspaceEntity>(
         workspaceId,
         TaskWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const taskTargetRepository =
       await this.globalWorkspaceOrmManager.getRepository<TaskTargetWorkspaceEntity>(
         workspaceId,
         TaskTargetWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const inboxMessageRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
         workspaceId,
         InboxMessageWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
 
     const repositories = {

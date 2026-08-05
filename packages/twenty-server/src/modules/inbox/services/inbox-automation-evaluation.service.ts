@@ -97,6 +97,7 @@ export class InboxAutomationEvaluationService {
           await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
             workspaceId,
             InboxMessageWorkspaceEntity,
+            { shouldBypassPermissionChecks: true },
           );
         let reconciled = 0;
         let offset = 0;
@@ -165,6 +166,7 @@ export class InboxAutomationEvaluationService {
       await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
         workspaceId,
         InboxMessageWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const message = await messageRepository.findOne({
       where: { id: messageId },

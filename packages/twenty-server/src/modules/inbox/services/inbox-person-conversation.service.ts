@@ -43,6 +43,7 @@ export class InboxPersonConversationService {
           await this.globalWorkspaceOrmManager.getRepository<PersonWorkspaceEntity>(
             workspaceId,
             PersonWorkspaceEntity,
+            { shouldBypassPermissionChecks: true },
           );
         const person = await personRepository.findOne({
           where: { id: personId },
@@ -69,6 +70,7 @@ export class InboxPersonConversationService {
           await this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
             workspaceId,
             InboxConversationWorkspaceEntity,
+            { shouldBypassPermissionChecks: true },
           );
         const existing = await conversationRepository.findOne({
           where: { providerThreadKey },

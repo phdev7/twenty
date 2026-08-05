@@ -237,11 +237,13 @@ export class EvolutionSendTextService {
       await this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
         workspaceId,
         InboxConversationWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const messageRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
         workspaceId,
         InboxMessageWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const conversation = await conversationRepository.findOne({
       where: { id: conversationId },
@@ -304,6 +306,7 @@ export class EvolutionSendTextService {
       await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
         workspaceId,
         InboxMessageWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
 
     const query = messageRepository
@@ -361,11 +364,13 @@ export class EvolutionSendTextService {
       await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
         workspaceId,
         InboxMessageWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const conversationRepository =
       await this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
         workspaceId,
         InboxConversationWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const sentAt = new Date().toISOString();
     let inserted;

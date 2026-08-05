@@ -40,6 +40,7 @@ export class InboxAudioTranscriptionRunnerService {
           await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
             workspaceId,
             InboxMessageWorkspaceEntity,
+            { shouldBypassPermissionChecks: true },
           );
         const pending = await messageRepository
           .createQueryBuilder('message')

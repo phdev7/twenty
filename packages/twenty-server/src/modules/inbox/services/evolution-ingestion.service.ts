@@ -113,22 +113,27 @@ export class EvolutionIngestionService {
       this.globalWorkspaceOrmManager.getRepository<InboxConversationWorkspaceEntity>(
         workspaceId,
         InboxConversationWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       ),
       this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
         workspaceId,
         InboxMessageWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       ),
       this.globalWorkspaceOrmManager.getRepository<PersonWorkspaceEntity>(
         workspaceId,
         PersonWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       ),
       this.globalWorkspaceOrmManager.getRepository<OpportunityWorkspaceEntity>(
         workspaceId,
         OpportunityWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       ),
       this.globalWorkspaceOrmManager.getRepository<InboxTeamWorkspaceEntity>(
         workspaceId,
         InboxTeamWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       ),
     ]);
 

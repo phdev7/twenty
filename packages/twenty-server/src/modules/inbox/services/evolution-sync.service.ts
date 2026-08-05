@@ -221,6 +221,7 @@ export class EvolutionSyncService {
       await this.globalWorkspaceOrmManager.getRepository<InboxMessageWorkspaceEntity>(
         workspaceId,
         InboxMessageWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
       );
     const newest = await messageRepository.findOne({
       where: {},
