@@ -113,7 +113,7 @@ export class InboxMaintenanceCronJob {
     const inFlightJobs = await this.inboxQueueService.getInFlightJobs();
     const hasInFlightWorkspaceJob = (jobName: string): boolean =>
       inFlightJobs.some((job) =>
-        job.id?.startsWith(`${jobName}:${workspaceId}`),
+        job.id?.startsWith(`${jobName}.${workspaceId}`),
       );
 
     await Promise.all([
@@ -123,7 +123,7 @@ export class InboxMaintenanceCronJob {
             InboxEvolutionSyncJob.name,
             { workspaceId },
             {
-              id: `${InboxEvolutionSyncJob.name}:${workspaceId}`,
+              id: `${InboxEvolutionSyncJob.name}.${workspaceId}`,
               retryLimit: 3,
             },
           ),
@@ -133,7 +133,7 @@ export class InboxMaintenanceCronJob {
             InboxAudioTranscriptionJob.name,
             { workspaceId },
             {
-              id: `${InboxAudioTranscriptionJob.name}:${workspaceId}`,
+              id: `${InboxAudioTranscriptionJob.name}.${workspaceId}`,
               retryLimit: 2,
             },
           ),
@@ -142,7 +142,7 @@ export class InboxMaintenanceCronJob {
         : this.inboxQueueService.add<InboxSlaBreachJobData>(
             InboxSlaBreachJob.name,
             { workspaceId },
-            { id: `${InboxSlaBreachJob.name}:${workspaceId}`, retryLimit: 3 },
+            { id: `${InboxSlaBreachJob.name}.${workspaceId}`, retryLimit: 3 },
           ),
       this.inboxAutomationEvaluationService.reconcilePendingEvaluations(
         workspaceId,
