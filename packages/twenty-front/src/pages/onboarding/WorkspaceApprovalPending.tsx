@@ -14,6 +14,8 @@ import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { MainButton } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { AppPath } from 'twenty-shared/types';
+import { OnboardingStatus } from '~/generated-metadata/graphql';
 
 const StyledContainer = styled.div`
   align-items: center;
@@ -48,14 +50,20 @@ export const WorkspaceApprovalPending = () => {
   const currentWorkspace = useAtomStateValue(currentWorkspaceState);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Re-reads the onboarding status from the server. When an admin has approved
-  // in the meantime the status changes and the app router moves the user on, so
-  // approval takes effect without the user having to sign out and back in.
+  // Metadata loaded while the workspace is pending is intentionally minimal.
+  // Once approval is detected, a full navigation rebuilds the Apollo cache and
+  // metadata store before the first workspace object query is mounted.
   const handleCheckAgain = async () => {
     setIsRefreshing(true);
 
     try {
-      await loadCurrentUser();
+      const { user } = await loadCurrentUser();
+
+      if (
+        user.onboardingStatus !== OnboardingStatus.WORKSPACE_APPROVAL_PENDING
+      ) {
+        window.location.replace(AppPath.DiexOnboarding);
+      }
     } finally {
       setIsRefreshing(false);
     }
