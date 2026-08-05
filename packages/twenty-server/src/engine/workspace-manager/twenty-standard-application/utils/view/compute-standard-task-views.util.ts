@@ -1,4 +1,4 @@
-import { ViewType, ViewKey } from 'twenty-shared/types';
+import { ViewCalendarLayout, ViewKey, ViewType } from 'twenty-shared/types';
 
 import { type FlatView } from 'src/engine/metadata-modules/flat-view/types/flat-view.type';
 
@@ -60,6 +60,7 @@ export const computeStandardTaskViews = (
         position: 3,
         icon: 'IconCalendarEvent',
         calendarFieldName: 'dueAt',
+        calendarLayout: ViewCalendarLayout.MONTH,
       },
     }),
     taskRecordPageFields: createStandardViewFlatMetadata({

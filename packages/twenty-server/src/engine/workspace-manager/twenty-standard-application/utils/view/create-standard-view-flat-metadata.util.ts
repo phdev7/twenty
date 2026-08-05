@@ -2,6 +2,7 @@ import { isDefined } from 'class-validator';
 import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
 import {
   type AggregateOperations,
+  ViewCalendarLayout,
   ViewType,
   ViewKey,
   ViewOpenRecordIn,
@@ -30,6 +31,7 @@ export type CreateStandardViewOptions<O extends AllStandardObjectName> = {
   mainGroupByFieldName?: AllStandardObjectFieldName<O>;
   calendarFieldName?: AllStandardObjectFieldName<O>;
   calendarEndFieldName?: AllStandardObjectFieldName<O>;
+  calendarLayout?: ViewCalendarLayout;
 };
 
 export type CreateStandardViewArgs<
@@ -59,6 +61,7 @@ export const createStandardViewFlatMetadata = <
     mainGroupByFieldName,
     calendarFieldName,
     calendarEndFieldName,
+    calendarLayout,
   },
   standardObjectMetadataRelatedEntityIds,
   twentyStandardApplicationId,
@@ -153,7 +156,7 @@ export const createStandardViewFlatMetadata = <
     mainGroupByFieldMetadataId,
     shouldHideEmptyGroups: false,
     kanbanColumnWidth: null,
-    calendarLayout: null,
+    calendarLayout: calendarLayout ?? null,
     calendarFieldMetadataId,
     calendarEndFieldMetadataId,
     anyFieldFilterValue: null,
