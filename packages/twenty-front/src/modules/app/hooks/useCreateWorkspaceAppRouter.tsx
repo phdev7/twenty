@@ -171,6 +171,12 @@ const CommercialIntelligencePage = lazy(() =>
   })),
 );
 
+const DiexCalendarPage = lazy(() =>
+  import('~/pages/diex/DiexCalendarPage').then((module) => ({
+    default: module.DiexCalendarPage,
+  })),
+);
+
 const preloadOnboardingPages = () => {
   void WorkspaceActivation.preload();
   void WorkspaceApprovalPending.preload();
@@ -239,6 +245,14 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <InboxPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.DiexCalendar}
+                element={
+                  <LazyRoute>
+                    <DiexCalendarPage />
                   </LazyRoute>
                 }
               />

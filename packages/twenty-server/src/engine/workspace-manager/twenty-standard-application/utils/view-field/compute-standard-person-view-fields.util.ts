@@ -110,6 +110,18 @@ export const computeStandardPersonViewFields = (
         size: 150,
       },
     }),
+    allPeopleDiexBadges: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'person',
+      context: {
+        viewName: 'allPeople',
+        viewFieldName: 'diexBadges',
+        fieldName: 'diexBadges',
+        position: 8,
+        isVisible: true,
+        size: 150,
+      },
+    }),
 
     // personRecordPageFields view fields
     // General group
@@ -134,6 +146,19 @@ export const computeStandardPersonViewFields = (
         viewFieldName: 'phones',
         fieldName: 'phones',
         position: 1,
+        isVisible: true,
+        size: 150,
+        viewFieldGroupName: 'general',
+      },
+    }),
+    personRecordPageFieldsDiexBadges: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'person',
+      context: {
+        viewName: 'personRecordPageFields',
+        viewFieldName: 'diexBadges',
+        fieldName: 'diexBadges',
+        position: 2,
         isVisible: true,
         size: 150,
         viewFieldGroupName: 'general',

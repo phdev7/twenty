@@ -30,6 +30,7 @@ export enum AppPath {
   DiexOnboarding = '/onboarding',
   DiexAccessRequest = '/access-requests',
   DiexAccessRequests = '/access-requests/inbox',
+  DiexCalendar = '/diex/calendar',
 
   Settings = `settings`,
   SettingsCatchAll = `/${Settings}/*`,

@@ -520,7 +520,7 @@ export class ConfigVariables {
     type: ConfigVariableType.BOOLEAN,
   })
   @IsOptional()
-  IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS = true;
+  IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS = false;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,

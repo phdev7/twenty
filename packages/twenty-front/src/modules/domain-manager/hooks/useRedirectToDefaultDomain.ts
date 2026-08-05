@@ -17,7 +17,11 @@ export const useRedirectToDefaultDomain = () => {
     searchParams?: Record<string, string>;
   }) => {
     const url = new URL(window.location.href);
-    if (url.hostname !== defaultDomain) {
+    if (
+      url.hostname !== defaultDomain &&
+      url.hostname !== 'app.crm.bydiex.com' &&
+      url.hostname !== 'crm.bydiex.com'
+    ) {
       setLastAuthenticateWorkspaceDomain(null);
 
       const returnToPath = store.get(returnToPathState.atom);

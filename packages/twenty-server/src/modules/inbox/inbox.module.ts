@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
@@ -43,7 +43,7 @@ import { InboxTriageService } from 'src/modules/inbox/services/inbox-triage.serv
   imports: [
     AuthModule,
     KeyValuePairModule,
-    AiAgentExecutionModule,
+    forwardRef(() => AiAgentExecutionModule),
     PermissionsModule,
     TypeOrmModule.forFeature([WorkspaceEntity, AgentEntity]),
     WorkspaceCacheStorageModule,

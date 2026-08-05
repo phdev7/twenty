@@ -36,13 +36,15 @@ export const SettingsDataModelFieldOnClickActionForm = ({
   );
 
   const isEmailField = fieldType === FieldMetadataType.EMAILS;
+  const isPhoneField = fieldType === FieldMetadataType.PHONES;
+  const isAppActionSupported = isEmailField || isPhoneField;
 
-  const defaultClickAction = isEmailField
+  const defaultClickAction = isAppActionSupported
     ? FieldMetadataSettingsOnClickAction.OPEN_IN_APP
     : FieldMetadataSettingsOnClickAction.OPEN_LINK;
 
   const options = [
-    ...(isEmailField
+    ...(isAppActionSupported
       ? [
           {
             label: t`Open in app`,

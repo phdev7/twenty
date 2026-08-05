@@ -2,6 +2,106 @@
 
 exports[`STANDARD_OBJECTS universal identifiers should never change without an explicit snapshot update 1`] = `
 {
+  "aiAction": {
+    "fields": {
+      "actionType": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000002",
+      },
+      "approvalNotes": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000007",
+      },
+      "approvedAt": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000009",
+      },
+      "commercialSignal": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000032",
+      },
+      "confidence": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000004",
+      },
+      "createdAt": {
+        "universalIdentifier": "70752d9f-04bb-5253-9d0b-10247b00a83a",
+      },
+      "createdBy": {
+        "universalIdentifier": "226bfe8d-6dc8-5b1e-9334-a28554cdab36",
+      },
+      "customerRenewal": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-00000000000b",
+      },
+      "deletedAt": {
+        "universalIdentifier": "ad68c615-5050-5023-9419-22231520e705",
+      },
+      "executedAt": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-00000000000a",
+      },
+      "executionReceipt": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-00000000000b",
+      },
+      "executionTask": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000040",
+      },
+      "executor": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000042",
+      },
+      "id": {
+        "universalIdentifier": "b373a0fa-6ac6-5fa5-ab63-73fa78aecd9d",
+      },
+      "idempotencyKey": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-00000000000d",
+      },
+      "inboxConversation": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000038",
+      },
+      "name": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000001",
+      },
+      "opportunity": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000030",
+      },
+      "position": {
+        "universalIdentifier": "47783ce6-9dee-5c1f-84ca-6af48b7c9d72",
+      },
+      "proposedAction": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000006",
+      },
+      "rationale": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000005",
+      },
+      "requestedAt": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000008",
+      },
+      "requiresApproval": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-00000000000c",
+      },
+      "reviewer": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000036",
+      },
+      "searchVector": {
+        "universalIdentifier": "6ff8d6cf-d2c5-5718-96c6-d98737c6fe12",
+      },
+      "status": {
+        "universalIdentifier": "d1e05100-0000-4000-8000-000000000003",
+      },
+      "successPlan": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000034",
+      },
+      "updatedAt": {
+        "universalIdentifier": "067aa34a-3785-519b-8fa4-c8e7f39a2cef",
+      },
+      "updatedBy": {
+        "universalIdentifier": "dc6b9b5b-3710-53bf-aab6-b8942f0ed132",
+      },
+    },
+    "indexes": {
+      "idempotencyKeyUniqueIndex": {
+        "universalIdentifier": "6f16603f-70e6-5c55-a406-4a1200b1e6d9",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "fc602e66-bc04-575b-8e55-5749c34359b7",
+      },
+    },
+    "universalIdentifier": "d1e05000-0000-4000-8000-000000000001",
+  },
   "attachment": {
     "fields": {
       "createdAt": {
@@ -722,6 +822,94 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       },
     },
   },
+  "commercialSignal": {
+    "fields": {
+      "aiActions": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000033",
+      },
+      "capturedAt": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000008",
+      },
+      "company": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000012",
+      },
+      "confidence": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-00000000000a",
+      },
+      "createdAt": {
+        "universalIdentifier": "08e9e3f7-3bd4-56be-9004-8f709e10f057",
+      },
+      "createdBy": {
+        "universalIdentifier": "253f9a0d-febc-580a-9436-ad072887d542",
+      },
+      "deletedAt": {
+        "universalIdentifier": "3b315fd1-6c64-5f8d-bc37-3d694a24c7d0",
+      },
+      "evidence": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000006",
+      },
+      "id": {
+        "universalIdentifier": "cfa29c00-7987-57b3-924e-e24fdbebbd1f",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-00000000000c",
+      },
+      "name": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000001",
+      },
+      "opportunity": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000014",
+      },
+      "person": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000010",
+      },
+      "position": {
+        "universalIdentifier": "f8dccae3-ba0a-5cde-b638-be1fe5332116",
+      },
+      "recommendedAction": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000007",
+      },
+      "searchVector": {
+        "universalIdentifier": "0c4bbe95-8845-5557-95c6-1f15b6109440",
+      },
+      "signalType": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000002",
+      },
+      "source": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000003",
+      },
+      "sourceReference": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-00000000000b",
+      },
+      "status": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000004",
+      },
+      "strength": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000005",
+      },
+      "updatedAt": {
+        "universalIdentifier": "04dc6f71-ab0a-5f1d-b6e5-8857fb839da1",
+      },
+      "updatedBy": {
+        "universalIdentifier": "97f67c68-6c3c-5d3f-b5e5-8a44c4193028",
+      },
+      "validUntil": {
+        "universalIdentifier": "d1e02100-0000-4000-8000-000000000009",
+      },
+    },
+    "indexes": {
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "d09f0f5b-40a5-567c-99de-bcb31662eed6",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "b9415b25-3396-583c-91fe-2d27c5b6c704",
+      },
+      "sourceReferenceUniqueIndex": {
+        "universalIdentifier": "da4974ae-b504-558a-bb45-a50857312f42",
+      },
+    },
+    "universalIdentifier": "d1e02000-0000-4000-8000-000000000001",
+  },
   "company": {
     "fields": {
       "accountOwner": {
@@ -745,11 +933,47 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "deletedAt": {
         "universalIdentifier": "790e467a-a3fa-545f-bfd2-8b91c3d84480",
       },
+      "diexAnnualRevenueRange": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000013",
+      },
+      "diexBadges": {
+        "universalIdentifier": "d1e05700-0000-4000-8000-000000000002",
+      },
+      "diexCommercialSignals": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000013",
+      },
+      "diexCustomerRenewals": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000004",
+      },
+      "diexEmployeeRange": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000014",
+      },
+      "diexInboxConversations": {
+        "universalIdentifier": "8f49a1c0-8e0d-4794-a98f-5dbdec1e9b33",
+      },
+      "diexLifecycle": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000001",
+      },
+      "diexNiche": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000012",
+      },
+      "diexSegment": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000011",
+      },
+      "diexSuccessPlans": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000021",
+      },
       "domainName": {
         "universalIdentifier": "20202020-0c28-43d8-8ba5-3659924d3489",
       },
+      "icpFit": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000002",
+      },
       "id": {
         "universalIdentifier": "ca0547a7-a55a-51f7-b5d7-f3a03e266c39",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-00000000000d",
       },
       "linkedinLink": {
         "universalIdentifier": "20202020-ebeb-4beb-b9ad-6848036fb451",
@@ -792,6 +1016,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "domainNameUniqueIndex": {
         "universalIdentifier": "dd300c61-f422-467a-91f4-de4f83c4175b",
       },
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "426bedbb-331e-53fd-9d34-3db78078f079",
+      },
       "searchVectorGinIndex": {
         "universalIdentifier": "c3eb62df-2cc1-4cc3-b7aa-e96a4d65c633",
       },
@@ -812,6 +1039,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
           },
           "createdBy": {
             "universalIdentifier": "20202020-af01-4a01-8a01-c0aba11cf003",
+          },
+          "diexBadges": {
+            "universalIdentifier": "20202020-af01-4a01-8a01-c0aba11cf009",
           },
           "domainName": {
             "universalIdentifier": "20202020-af01-4a01-8a01-c0aba11cf002",
@@ -859,6 +1089,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
           "createdBy": {
             "universalIdentifier": "20202020-af01-4a01-8a01-c0aba11c1210",
           },
+          "diexBadges": {
+            "universalIdentifier": "20202020-af01-4a01-8a01-c0aba11c121b",
+          },
           "domainName": {
             "universalIdentifier": "20202020-af01-4a01-8a01-c0aba11c1201",
           },
@@ -889,6 +1122,158 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
         },
       },
     },
+  },
+  "customerRenewal": {
+    "fields": {
+      "aiActions": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-00000000000c",
+      },
+      "closedAt": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-00000000000f",
+      },
+      "commercialTerms": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-00000000000d",
+      },
+      "company": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000003",
+      },
+      "createdAt": {
+        "universalIdentifier": "89ba97cb-88a5-546e-a080-3e5b978b1e49",
+      },
+      "createdBy": {
+        "universalIdentifier": "51904c0e-377c-5a8a-b000-837d8c147201",
+      },
+      "deletedAt": {
+        "universalIdentifier": "1bb57520-f8a4-5951-872f-86c26280e69b",
+      },
+      "forecast": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000004",
+      },
+      "id": {
+        "universalIdentifier": "4bfb7fca-8446-55e6-8d4e-e00b4f4cbea9",
+      },
+      "lastTouchAt": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-00000000000a",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000010",
+      },
+      "name": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000001",
+      },
+      "nextAction": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000008",
+      },
+      "nextActionAt": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000009",
+      },
+      "outcome": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-00000000000e",
+      },
+      "owner": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000005",
+      },
+      "position": {
+        "universalIdentifier": "ee926f4c-69ba-5377-9ebf-d599c8783282",
+      },
+      "probability": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000006",
+      },
+      "renewalEvents": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000008",
+      },
+      "renewalValue": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000005",
+      },
+      "risk": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000003",
+      },
+      "riskReason": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-00000000000b",
+      },
+      "searchVector": {
+        "universalIdentifier": "76e058e9-b393-580f-858e-3e3e7d9e63d8",
+      },
+      "stage": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000002",
+      },
+      "successPlan": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000001",
+      },
+      "targetDate": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-000000000007",
+      },
+      "updatedAt": {
+        "universalIdentifier": "d9263b26-ff44-5127-abb4-3bbd046dbd79",
+      },
+      "updatedBy": {
+        "universalIdentifier": "1d2365e2-164c-5e30-befc-60453c5486bc",
+      },
+      "valueEvidence": {
+        "universalIdentifier": "d1e14100-0000-4000-8000-00000000000c",
+      },
+    },
+    "indexes": {
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "3b5b6dec-1bf5-519e-b5e1-6b72492fc4b9",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "145331c0-28f7-5f7e-84ef-0099fb0f6b8a",
+      },
+    },
+    "universalIdentifier": "d1e14000-0000-4000-8000-000000000001",
+  },
+  "customerRenewalEvent": {
+    "fields": {
+      "actor": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000009",
+      },
+      "createdAt": {
+        "universalIdentifier": "3baffc31-cf85-5580-b17b-fe5d4f710a42",
+      },
+      "createdBy": {
+        "universalIdentifier": "4f8211db-4a80-5171-92ca-154469617c30",
+      },
+      "customerRenewal": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000007",
+      },
+      "deletedAt": {
+        "universalIdentifier": "3f0454d2-c7f6-5390-bdb6-c748295c3af8",
+      },
+      "eventType": {
+        "universalIdentifier": "d1e14300-0000-4000-8000-000000000002",
+      },
+      "id": {
+        "universalIdentifier": "5f95f49c-dcec-594e-b2f4-78ac56d9a350",
+      },
+      "name": {
+        "universalIdentifier": "d1e14300-0000-4000-8000-000000000001",
+      },
+      "occurredAt": {
+        "universalIdentifier": "d1e14300-0000-4000-8000-000000000004",
+      },
+      "position": {
+        "universalIdentifier": "ec900332-f210-5a7e-ab93-84a57c6520ac",
+      },
+      "searchVector": {
+        "universalIdentifier": "5b70e6b7-90ae-58a0-a778-c4f7d70e7523",
+      },
+      "summary": {
+        "universalIdentifier": "d1e14300-0000-4000-8000-000000000003",
+      },
+      "updatedAt": {
+        "universalIdentifier": "99b08cad-00b3-5d97-8303-0a055d54f054",
+      },
+      "updatedBy": {
+        "universalIdentifier": "dec9f3b4-918a-5095-b3c9-862da4a1f549",
+      },
+    },
+    "indexes": {
+      "searchVectorGinIndex": {
+        "universalIdentifier": "4fe31400-be4a-5a11-be85-9e83979d1f29",
+      },
+    },
+    "universalIdentifier": "d1e14200-0000-4000-8000-000000000001",
   },
   "dashboard": {
     "fields": {
@@ -954,6 +1339,961 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
         },
       },
     },
+  },
+  "diexAccessRequest": {
+    "fields": {
+      "contactName": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000003",
+      },
+      "createdAt": {
+        "universalIdentifier": "69e3e6b1-7e09-5e38-9b3d-928593816303",
+      },
+      "createdBy": {
+        "universalIdentifier": "6a2c6e2c-aed5-5fd5-a6d9-4597f2a0a2fc",
+      },
+      "deletedAt": {
+        "universalIdentifier": "adc59206-b6f6-5ee2-a7c3-2a840b60fb72",
+      },
+      "desiredSubdomain": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000007",
+      },
+      "email": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000004",
+      },
+      "goal": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000008",
+      },
+      "id": {
+        "universalIdentifier": "b3522471-31ac-5b40-81ac-6384500dbaf1",
+      },
+      "name": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "43a51f8e-b908-57bb-9ab5-cabc4938e3dd",
+      },
+      "provisionedSubdomain": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-00000000000c",
+      },
+      "requestedAt": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000009",
+      },
+      "reviewNotes": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-00000000000b",
+      },
+      "reviewedAt": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-00000000000a",
+      },
+      "searchVector": {
+        "universalIdentifier": "265f05cb-2902-5716-9adc-ebec2e46367f",
+      },
+      "status": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000002",
+      },
+      "submissionCount": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-00000000000d",
+      },
+      "teamSize": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000006",
+      },
+      "updatedAt": {
+        "universalIdentifier": "85ad093a-8bc4-50ee-82e4-a28e035eaf3a",
+      },
+      "updatedBy": {
+        "universalIdentifier": "fcc846bc-7ccd-5a33-ad1b-01d2660939ad",
+      },
+      "whatsapp": {
+        "universalIdentifier": "d1e17100-0000-4000-8000-000000000005",
+      },
+    },
+    "indexes": {
+      "searchVectorGinIndex": {
+        "universalIdentifier": "ef7f64f3-5b01-52bf-8d32-d661a741b60b",
+      },
+    },
+    "universalIdentifier": "d1e17000-0000-4000-8000-000000000001",
+  },
+  "diexWorkspaceContext": {
+    "fields": {
+      "businessDescription": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000003",
+      },
+      "commercialRules": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000006",
+      },
+      "competitiveLandscape": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000008",
+      },
+      "createdAt": {
+        "universalIdentifier": "673a757d-3f92-5e10-8eea-4cb7d06cf1fe",
+      },
+      "createdBy": {
+        "universalIdentifier": "ce3dce67-42a4-574e-b91f-67ef3cb6c270",
+      },
+      "deletedAt": {
+        "universalIdentifier": "1eaf36a2-b2a0-5730-b7d1-ea6955feab11",
+      },
+      "forbiddenClaims": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000009",
+      },
+      "id": {
+        "universalIdentifier": "21fe2531-5b38-59cb-8b44-29c13a392aa4",
+      },
+      "idealCustomerProfile": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000004",
+      },
+      "name": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000001",
+      },
+      "objectionPlaybook": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000007",
+      },
+      "position": {
+        "universalIdentifier": "10bd2786-59e1-5b0b-a8f6-dc3ca97dd8cf",
+      },
+      "reviewedAt": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-00000000000a",
+      },
+      "searchVector": {
+        "universalIdentifier": "58f8be19-ee45-55a7-9e87-5e00bd6b84a4",
+      },
+      "status": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000002",
+      },
+      "toneOfVoice": {
+        "universalIdentifier": "d1e15100-0000-4000-8000-000000000005",
+      },
+      "updatedAt": {
+        "universalIdentifier": "24f02069-662d-5da8-a5e3-c6ede5c04f54",
+      },
+      "updatedBy": {
+        "universalIdentifier": "51f88122-e320-5f0c-b00c-917ab08b6622",
+      },
+    },
+    "indexes": {
+      "searchVectorGinIndex": {
+        "universalIdentifier": "a8702513-e56d-5d7a-8b7a-b889f9ecc434",
+      },
+    },
+    "universalIdentifier": "d1e15000-0000-4000-8000-000000000001",
+  },
+  "inboxAutomation": {
+    "fields": {
+      "assignee": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000016",
+      },
+      "channel": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000006",
+      },
+      "createdAt": {
+        "universalIdentifier": "db56f4d1-26bb-59a0-9f9d-294aaeb04bf2",
+      },
+      "createdBy": {
+        "universalIdentifier": "f68a65b2-19ee-59e3-937c-4cd0d39d3708",
+      },
+      "crmCondition": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000008",
+      },
+      "deletedAt": {
+        "universalIdentifier": "fb6fceff-3474-58d9-ad9f-a142eac87359",
+      },
+      "description": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000003",
+      },
+      "executionOrder": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000011",
+      },
+      "followUpDelayMinutes": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-00000000000c",
+      },
+      "id": {
+        "universalIdentifier": "9f829e2f-904d-51a9-a354-608957759bb6",
+      },
+      "inboxLabel": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000014",
+      },
+      "inboxTeam": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000015",
+      },
+      "internalNoteTemplate": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-00000000000f",
+      },
+      "key": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000002",
+      },
+      "keywords": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000007",
+      },
+      "lastRunAt": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000013",
+      },
+      "name": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000001",
+      },
+      "onlyIfUnassigned": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000009",
+      },
+      "position": {
+        "universalIdentifier": "e71c0165-7d34-5484-9a58-a6675a488dfe",
+      },
+      "runCount": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000012",
+      },
+      "searchVector": {
+        "universalIdentifier": "556f059d-ea7c-5399-a745-d4420428e598",
+      },
+      "status": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000004",
+      },
+      "stopAfterMatch": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000010",
+      },
+      "targetConversationStatus": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-00000000000a",
+      },
+      "targetPriority": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-00000000000b",
+      },
+      "taskDueDelayMinutes": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-00000000000e",
+      },
+      "taskTitleTemplate": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-00000000000d",
+      },
+      "trigger": {
+        "universalIdentifier": "d1e0fd10-0000-4000-8000-000000000005",
+      },
+      "updatedAt": {
+        "universalIdentifier": "a70d653a-9dc7-5702-8bcb-b111f8e1d34a",
+      },
+      "updatedBy": {
+        "universalIdentifier": "6f407272-0ed2-5643-ab3e-eca9305157f8",
+      },
+    },
+    "indexes": {
+      "keyUniqueIndex": {
+        "universalIdentifier": "a9b6e7db-a732-5daf-bc94-755a9c89fef6",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "4df6ae72-6cc3-5ede-b7c7-7b11bfaa6557",
+      },
+    },
+    "universalIdentifier": "d1e0fd00-0000-4000-8000-000000000001",
+  },
+  "inboxConversation": {
+    "fields": {
+      "assignee": {
+        "universalIdentifier": "b14d36db-332b-40a2-8217-b395be47a39a",
+      },
+      "channel": {
+        "universalIdentifier": "f4f1ec0a-10f8-414a-876d-bd1d81cbd27a",
+      },
+      "company": {
+        "universalIdentifier": "a93d3f74-dad6-4a40-90b6-d5ef72a18a12",
+      },
+      "contactHandle": {
+        "universalIdentifier": "8377260f-3d70-4867-ae70-07f757016aea",
+      },
+      "conversationEvents": {
+        "universalIdentifier": "d1e0fc20-0000-4000-8000-000000000001",
+      },
+      "createdAt": {
+        "universalIdentifier": "49106cdc-5f33-512e-adc8-6dbb5a34a515",
+      },
+      "createdBy": {
+        "universalIdentifier": "fe14f00f-586c-5b9a-b1fd-dc644e0dd1a2",
+      },
+      "deletedAt": {
+        "universalIdentifier": "54c0642b-d403-5dc9-ab00-eb70ca0e0784",
+      },
+      "diexAiActions": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000039",
+      },
+      "firstRespondedAt": {
+        "universalIdentifier": "f857e357-549a-47f0-8be1-be25b4b25000",
+      },
+      "firstResponseDueAt": {
+        "universalIdentifier": "226f26ac-d15b-43b3-9ff3-b88b7d609d71",
+      },
+      "followUpDueAt": {
+        "universalIdentifier": "dc6ddb6b-f9a7-4df2-b4b1-601053c49e80",
+      },
+      "id": {
+        "universalIdentifier": "ef4d08f4-17cc-5861-8964-bccabdd05f66",
+      },
+      "inboxTeam": {
+        "universalIdentifier": "d1e0f600-0000-4000-8000-000000000001",
+      },
+      "labelAssignments": {
+        "universalIdentifier": "d1e0f200-0000-4000-8000-000000000001",
+      },
+      "lastMessageAt": {
+        "universalIdentifier": "c0f91514-6800-4db4-987d-c2a79363fa4c",
+      },
+      "lastMessageDirection": {
+        "universalIdentifier": "2bea18ca-7470-4610-9a63-7bede6f1e4e8",
+      },
+      "lastMessagePreview": {
+        "universalIdentifier": "e0852d9c-4440-4af1-aec4-49aea8724513",
+      },
+      "mentions": {
+        "universalIdentifier": "d1e0fa20-0000-4000-8000-000000000001",
+      },
+      "messages": {
+        "universalIdentifier": "34bb2d1c-17c0-435f-a00d-4a30224a054c",
+      },
+      "metadata": {
+        "universalIdentifier": "43d5ed6a-a102-4c12-8b31-f6e98f54996a",
+      },
+      "name": {
+        "universalIdentifier": "675dd863-f5b0-4940-8b73-2ec9a6cc4044",
+      },
+      "opportunity": {
+        "universalIdentifier": "14e32618-aeb9-4282-9e98-8b8aea4721e9",
+      },
+      "person": {
+        "universalIdentifier": "ad36d6ef-df23-4c50-8704-124ac3da6973",
+      },
+      "position": {
+        "universalIdentifier": "a1fc1bf5-1bc3-5ee6-8f94-1fa9f197a664",
+      },
+      "priority": {
+        "universalIdentifier": "8eb74450-5629-40be-95dc-09c73d3bb9f9",
+      },
+      "provider": {
+        "universalIdentifier": "1d111b61-6fa2-44af-9c36-abd00dbd6dfc",
+      },
+      "providerThreadKey": {
+        "universalIdentifier": "5804f460-e9c5-4984-80c9-37febe4e6f88",
+      },
+      "searchVector": {
+        "universalIdentifier": "3e0e2a27-7d87-5495-89fd-b00c7393f9c5",
+      },
+      "slaBreachedAt": {
+        "universalIdentifier": "90d8368f-b1ad-404f-a484-3ece1ae8439b",
+      },
+      "snoozedUntil": {
+        "universalIdentifier": "89db4794-99f8-418c-a0a9-526e99ef1d03",
+      },
+      "status": {
+        "universalIdentifier": "a5778fff-384c-465b-ba0d-9435ee4fb9c7",
+      },
+      "tasks": {
+        "universalIdentifier": "074097e0-d250-47d6-b90d-6cf60fdb8030",
+      },
+      "unreadCount": {
+        "universalIdentifier": "6b7db0f7-b18f-4344-93db-9ccc72cd6af6",
+      },
+      "updatedAt": {
+        "universalIdentifier": "8be101b1-8081-5738-9348-54d6bfa5f7ef",
+      },
+      "updatedBy": {
+        "universalIdentifier": "363e3d7c-eb8d-5544-aa7f-b4ab4c9b3ab6",
+      },
+    },
+    "indexes": {
+      "providerThreadKeyUniqueIndex": {
+        "universalIdentifier": "c4c227e8-3d28-5bc3-a3fe-33f46785b823",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "e5d0b76c-f65b-5509-a6aa-7a3c890dbd0f",
+      },
+    },
+    "universalIdentifier": "b9ec457e-7da0-47b2-a3f5-3d9608e66331",
+  },
+  "inboxConversationEvent": {
+    "fields": {
+      "actor": {
+        "universalIdentifier": "d1e0fc10-0000-4000-8000-000000000007",
+      },
+      "createdAt": {
+        "universalIdentifier": "3cf6b267-8dc4-5d9b-bd03-74ba1617d143",
+      },
+      "createdBy": {
+        "universalIdentifier": "b4c21cf0-4f37-519c-ad7f-dc97511c32f0",
+      },
+      "deletedAt": {
+        "universalIdentifier": "c5b2cc17-470d-51b8-9d1f-643566bbb115",
+      },
+      "details": {
+        "universalIdentifier": "d1e0fc10-0000-4000-8000-000000000004",
+      },
+      "eventType": {
+        "universalIdentifier": "d1e0fc10-0000-4000-8000-000000000002",
+      },
+      "id": {
+        "universalIdentifier": "95ecd382-e87a-53fa-9fc0-4f76a16c3969",
+      },
+      "inboxConversation": {
+        "universalIdentifier": "d1e0fc10-0000-4000-8000-000000000006",
+      },
+      "name": {
+        "universalIdentifier": "d1e0fc10-0000-4000-8000-000000000001",
+      },
+      "occurredAt": {
+        "universalIdentifier": "d1e0fc10-0000-4000-8000-000000000005",
+      },
+      "position": {
+        "universalIdentifier": "005cd40f-935f-5b9f-a76a-275bbeff5217",
+      },
+      "searchVector": {
+        "universalIdentifier": "f1320877-52ea-5a67-80ec-0d6e0df5af5d",
+      },
+      "summary": {
+        "universalIdentifier": "d1e0fc10-0000-4000-8000-000000000003",
+      },
+      "updatedAt": {
+        "universalIdentifier": "c8751fce-9d96-5006-b04e-07160c753861",
+      },
+      "updatedBy": {
+        "universalIdentifier": "27f39f08-0607-53ac-b502-b4b1b1539c98",
+      },
+    },
+    "indexes": {
+      "nameUniqueIndex": {
+        "universalIdentifier": "ebee77ac-acc7-5133-9815-6e4c4f0e1d9b",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "22d14b77-16c2-522e-8d9f-d0d2bf4d337a",
+      },
+    },
+    "universalIdentifier": "d1e0fc00-0000-4000-8000-000000000001",
+  },
+  "inboxConversationLabel": {
+    "fields": {
+      "assignedAt": {
+        "universalIdentifier": "d1e0f100-0000-4000-8000-000000000003",
+      },
+      "createdAt": {
+        "universalIdentifier": "3e8c127d-c55f-5dec-8fc8-fae5dfb512d0",
+      },
+      "createdBy": {
+        "universalIdentifier": "9f99d5e6-e04d-5e41-9ece-a8064fa74f85",
+      },
+      "deletedAt": {
+        "universalIdentifier": "3b08e485-10d1-574f-bfdf-4dd8e63248cd",
+      },
+      "id": {
+        "universalIdentifier": "cc905fe0-3d5b-58cf-89c7-8c74658a6bac",
+      },
+      "inboxConversation": {
+        "universalIdentifier": "d1e0f100-0000-4000-8000-000000000005",
+      },
+      "inboxLabel": {
+        "universalIdentifier": "d1e0f100-0000-4000-8000-000000000006",
+      },
+      "isActive": {
+        "universalIdentifier": "d1e0f100-0000-4000-8000-000000000002",
+      },
+      "name": {
+        "universalIdentifier": "d1e0f100-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "1011938c-4d42-5e2d-ba3f-4d9656b8d670",
+      },
+      "removedAt": {
+        "universalIdentifier": "d1e0f100-0000-4000-8000-000000000004",
+      },
+      "searchVector": {
+        "universalIdentifier": "ce951000-7912-5324-a9a7-af9f070f1c68",
+      },
+      "updatedAt": {
+        "universalIdentifier": "885477f6-cd4b-5346-93f4-fca331e16b3f",
+      },
+      "updatedBy": {
+        "universalIdentifier": "3a2c0821-96a8-54f2-a7f8-abe7d5f52801",
+      },
+    },
+    "indexes": {
+      "nameUniqueIndex": {
+        "universalIdentifier": "3e372aa5-e406-5bfd-b3fb-e74aed145068",
+      },
+    },
+    "universalIdentifier": "d1e0f000-0000-4000-8000-000000000001",
+  },
+  "inboxLabel": {
+    "fields": {
+      "color": {
+        "universalIdentifier": "d1e0e100-0000-4000-8000-000000000003",
+      },
+      "conversationAssignments": {
+        "universalIdentifier": "d1e0f200-0000-4000-8000-000000000002",
+      },
+      "createdAt": {
+        "universalIdentifier": "f5fcf3e5-0edf-5e7b-98cc-cb220030945d",
+      },
+      "createdBy": {
+        "universalIdentifier": "237bd271-448a-5757-bfa1-0c2855b686b0",
+      },
+      "deletedAt": {
+        "universalIdentifier": "76456c82-190c-51b4-802f-d438d738ffa1",
+      },
+      "description": {
+        "universalIdentifier": "d1e0e100-0000-4000-8000-000000000004",
+      },
+      "id": {
+        "universalIdentifier": "0de2cbc2-313e-54ed-a49b-c90b1f085248",
+      },
+      "inboxAutomations": {
+        "universalIdentifier": "d1e0fd20-0000-4000-8000-000000000001",
+      },
+      "inboxMacros": {
+        "universalIdentifier": "d1e0fb20-0000-4000-8000-000000000002",
+      },
+      "name": {
+        "universalIdentifier": "d1e0e100-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "bb07c5c4-00c1-5ef6-94bc-a630258790a0",
+      },
+      "searchVector": {
+        "universalIdentifier": "39459ac0-75ee-5ca2-add2-f845eaa84d2f",
+      },
+      "slug": {
+        "universalIdentifier": "d1e0e100-0000-4000-8000-000000000002",
+      },
+      "status": {
+        "universalIdentifier": "d1e0e100-0000-4000-8000-000000000005",
+      },
+      "updatedAt": {
+        "universalIdentifier": "be37b00d-ab6a-5dfe-8b53-b7844a780b28",
+      },
+      "updatedBy": {
+        "universalIdentifier": "8e70e9ae-dd0e-5e23-b6b5-0d510e7729b4",
+      },
+      "usageCount": {
+        "universalIdentifier": "d1e0e100-0000-4000-8000-000000000006",
+      },
+    },
+    "indexes": {
+      "searchVectorGinIndex": {
+        "universalIdentifier": "02f68e24-9e3d-5210-8453-d37fec6ec746",
+      },
+      "slugUniqueIndex": {
+        "universalIdentifier": "1f6f5dae-a884-586c-856b-51be512b4a90",
+      },
+    },
+    "universalIdentifier": "d1e0e000-0000-4000-8000-000000000001",
+  },
+  "inboxMacro": {
+    "fields": {
+      "assignee": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-00000000000e",
+      },
+      "channel": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000005",
+      },
+      "createdAt": {
+        "universalIdentifier": "855f378d-12a9-5a44-8873-1e16e5c667a8",
+      },
+      "createdBy": {
+        "universalIdentifier": "c30004d8-3607-5997-a06f-5b803a24221d",
+      },
+      "deletedAt": {
+        "universalIdentifier": "3f9e650e-090a-5006-8e54-b20a25d7a5f4",
+      },
+      "description": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000003",
+      },
+      "id": {
+        "universalIdentifier": "35fbb84c-803a-53bc-bfb4-cf4f5133a58f",
+      },
+      "inboxLabel": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-00000000000c",
+      },
+      "inboxTeam": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-00000000000d",
+      },
+      "internalNoteTemplate": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000008",
+      },
+      "lastUsedAt": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-00000000000a",
+      },
+      "name": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "948ae1c1-8fe1-5e81-84c2-4cab188afd41",
+      },
+      "savedReply": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-00000000000b",
+      },
+      "searchVector": {
+        "universalIdentifier": "645405b2-4280-5cf9-9506-8f9014531ef8",
+      },
+      "shortcut": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000002",
+      },
+      "status": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000004",
+      },
+      "targetConversationStatus": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000006",
+      },
+      "targetPriority": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000007",
+      },
+      "updatedAt": {
+        "universalIdentifier": "d88c7509-bc79-5571-ab9e-ae380275800d",
+      },
+      "updatedBy": {
+        "universalIdentifier": "7a1a0a5e-1c27-5052-babf-278f4e390f89",
+      },
+      "usageCount": {
+        "universalIdentifier": "d1e0fb10-0000-4000-8000-000000000009",
+      },
+    },
+    "indexes": {
+      "searchVectorGinIndex": {
+        "universalIdentifier": "fe45de39-67f4-5f58-af9f-64bcc185a87a",
+      },
+      "shortcutUniqueIndex": {
+        "universalIdentifier": "f0da6c17-4c57-574a-b7e3-93ed9a96483d",
+      },
+    },
+    "universalIdentifier": "d1e0fb00-0000-4000-8000-000000000001",
+  },
+  "inboxMention": {
+    "fields": {
+      "authorWorkspaceMember": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-00000000000a",
+      },
+      "createdAt": {
+        "universalIdentifier": "5260b1f6-44c5-562f-be74-ee452a2d60a3",
+      },
+      "createdBy": {
+        "universalIdentifier": "c9db001c-0c11-5342-a987-f0c5a0de7d26",
+      },
+      "deletedAt": {
+        "universalIdentifier": "692ad1ae-4766-515b-abe7-c3a61f3f311a",
+      },
+      "excerpt": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000002",
+      },
+      "id": {
+        "universalIdentifier": "b032bb61-e586-5698-9d1a-3512620dbaed",
+      },
+      "inboxConversation": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000007",
+      },
+      "inboxMessage": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000008",
+      },
+      "mentionedAt": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000004",
+      },
+      "mentionedWorkspaceMember": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000009",
+      },
+      "name": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "ce9a8e47-9f63-5a25-8698-376947ea8dd8",
+      },
+      "readAt": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000005",
+      },
+      "resolvedAt": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000006",
+      },
+      "searchVector": {
+        "universalIdentifier": "9b508041-be45-5e96-878c-d296291a601b",
+      },
+      "status": {
+        "universalIdentifier": "d1e0fa10-0000-4000-8000-000000000003",
+      },
+      "updatedAt": {
+        "universalIdentifier": "fac0d9e4-f072-505a-ac63-b0c75b323e5a",
+      },
+      "updatedBy": {
+        "universalIdentifier": "51fade7b-91c2-5c81-bb10-ccfaeedc4692",
+      },
+    },
+    "indexes": {
+      "nameUniqueIndex": {
+        "universalIdentifier": "e26ba073-0aa0-503b-bbdd-5eec6c045f87",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "182d6a93-2583-599c-be2e-ed2e3fbe3bd9",
+      },
+    },
+    "universalIdentifier": "d1e0fa00-0000-4000-8000-000000000001",
+  },
+  "inboxMessage": {
+    "fields": {
+      "body": {
+        "universalIdentifier": "fb24ed24-cd12-4616-9bee-2f84bcb17c9c",
+      },
+      "createdAt": {
+        "universalIdentifier": "6e846692-4300-56b6-9eef-ef709bed57fe",
+      },
+      "createdBy": {
+        "universalIdentifier": "98d1646a-8469-5e8a-addd-4a0f523621fd",
+      },
+      "deletedAt": {
+        "universalIdentifier": "0c623214-feb0-5326-aa63-6fe42f9423b3",
+      },
+      "deliveryStatus": {
+        "universalIdentifier": "c244bcc7-fba4-45f6-bd74-7968100aa15e",
+      },
+      "direction": {
+        "universalIdentifier": "5d42b22c-0d8a-4a29-b238-28cae3998598",
+      },
+      "id": {
+        "universalIdentifier": "bb33baca-db88-5e04-ba71-2c0554948af2",
+      },
+      "inboxConversation": {
+        "universalIdentifier": "1b017ced-89f2-4358-a166-fa62e486e361",
+      },
+      "isInternalNote": {
+        "universalIdentifier": "1a74a4c8-1011-4d0f-bfb0-7dd599320865",
+      },
+      "mediaUrl": {
+        "universalIdentifier": "5ae9a680-3c8a-42c4-b6fa-5f6cb73c0f41",
+      },
+      "mentions": {
+        "universalIdentifier": "d1e0fa20-0000-4000-8000-000000000002",
+      },
+      "messageType": {
+        "universalIdentifier": "1dc7d24d-e98c-4596-b4dc-48d2ca41a90a",
+      },
+      "metadata": {
+        "universalIdentifier": "d5b186f2-8c5d-42d4-93e7-15041a534364",
+      },
+      "name": {
+        "universalIdentifier": "f060bf2e-d788-4d87-baf0-c3f84bafd99c",
+      },
+      "position": {
+        "universalIdentifier": "200ab860-0fa0-550e-8ccd-985c914b81c4",
+      },
+      "providerMessageKey": {
+        "universalIdentifier": "980b8d7f-3581-4b7f-8e89-e79ec42eba4d",
+      },
+      "providerPayloadFingerprint": {
+        "universalIdentifier": "e93d4f7a-68f3-458f-997f-6243e86a5415",
+      },
+      "searchVector": {
+        "universalIdentifier": "cffff490-ac48-5a41-9000-5629be6e85e5",
+      },
+      "senderDisplayName": {
+        "universalIdentifier": "86bf7021-4111-498b-a37c-ce3c43403d25",
+      },
+      "senderHandle": {
+        "universalIdentifier": "1dff9c8b-cd46-4c92-af5d-4959f0b94c27",
+      },
+      "sentAt": {
+        "universalIdentifier": "4a03759e-56bf-4398-8590-b8798ea035ee",
+      },
+      "transcription": {
+        "universalIdentifier": "edd08bf7-ebe3-4a60-ae2d-c17fde469c8a",
+      },
+      "transcriptionStatus": {
+        "universalIdentifier": "2de5e977-37ad-4ec1-8114-8c690083d353",
+      },
+      "updatedAt": {
+        "universalIdentifier": "f53cd0ce-651e-56df-970a-47a16c366e02",
+      },
+      "updatedBy": {
+        "universalIdentifier": "81d89302-04b0-5409-b3d1-879aa9b3df04",
+      },
+    },
+    "indexes": {
+      "providerMessageKeyUniqueIndex": {
+        "universalIdentifier": "7ea9536c-3aac-539d-86f0-9d79e8e1f739",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "bcd7632e-2ac3-500f-bfd2-d1c1f810e33a",
+      },
+    },
+    "universalIdentifier": "7f598a57-08b2-4cc4-a4fa-a5c66f00da7b",
+  },
+  "inboxSavedReply": {
+    "fields": {
+      "body": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000003",
+      },
+      "category": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000006",
+      },
+      "channel": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000005",
+      },
+      "createdAt": {
+        "universalIdentifier": "35c8ae95-d6d1-55ba-b0f0-5c5bd41a484e",
+      },
+      "createdBy": {
+        "universalIdentifier": "f4c91a63-7de4-5423-a5dc-6d265b2cbd28",
+      },
+      "deletedAt": {
+        "universalIdentifier": "13c2dec3-7fa7-5460-9c51-67ead04a9f90",
+      },
+      "id": {
+        "universalIdentifier": "6c63d9f3-bae3-5049-96c9-c7b3cd996c00",
+      },
+      "inboxMacros": {
+        "universalIdentifier": "d1e0fb20-0000-4000-8000-000000000001",
+      },
+      "lastUsedAt": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000008",
+      },
+      "name": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "65beed1d-d541-5faf-a1d4-b435677f1fef",
+      },
+      "searchVector": {
+        "universalIdentifier": "f4dca4e9-a6f4-5b42-a336-eb951c54729a",
+      },
+      "shortcut": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000002",
+      },
+      "status": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000004",
+      },
+      "updatedAt": {
+        "universalIdentifier": "4454d74b-14a8-5c9c-9ac1-6e0d67989138",
+      },
+      "updatedBy": {
+        "universalIdentifier": "c8a5aa5e-6596-5e43-8061-a1ffcbc04e07",
+      },
+      "usageCount": {
+        "universalIdentifier": "d1e0d100-0000-4000-8000-000000000007",
+      },
+    },
+    "indexes": {
+      "searchVectorGinIndex": {
+        "universalIdentifier": "94bd4084-fb70-5864-9843-920c37baa427",
+      },
+      "shortcutUniqueIndex": {
+        "universalIdentifier": "255c2431-6c23-52ca-b936-d488e95b3132",
+      },
+    },
+    "universalIdentifier": "d1e0d000-0000-4000-8000-000000000001",
+  },
+  "inboxTeam": {
+    "fields": {
+      "createdAt": {
+        "universalIdentifier": "1cf2debd-f7ed-590a-849a-a7b839c923c6",
+      },
+      "createdBy": {
+        "universalIdentifier": "ac5ab57d-bc0a-55be-9d8b-59a35c8fe804",
+      },
+      "defaultResponseSlaMinutes": {
+        "universalIdentifier": "d1e0f410-0000-4000-8000-000000000006",
+      },
+      "deletedAt": {
+        "universalIdentifier": "50db3ff3-7145-502e-868c-fdf3bb295070",
+      },
+      "description": {
+        "universalIdentifier": "d1e0f410-0000-4000-8000-000000000003",
+      },
+      "id": {
+        "universalIdentifier": "4edf9957-d14b-5a8c-b8dc-2b1aeeb4c221",
+      },
+      "inboxAutomations": {
+        "universalIdentifier": "d1e0fd20-0000-4000-8000-000000000002",
+      },
+      "inboxConversations": {
+        "universalIdentifier": "d1e0f600-0000-4000-8000-000000000002",
+      },
+      "inboxMacros": {
+        "universalIdentifier": "d1e0fb20-0000-4000-8000-000000000003",
+      },
+      "isDefault": {
+        "universalIdentifier": "d1e0f410-0000-4000-8000-000000000007",
+      },
+      "key": {
+        "universalIdentifier": "d1e0f410-0000-4000-8000-000000000002",
+      },
+      "memberships": {
+        "universalIdentifier": "d1e0f600-0000-4000-8000-000000000003",
+      },
+      "name": {
+        "universalIdentifier": "d1e0f410-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "5216863b-8e9b-573d-905e-57a66ae55656",
+      },
+      "routingStrategy": {
+        "universalIdentifier": "d1e0f410-0000-4000-8000-000000000005",
+      },
+      "searchVector": {
+        "universalIdentifier": "ffe3a56a-e8c6-55d7-858f-7b0b9f254961",
+      },
+      "status": {
+        "universalIdentifier": "d1e0f410-0000-4000-8000-000000000004",
+      },
+      "updatedAt": {
+        "universalIdentifier": "a28145ea-547b-592d-9fb2-ef429cd57924",
+      },
+      "updatedBy": {
+        "universalIdentifier": "a9a0b76e-ae78-5f7f-a0b0-1fef7fb0b57f",
+      },
+    },
+    "indexes": {
+      "keyUniqueIndex": {
+        "universalIdentifier": "7316fca4-8f18-50c0-858f-ab85dbd3f732",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "dace8440-fe90-5fe5-8027-9161ab2cd55c",
+      },
+    },
+    "universalIdentifier": "d1e0f400-0000-4000-8000-000000000001",
+  },
+  "inboxTeamMember": {
+    "fields": {
+      "createdAt": {
+        "universalIdentifier": "272594e9-d36e-5d59-93ed-69e3579bcf36",
+      },
+      "createdBy": {
+        "universalIdentifier": "e62029fb-e92d-5fdb-9b59-d53e2f846652",
+      },
+      "deletedAt": {
+        "universalIdentifier": "28a79f5f-e016-5999-aff8-02a024838079",
+      },
+      "id": {
+        "universalIdentifier": "3db3ecf5-eac8-51bd-8652-8df10b1c79e6",
+      },
+      "inboxTeam": {
+        "universalIdentifier": "d1e0f510-0000-4000-8000-000000000005",
+      },
+      "isActive": {
+        "universalIdentifier": "d1e0f510-0000-4000-8000-000000000003",
+      },
+      "joinedAt": {
+        "universalIdentifier": "d1e0f510-0000-4000-8000-000000000004",
+      },
+      "memberRole": {
+        "universalIdentifier": "d1e0f510-0000-4000-8000-000000000002",
+      },
+      "name": {
+        "universalIdentifier": "d1e0f510-0000-4000-8000-000000000001",
+      },
+      "position": {
+        "universalIdentifier": "aa27eaf7-0408-5ada-bb88-0d3fb81fc237",
+      },
+      "searchVector": {
+        "universalIdentifier": "623437a4-e677-5866-aeae-fc6a4ec51e40",
+      },
+      "updatedAt": {
+        "universalIdentifier": "b53e777a-2791-5792-92f2-60e8ef1ec830",
+      },
+      "updatedBy": {
+        "universalIdentifier": "2c49c562-b168-5b58-a4d0-3bd228a5b895",
+      },
+      "workspaceMember": {
+        "universalIdentifier": "d1e0f510-0000-4000-8000-000000000006",
+      },
+    },
+    "indexes": {
+      "nameUniqueIndex": {
+        "universalIdentifier": "5553e997-7cb3-5bec-aaa7-e2b607938a2a",
+      },
+    },
+    "universalIdentifier": "d1e0f500-0000-4000-8000-000000000001",
   },
   "message": {
     "fields": {
@@ -1685,6 +3025,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "id": {
         "universalIdentifier": "2959c27e-c98a-5dba-8670-832a61f81435",
       },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000015",
+      },
       "noteTargets": {
         "universalIdentifier": "20202020-1f25-43fe-8b00-af212fdde823",
       },
@@ -1708,6 +3051,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       },
     },
     "indexes": {
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "e05b253d-b2ce-5c67-b5d0-9ca5d380e1f5",
+      },
       "searchVectorGinIndex": {
         "universalIdentifier": "8183c8d2-9114-4b6e-8c5d-12a3b14a5a13",
       },
@@ -1855,6 +3201,79 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       },
     },
   },
+  "offer": {
+    "fields": {
+      "basePrice": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000005",
+      },
+      "category": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000003",
+      },
+      "createdAt": {
+        "universalIdentifier": "2b44f64e-8c7a-531b-8c9b-813cf7c92ca2",
+      },
+      "createdBy": {
+        "universalIdentifier": "55eca8c3-a878-5c1d-b0f1-723df1227d7e",
+      },
+      "deletedAt": {
+        "universalIdentifier": "cd1d5df0-903a-5b6c-9cac-030bd7f6a86c",
+      },
+      "differentiators": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000008",
+      },
+      "id": {
+        "universalIdentifier": "27e9d03b-c23a-5fc2-ae9d-5386704e2cd2",
+      },
+      "idealCustomerProfile": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000007",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-00000000000b",
+      },
+      "name": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000001",
+      },
+      "objectionPlaybook": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000009",
+      },
+      "opportunities": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000002",
+      },
+      "position": {
+        "universalIdentifier": "0c59d4ac-5465-5de8-85bc-870b0ebbcade",
+      },
+      "pricingModel": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000004",
+      },
+      "qualificationCriteria": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-00000000000a",
+      },
+      "searchVector": {
+        "universalIdentifier": "1edd15e4-d1ac-5727-a194-dd3ae2c006ae",
+      },
+      "status": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000002",
+      },
+      "updatedAt": {
+        "universalIdentifier": "76e2dd84-4495-5e85-9262-f874bdce3908",
+      },
+      "updatedBy": {
+        "universalIdentifier": "9943c279-00cb-5d26-855c-e9865de4d3b6",
+      },
+      "valueProposition": {
+        "universalIdentifier": "d1e01100-0000-4000-8000-000000000006",
+      },
+    },
+    "indexes": {
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "950b86fd-0fbb-5a47-84c9-1f1908916dea",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "ada7e0e3-a5dd-5f5f-99f9-f0f25f8497e2",
+      },
+    },
+    "universalIdentifier": "d1e01000-0000-4000-8000-000000000001",
+  },
   "opportunity": {
     "fields": {
       "amount": {
@@ -1863,8 +3282,14 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "attachments": {
         "universalIdentifier": "37d15d4b-7441-5bbc-8a5f-228f2d62abf4",
       },
+      "budgetConfirmed": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-00000000000a",
+      },
       "closeDate": {
         "universalIdentifier": "20202020-527e-44d6-b1ac-c4158d307b97",
+      },
+      "commercialScore": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000005",
       },
       "company": {
         "universalIdentifier": "20202020-cbac-457e-b565-adece5fc815f",
@@ -1875,14 +3300,47 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "createdBy": {
         "universalIdentifier": "4a667a98-5fad-5342-aedf-7b2d3906e657",
       },
+      "dealRisk": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000008",
+      },
+      "decisionAccessConfirmed": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000009",
+      },
       "deletedAt": {
         "universalIdentifier": "d816de8d-aa5f-5388-8392-58f6d60e1343",
+      },
+      "diexAiActions": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000031",
+      },
+      "diexCommercialSignals": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000015",
+      },
+      "diexInboxConversations": {
+        "universalIdentifier": "4daced73-aa5e-4d6c-9e70-80b97fe28f97",
+      },
+      "diexOffer": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000001",
+      },
+      "diexSuccessPlans": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000045",
       },
       "id": {
         "universalIdentifier": "2fa92d57-b39d-5ee8-ac9e-b39bc65b9ee9",
       },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-00000000000f",
+      },
       "name": {
         "universalIdentifier": "20202020-8609-4f65-a2d9-44009eb422b5",
+      },
+      "needConfirmed": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-00000000000b",
+      },
+      "nextCommercialAction": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000006",
+      },
+      "nextCommercialActionAt": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000007",
       },
       "noteTargets": {
         "universalIdentifier": "ee980fc9-5f51-5986-9fbe-ccf5a103f595",
@@ -1908,6 +3366,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "timelineActivities": {
         "universalIdentifier": "64f26c76-9427-55a1-82e6-332b495878ad",
       },
+      "timingConfirmed": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-00000000000c",
+      },
       "updatedAt": {
         "universalIdentifier": "e0270cd8-986d-5dab-aaa1-1fe813969a6a",
       },
@@ -1918,6 +3379,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
     "indexes": {
       "companyIdIndex": {
         "universalIdentifier": "e161072d-37b1-477a-b944-ef0d65289574",
+      },
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "8947c87b-4b21-5bf9-aa81-1160420f60e3",
       },
       "pointOfContactIdIndex": {
         "universalIdentifier": "b8c2a673-a981-4357-a43d-313a358e4daa",
@@ -1980,8 +3444,17 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
           "customer": {
             "universalIdentifier": "20202020-af14-4a04-8a04-0aa0b2ca2bf5",
           },
+          "diagnosisComplete": {
+            "universalIdentifier": "20202020-af14-4a04-8a04-0aa0b2ca2bf6",
+          },
+          "lost": {
+            "universalIdentifier": "20202020-af14-4a04-8a04-0aa0b2ca2bf8",
+          },
           "meeting": {
             "universalIdentifier": "20202020-af14-4a04-8a04-0aa0b2ca2bf3",
+          },
+          "negotiation": {
+            "universalIdentifier": "20202020-af14-4a04-8a04-0aa0b2ca2bf7",
           },
           "new": {
             "universalIdentifier": "20202020-af14-4a04-8a04-0aa0b2ca2bf1",
@@ -2065,6 +3538,12 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "avatarUrl": {
         "universalIdentifier": "20202020-b8a6-40df-961c-373dc5d2ec21",
       },
+      "buyingIntent": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000004",
+      },
+      "buyingRole": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000003",
+      },
       "calendarEventParticipants": {
         "universalIdentifier": "20202020-52ee-45e9-a702-b64b3753e3a9",
       },
@@ -2080,6 +3559,21 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "deletedAt": {
         "universalIdentifier": "c5d6b3bf-094d-5b26-8007-81b4b668c9b2",
       },
+      "diexBadges": {
+        "universalIdentifier": "d1e05700-0000-4000-8000-000000000001",
+      },
+      "diexCommercialSignals": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000011",
+      },
+      "diexInboxConversations": {
+        "universalIdentifier": "b59f1b65-40f9-4607-8da7-3010960ff2f0",
+      },
+      "diexSuccessPlans": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000023",
+      },
+      "doNotContact": {
+        "universalIdentifier": "d1e05600-0000-4000-8000-000000000004",
+      },
       "emails": {
         "universalIdentifier": "20202020-3c51-43fa-8b6e-af39e29368ab",
       },
@@ -2088,6 +3582,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       },
       "jobTitle": {
         "universalIdentifier": "20202020-b0d0-415a-bef9-640a26dacd9b",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-00000000000e",
       },
       "linkedinLink": {
         "universalIdentifier": "20202020-f1af-48f7-893b-2007a73dd508",
@@ -2128,6 +3625,15 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "updatedBy": {
         "universalIdentifier": "50d01fec-5628-506c-8a1d-9ac0616aab03",
       },
+      "whatsappConsentAt": {
+        "universalIdentifier": "d1e05600-0000-4000-8000-000000000003",
+      },
+      "whatsappConsentStatus": {
+        "universalIdentifier": "d1e05600-0000-4000-8000-000000000002",
+      },
+      "whatsappNormalizedPhone": {
+        "universalIdentifier": "d1e05600-0000-4000-8000-000000000001",
+      },
     },
     "indexes": {
       "companyIdIndex": {
@@ -2136,8 +3642,14 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "emailsUniqueIndex": {
         "universalIdentifier": "8183a8b2-9114-4f6c-8a5b-12e3f14e5e13",
       },
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "ba82c173-29bf-5341-840f-158682a06a01",
+      },
       "searchVectorGinIndex": {
         "universalIdentifier": "9294b9c3-0225-4a7d-9b6c-23f4a25f6f24",
+      },
+      "whatsappNormalizedPhoneUniqueIndex": {
+        "universalIdentifier": "df179faa-3de7-5d7f-a9e7-73c9425ec037",
       },
     },
     "universalIdentifier": "20202020-e674-48e5-a542-72570eee7213",
@@ -2153,6 +3665,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
           },
           "createdBy": {
             "universalIdentifier": "20202020-af02-4a02-8a02-ae0a1ea11af2",
+          },
+          "diexBadges": {
+            "universalIdentifier": "20202020-af02-4a02-8a02-ae0a1ea11af9",
           },
           "emails": {
             "universalIdentifier": "20202020-af02-4a02-8a02-ae0a1ea11af1",
@@ -2209,6 +3724,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
           "createdBy": {
             "universalIdentifier": "20202020-af02-4a02-8a02-ae0a1ea12210",
           },
+          "diexBadges": {
+            "universalIdentifier": "20202020-af02-4a02-8a02-ae0a1ea1221d",
+          },
           "emails": {
             "universalIdentifier": "20202020-af02-4a02-8a02-ae0a1ea12201",
           },
@@ -2246,6 +3764,182 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       },
     },
   },
+  "successMilestone": {
+    "fields": {
+      "category": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000002",
+      },
+      "completedAt": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000005",
+      },
+      "createdAt": {
+        "universalIdentifier": "3b209afa-2c81-56bd-a589-2d288e5acf4d",
+      },
+      "createdBy": {
+        "universalIdentifier": "579e2e4d-975e-5577-b51a-d2745ce3de5d",
+      },
+      "deletedAt": {
+        "universalIdentifier": "0851fa0e-f4de-50f5-a30a-43b9b1b91b40",
+      },
+      "dueAt": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000004",
+      },
+      "evidence": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000007",
+      },
+      "id": {
+        "universalIdentifier": "64e81ce2-9641-533e-b544-05f2107aedc8",
+      },
+      "impact": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000008",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000009",
+      },
+      "name": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000001",
+      },
+      "outcome": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000006",
+      },
+      "position": {
+        "universalIdentifier": "4060746e-5621-5d34-8e53-56f2a5a9440c",
+      },
+      "searchVector": {
+        "universalIdentifier": "6600eec8-8c78-5fe5-873f-2fda4a391076",
+      },
+      "status": {
+        "universalIdentifier": "d1e04100-0000-4000-8000-000000000003",
+      },
+      "successPlan": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000026",
+      },
+      "updatedAt": {
+        "universalIdentifier": "03b400aa-ba91-5e56-85af-57abd66a6464",
+      },
+      "updatedBy": {
+        "universalIdentifier": "c02ef252-38fa-5196-9274-c446b806cc48",
+      },
+    },
+    "indexes": {
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "92710c86-3fdd-5142-8c77-74bdaf13cffe",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "a71298fe-e74c-58f2-bfd7-3693b88b7f72",
+      },
+    },
+    "universalIdentifier": "d1e04000-0000-4000-8000-000000000001",
+  },
+  "successPlan": {
+    "fields": {
+      "activeUseRating": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-00000000000d",
+      },
+      "aiActions": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000035",
+      },
+      "company": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000020",
+      },
+      "createdAt": {
+        "universalIdentifier": "0e34b034-2f9d-51b3-b59c-bc7d6dca8fc4",
+      },
+      "createdBy": {
+        "universalIdentifier": "8605dad2-abc8-54f1-893d-d6d3dd7a0b53",
+      },
+      "customerRenewals": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000002",
+      },
+      "deletedAt": {
+        "universalIdentifier": "9290cf47-bfcd-5306-a93f-c7da32eb55d8",
+      },
+      "executiveSummary": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-00000000000b",
+      },
+      "expansionSignal": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-00000000000f",
+      },
+      "health": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000003",
+      },
+      "healthScore": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-00000000000c",
+      },
+      "id": {
+        "universalIdentifier": "4ddc8f44-6f4b-5c2a-8475-0ae896b18878",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000010",
+      },
+      "lifecycle": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000002",
+      },
+      "milestones": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000027",
+      },
+      "name": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000001",
+      },
+      "nextReviewAt": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000007",
+      },
+      "objectives": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000008",
+      },
+      "operationalTasks": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000018",
+      },
+      "opportunity": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000044",
+      },
+      "owner": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000024",
+      },
+      "position": {
+        "universalIdentifier": "7d3a735d-455c-5849-9585-f8f39cb8d234",
+      },
+      "primaryContact": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000022",
+      },
+      "recurringRevenue": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000004",
+      },
+      "renewalDate": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000006",
+      },
+      "risks": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-00000000000a",
+      },
+      "searchVector": {
+        "universalIdentifier": "75e25ef6-e8e8-50e9-9b25-b9d973190ae2",
+      },
+      "startDate": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000005",
+      },
+      "successCriteria": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-000000000009",
+      },
+      "updatedAt": {
+        "universalIdentifier": "ffa664f3-bd69-541b-95b1-bd4e3f34248f",
+      },
+      "updatedBy": {
+        "universalIdentifier": "13400252-329e-5855-bcbf-afbb94744d38",
+      },
+      "valueEvidenceRating": {
+        "universalIdentifier": "d1e03100-0000-4000-8000-00000000000e",
+      },
+    },
+    "indexes": {
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "10fa8bca-ea90-5a0b-95cb-7fc2de1e8ed3",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "be4a9232-bbe2-536b-a71a-99567f6af1e9",
+      },
+    },
+    "universalIdentifier": "d1e03000-0000-4000-8000-000000000001",
+  },
   "task": {
     "fields": {
       "assignee": {
@@ -2266,11 +3960,23 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "deletedAt": {
         "universalIdentifier": "819df25b-3efe-58ef-a619-6f2d4c474cd1",
       },
+      "diexAiActions": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000041",
+      },
+      "diexInboxConversation": {
+        "universalIdentifier": "eba85d8a-4525-4aaf-8a2c-7c51825deb84",
+      },
+      "diexSuccessPlan": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000017",
+      },
       "dueAt": {
         "universalIdentifier": "20202020-fd99-40da-951b-4cb9a352fce3",
       },
       "id": {
         "universalIdentifier": "d2d4ca07-f034-5c06-b86f-fbab125936b9",
+      },
+      "legacyDiexId": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000010",
       },
       "position": {
         "universalIdentifier": "5556cb7b-1909-589e-9eac-8f0e870107bc",
@@ -2280,6 +3986,9 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       },
       "status": {
         "universalIdentifier": "20202020-70bc-48f9-89c5-6aa730b151e0",
+      },
+      "taskCategory": {
+        "universalIdentifier": "d1e05500-0000-4000-8000-000000000016",
       },
       "taskTargets": {
         "universalIdentifier": "20202020-de9c-4d0e-a452-713d4a3e5fc7",
@@ -2301,12 +4010,40 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       "assigneeIdIndex": {
         "universalIdentifier": "f48fa3b1-0cec-44da-a9e5-f8a5e766637e",
       },
+      "legacyDiexIdUniqueIndex": {
+        "universalIdentifier": "df9ed33c-9aea-5114-a5d4-d437e069206d",
+      },
       "searchVectorGinIndex": {
         "universalIdentifier": "a86b32b3-01d3-4302-a152-8b7f247db7b4",
       },
     },
     "universalIdentifier": "20202020-1ba1-48ba-bc83-ef7e5990ed10",
     "views": {
+      "agenda": {
+        "universalIdentifier": "d1e18000-0000-4000-8000-000000000001",
+        "viewFields": {
+          "assignee": {
+            "universalIdentifier": "d1e18010-0000-4000-8000-000000000004",
+          },
+          "dueAt": {
+            "universalIdentifier": "d1e18010-0000-4000-8000-000000000003",
+          },
+          "status": {
+            "universalIdentifier": "d1e18010-0000-4000-8000-000000000002",
+          },
+          "taskTargets": {
+            "universalIdentifier": "d1e18010-0000-4000-8000-000000000005",
+          },
+          "title": {
+            "universalIdentifier": "d1e18010-0000-4000-8000-000000000001",
+          },
+        },
+        "viewFilters": {
+          "assigneeIsMe": {
+            "universalIdentifier": "d1e18020-0000-4000-8000-000000000001",
+          },
+        },
+      },
       "allTasks": {
         "universalIdentifier": "20202020-a006-4a06-8a06-ba5ca11a1ea0",
         "viewFields": {
@@ -3185,6 +4922,42 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
       },
       "deletedAt": {
         "universalIdentifier": "0c39c6a8-a1bf-54fb-8c86-ca2981820fd0",
+      },
+      "diexAssignedInboxConversations": {
+        "universalIdentifier": "9ae28763-02f7-44b6-aaf0-4a1d0d52be0f",
+      },
+      "diexAuthoredInboxMentions": {
+        "universalIdentifier": "d1e0fa20-0000-4000-8000-000000000004",
+      },
+      "diexCustomerRenewalEvents": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-00000000000a",
+      },
+      "diexExecutedAiActions": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000043",
+      },
+      "diexInboxAutomations": {
+        "universalIdentifier": "d1e0fd20-0000-4000-8000-000000000003",
+      },
+      "diexInboxConversationEvents": {
+        "universalIdentifier": "d1e0fc20-0000-4000-8000-000000000002",
+      },
+      "diexInboxMacros": {
+        "universalIdentifier": "d1e0fb20-0000-4000-8000-000000000004",
+      },
+      "diexInboxMentions": {
+        "universalIdentifier": "d1e0fa20-0000-4000-8000-000000000003",
+      },
+      "diexInboxTeamMemberships": {
+        "universalIdentifier": "d1e0f600-0000-4000-8000-000000000004",
+      },
+      "diexOwnedCustomerRenewals": {
+        "universalIdentifier": "d1e14600-0000-4000-8000-000000000006",
+      },
+      "diexOwnedSuccessPlans": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000025",
+      },
+      "diexReviewActions": {
+        "universalIdentifier": "d1e06000-0000-4000-8000-000000000037",
       },
       "id": {
         "universalIdentifier": "d77dff76-dcfd-52a3-b352-832898b28b9d",

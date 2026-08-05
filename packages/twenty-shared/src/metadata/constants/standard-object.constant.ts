@@ -754,6 +754,9 @@ export const STANDARD_OBJECTS = {
           address: {
             universalIdentifier: '20202020-af01-4a01-8a01-c0aba11cf008',
           },
+          diexBadges: {
+            universalIdentifier: '20202020-af01-4a01-8a01-c0aba11cf009',
+          },
         },
       },
       companyRecordPageFields: {
@@ -817,6 +820,9 @@ export const STANDARD_OBJECTS = {
           },
           timelineActivities: {
             universalIdentifier: '20202020-af01-4a01-8a01-c0aba11c121a',
+          },
+          diexBadges: {
+            universalIdentifier: '20202020-af01-4a01-8a01-c0aba11c121b',
           },
         },
       },
@@ -1921,6 +1927,9 @@ export const STANDARD_OBJECTS = {
           linkedinLink: {
             universalIdentifier: '20202020-af02-4a02-8a02-ae0a1ea11af8',
           },
+          diexBadges: {
+            universalIdentifier: '20202020-af02-4a02-8a02-ae0a1ea11af9',
+          },
         },
       },
       personRecordPageFields: {
@@ -1993,6 +2002,9 @@ export const STANDARD_OBJECTS = {
           },
           timelineActivities: {
             universalIdentifier: '20202020-af02-4a02-8a02-ae0a1ea1221c',
+          },
+          diexBadges: {
+            universalIdentifier: '20202020-af02-4a02-8a02-ae0a1ea1221d',
           },
         },
       },

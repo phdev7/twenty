@@ -314,7 +314,7 @@ export const CustomerSuccessHandoff = ({
                 <>
                   <p>
                     {preview.preview.plan.name} · renovação{' '}
-                    {preview.preview.renewalDate}
+                    {preview.preview.plan.renewalDate}
                   </p>
                   <p>
                     {preview.preview.milestones.length} marco(s), tarefa de

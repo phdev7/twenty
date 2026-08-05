@@ -13,16 +13,19 @@ import { t } from '@lingui/core/macro';
 import { useContext } from 'react';
 import { FieldMetadataSettingsOnClickAction } from 'twenty-shared/types';
 import { ensureAbsoluteUrl, isDefined } from 'twenty-shared/utils';
-import { IconArrowUpRight, IconCopy, IconMail } from 'twenty-ui/icon';
+import { IconArrowUpRight, IconCopy, IconMail, IconBrandWhatsapp } from 'twenty-ui/icon';
 import { useCopyToClipboard } from '~/hooks/useCopyToClipboard';
+import { useOpenPersonWhatsappConversation } from '@/inbox/hooks/useOpenPersonWhatsappConversation';
 
 export const useGetSecondaryRecordTableCellButton = () => {
   const { fieldDefinition, recordId } = useContext(FieldContext);
   const { copyToClipboard } = useCopyToClipboard();
 
   const isEmailField = isFieldEmails(fieldDefinition);
+  const isPhoneField = isFieldPhones(fieldDefinition);
 
   const { openEmail } = useOpenEmailInAppOrFallback({ skip: !isEmailField });
+  const { openPersonWhatsappConversation } = useOpenPersonWhatsappConversation();
 
   const fieldValue = useRecordFieldValue<
     FieldPhonesValue | FieldEmailsValue | FieldLinksValue | undefined
@@ -37,14 +40,14 @@ export const useGetSecondaryRecordTableCellButton = () => {
     return [];
   }
 
-  const defaultClickAction = isEmailField
+  const defaultClickAction = isEmailField || isPhoneField
     ? FieldMetadataSettingsOnClickAction.OPEN_IN_APP
     : FieldMetadataSettingsOnClickAction.OPEN_LINK;
 
   const mainActionOnClick =
     fieldDefinition.metadata.settings?.clickAction ?? defaultClickAction;
 
-  const openActionForFieldType = isEmailField
+  const openActionForFieldType = isEmailField || isPhoneField
     ? FieldMetadataSettingsOnClickAction.OPEN_IN_APP
     : FieldMetadataSettingsOnClickAction.OPEN_LINK;
 
@@ -66,6 +69,11 @@ export const useGetSecondaryRecordTableCellButton = () => {
     };
     copyOnClick = () => {
       copyToClipboard(phoneNumber, t`Phone number copied to clipboard`);
+    };
+    openInAppOnClick = () => {
+      if (fieldDefinition.metadata.objectMetadataNameSingular === 'person') {
+        openPersonWhatsappConversation(recordId);
+      }
     };
   }
 
@@ -104,7 +112,7 @@ export const useGetSecondaryRecordTableCellButton = () => {
   const iconByAction = {
     [FieldMetadataSettingsOnClickAction.OPEN_LINK]: IconArrowUpRight,
     [FieldMetadataSettingsOnClickAction.COPY]: IconCopy,
-    [FieldMetadataSettingsOnClickAction.OPEN_IN_APP]: IconMail,
+    [FieldMetadataSettingsOnClickAction.OPEN_IN_APP]: isPhoneField ? IconBrandWhatsapp : IconMail,
   };
 
   return [

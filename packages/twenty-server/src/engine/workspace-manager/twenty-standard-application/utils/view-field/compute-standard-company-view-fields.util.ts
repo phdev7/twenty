@@ -98,6 +98,18 @@ export const computeStandardCompanyViewFields = (
         aggregateOperation: AggregateOperations.COUNT_NOT_EMPTY,
       },
     }),
+    allCompaniesDiexBadges: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'company',
+      context: {
+        viewName: 'allCompanies',
+        viewFieldName: 'diexBadges',
+        fieldName: 'diexBadges',
+        position: 7,
+        isVisible: true,
+        size: 150,
+      },
+    }),
 
     // companyRecordPageFields view fields
     companyRecordPageFieldsDomainName: createStandardViewFieldFlatMetadata({
@@ -135,6 +147,19 @@ export const computeStandardCompanyViewFields = (
         fieldName: 'people',
         position: 2,
         isVisible: false,
+        size: 150,
+        viewFieldGroupName: 'general',
+      },
+    }),
+    companyRecordPageFieldsDiexBadges: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'company',
+      context: {
+        viewName: 'companyRecordPageFields',
+        viewFieldName: 'diexBadges',
+        fieldName: 'diexBadges',
+        position: 6,
+        isVisible: true,
         size: 150,
         viewFieldGroupName: 'general',
       },

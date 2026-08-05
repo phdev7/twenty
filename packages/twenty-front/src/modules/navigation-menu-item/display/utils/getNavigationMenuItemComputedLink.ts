@@ -34,6 +34,9 @@ export const getNavigationMenuItemComputedLink = ({
       );
     }
     case NavigationMenuItemType.VIEW:
+      if (item.universalIdentifier === 'd1e18030-0000-4000-8000-000000000001') {
+        return '/diex/calendar';
+      }
       return getViewNavigationMenuItemComputedLink(
         item,
         objectMetadataItems,
