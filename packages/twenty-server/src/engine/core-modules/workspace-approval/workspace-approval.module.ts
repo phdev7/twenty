@@ -11,6 +11,7 @@ import { WorkspaceApprovalService } from 'src/engine/core-modules/workspace-appr
 import { WorkspaceApprovalResolver } from 'src/engine/core-modules/workspace-approval/workspace-approval.resolver';
 import { WorkspaceModule } from 'src/engine/core-modules/workspace/workspace.module';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
 
 // Global so the approval guard (REST, MCP), the GraphQL middleware and
 // ToolProviderModule can all reach the service without importing this module:
@@ -21,6 +22,7 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
     TwentyConfigModule,
     WorkspaceApprovalGateModule,
     WorkspaceModule,
+    PermissionsModule,
     TypeOrmModule.forFeature([
       WorkspaceEntity,
       UserEntity,
