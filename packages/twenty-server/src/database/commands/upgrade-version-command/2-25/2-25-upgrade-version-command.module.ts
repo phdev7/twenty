@@ -12,12 +12,14 @@ import { FieldMetadataEntity } from 'src/engine/metadata-modules/field-metadata/
 import { WorkspaceMetadataVersionModule } from 'src/engine/metadata-modules/workspace-metadata-version/workspace-metadata-version.module';
 import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
 import { WorkspaceMigrationRunnerModule } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/workspace-migration-runner.module';
+import { WorkspaceMigrationModule } from 'src/engine/workspace-manager/workspace-migration/workspace-migration.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([FieldMetadataEntity]),
     ApplicationModule,
     WorkspaceCacheModule,
+    WorkspaceMigrationModule,
     WorkspaceMigrationRunnerModule,
     WorkspaceIteratorModule,
     WorkspaceMetadataVersionModule,
