@@ -294,14 +294,24 @@ export class CleanerWorkspaceService {
       `${dryRun ? 'DRY RUN - ' : ''}batchCleanOnboardingWorkspaces running...`,
     );
 
-    const workspaces = await this.workspaceRepository.find({
-      where: {
-        id: In(workspaceIds),
-        activationStatus: In([
+    // With the approval gate on, an unactivated workspace is not an abandoned
+    // onboarding: it is someone waiting in the approval queue. Deleting it after
+    // seven days would silently drop pending requests, so only CREATED (already
+    // activated but never used) stays eligible.
+    const cleanableActivationStatuses = this.twentyConfigService.get(
+      'IS_WORKSPACE_APPROVAL_REQUIRED',
+    )
+      ? [WorkspaceActivationStatus.CREATED]
+      : [
           WorkspaceActivationStatus.PENDING_CREATION,
           WorkspaceActivationStatus.ONGOING_CREATION,
           WorkspaceActivationStatus.CREATED,
-        ]),
+        ];
+
+    const workspaces = await this.workspaceRepository.find({
+      where: {
+        id: In(workspaceIds),
+        activationStatus: In(cleanableActivationStatuses),
       },
       withDeleted: true,
     });

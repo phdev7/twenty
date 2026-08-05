@@ -19,6 +19,7 @@ import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twent
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserWorkspaceService } from 'src/engine/core-modules/user-workspace/user-workspace.service';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
+import { WorkspaceApprovalGateService } from 'src/engine/core-modules/workspace-approval/services/workspace-approval-gate.service';
 import { WorkspaceService } from 'src/engine/core-modules/workspace/services/workspace.service';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { createEmptyAllFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/constant/create-empty-all-flat-entity-maps.constant';
@@ -114,6 +115,17 @@ describe('WorkspaceService', () => {
           provide: service,
           useValue: {},
         })),
+        {
+          provide: WorkspaceApprovalGateService,
+          useValue: {
+            // These tests cover the stock activation paths, so the approval gate
+            // is answered as "no approval needed" and stays out of the way.
+            canActivateWithoutApproval: jest.fn().mockReturnValue(true),
+            isApprovalRequired: jest.fn().mockReturnValue(false),
+            isWorkspaceAwaitingApproval: jest.fn().mockReturnValue(false),
+            shouldBlockWorkspaceAccess: jest.fn().mockReturnValue(false),
+          },
+        },
         {
           provide: WorkspaceCacheStorageService,
           useValue: {

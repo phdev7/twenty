@@ -129,6 +129,16 @@ export const usePageChangeEffectNavigateLocation = () => {
     return;
   }
 
+  // Sits ahead of every other onboarding step: while the workspace is unapproved
+  // the server refuses all workspace-scoped traffic, so any later step would only
+  // render errors. This redirect is a convenience, not the gate itself.
+  if (
+    onboardingStatus === OnboardingStatus.WORKSPACE_APPROVAL_PENDING &&
+    !isMatchingLocation(location, AppPath.WorkspaceApprovalPending)
+  ) {
+    return AppPath.WorkspaceApprovalPending;
+  }
+
   if (
     onboardingStatus === OnboardingStatus.WORKSPACE_ACTIVATION &&
     !isMatchingLocation(location, AppPath.WorkspaceActivation)

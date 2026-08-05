@@ -19,10 +19,16 @@ import { RestApiExceptionFilter } from 'src/engine/api/rest/rest-api-exception.f
 import { AuthenticatedRequest } from 'src/engine/api/rest/types/authenticated-request';
 import { CustomPermissionGuard } from 'src/engine/guards/custom-permission.guard';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { WorkspaceApprovalGuard } from 'src/engine/guards/workspace-approval.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 
 @Controller('rest')
-@UseGuards(JwtAuthGuard, WorkspaceAuthGuard, CustomPermissionGuard)
+@UseGuards(
+  JwtAuthGuard,
+  WorkspaceAuthGuard,
+  WorkspaceApprovalGuard,
+  CustomPermissionGuard,
+)
 @UseFilters(RestApiExceptionFilter)
 export class RestApiCoreController {
   private readonly logger = new Logger(RestApiCoreController.name);

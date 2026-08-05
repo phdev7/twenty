@@ -81,6 +81,16 @@ export class OnboardingService {
     }
 
     if (this.isWorkspaceActivationPending(workspace)) {
+      // A non-admin cannot activate their own workspace while the approval gate
+      // is on, so showing them the activation step would be a dead end: they get
+      // the waiting screen until an admin approves and activates for them.
+      if (
+        this.twentyConfigService.get('IS_WORKSPACE_APPROVAL_REQUIRED') &&
+        user.canAccessFullAdminPanel !== true
+      ) {
+        return OnboardingStatus.WORKSPACE_APPROVAL_PENDING;
+      }
+
       return OnboardingStatus.WORKSPACE_ACTIVATION;
     }
 

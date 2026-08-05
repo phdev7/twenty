@@ -64,6 +64,7 @@ import { UsageModule } from 'src/engine/core-modules/usage/usage.module';
 import { UserModule } from 'src/engine/core-modules/user/user.module';
 import { WorkflowApiModule } from 'src/engine/core-modules/workflow/workflow-api.module';
 import { WorkspaceInvitationModule } from 'src/engine/core-modules/workspace-invitation/workspace-invitation.module';
+import { WorkspaceApprovalModule } from 'src/engine/core-modules/workspace-approval/workspace-approval.module';
 import { WorkspaceModule } from 'src/engine/core-modules/workspace/workspace.module';
 import { AiBillingModule } from 'src/engine/metadata-modules/ai/ai-billing/ai-billing.module';
 import { AiModelsModule } from 'src/engine/metadata-modules/ai/ai-models/ai-models.module';
@@ -119,6 +120,7 @@ import { FileModule } from './file/file.module';
     CloudflareModule,
     DnsManagerModule,
     DiexAccessRequestModule,
+    WorkspaceApprovalModule,
     WorkflowApiModule,
     WorkspaceEventEmitterModule,
     ActorModule,

@@ -8,6 +8,7 @@ import { AiGovernanceToolProvider } from 'src/engine/core-modules/tool-provider/
 import { CommercialIntelligenceToolProvider } from 'src/engine/core-modules/tool-provider/providers/commercial-intelligence-tool.provider';
 import { CustomerSuccessToolProvider } from 'src/engine/core-modules/tool-provider/providers/customer-success-tool.provider';
 import { DiexBadgeToolProvider } from 'src/engine/core-modules/tool-provider/providers/diex-badge-tool.provider';
+import { DiexWorkspaceApprovalToolProvider } from 'src/engine/core-modules/tool-provider/providers/diex-workspace-approval-tool.provider';
 import { InboxToolProvider } from 'src/engine/core-modules/tool-provider/providers/inbox-tool.provider';
 import { RenewalToolProvider } from 'src/engine/core-modules/tool-provider/providers/renewal-tool.provider';
 import { MeetingsToolProvider } from 'src/engine/core-modules/tool-provider/providers/meetings-tool.provider';
@@ -106,6 +107,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     CustomerSuccessToolProvider,
     AiGovernanceToolProvider,
     DiexBadgeToolProvider,
+    DiexWorkspaceApprovalToolProvider,
     InboxToolProvider,
     RenewalToolProvider,
     MeetingsToolProvider,
@@ -132,6 +134,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         renewalProvider: RenewalToolProvider,
         meetingsProvider: MeetingsToolProvider,
         diexBadgeProvider: DiexBadgeToolProvider,
+        diexWorkspaceApprovalProvider: DiexWorkspaceApprovalToolProvider,
         inboxProvider: InboxToolProvider,
       ) => [
         actionProvider,
@@ -150,6 +153,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         renewalProvider,
         meetingsProvider,
         diexBadgeProvider,
+        diexWorkspaceApprovalProvider,
         inboxProvider,
       ],
       inject: [
@@ -169,6 +173,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         RenewalToolProvider,
         MeetingsToolProvider,
         DiexBadgeToolProvider,
+        DiexWorkspaceApprovalToolProvider,
         InboxToolProvider,
       ],
     },

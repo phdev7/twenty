@@ -36,6 +36,8 @@ export const getPageTitleFromPath = (pathname: string): string => {
       return t`Invite`;
     case AppPath.WorkspaceActivation:
       return t`Create Workspace`;
+    case AppPath.WorkspaceApprovalPending:
+      return t`Awaiting Approval`;
     case AppPath.CreateProfile:
       return t`Create Profile`;
     case SettingsPathPrefixes.Experience:

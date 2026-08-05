@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
+import { WorkspaceApprovalGateModule } from 'src/engine/core-modules/workspace-approval/workspace-approval-gate.module';
 import { ApplicationModule } from 'src/engine/core-modules/application/application.module';
 import { TokenModule } from 'src/engine/core-modules/auth/token/token.module';
 import { BillingModule } from 'src/engine/core-modules/billing/billing.module';
@@ -44,6 +45,7 @@ import { StandardObjectsPrefillModule } from 'src/engine/workspace-manager/stand
 @Module({
   imports: [
     TypeORMModule,
+    WorkspaceApprovalGateModule,
     TypeOrmModule.forFeature([
       BillingSubscriptionEntity,
       WorkspaceEntity,

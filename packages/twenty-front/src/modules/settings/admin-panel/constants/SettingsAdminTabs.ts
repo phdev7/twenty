@@ -5,4 +5,5 @@ export const SETTINGS_ADMIN_TABS = {
   CONFIG_VARIABLES: 'config-variables',
   HEALTH_STATUS: 'health-status',
   ENTERPRISE: 'enterprise',
+  WORKSPACE_APPROVALS: 'workspace-approvals',
 };

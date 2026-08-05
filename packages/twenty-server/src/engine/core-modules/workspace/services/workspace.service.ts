@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 
 import assert from 'assert';
@@ -43,6 +43,7 @@ import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queu
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
 import { SdkClientGenerationService } from 'src/engine/core-modules/sdk-client/sdk-client-generation.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
+import { WorkspaceApprovalGateService } from 'src/engine/core-modules/workspace-approval/services/workspace-approval-gate.service';
 import { UpgradeMigrationService } from 'src/engine/core-modules/upgrade/services/upgrade-migration.service';
 import { UpgradeSequenceReaderService } from 'src/engine/core-modules/upgrade/services/upgrade-sequence-reader.service';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
@@ -133,6 +134,7 @@ export class WorkspaceService {
     private readonly billingService: BillingService,
     private readonly userWorkspaceService: UserWorkspaceService,
     private readonly twentyConfigService: TwentyConfigService,
+    private readonly workspaceApprovalGateService: WorkspaceApprovalGateService,
     private readonly exceptionHandlerService: ExceptionHandlerService,
     private readonly permissionsService: PermissionsService,
     private readonly dnsManagerService: DnsManagerService,
@@ -333,7 +335,26 @@ export class WorkspaceService {
     return updatedWorkspace;
   }
 
-  async activateWorkspace(user: AuthContextUser, workspace: WorkspaceEntity) {
+  async activateWorkspace(
+    user: AuthContextUser,
+    workspace: WorkspaceEntity,
+    options?: { bypassApprovalGate?: boolean },
+  ) {
+    // Activation is what builds the workspace schema, so it is the single act
+    // that turns "signed up" into "can reach data". When the approval gate is
+    // on, only a server admin may perform it directly; everyone else waits for
+    // WorkspaceApprovalService to call this with bypassApprovalGate on their
+    // behalf. The check lives here rather than in the resolver so no other
+    // caller can route around it.
+    if (
+      options?.bypassApprovalGate !== true &&
+      !this.workspaceApprovalGateService.canActivateWithoutApproval(user)
+    ) {
+      throw new ForbiddenException(
+        'This workspace is awaiting approval from a server administrator.',
+      );
+    }
+
     // Acquire the activation lock by atomically moving the workspace to
     // ONGOING_CREATION. First try the normal case (PENDING_CREATION). If nothing
     // matches, the workspace may be stuck in ONGOING_CREATION from a prior
@@ -950,7 +971,6 @@ export class WorkspaceService {
       );
       this.exceptionHandlerService.captureExceptions([error as Error]);
     }
-
   }
 
   async findOneWorkspaceById(id: string) {

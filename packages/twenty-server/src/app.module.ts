@@ -28,6 +28,7 @@ import { WorkspaceMetadataVersionModule } from 'src/engine/metadata-modules/work
 import { GraphQLHydrateRequestFromTokenMiddleware } from 'src/engine/middlewares/graphql-hydrate-request-from-token.middleware';
 import { MiddlewareModule } from 'src/engine/middlewares/middleware.module';
 import { RestCoreMiddleware } from 'src/engine/middlewares/rest-core.middleware';
+import { WorkspaceApprovalMiddleware } from 'src/engine/middlewares/workspace-approval.middleware';
 import { GlobalWorkspaceDataSourceModule } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-datasource.module';
 import { TwentyORMModule } from 'src/engine/twenty-orm/twenty-orm.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
@@ -112,9 +113,13 @@ export class AppModule {
   }
 
   configure(consumer: MiddlewareConsumer) {
+    // The approval middleware runs after hydration so req.workspace is resolved,
+    // and only on /graphql: that endpoint carries workspace records, while the
+    // auth/onboarding resolvers an unapproved user still needs live on /metadata.
     consumer
       .apply(
         GraphQLHydrateRequestFromTokenMiddleware,
+        WorkspaceApprovalMiddleware,
         WorkspaceAuthContextMiddleware,
       )
       .forRoutes({ path: 'graphql', method: RequestMethod.ALL });

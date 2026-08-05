@@ -494,6 +494,14 @@ export class SignInUpService {
 
     await this.assertWorkspaceCountWithinLimit(workspaceCount);
 
+    // With the approval gate on, sign-up is deliberately open: the workspace is
+    // created but stays unactivated (no database schema, no records) until a
+    // server admin approves it, so admin-only creation would be redundant and
+    // would block the very flow the gate exists to support.
+    if (this.twentyConfigService.get('IS_WORKSPACE_APPROVAL_REQUIRED')) {
+      return;
+    }
+
     if (
       !this.twentyConfigService.get(
         'IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS',

@@ -61,6 +61,12 @@ const WorkspaceActivation = lazyWithPreload(() =>
   })),
 );
 
+const WorkspaceApprovalPending = lazyWithPreload(() =>
+  import('~/pages/onboarding/WorkspaceApprovalPending').then((module) => ({
+    default: module.WorkspaceApprovalPending,
+  })),
+);
+
 const CreateProfile = lazyWithPreload(() =>
   import('~/pages/onboarding/CreateProfile').then((module) => ({
     default: module.CreateProfile,
@@ -167,6 +173,7 @@ const CommercialIntelligencePage = lazy(() =>
 
 const preloadOnboardingPages = () => {
   void WorkspaceActivation.preload();
+  void WorkspaceApprovalPending.preload();
   void CreateProfile.preload();
   void SyncEmails.preload();
   void InstallApps.preload();
@@ -359,6 +366,18 @@ const createWorkspaceAppRouter = (
               }
             />
           </Route>
+          {/* Outside OnboardingActivationOutlet: this is a terminal waiting
+              screen, not a step in progress, so the activation progress bar
+              would misrepresent it. */}
+          <Route
+            path={AppPath.WorkspaceApprovalPending}
+            element={
+              <LazyRoute fallback={<OnboardingPageLoader />}>
+                <WorkspaceApprovalPending />
+              </LazyRoute>
+            }
+            loader={preloadOnboardingPages}
+          />
           <Route
             element={<OnboardingStepLayout />}
             loader={preloadOnboardingPages}

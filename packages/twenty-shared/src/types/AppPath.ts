@@ -8,6 +8,7 @@ export enum AppPath {
 
   // Onboarding
   WorkspaceActivation = '/workspace-activation',
+  WorkspaceApprovalPending = '/workspace-approval-pending',
   CreateProfile = '/create/profile',
   SyncEmails = '/sync/emails',
   InstallApps = '/install-apps',
