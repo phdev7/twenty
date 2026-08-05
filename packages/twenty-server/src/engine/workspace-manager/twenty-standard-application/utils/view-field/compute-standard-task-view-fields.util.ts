@@ -254,6 +254,68 @@ export const computeStandardTaskViewFields = (
       },
     }),
 
+    // agenda view fields
+    agendaTitle: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        viewFieldName: 'title',
+        fieldName: 'title',
+        position: 0,
+        isVisible: true,
+        size: 240,
+      },
+    }),
+    agendaStatus: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        viewFieldName: 'status',
+        fieldName: 'status',
+        position: 1,
+        isVisible: true,
+        size: 130,
+      },
+    }),
+    agendaDueAt: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        viewFieldName: 'dueAt',
+        fieldName: 'dueAt',
+        position: 2,
+        isVisible: true,
+        size: 170,
+      },
+    }),
+    agendaAssignee: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        viewFieldName: 'assignee',
+        fieldName: 'assignee',
+        position: 3,
+        isVisible: true,
+        size: 170,
+      },
+    }),
+    agendaTaskTargets: createStandardViewFieldFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        viewFieldName: 'taskTargets',
+        fieldName: 'taskTargets',
+        position: 4,
+        isVisible: true,
+        size: 190,
+      },
+    }),
+
     // taskRecordPageFields view fields
     // General group
     taskRecordPageFieldsDueAt: createStandardViewFieldFlatMetadata({

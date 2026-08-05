@@ -31,6 +31,16 @@ export const STANDARD_NAVIGATION_MENU_ITEMS = {
       STANDARD_OBJECTS.task.views.allTasks.universalIdentifier,
     position: 3,
   },
+  agenda: {
+    universalIdentifier: 'd1e18030-0000-4000-8000-000000000001',
+    type: NavigationMenuItemType.VIEW,
+    name: 'Agenda',
+    icon: 'IconCalendarEvent',
+    color: 'purple',
+    position: -0.5,
+    viewUniversalIdentifier:
+      STANDARD_OBJECTS.task.views.agenda.universalIdentifier,
+  },
   allNotes: {
     universalIdentifier: '20202020-b003-4b03-8b03-c0aba11c0003',
     type: NavigationMenuItemType.OBJECT,
@@ -294,6 +304,7 @@ export const STANDARD_NAVIGATION_MENU_ITEM_DEFAULT_COLORS: Partial<
   allCompanies: 'blue',
   allPeople: 'blue',
   allTasks: 'turquoise',
+  agenda: 'purple',
   allNotes: 'turquoise',
   allOpportunities: 'red',
   workflowsFolder: 'orange',

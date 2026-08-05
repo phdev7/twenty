@@ -24,5 +24,19 @@ export const computeStandardTaskViewFilters = (
         }),
       },
     }),
+    agendaAssigneeIsMe: createStandardViewFilterFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        viewFilterName: 'assigneeIsMe',
+        fieldName: 'assignee',
+        operand: ViewFilterOperand.IS,
+        value: JSON.stringify({
+          isCurrentWorkspaceMemberSelected: true,
+          selectedRecordIds: [],
+        }),
+      },
+    }),
   };
 };

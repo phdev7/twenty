@@ -16,7 +16,7 @@ import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { useId, useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
-import { IconMaximize } from 'twenty-ui/icon';
+import { IconClick, IconLink, IconMaximize, IconPhoto } from 'twenty-ui/icon';
 import { LightIconButton } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { useIsMobile } from 'twenty-ui/utilities';
@@ -43,6 +43,33 @@ const StyledAdvancedTextFieldInnerContainer = styled.div`
   flex-grow: 1;
   overflow: auto;
   width: 100%;
+`;
+
+const StyledEmailToolbar = styled.div`
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${themeCssVariables.spacing[1]};
+`;
+
+const StyledEmailToolbarButton = styled.button`
+  align-items: center;
+  background: ${themeCssVariables.background.transparent.lighter};
+  border: 1px solid ${themeCssVariables.border.color.medium};
+  border-radius: ${themeCssVariables.border.radius.sm};
+  color: ${themeCssVariables.font.color.secondary};
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: ${themeCssVariables.font.size.xs};
+  gap: ${themeCssVariables.spacing[1]};
+  height: 28px;
+  padding: 0 ${themeCssVariables.spacing[2]};
+
+  &:hover {
+    background: ${themeCssVariables.background.transparent.light};
+    color: ${themeCssVariables.font.color.primary};
+  }
 `;
 
 const StyledEditorActionButtonContainer = styled.div<{
@@ -84,6 +111,7 @@ type FormAdvancedTextFieldInputProps = {
   minHeight: number;
   maxWidth: number;
   contentType?: AdvancedTextEditorContentType;
+  emailComposerMode?: boolean;
 };
 
 export const FormAdvancedTextFieldInput = ({
@@ -102,6 +130,7 @@ export const FormAdvancedTextFieldInput = ({
   minHeight,
   maxWidth,
   contentType = 'json',
+  emailComposerMode = false,
 }: FormAdvancedTextFieldInputProps) => {
   const instanceId = useId();
   const isMobile = useIsMobile();
@@ -166,6 +195,93 @@ export const FormAdvancedTextFieldInput = ({
     editor.commands.insertVariableTag(variableName);
   };
 
+  const getAllowedUrl = (
+    rawUrl: string,
+    allowedProtocols: string[],
+  ): string | null => {
+    try {
+      const parsedUrl = new URL(rawUrl);
+
+      return allowedProtocols.includes(parsedUrl.protocol)
+        ? parsedUrl.toString()
+        : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleInsertLink = () => {
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to, ' ');
+    const rawHref = window.prompt('Cole o endereço do link (https://...)');
+
+    if (!rawHref) return;
+
+    const href = getAllowedUrl(rawHref, ['http:', 'https:', 'mailto:']);
+
+    if (!href) {
+      window.alert(
+        'Informe uma URL segura iniciada por https://, http:// ou mailto:.',
+      );
+      return;
+    }
+
+    if (selectedText) {
+      editor.chain().focus().setLink({ href }).run();
+      return;
+    }
+
+    const label = window.prompt('Texto que será exibido', 'Abrir link');
+
+    if (!label) return;
+
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: 'text',
+        text: label,
+        marks: [{ type: 'link', attrs: { href } }],
+      })
+      .run();
+  };
+
+  const handleInsertImage = () => {
+    const rawSrc = window.prompt(
+      'Cole a URL pública da imagem (https://...). Para arquivos, use Anexos.',
+    );
+
+    if (!rawSrc) return;
+
+    const src = getAllowedUrl(rawSrc, ['http:', 'https:']);
+
+    if (!src) {
+      window.alert('Informe uma URL pública iniciada por https:// ou http://.');
+      return;
+    }
+
+    editor.chain().focus().setImage({ src }).run();
+  };
+
+  const handleInsertButton = () => {
+    const rawHref = window.prompt('Cole o endereço do botão (https://...)');
+
+    if (!rawHref) return;
+
+    const href = getAllowedUrl(rawHref, ['http:', 'https:']);
+
+    if (!href) {
+      window.alert('Informe uma URL segura iniciada por https:// ou http://.');
+      return;
+    }
+
+    const label = window.prompt('Texto do botão', 'Saiba mais');
+
+    if (!label) return;
+
+    editor.chain().focus().insertEmailButton({ href, label }).run();
+  };
+
   const defaultBreadcrumbs: BreadcrumbProps['links'] = [
     {
       children: t`Text Editor`,
@@ -207,6 +323,31 @@ export const FormAdvancedTextFieldInput = ({
           {label ? <InputLabel>{label}</InputLabel> : null}
 
           <StyledAdvancedTextFieldFieldContainer>
+            {emailComposerMode && (
+              <StyledEmailToolbar>
+                <StyledEmailToolbarButton
+                  type="button"
+                  onClick={handleInsertLink}
+                >
+                  <IconLink size={14} />
+                  Link
+                </StyledEmailToolbarButton>
+                <StyledEmailToolbarButton
+                  type="button"
+                  onClick={handleInsertButton}
+                >
+                  <IconClick size={14} />
+                  Botão de ação
+                </StyledEmailToolbarButton>
+                <StyledEmailToolbarButton
+                  type="button"
+                  onClick={handleInsertImage}
+                >
+                  <IconPhoto size={14} />
+                  Imagem por URL
+                </StyledEmailToolbarButton>
+              </StyledEmailToolbar>
+            )}
             <StyledAdvancedTextFieldInnerContainer>
               {!isFullScreen && (
                 <AdvancedTextEditor

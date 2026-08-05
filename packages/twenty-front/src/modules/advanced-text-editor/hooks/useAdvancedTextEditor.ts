@@ -1,4 +1,5 @@
 import { ResizableImage } from '@/advanced-text-editor/extensions/resizable-image/ResizableImage';
+import { EmailButton } from '@/advanced-text-editor/extensions/email-button/EmailButton';
 import { UploadImageExtension } from '@/advanced-text-editor/extensions/resizable-image/UploadImageExtension';
 import { SlashCommand } from '@/advanced-text-editor/extensions/slash-command/SlashCommand';
 import { getInitialAdvancedTextEditorContent } from '@/workflow/workflow-variables/utils/getInitialAdvancedTextEditorContent';
@@ -79,6 +80,7 @@ export const useAdvancedTextEditor = (
         openOnClick: false,
       }),
       ResizableImage,
+      EmailButton,
       Dropcursor,
       ListKit,
       UploadImageExtension.configure({

@@ -10,7 +10,7 @@ import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { OnboardingStepAnimatedItem } from '@/onboarding/components/OnboardingStepAnimatedItem';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { useLoadCurrentUser } from '@/users/hooks/useLoadCurrentUser';
-import { Trans, useLingui } from '@lingui/react/macro';
+import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { MainButton } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
@@ -73,17 +73,13 @@ export const WorkspaceApprovalPending = () => {
         />
       </OnboardingStepAnimatedItem>
       <OnboardingStepAnimatedItem index={1}>
-        <Title>
-          <Trans>Awaiting approval</Trans>
-        </Title>
+        <Title>Cadastro recebido</Title>
       </OnboardingStepAnimatedItem>
       <OnboardingStepAnimatedItem index={2}>
         <SubTitle>
-          <Trans>
-            Your workspace has been created and is waiting for a server
-            administrator to approve it. You will be able to sign in and finish
-            setting up as soon as it is approved.
-          </Trans>
+          Seu workspace está protegido e aguarda a liberação de um administrador
+          da Diex. Nenhum dado ou módulo do CRM pode ser acessado antes da
+          aprovação.
         </SubTitle>
       </OnboardingStepAnimatedItem>
       <OnboardingStepAnimatedItem index={3}>
@@ -99,7 +95,7 @@ export const WorkspaceApprovalPending = () => {
       <OnboardingStepAnimatedItem index={4}>
         <StyledButtonContainer>
           <MainButton
-            title={t`Check again`}
+            title="Verificar aprovação"
             onClick={() => {
               void handleCheckAgain();
             }}

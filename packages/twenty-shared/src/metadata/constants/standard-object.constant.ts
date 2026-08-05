@@ -2118,6 +2118,31 @@ export const STANDARD_OBJECTS = {
           },
         },
       },
+      agenda: {
+        universalIdentifier: 'd1e18000-0000-4000-8000-000000000001',
+        viewFields: {
+          title: {
+            universalIdentifier: 'd1e18010-0000-4000-8000-000000000001',
+          },
+          status: {
+            universalIdentifier: 'd1e18010-0000-4000-8000-000000000002',
+          },
+          dueAt: {
+            universalIdentifier: 'd1e18010-0000-4000-8000-000000000003',
+          },
+          assignee: {
+            universalIdentifier: 'd1e18010-0000-4000-8000-000000000004',
+          },
+          taskTargets: {
+            universalIdentifier: 'd1e18010-0000-4000-8000-000000000005',
+          },
+        },
+        viewFilters: {
+          assigneeIsMe: {
+            universalIdentifier: 'd1e18020-0000-4000-8000-000000000001',
+          },
+        },
+      },
       byStatus: {
         universalIdentifier: '20202020-a008-4a08-8a08-ba5cba51aba5',
         viewFields: {

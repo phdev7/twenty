@@ -116,6 +116,7 @@ export const useEmailComposerState = ({
   ]);
 
   return {
+    isReply: Boolean(defaultInReplyTo || draftPrefill?.messageId),
     connectedAccountId,
     setConnectedAccountId,
     to,

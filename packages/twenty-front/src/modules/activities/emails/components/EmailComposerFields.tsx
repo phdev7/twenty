@@ -6,19 +6,72 @@ import { EmailRecipientsFieldInput } from '@/activities/emails/recipients/compon
 import { type EmailComposerContextRecord } from '@/activities/emails/recipients/types/EmailComposerContextRecord';
 import { getEmailRecipientKey } from '@/activities/emails/recipients/utils/getEmailRecipientKey';
 import { type EmailComposerState } from '@/activities/emails/types/EmailComposerState';
+import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
 import { FormAdvancedTextFieldInput } from '@/object-record/record-field/ui/form-types/components/FormAdvancedTextFieldInput';
 import { FormTextFieldInput } from '@/object-record/record-field/ui/form-types/components/FormTextFieldInput';
 import { GET_MY_CONNECTED_ACCOUNTS } from '@/settings/accounts/graphql/queries/getMyConnectedAccounts';
 import { Select } from '@/ui/input/components/Select';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { t } from '@lingui/core/macro';
+import { Avatar } from 'twenty-ui/data-display';
+import { IconMail } from 'twenty-ui/icon';
 import { type SelectOption } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { getAbsoluteImageUrl } from '~/utils/image/getAbsoluteImageUrl';
 
 const StyledFieldsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${themeCssVariables.spacing[1]};
   padding: ${themeCssVariables.spacing[3]} ${themeCssVariables.spacing[2]};
+`;
+
+const StyledComposerHeader = styled.div`
+  border-bottom: 1px solid ${themeCssVariables.border.color.light};
+  display: flex;
+  flex-direction: column;
+  gap: ${themeCssVariables.spacing[2]};
+  margin: 0 0 ${themeCssVariables.spacing[2]};
+  padding: 0 0 ${themeCssVariables.spacing[3]};
+`;
+
+const StyledComposerTitle = styled.div`
+  align-items: center;
+  color: ${themeCssVariables.font.color.primary};
+  display: flex;
+  font-size: ${themeCssVariables.font.size.lg};
+  font-weight: ${themeCssVariables.font.weight.semiBold};
+  gap: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledSenderIdentity = styled.div`
+  align-items: center;
+  background: ${themeCssVariables.background.transparent.lighter};
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.md};
+  display: flex;
+  gap: ${themeCssVariables.spacing[2]};
+  padding: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledSenderText = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+`;
+
+const StyledSenderName = styled.div`
+  color: ${themeCssVariables.font.color.primary};
+  font-size: ${themeCssVariables.font.size.sm};
+  font-weight: ${themeCssVariables.font.weight.medium};
+`;
+
+const StyledSenderHandle = styled.div`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const StyledToRow = styled.div`
@@ -55,9 +108,18 @@ export const EmailComposerFields = ({
   composerState,
   contextRecord,
 }: EmailComposerFieldsProps) => {
+  const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
   const { data: accountsData } = useQuery<{
-    myConnectedAccounts: { id: string; handle: string }[];
+    myConnectedAccounts: { id: string; handle: string; name: string | null }[];
   }>(GET_MY_CONNECTED_ACCOUNTS);
+
+  const selectedAccount = accountsData?.myConnectedAccounts?.find(
+    (account) => account.id === composerState.connectedAccountId,
+  );
+  const senderName =
+    selectedAccount?.name ||
+    `${currentWorkspaceMember?.name.firstName ?? ''} ${currentWorkspaceMember?.name.lastName ?? ''}`.trim() ||
+    'Diex CRM';
 
   const accountOptions: SelectOption<string>[] =
     accountsData?.myConnectedAccounts?.map((account) => ({
@@ -75,6 +137,27 @@ export const EmailComposerFields = ({
 
   return (
     <StyledFieldsContainer>
+      <StyledComposerHeader>
+        <StyledComposerTitle>
+          <IconMail size={20} />
+          {composerState.isReply ? 'Responder por e-mail' : 'Novo e-mail'}
+        </StyledComposerTitle>
+        <StyledSenderIdentity>
+          <Avatar
+            type="rounded"
+            size="md"
+            placeholder={senderName}
+            placeholderColorSeed={currentWorkspaceMember?.id}
+            avatarUrl={getAbsoluteImageUrl(currentWorkspaceMember?.avatarUrl)}
+          />
+          <StyledSenderText>
+            <StyledSenderName>{senderName}</StyledSenderName>
+            <StyledSenderHandle>
+              {selectedAccount?.handle ?? 'Conta de envio conectada'}
+            </StyledSenderHandle>
+          </StyledSenderText>
+        </StyledSenderIdentity>
+      </StyledComposerHeader>
       {hasMultipleAccounts && (
         <Select
           dropdownId="email-composer-from-account"
@@ -141,6 +224,7 @@ export const EmailComposerFields = ({
         minHeight={120}
         maxWidth={600}
         contentType="html"
+        emailComposerMode
       />
       <EmailAttachmentsField
         label={t`Attachments`}

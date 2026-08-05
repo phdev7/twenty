@@ -1,13 +1,15 @@
-import { isMultiWorkspaceEnabledState } from '@/client-config/states/isMultiWorkspaceEnabledState';
-import { useReadWorkspaceUrlFromCurrentLocation } from '@/domain-manager/hooks/useReadWorkspaceUrlFromCurrentLocation';
-import { useRedirectToWorkspaceDomain } from '@/domain-manager/hooks/useRedirectToWorkspaceDomain';
-import { lastAuthenticatedWorkspaceDomainState } from '@/domain-manager/states/lastAuthenticatedWorkspaceDomainState';
-import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
-import { useEffect, useCallback } from 'react';
-
 import { useInitializeQueryParamState } from '@/app/hooks/useInitializeQueryParamState';
+import { isMultiWorkspaceEnabledState } from '@/client-config/states/isMultiWorkspaceEnabledState';
 import { useGetPublicWorkspaceDataByDomain } from '@/domain-manager/hooks/useGetPublicWorkspaceDataByDomain';
 import { useIsCurrentLocationOnDefaultDomain } from '@/domain-manager/hooks/useIsCurrentLocationOnDefaultDomain';
+import { useLastAuthenticatedWorkspaceDomain } from '@/domain-manager/hooks/useLastAuthenticatedWorkspaceDomain';
+import { useReadDefaultDomainFromConfiguration } from '@/domain-manager/hooks/useReadDefaultDomainFromConfiguration';
+import { useReadWorkspaceUrlFromCurrentLocation } from '@/domain-manager/hooks/useReadWorkspaceUrlFromCurrentLocation';
+import { useRedirectToWorkspaceDomain } from '@/domain-manager/hooks/useRedirectToWorkspaceDomain';
+import { domainConfigurationState } from '@/domain-manager/states/domainConfigurationState';
+import { lastAuthenticatedWorkspaceDomainState } from '@/domain-manager/states/lastAuthenticatedWorkspaceDomainState';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { useCallback, useEffect } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { type WorkspaceUrls } from '~/generated-metadata/graphql';
 import { getWorkspaceUrl } from '~/utils/getWorkspaceUrl';
@@ -23,7 +25,11 @@ export const WorkspaceProviderEffect = () => {
   );
 
   const { redirectToWorkspaceDomain } = useRedirectToWorkspaceDomain();
+  const { setLastAuthenticateWorkspaceDomain } =
+    useLastAuthenticatedWorkspaceDomain();
   const { isDefaultDomain } = useIsCurrentLocationOnDefaultDomain();
+  const { defaultDomain } = useReadDefaultDomainFromConfiguration();
+  const { frontDomain } = useAtomStateValue(domainConfigurationState);
 
   const { currentLocationHostname } = useReadWorkspaceUrlFromCurrentLocation();
 
@@ -65,25 +71,56 @@ export const WorkspaceProviderEffect = () => {
 
   useEffect(() => {
     if (
-      isMultiWorkspaceEnabled &&
-      isDefaultDomain &&
-      isDefined(lastAuthenticatedWorkspaceDomain) &&
-      'workspaceUrl' in lastAuthenticatedWorkspaceDomain &&
-      isDefined(lastAuthenticatedWorkspaceDomain?.workspaceUrl)
+      !isMultiWorkspaceEnabled ||
+      !isDefaultDomain ||
+      !isDefined(lastAuthenticatedWorkspaceDomain) ||
+      !('workspaceUrl' in lastAuthenticatedWorkspaceDomain) ||
+      !isDefined(lastAuthenticatedWorkspaceDomain.workspaceUrl)
     ) {
-      initializeQueryParamState();
-      redirectToWorkspaceDomain(
-        lastAuthenticatedWorkspaceDomain.workspaceUrl,
-        window.location.pathname,
-        getCurrentSearchParams(),
-      );
+      return;
     }
+
+    let rememberedHostname: string;
+
+    try {
+      rememberedHostname = new URL(
+        lastAuthenticatedWorkspaceDomain.workspaceUrl,
+      ).hostname;
+    } catch {
+      setLastAuthenticateWorkspaceDomain(null);
+      return;
+    }
+
+    // The apex/front domain is the public landing, not a workspace. Old Diex
+    // sessions used to persist crm.bydiex.com as the last workspace; the public
+    // nginx redirects /welcome to app.crm.bydiex.com while this effect redirected
+    // it back, producing an endless client/proxy loop. Discard that stale value
+    // instead of navigating to it. The default domain is rejected as well because
+    // redirecting to the current host only replays the same effect.
+    if (
+      rememberedHostname === frontDomain ||
+      rememberedHostname === defaultDomain ||
+      rememberedHostname === window.location.hostname
+    ) {
+      setLastAuthenticateWorkspaceDomain(null);
+      return;
+    }
+
+    initializeQueryParamState();
+    redirectToWorkspaceDomain(
+      lastAuthenticatedWorkspaceDomain.workspaceUrl,
+      window.location.pathname,
+      getCurrentSearchParams(),
+    );
   }, [
     isMultiWorkspaceEnabled,
     isDefaultDomain,
+    defaultDomain,
+    frontDomain,
     lastAuthenticatedWorkspaceDomain,
     redirectToWorkspaceDomain,
     initializeQueryParamState,
+    setLastAuthenticateWorkspaceDomain,
   ]);
 
   return <></>;

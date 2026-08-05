@@ -1,4 +1,5 @@
 import { PageLayoutWidgetErrorDisplay } from '@/page-layout/widgets/components/PageLayoutWidgetErrorDisplay';
+import { useDashboardFilteredChartConfiguration } from '@/page-layout/dashboard/hooks/useDashboardFilteredChartConfiguration';
 import { WidgetSkeletonLoader } from '@/page-layout/widgets/components/WidgetSkeletonLoader';
 import { useGraphWidgetAggregateQuery } from '@/page-layout/widgets/graph/hooks/useGraphWidgetAggregateQuery';
 import { assertAggregateChartWidgetOrThrow } from '@/page-layout/widgets/graph/utils/assertAggregateChartWidget';
@@ -19,9 +20,14 @@ export const GraphWidgetAggregateChartRenderer = () => {
 
   assertAggregateChartWidgetOrThrow(widget);
 
-  const { value, loading, error } = useGraphWidgetAggregateQuery({
+  const filteredConfiguration = useDashboardFilteredChartConfiguration({
     objectMetadataItemId: widget.objectMetadataId,
     configuration: widget.configuration,
+  });
+
+  const { value, loading, error } = useGraphWidgetAggregateQuery({
+    objectMetadataItemId: widget.objectMetadataId,
+    configuration: filteredConfiguration,
   });
 
   if (loading) {

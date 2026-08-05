@@ -1,4 +1,5 @@
 import { PageLayoutWidgetDndProvider } from '@/page-layout/components/dnd/PageLayoutWidgetDndProvider';
+import { DashboardGlobalFilterBar } from '@/page-layout/dashboard/components/DashboardGlobalFilterBar';
 import { PageLayoutLeftPanel } from '@/page-layout/components/PageLayoutLeftPanel';
 import { PageLayoutTabList } from '@/page-layout/components/PageLayoutTabList';
 import { PageLayoutTabListEffect } from '@/page-layout/components/PageLayoutTabListEffect';
@@ -18,6 +19,7 @@ import { ScrollWrapper } from '@/ui/utilities/scroll/components/ScrollWrapper';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { styled } from '@linaria/react';
 import { isDefined } from 'twenty-shared/utils';
+import { PageLayoutType } from '~/generated-metadata/graphql';
 
 const StyledContainer = styled.div<{ hasPinnedTab: boolean }>`
   display: grid;
@@ -125,6 +127,9 @@ export const PageLayoutTabsRenderer = () => {
               pageLayoutType={currentPageLayout.type}
             />
           )}
+
+          {currentPageLayout.type === PageLayoutType.DASHBOARD &&
+            !isPageLayoutInEditMode && <DashboardGlobalFilterBar />}
 
           <StyledScrollWrapperContainer>
             <ScrollWrapper

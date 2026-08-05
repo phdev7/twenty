@@ -1,4 +1,5 @@
 import { useIsPageLayoutInEditMode } from '@/page-layout/hooks/useIsPageLayoutInEditMode';
+import { useDashboardFilteredChartConfiguration } from '@/page-layout/dashboard/hooks/useDashboardFilteredChartConfiguration';
 import { PageLayoutWidgetErrorDisplay } from '@/page-layout/widgets/components/PageLayoutWidgetErrorDisplay';
 import { WidgetSkeletonLoader } from '@/page-layout/widgets/components/WidgetSkeletonLoader';
 import { GraphWidgetChartHasTooManyGroupsEffect } from '@/page-layout/widgets/graph/components/GraphWidgetChartHasTooManyGroupsEffect';
@@ -31,6 +32,10 @@ export const GraphWidgetPieChartRenderer = () => {
   assertPieChartWidgetOrThrow(widget);
 
   const { userTimezone } = useUserTimezone();
+  const filteredConfiguration = useDashboardFilteredChartConfiguration({
+    objectMetadataItemId: widget.objectMetadataId,
+    configuration: widget.configuration,
+  });
 
   const {
     data,
@@ -45,7 +50,7 @@ export const GraphWidgetPieChartRenderer = () => {
     colorMode,
   } = useGraphPieChartWidgetData({
     objectMetadataItemId: widget.objectMetadataId,
-    configuration: widget.configuration,
+    configuration: filteredConfiguration,
   });
 
   const navigate = useNavigate();
@@ -69,7 +74,7 @@ export const GraphWidgetPieChartRenderer = () => {
 
     const drilldownQueryParams = buildChartDrilldownQueryParams({
       objectMetadataItem,
-      configuration: widget.configuration,
+      configuration: filteredConfiguration,
       clickedData: {
         primaryBucketRawValue: rawValue,
       },

@@ -1,4 +1,5 @@
 import { useIsPageLayoutInEditMode } from '@/page-layout/hooks/useIsPageLayoutInEditMode';
+import { useDashboardFilteredChartConfiguration } from '@/page-layout/dashboard/hooks/useDashboardFilteredChartConfiguration';
 import { PageLayoutWidgetErrorDisplay } from '@/page-layout/widgets/components/PageLayoutWidgetErrorDisplay';
 import { WidgetSkeletonLoader } from '@/page-layout/widgets/components/WidgetSkeletonLoader';
 import { GraphWidgetChartHasTooManyGroupsEffect } from '@/page-layout/widgets/graph/components/GraphWidgetChartHasTooManyGroupsEffect';
@@ -34,6 +35,10 @@ export const GraphWidgetBarChartRenderer = () => {
 
   const { userTimezone } = useUserTimezone();
   const { userFirstDayOfTheWeek } = useUserFirstDayOfTheWeek();
+  const filteredConfiguration = useDashboardFilteredChartConfiguration({
+    objectMetadataItemId: widget.objectMetadataId,
+    configuration: widget.configuration,
+  });
 
   const {
     data,
@@ -54,11 +59,11 @@ export const GraphWidgetBarChartRenderer = () => {
     objectMetadataItem,
   } = useGraphBarChartWidgetData({
     objectMetadataItemId: widget.objectMetadataId,
-    configuration: widget.configuration,
+    configuration: filteredConfiguration,
   });
 
   const navigate = useNavigate();
-  const configuration = widget.configuration;
+  const configuration = filteredConfiguration;
   const isPageLayoutInEditMode = useIsPageLayoutInEditMode();
 
   const axisNameDisplay = configuration.axisNameDisplay;

@@ -8,10 +8,16 @@
   "background_color": "#FDFCFF",
   "icons": [
     {
-      "src": "images/brand/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "images/brand/diex-pwa-192.png?v=diex-brand-20260804",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/brand/diex-pwa-512.png?v=diex-brand-20260804",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

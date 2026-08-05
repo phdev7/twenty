@@ -1,4 +1,5 @@
 import { useIsPageLayoutInEditMode } from '@/page-layout/hooks/useIsPageLayoutInEditMode';
+import { useDashboardFilteredChartConfiguration } from '@/page-layout/dashboard/hooks/useDashboardFilteredChartConfiguration';
 import { PageLayoutWidgetErrorDisplay } from '@/page-layout/widgets/components/PageLayoutWidgetErrorDisplay';
 import { WidgetSkeletonLoader } from '@/page-layout/widgets/components/WidgetSkeletonLoader';
 import { GraphWidgetChartHasTooManyGroupsEffect } from '@/page-layout/widgets/graph/components/GraphWidgetChartHasTooManyGroupsEffect';
@@ -37,6 +38,10 @@ export const GraphWidgetLineChartRenderer = () => {
   assertLineChartWidgetOrThrow(widget);
 
   const { userTimezone } = useUserTimezone();
+  const filteredConfiguration = useDashboardFilteredChartConfiguration({
+    objectMetadataItemId: widget.objectMetadataId,
+    configuration: widget.configuration,
+  });
 
   const {
     series,
@@ -52,11 +57,11 @@ export const GraphWidgetLineChartRenderer = () => {
     objectMetadataItem,
   } = useGraphLineChartWidgetData({
     objectMetadataItemId: widget.objectMetadataId,
-    configuration: widget.configuration,
+    configuration: filteredConfiguration,
   });
 
   const navigate = useNavigate();
-  const configuration = widget.configuration;
+  const configuration = filteredConfiguration;
   const isPageLayoutInEditMode = useIsPageLayoutInEditMode();
 
   const hasGroupByOnSecondaryAxis = isDefined(

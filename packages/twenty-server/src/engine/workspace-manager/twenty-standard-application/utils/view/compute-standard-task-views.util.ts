@@ -49,6 +49,19 @@ export const computeStandardTaskViews = (
         mainGroupByFieldName: 'status',
       },
     }),
+    agenda: createStandardViewFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        name: 'Minha agenda',
+        type: ViewType.CALENDAR,
+        key: null,
+        position: 3,
+        icon: 'IconCalendarEvent',
+        calendarFieldName: 'dueAt',
+      },
+    }),
     taskRecordPageFields: createStandardViewFlatMetadata({
       ...args,
       objectName: 'task',
