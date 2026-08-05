@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { type ObjectLiteral, IsNull, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 
 import { SignInUpService } from 'src/engine/core-modules/auth/services/sign-in-up.service';
@@ -109,16 +109,19 @@ export class DiexAccessRequestService {
   private async withRepository<T>(
     workspaceId: string,
     operation: (
-      repository: WorkspaceRepository<DiexAccessRequestRecord & ObjectLiteral>,
+      repository: WorkspaceRepository<DiexAccessRequestRecord>,
     ) => Promise<T>,
   ): Promise<T> {
     return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
       async () => {
-        const repository = await this.globalWorkspaceOrmManager.getRepository<
-          DiexAccessRequestRecord & ObjectLiteral
-        >(workspaceId, 'diexAccessRequest', {
-          shouldBypassPermissionChecks: true,
-        });
+        const repository =
+          await this.globalWorkspaceOrmManager.getRepository<DiexAccessRequestRecord>(
+            workspaceId,
+            'diexAccessRequest',
+            {
+              shouldBypassPermissionChecks: true,
+            },
+          );
 
         return operation(repository);
       },

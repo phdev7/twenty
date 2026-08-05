@@ -290,7 +290,7 @@ export class InboxTriageService {
     const evidence = readString(result, 'evidence');
     const recommendedAction = readString(result, 'recommended_action');
     const suggestedReply = readString(result, 'suggested_reply');
-    const latestMessageId = context.messages.at(-1)?.id;
+    const latestMessageId = context.messages[context.messages.length - 1]?.id;
 
     let commercialSignalId: string | undefined;
     let aiActionId: string | undefined;

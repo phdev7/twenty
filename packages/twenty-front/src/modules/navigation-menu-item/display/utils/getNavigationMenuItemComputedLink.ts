@@ -5,7 +5,7 @@ import { getRecordNavigationMenuItemComputedLink } from '@/navigation-menu-item/
 import { getViewNavigationMenuItemComputedLink } from '@/navigation-menu-item/display/view/utils/getViewNavigationMenuItemComputedLink';
 import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
 import { type View } from '@/views/types/View';
-import { NavigationMenuItemType } from 'twenty-shared/types';
+import { AppPath, NavigationMenuItemType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { type NavigationMenuItem } from '~/generated-metadata/graphql';
 
@@ -34,8 +34,8 @@ export const getNavigationMenuItemComputedLink = ({
       );
     }
     case NavigationMenuItemType.VIEW:
-      if (item.universalIdentifier === 'd1e18030-0000-4000-8000-000000000001') {
-        return '/diex/calendar';
+      if (item.link === AppPath.DiexCalendar) {
+        return AppPath.DiexCalendar;
       }
       return getViewNavigationMenuItemComputedLink(
         item,

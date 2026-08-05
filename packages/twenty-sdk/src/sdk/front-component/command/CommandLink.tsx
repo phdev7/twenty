@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 
-import { type NavigateOptions } from 'react-router-dom';
+import { type NavigateOptions, type PathParam } from 'react-router-dom';
 import { type AppPath } from 'twenty-shared/types';
-import { type getAppPath } from 'twenty-shared/utils';
 import { navigate, unmountFrontComponent, useFrontComponentId } from '..';
 
-export type CommandLinkProps<T extends AppPath> = {
+type AppPathValue = `${AppPath}`;
+
+export type CommandLinkProps<T extends AppPathValue> = {
   to: T;
-  params?: Parameters<typeof getAppPath<T>>[1];
+  params?: { [key in PathParam<T>]: string | null };
   queryParams?: Record<string, any>;
   options?: NavigateOptions;
 };
 
-export const CommandLink = <T extends AppPath>({
+export const CommandLink = <T extends AppPathValue>({
   to,
   params,
   queryParams,

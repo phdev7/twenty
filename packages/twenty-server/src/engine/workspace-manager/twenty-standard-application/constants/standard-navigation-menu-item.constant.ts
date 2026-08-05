@@ -37,6 +37,7 @@ export const STANDARD_NAVIGATION_MENU_ITEMS = {
     name: 'Agenda',
     icon: 'IconCalendarEvent',
     color: 'purple',
+    link: '/diex/calendar',
     position: -0.5,
     viewUniversalIdentifier:
       STANDARD_OBJECTS.task.views.agenda.universalIdentifier,
@@ -292,6 +293,7 @@ export type StandardNavigationMenuItemDefinition = {
   name?: string;
   icon?: string;
   color?: string;
+  link?: string;
   position: number;
   viewUniversalIdentifier?: string;
   folderUniversalIdentifier?: string;

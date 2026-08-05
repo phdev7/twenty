@@ -4,11 +4,13 @@ import {
   type EnqueueSnackbarParams,
   type NavigateOptions,
 } from 'twenty-shared/types';
-import { type getAppPath } from 'twenty-shared/utils';
+import { type PathParam } from 'react-router-dom';
 
-export type NavigateFunction = <T extends AppPath>(
+type AppPathValue = `${AppPath}`;
+
+export type NavigateFunction = <T extends AppPathValue>(
   to: T,
-  params?: Parameters<typeof getAppPath<T>>[1],
+  params?: { [key in PathParam<T>]: string | null },
   queryParams?: Record<string, any>,
   options?: NavigateOptions,
 ) => Promise<void>;

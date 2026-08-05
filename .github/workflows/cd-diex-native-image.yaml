@@ -8,8 +8,12 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: Optional image tag (defaults to the commit SHA)
-        required: false
+        description: Docker image tag, for example diex-v0.6.23
+        required: true
+        type: string
+      app_version:
+        description: SemVer exposed by the server, for example 0.6.23
+        required: true
         type: string
 
 jobs:
@@ -37,8 +41,8 @@ jobs:
           file: packages/twenty-docker/twenty/Dockerfile
           target: twenty
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/twenty-diex:${{ inputs.image_tag || github.sha }}
+          tags: ghcr.io/${{ github.repository_owner }}/twenty-diex:${{ inputs.image_tag }}
           build-args: |
-            APP_VERSION=${{ inputs.image_tag || github.sha }}
+            APP_VERSION=${{ inputs.app_version }}
           cache-from: type=gha,scope=diex-native-image
           cache-to: type=gha,mode=max,scope=diex-native-image

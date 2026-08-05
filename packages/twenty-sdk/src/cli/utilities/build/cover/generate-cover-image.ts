@@ -2,14 +2,18 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import sharp from 'sharp';
 
-import { TWENTY_LOGO_MARK_PATH } from '@/cli/utilities/build/cover/assets/twenty-logo-mark-path';
-
 const readHalftoneBackdropDataUri = async (): Promise<string> => {
   const backdropBuffer = await readFile(
     join(__dirname, 'assets', 'halftone-backdrop.png'),
   );
 
   return `data:image/png;base64,${backdropBuffer.toString('base64')}`;
+};
+
+const readDiexLogoDataUri = async (): Promise<string> => {
+  const logoBuffer = await readFile(join(__dirname, 'assets', 'diex-logo.svg'));
+
+  return `data:image/svg+xml;base64,${logoBuffer.toString('base64')}`;
 };
 
 const CANVAS_WIDTH = 1388;
@@ -24,8 +28,6 @@ const CENTER_Y = CANVAS_HEIGHT / 2;
 const CROSS_ARM = 19;
 const CROSS_STROKE = 8;
 const CROSS_COLOR = '#b3b3b3';
-const TWENTY_MARK_VIEWBOX = 40;
-const TWENTY_MARK_SCALE = TILE_SIZE / TWENTY_MARK_VIEWBOX;
 
 type GenerateCoverImageOptions = {
   logoBuffer: Buffer;
@@ -41,6 +43,7 @@ export const generateCoverImage = async ({
   const logoDataUri = `data:image/png;base64,${logoPngBuffer.toString('base64')}`;
 
   const backdropDataUri = await readHalftoneBackdropDataUri();
+  const diexLogoDataUri = await readDiexLogoDataUri();
 
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}">`,
@@ -53,11 +56,11 @@ export const generateCoverImage = async ({
     '</defs>',
     '<g filter="url(#tileShadow)">',
     `<rect x="${LEFT_TILE_X}" y="${TILE_Y}" width="${TILE_SIZE}" height="${TILE_SIZE}" rx="${TILE_RADIUS}" fill="#ffffff" />`,
-    `<rect x="${RIGHT_TILE_X}" y="${TILE_Y}" width="${TILE_SIZE}" height="${TILE_SIZE}" rx="${TILE_RADIUS}" fill="#000000" />`,
+    `<rect x="${RIGHT_TILE_X}" y="${TILE_Y}" width="${TILE_SIZE}" height="${TILE_SIZE}" rx="${TILE_RADIUS}" fill="#FDFCFF" />`,
     '</g>',
     `<image href="${logoDataUri}" x="${LEFT_TILE_X}" y="${TILE_Y}" width="${TILE_SIZE}" height="${TILE_SIZE}" preserveAspectRatio="xMidYMid slice" clip-path="url(#leftLogoClip)" />`,
     `<rect x="${LEFT_TILE_X}" y="${TILE_Y}" width="${TILE_SIZE}" height="${TILE_SIZE}" rx="${TILE_RADIUS}" fill="none" stroke="#000000" stroke-opacity="0.08" stroke-width="1" />`,
-    `<g transform="translate(${RIGHT_TILE_X} ${TILE_Y}) scale(${TWENTY_MARK_SCALE})"><path d="${TWENTY_LOGO_MARK_PATH}" fill="#ffffff" /></g>`,
+    `<image href="${diexLogoDataUri}" x="${RIGHT_TILE_X + 12}" y="${TILE_Y + 12}" width="${TILE_SIZE - 24}" height="${TILE_SIZE - 24}" preserveAspectRatio="xMidYMid meet" />`,
     `<line x1="${CENTER_X - CROSS_ARM}" y1="${CENTER_Y - CROSS_ARM}" x2="${CENTER_X + CROSS_ARM}" y2="${CENTER_Y + CROSS_ARM}" stroke="${CROSS_COLOR}" stroke-width="${CROSS_STROKE}" stroke-linecap="round" />`,
     `<line x1="${CENTER_X - CROSS_ARM}" y1="${CENTER_Y + CROSS_ARM}" x2="${CENTER_X + CROSS_ARM}" y2="${CENTER_Y - CROSS_ARM}" stroke="${CROSS_COLOR}" stroke-width="${CROSS_STROKE}" stroke-linecap="round" />`,
     '</svg>',

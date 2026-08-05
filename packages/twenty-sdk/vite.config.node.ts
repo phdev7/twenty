@@ -30,14 +30,19 @@ const esmNodeGlobalsBanner = [
 const copyCoverAssetsPlugin = () => ({
   name: 'copy-cover-assets',
   closeBundle() {
-    const source = path.resolve(
-      __dirname,
-      'src/cli/utilities/build/cover/assets/halftone-backdrop.png',
-    );
     const destinationDir = path.resolve(__dirname, 'dist/assets');
 
     fs.mkdirSync(destinationDir, { recursive: true });
-    fs.copyFileSync(source, path.join(destinationDir, 'halftone-backdrop.png'));
+
+    for (const fileName of ['halftone-backdrop.png', 'diex-logo.svg']) {
+      const source = path.resolve(
+        __dirname,
+        'src/cli/utilities/build/cover/assets',
+        fileName,
+      );
+
+      fs.copyFileSync(source, path.join(destinationDir, fileName));
+    }
   },
 });
 

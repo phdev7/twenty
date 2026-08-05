@@ -621,12 +621,12 @@ export class WorkspaceInvitationService {
             type: In(INVITATION_APP_TOKEN_TYPES),
           },
         });
+        const preferredEmail = preferredAppToken?.context?.email;
 
         if (
           preferredAppToken &&
           this.isInvitationTokenUsable(preferredAppToken) &&
-          preferredAppToken.context?.email.trim().toLowerCase() ===
-            normalizedEmail &&
+          preferredEmail?.trim().toLowerCase() === normalizedEmail &&
           (state.appTokenId === preferredAppToken.id ||
             state.deliveryStatus !== AppTokenDeliveryStatus.DISPATCHING)
         ) {
@@ -928,10 +928,21 @@ export class WorkspaceInvitationService {
     workspace: WorkspaceEntity;
     sender: WorkspaceMemberWorkspaceEntity;
   }): Promise<void> {
-    if (!appToken.context?.email) {
+    const recipientEmail = appToken.context?.email;
+
+    if (!recipientEmail) {
       throw new WorkspaceInvitationException(
         'Invalid email',
         WorkspaceInvitationExceptionCode.EMAIL_MISSING,
+      );
+    }
+
+    const workspaceInviteHash = workspace.inviteHash;
+
+    if (!workspaceInviteHash) {
+      throw new WorkspaceInvitationException(
+        'Workspace invite hash not found',
+        WorkspaceInvitationExceptionCode.INVALID_INVITATION,
       );
     }
 
@@ -945,11 +956,11 @@ export class WorkspaceInvitationService {
     const link = this.workspaceDomainsService.buildWorkspaceURL({
       workspace,
       pathname: getAppPath(AppPath.Invite, {
-        workspaceInviteHash: workspace.inviteHash,
+        workspaceInviteHash,
       }),
       searchParams: {
         inviteToken: appToken.value,
-        email: appToken.context.email,
+        email: recipientEmail,
       },
     });
     const logo = isDefined(workspace.logoFileId)
@@ -975,13 +986,10 @@ export class WorkspaceInvitationService {
     });
     const html = await render(emailTemplate);
     const text = await render(emailTemplate, { plainText: true });
-    const joinTeamMsg = msg`Join your team on Twenty`;
-    const i18n = this.i18nService.getI18nInstance(sender.locale);
-
     await this.emailService.send({
-      from: `${sender.name.firstName} ${sender.name.lastName} (via Twenty) <${this.twentyConfigService.get('EMAIL_FROM_ADDRESS')}>`,
-      to: appToken.context.email,
-      subject: i18n._(joinTeamMsg),
+      from: `${sender.name.firstName} ${sender.name.lastName} (via Diex CRM) <${this.twentyConfigService.get('EMAIL_FROM_ADDRESS')}>`,
+      to: recipientEmail,
+      subject: 'Convite para o Diex CRM',
       text,
       html,
     });

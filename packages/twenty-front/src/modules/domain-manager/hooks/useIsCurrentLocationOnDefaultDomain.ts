@@ -8,9 +8,7 @@ export const useIsCurrentLocationOnDefaultDomain = () => {
   );
   const { defaultDomain } = useReadDefaultDomainFromConfiguration();
   const isDefaultDomain = isMultiWorkspaceEnabled
-    ? window.location.hostname === defaultDomain ||
-      window.location.hostname === 'app.crm.bydiex.com' ||
-      window.location.hostname === 'crm.bydiex.com'
+    ? window.location.hostname === defaultDomain
     : true;
 
   return {

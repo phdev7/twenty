@@ -269,12 +269,12 @@ export class InboxAutomationEvaluationService {
       attempts,
     };
 
-    const update: QueryDeepPartialEntity<InboxMessageWorkspaceEntity> = {
+    const update = {
       metadata: mergeInboxAutomationEvaluationMetadata(
         message.metadata,
         queuedMetadata,
       ),
-    };
+    } as unknown as QueryDeepPartialEntity<InboxMessageWorkspaceEntity>;
 
     await messageRepository.update(messageId, update);
 
@@ -295,13 +295,12 @@ export class InboxAutomationEvaluationService {
         lastError: error instanceof Error ? error.message : String(error),
       };
 
-      const failedUpdate: QueryDeepPartialEntity<InboxMessageWorkspaceEntity> =
-        {
-          metadata: mergeInboxAutomationEvaluationMetadata(
-            message.metadata,
-            failedMetadata,
-          ),
-        };
+      const failedUpdate = {
+        metadata: mergeInboxAutomationEvaluationMetadata(
+          message.metadata,
+          failedMetadata,
+        ),
+      } as unknown as QueryDeepPartialEntity<InboxMessageWorkspaceEntity>;
 
       await messageRepository.update(messageId, failedUpdate);
 
@@ -330,14 +329,15 @@ export class InboxAutomationEvaluationService {
   }
 
   private async hasInFlightEvaluation(evaluationId: string): Promise<boolean> {
+    type EvaluationJobData = {
+      workspaceId: string;
+      messageId: string;
+      evaluationId: string;
+      attempts?: number;
+    };
     const jobs = await this.inboxQueueService
-      .getInFlightJobs<{
-        workspaceId: string;
-        messageId: string;
-        evaluationId: string;
-        attempts?: number;
-      }>()
-      .catch(() => []);
+      .getInFlightJobs<EvaluationJobData>()
+      .catch(() => [] as { data: EvaluationJobData }[]);
 
     return jobs.some((job) => job.data?.evaluationId === evaluationId);
   }

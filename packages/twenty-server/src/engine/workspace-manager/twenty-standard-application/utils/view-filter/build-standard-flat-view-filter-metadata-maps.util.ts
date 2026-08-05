@@ -38,6 +38,7 @@ const createStandardDiexViewFilterFlatMetadata = ({
   const relatedIds = args.standardObjectMetadataRelatedEntityIds[
     objectName as keyof typeof args.standardObjectMetadataRelatedEntityIds
   ] as {
+    fields: Record<string, { id: string }>;
     views: Record<string, { id: string }>;
   };
   const viewIds = relatedIds.views[view.viewName];
@@ -57,7 +58,7 @@ const createStandardDiexViewFilterFlatMetadata = ({
     workspaceId: args.workspaceId,
     viewId: viewIds.id,
     viewUniversalIdentifier: view.universalIdentifier,
-    fieldMetadataId: fieldMetadata.id,
+    fieldMetadataId: relatedIds.fields[viewFilter.fieldName].id,
     fieldMetadataUniversalIdentifier: fieldDefinition.universalIdentifier,
     viewFilterGroupId: null,
     viewFilterGroupUniversalIdentifier: null,

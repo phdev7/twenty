@@ -1,11 +1,11 @@
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { styled } from '@linaria/react';
 import { useMemo, useState } from 'react';
-import { gql, useQuery } from '@apollo/client';
 
 import {
   CommandCenterCard,
   CommandCenterEmptyState,
-  CommandCenterGrid,
   CommandCenterPage,
   CommandCenterLoadingState,
   CommandCenterMetric,
@@ -49,111 +49,129 @@ const CALENDAR_TASKS_QUERY = gql`
 `;
 
 const StyledFilters = styled.div`
-  display: flex;
   align-items: center;
+  display: flex;
+  flex-wrap: wrap;
   gap: ${themeCssVariables.spacing[4]};
   margin-bottom: ${themeCssVariables.spacing[4]};
 `;
 
 const StyledSelect = styled.select`
+  background: ${themeCssVariables.background.secondary};
   border: 1px solid ${themeCssVariables.border.color.light};
   border-radius: 4px;
+  color: ${themeCssVariables.font.color.primary};
+  font-family: inherit;
   min-height: ${themeCssVariables.spacing[8]};
   padding: 0 ${themeCssVariables.spacing[2]};
-  font-family: inherit;
-  color: ${themeCssVariables.font.color.primary};
-  background: ${themeCssVariables.background.secondary};
 `;
 
 const StyledHeaderNav = styled.div`
-  display: flex;
   align-items: center;
+  display: flex;
   gap: ${themeCssVariables.spacing[2]};
 `;
 
 const StyledMonthTitle = styled.h2`
+  color: ${themeCssVariables.font.color.primary};
   font-size: ${themeCssVariables.font.size.lg};
   font-weight: ${themeCssVariables.font.weight.semiBold};
-  color: ${themeCssVariables.font.color.primary};
   margin: 0 ${themeCssVariables.spacing[2]};
   min-width: 150px;
   text-align: center;
 `;
 
-const CalendarGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
+const StyledCalendarViewport = styled.div`
+  overflow-x: auto;
+`;
+
+const StyledCalendarGrid = styled.div`
   background-color: ${themeCssVariables.border.color.light};
   border: 1px solid ${themeCssVariables.border.color.light};
   border-radius: ${themeCssVariables.border.radius.md};
-  overflow: hidden;
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(7, minmax(140px, 1fr));
   margin-top: ${themeCssVariables.spacing[2]};
+  min-width: 980px;
+  overflow: hidden;
 `;
 
-const CalendarHeaderCell = styled.div`
+const StyledCalendarHeaderCell = styled.div`
   background-color: ${themeCssVariables.background.secondary};
+  color: ${themeCssVariables.font.color.secondary};
+  font-size: ${themeCssVariables.font.size.xs};
+  font-weight: ${themeCssVariables.font.weight.medium};
   padding: ${themeCssVariables.spacing[2]};
   text-align: center;
-  font-weight: ${themeCssVariables.font.weight.medium};
-  font-size: ${themeCssVariables.font.size.xs};
-  color: ${themeCssVariables.font.color.secondary};
 `;
 
-const CalendarCell = styled.div<{ isCurrentMonth: boolean; isToday: boolean }>`
+const StyledCalendarCell = styled.div<{
+  isCurrentMonth: boolean;
+  isToday: boolean;
+}>`
   background-color: ${({ isToday }) =>
     isToday
       ? themeCssVariables.background.transparent.blue
       : themeCssVariables.background.primary};
-  min-height: 120px;
-  padding: ${themeCssVariables.spacing[2]};
+  border: 1px solid transparent;
   display: flex;
   flex-direction: column;
+  min-height: 120px;
   opacity: ${({ isCurrentMonth }) => (isCurrentMonth ? 1 : 0.4)};
-  border: 1px solid transparent;
+  padding: ${themeCssVariables.spacing[2]};
+
   &:hover {
     border-color: ${themeCssVariables.border.color.medium};
   }
 `;
 
-const CellHeader = styled.div`
+const StyledCellHeader = styled.div`
+  align-items: center;
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: ${themeCssVariables.spacing[1]};
 `;
 
-const DayNumber = styled.span<{ isToday: boolean }>`
+const StyledDayNumber = styled.span<{ isToday: boolean }>`
+  color: ${({ isToday }) =>
+    isToday
+      ? themeCssVariables.color.blue
+      : themeCssVariables.font.color.secondary};
   font-size: ${themeCssVariables.font.size.xs};
   font-weight: ${({ isToday }) =>
-    isToday ? themeCssVariables.font.weight.bold : themeCssVariables.font.weight.regular};
-  color: ${({ isToday }) =>
-    isToday ? themeCssVariables.color.blue : themeCssVariables.font.color.secondary};
+    isToday
+      ? themeCssVariables.font.weight.semiBold
+      : themeCssVariables.font.weight.regular};
 `;
 
-const TaskList = styled.div`
+const StyledTaskList = styled.div`
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
   overflow-y: auto;
-  flex: 1;
 `;
 
-const TaskItem = styled.div<{ status: string }>`
-  font-size: ${themeCssVariables.font.size.xxs};
-  padding: 4px;
-  border-radius: 4px;
+const StyledTaskItem = styled.div<{ status: string | null }>`
   background-color: ${({ status }) =>
-    status === 'COMPLETED'
-      ? themeCssVariables.background.transparent.green
+    status === 'DONE'
+      ? themeCssVariables.background.transparent.success
       : themeCssVariables.background.transparent.orange};
+  border-left: 3px solid
+    ${({ status }) =>
+      status === 'DONE'
+        ? themeCssVariables.color.green
+        : themeCssVariables.color.orange};
+  border-radius: 4px;
   color: ${themeCssVariables.font.color.primary};
   cursor: pointer;
-  white-space: nowrap;
+  font-size: ${themeCssVariables.font.size.xxs};
   overflow: hidden;
+  padding: 4px;
   text-overflow: ellipsis;
-  border-left: 3px solid
-    ${({ status }) => (status === 'COMPLETED' ? themeCssVariables.color.green : themeCssVariables.color.orange)};
+  white-space: nowrap;
+
   &:hover {
     filter: brightness(0.95);
   }
@@ -161,9 +179,9 @@ const TaskItem = styled.div<{ status: string }>`
 
 interface Task {
   id: string;
-  title: string;
-  dueAt: string;
-  status: string;
+  title: string | null;
+  dueAt: string | null;
+  status: string | null;
   assignee?: {
     id: string;
     name: {
@@ -275,20 +293,28 @@ export const DiexCalendarPage = () => {
 
   const metrics = useMemo(() => {
     const total = filteredTasks.length;
-    const completed = filteredTasks.filter((t) => t.status === 'COMPLETED').length;
+    const completed = filteredTasks.filter(
+      (task) => task.status === 'DONE',
+    ).length;
     const pending = total - completed;
     return { total, completed, pending };
   }, [filteredTasks]);
 
   if (loading) return <CommandCenterLoadingState />;
-  if (error) return <CommandCenterEmptyState message="Não foi possível carregar a agenda." />;
+  if (error)
+    return (
+      <CommandCenterEmptyState message="Não foi possível carregar a agenda." />
+    );
 
   return (
-    <CommandCenterPage title="Agenda de Tarefas" showBackButton={false}>
+    <CommandCenterPage
+      title="Agenda de tarefas"
+      description="Organize tarefas com data e hora por responsável em uma visão mensal."
+    >
       <CommandCenterMetrics>
-        <CommandCenterMetric title="Total de Tarefas" value={metrics.total} />
-        <CommandCenterMetric title="Concluídas" value={metrics.completed} trend="up" />
-        <CommandCenterMetric title="Pendentes" value={metrics.pending} trend="down" />
+        <CommandCenterMetric label="Total de tarefas" value={metrics.total} />
+        <CommandCenterMetric label="Concluídas" value={metrics.completed} />
+        <CommandCenterMetric label="Pendentes" value={metrics.pending} />
       </CommandCenterMetrics>
 
       <CommandCenterCard title="Visualização Mensal">
@@ -306,50 +332,83 @@ export const DiexCalendarPage = () => {
           </StyledSelect>
 
           <StyledHeaderNav>
-            <Button title="Anterior" size="small" variant="secondary" onClick={prevMonth} />
+            <Button
+              title="Anterior"
+              size="small"
+              variant="secondary"
+              onClick={prevMonth}
+            />
             <StyledMonthTitle>
               {monthNames[currentMonth]} {currentYear}
             </StyledMonthTitle>
-            <Button title="Próximo" size="small" variant="secondary" onClick={nextMonth} />
+            <Button
+              title="Próximo"
+              size="small"
+              variant="secondary"
+              onClick={nextMonth}
+            />
+            <Button
+              title="Hoje"
+              size="small"
+              variant="tertiary"
+              onClick={() => setCurrentDate(new Date())}
+            />
           </StyledHeaderNav>
         </StyledFilters>
 
-        <CalendarGrid>
-          {daysOfWeek.map((day) => (
-            <CalendarHeaderCell key={day}>{day}</CalendarHeaderCell>
-          ))}
-          {calendarDays.map(({ date, isCurrentMonth }, idx) => {
-            const dateStr = date.toDateString();
-            const todayStr = new Date().toDateString();
-            const isToday = dateStr === todayStr;
+        <StyledCalendarViewport>
+          <StyledCalendarGrid>
+            {daysOfWeek.map((day) => (
+              <StyledCalendarHeaderCell key={day}>
+                {day}
+              </StyledCalendarHeaderCell>
+            ))}
+            {calendarDays.map(({ date, isCurrentMonth }) => {
+              const dateStr = date.toDateString();
+              const todayStr = new Date().toDateString();
+              const isToday = dateStr === todayStr;
 
-            const dayTasks = filteredTasks.filter((task) => {
-              if (!task.dueAt) return false;
-              const taskDate = new Date(task.dueAt);
-              return taskDate.toDateString() === dateStr;
-            });
+              const dayTasks = filteredTasks.filter((task) => {
+                if (!task.dueAt) return false;
+                const taskDate = new Date(task.dueAt);
+                return taskDate.toDateString() === dateStr;
+              });
 
-            return (
-              <CalendarCell key={idx} isCurrentMonth={isCurrentMonth} isToday={isToday}>
-                <CellHeader>
-                  <DayNumber isToday={isToday}>{date.getDate()}</DayNumber>
-                </CellHeader>
-                <TaskList>
-                  {dayTasks.map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      status={task.status}
-                      onClick={() => handleTaskClick(task.id)}
-                      title={task.title}
-                    >
-                      {task.title}
-                    </TaskItem>
-                  ))}
-                </TaskList>
-              </CalendarCell>
-            );
-          })}
-        </CalendarGrid>
+              return (
+                <StyledCalendarCell
+                  key={date.toISOString()}
+                  isCurrentMonth={isCurrentMonth}
+                  isToday={isToday}
+                >
+                  <StyledCellHeader>
+                    <StyledDayNumber isToday={isToday}>
+                      {date.getDate()}
+                    </StyledDayNumber>
+                  </StyledCellHeader>
+                  <StyledTaskList>
+                    {dayTasks.map((task) => (
+                      <StyledTaskItem
+                        key={task.id}
+                        status={task.status}
+                        onClick={() => handleTaskClick(task.id)}
+                        title={task.title ?? 'Tarefa sem título'}
+                      >
+                        {new Date(task.dueAt ?? '').toLocaleTimeString(
+                          'pt-BR',
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          },
+                        )}{' '}
+                        · {task.title ?? 'Tarefa sem título'}
+                      </StyledTaskItem>
+                    ))}
+                  </StyledTaskList>
+                </StyledCalendarCell>
+              );
+            })}
+          </StyledCalendarGrid>
+        </StyledCalendarViewport>
       </CommandCenterCard>
     </CommandCenterPage>
   );
