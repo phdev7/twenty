@@ -1,31 +1,37 @@
 import { useState } from 'react';
+import { AppPath } from 'twenty-shared/types';
 
 import { DiexOnboarding } from '@/diex-onboarding/components/DiexOnboarding';
-import { useSkipSyncEmailOnboardingStep } from '@/onboarding/hooks/useSkipSyncEmailOnboardingStep';
+import { completeDiexOnboarding } from '@/diex-onboarding/utils/completeDiexOnboarding';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 
 export const DiexOnboardingPage = () => {
-  const skipSyncEmailOnboardingStep = useSkipSyncEmailOnboardingStep();
   const { enqueueErrorSnackBar } = useSnackBar();
-  const [isContinuing, setIsContinuing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const continueOnboarding = async (): Promise<void> => {
-    setIsContinuing(true);
+  const submitOperation = async (
+    operationDescription: string,
+  ): Promise<void> => {
+    setIsSubmitting(true);
 
     try {
-      await skipSyncEmailOnboardingStep();
+      await completeDiexOnboarding(operationDescription);
+      window.location.replace(AppPath.DiexFirstSteps);
     } catch {
       enqueueErrorSnackBar({
-        message: 'Não foi possível avançar o onboarding.',
+        message:
+          'Não foi possível preparar o contexto. Revise a descrição e tente novamente.',
       });
-      setIsContinuing(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
     <DiexOnboarding
-      isContinuing={isContinuing}
-      onContinue={() => void continueOnboarding()}
+      isSubmitting={isSubmitting}
+      onSubmit={(operationDescription) =>
+        void submitOperation(operationDescription)
+      }
     />
   );
 };

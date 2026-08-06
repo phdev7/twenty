@@ -155,9 +155,16 @@ export const usePageChangeEffectNavigateLocation = () => {
 
   if (
     onboardingStatus === OnboardingStatus.SYNC_EMAIL &&
-    !isMatchingLocation(location, AppPath.DiexOnboarding)
+    !isMatchingLocation(
+      location,
+      currentWorkspace?.workspaceMembersCount === 1
+        ? AppPath.DiexOnboarding
+        : AppPath.SyncEmails,
+    )
   ) {
-    return AppPath.DiexOnboarding;
+    return currentWorkspace?.workspaceMembersCount === 1
+      ? AppPath.DiexOnboarding
+      : AppPath.SyncEmails;
   }
 
   if (

@@ -177,6 +177,12 @@ const DiexCalendarPage = lazy(() =>
   })),
 );
 
+const DiexFirstStepsPage = lazy(() =>
+  import('~/pages/diex/DiexFirstStepsPage').then((module) => ({
+    default: module.DiexFirstStepsPage,
+  })),
+);
+
 const preloadOnboardingPages = () => {
   void WorkspaceActivation.preload();
   void WorkspaceApprovalPending.preload();
@@ -253,6 +259,14 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <DiexCalendarPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.DiexFirstSteps}
+                element={
+                  <LazyRoute>
+                    <DiexFirstStepsPage />
                   </LazyRoute>
                 }
               />

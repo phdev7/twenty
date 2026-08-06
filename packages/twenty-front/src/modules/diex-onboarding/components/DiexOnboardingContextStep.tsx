@@ -129,6 +129,9 @@ const StyledContextError = styled(StyledHint)`
 `;
 
 type DiexOnboardingContextStepProps = {
+  index?: number;
+  title?: string;
+  description?: string;
   workspaceContext: WorkspaceContextRecord | null;
   readState: WorkspaceContextReadState;
   isLoading: boolean;
@@ -142,6 +145,9 @@ type DiexOnboardingContextStepProps = {
 };
 
 export const DiexOnboardingContextStep = ({
+  index = 2,
+  title = 'Descrever a empresa para a IA',
+  description = 'Sem isto a IA escreve genérico e não sabe o que sua empresa não pode prometer. Preencha os três campos marcados, ative, e o contexto passa a valer em toda triagem, rascunho e análise.',
   workspaceContext,
   readState,
   isLoading,
@@ -173,9 +179,9 @@ export const DiexOnboardingContextStep = ({
 
   return (
     <DiexOnboardingStepCard
-      index={2}
+      index={index}
       isDone={isContextDone}
-      title="Descrever a empresa para a IA"
+      title={title}
       badges={
         <StyledActions>
           <DiexOnboardingBadge tone="gray">
@@ -189,11 +195,7 @@ export const DiexOnboardingContextStep = ({
         </StyledActions>
       }
     >
-      <StyledText>
-        Sem isto a IA escreve genérico e não sabe o que sua empresa não pode
-        prometer. Preencha os três campos marcados, ative, e o contexto passa a
-        valer em toda triagem, rascunho e análise.
-      </StyledText>
+      <StyledText>{description}</StyledText>
 
       {hasReadError ? (
         <>

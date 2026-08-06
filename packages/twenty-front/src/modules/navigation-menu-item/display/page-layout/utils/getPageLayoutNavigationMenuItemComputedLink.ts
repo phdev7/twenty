@@ -3,8 +3,12 @@ import { getAppPath, isDefined } from 'twenty-shared/utils';
 import { type NavigationMenuItem } from '~/generated-metadata/graphql';
 
 export const getPageLayoutNavigationMenuItemComputedLink = (
-  item: Pick<NavigationMenuItem, 'pageLayoutId'>,
+  item: Pick<NavigationMenuItem, 'pageLayoutId' | 'name'>,
 ): string => {
+  if (item.name === 'Primeiros passos') {
+    return AppPath.DiexFirstSteps;
+  }
+
   if (!isDefined(item.pageLayoutId)) {
     return '';
   }

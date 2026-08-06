@@ -1,171 +1,124 @@
 import { styled } from '@linaria/react';
-import { useState } from 'react';
-import { IconRefresh } from 'twenty-ui/icon';
+import { type FormEvent, useState } from 'react';
+import { IconArrowRight, IconSparkles } from 'twenty-ui/icon';
 import { Button } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
-import { DiexOnboardingContextStep } from '@/diex-onboarding/components/DiexOnboardingContextStep';
-import { DiexOnboardingAiTriageStep } from '@/diex-onboarding/components/DiexOnboardingAiTriageStep';
-import { DiexOnboardingDataFlowStep } from '@/diex-onboarding/components/DiexOnboardingDataFlowStep';
-import { DiexOnboardingWhatsappStep } from '@/diex-onboarding/components/DiexOnboardingWhatsappStep';
-import { useDiexOnboarding } from '@/diex-onboarding/hooks/useDiexOnboarding';
+import { TextArea } from '@/ui/input/components/TextArea';
 
-const StyledRoot = styled.div`
+const StyledRoot = styled.main`
+  align-items: center;
   box-sizing: border-box;
   display: flex;
   flex: 1;
-  flex-direction: column;
-  gap: ${themeCssVariables.spacing[4]};
+  justify-content: center;
   overflow-y: auto;
-  padding: ${themeCssVariables.spacing[4]};
+  padding: ${themeCssVariables.spacing[6]};
   width: 100%;
 `;
 
-const StyledHeader = styled.section`
-  align-items: center;
-  background: ${themeCssVariables.background.secondary};
+const StyledCard = styled.form`
+  background: ${themeCssVariables.background.primary};
   border: 1px solid ${themeCssVariables.border.color.light};
   border-radius: ${themeCssVariables.border.radius.lg};
-  display: grid;
-  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   gap: ${themeCssVariables.spacing[4]};
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: ${themeCssVariables.spacing[4]} ${themeCssVariables.spacing[5]};
+  max-width: 680px;
+  padding: ${themeCssVariables.spacing[6]};
+  width: 100%;
 `;
 
-const StyledHeaderTitle = styled.h1`
+const StyledIcon = styled.div`
+  align-items: center;
+  background: ${themeCssVariables.background.transparent.blue};
+  border: 1px solid ${themeCssVariables.border.color.blue};
+  border-radius: ${themeCssVariables.border.radius.md};
+  color: ${themeCssVariables.color.blue};
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+`;
+
+const StyledTitle = styled.h1`
+  color: ${themeCssVariables.font.color.primary};
   font-size: ${themeCssVariables.font.size.xl};
   font-weight: ${themeCssVariables.font.weight.semiBold};
   margin: 0;
 `;
 
-const StyledHeaderSubtitle = styled.p`
+const StyledDescription = styled.p`
   color: ${themeCssVariables.font.color.secondary};
   font-size: ${themeCssVariables.font.size.sm};
-  margin: ${themeCssVariables.spacing[1]} 0 0;
-  max-width: 68ch;
-`;
-
-const StyledProgressLine = styled.div`
-  color: ${themeCssVariables.font.color.tertiary};
-  font-size: ${themeCssVariables.font.size.xs};
-  margin-top: ${themeCssVariables.spacing[3]};
-`;
-
-const StyledSteps = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  gap: ${themeCssVariables.spacing[4]};
+  line-height: 1.5;
+  margin: -${themeCssVariables.spacing[2]} 0 0;
 `;
 
 const StyledFooter = styled.div`
+  align-items: center;
   display: flex;
-  justify-content: flex-end;
-  padding-bottom: ${themeCssVariables.spacing[6]};
+  gap: ${themeCssVariables.spacing[3]};
+  justify-content: space-between;
 `;
 
-const StyledError = styled.div`
-  background: ${themeCssVariables.background.transparent.danger};
-  border: 1px solid ${themeCssVariables.border.color.danger};
-  border-radius: ${themeCssVariables.border.radius.sm};
-  color: ${themeCssVariables.font.color.danger};
-  flex-shrink: 0;
-  font-size: ${themeCssVariables.font.size.sm};
-  padding: ${themeCssVariables.spacing[3]} ${themeCssVariables.spacing[4]};
+const StyledHint = styled.span`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
 `;
 
 export const DiexOnboarding = ({
-  isContinuing,
-  onContinue,
+  isSubmitting,
+  onSubmit,
 }: {
-  isContinuing: boolean;
-  onContinue: () => void;
+  isSubmitting: boolean;
+  onSubmit: (operationDescription: string) => void;
 }) => {
-  const [isAiTriageStarted, setIsAiTriageStarted] = useState(false);
-  const {
-    workspaceContext,
-    workspaceContextReadState,
-    dataFlow,
-    connection,
-    errorMessage,
-    isLoading,
-    isConnecting,
-    isCreatingContext,
-    isSavingContext,
-    isActivatingContext,
-    load,
-    requestConnection,
-    createWorkspaceContext,
-    saveWorkspaceContext,
-    activateWorkspaceContext,
-  } = useDiexOnboarding();
+  const [operationDescription, setOperationDescription] = useState('');
+  const normalizedDescription = operationDescription.trim();
+  const canSubmit = normalizedDescription.length >= 20 && !isSubmitting;
 
-  const isWhatsappDone = connection?.state === 'CONNECTED';
-  const isContextDone = workspaceContext?.status === 'ACTIVE';
-  const isDataFlowing = dataFlow.messageCount > 0;
-  const doneCount = [
-    isWhatsappDone,
-    isContextDone,
-    isDataFlowing,
-    isAiTriageStarted,
-  ].filter(Boolean).length;
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (canSubmit) {
+      onSubmit(normalizedDescription);
+    }
+  };
 
   return (
     <StyledRoot>
-      <StyledHeader>
-        <div>
-          <StyledHeaderTitle>Primeiros passos</StyledHeaderTitle>
-          <StyledHeaderSubtitle>
-            Conecte o WhatsApp, revise o contexto criado com suas respostas,
-            valide a primeira conversa no Inbox Comercial e peça à IA para
-            desenhar o CRM ideal para a operação.
-          </StyledHeaderSubtitle>
-          <StyledProgressLine>{doneCount} de 4 concluídos</StyledProgressLine>
-        </div>
-        <Button
-          variant="secondary"
-          Icon={IconRefresh}
-          title="Atualizar"
-          onClick={() => void load()}
+      <StyledCard onSubmit={handleSubmit}>
+        <StyledIcon>
+          <IconSparkles size={20} />
+        </StyledIcon>
+        <StyledTitle>Descreva sua operação atualmente:</StyledTitle>
+        <StyledDescription>
+          Conte o que sua empresa faz, quem atende, como vende e quais são os
+          principais processos ou dificuldades. A IA organizará a resposta e
+          deixará o contexto do CRM pronto para sua revisão.
+        </StyledDescription>
+        <TextArea
+          textAreaId="diex-operation-description"
+          minRows={8}
+          maxRows={14}
+          value={operationDescription}
+          disabled={isSubmitting}
+          placeholder="Ex.: Somos uma empresa de... Nosso cliente ideal é... Hoje os leads chegam por..."
+          onChange={setOperationDescription}
         />
-      </StyledHeader>
-
-      {errorMessage ? <StyledError>{errorMessage}</StyledError> : null}
-
-      <StyledSteps>
-        <DiexOnboardingWhatsappStep
-          connection={connection}
-          isConnecting={isConnecting}
-          isDone={isWhatsappDone}
-          onRequestConnection={() => void requestConnection()}
-        />
-        <DiexOnboardingContextStep
-          workspaceContext={workspaceContext}
-          readState={workspaceContextReadState}
-          isLoading={isLoading}
-          isCreatingContext={isCreatingContext}
-          isSavingContext={isSavingContext}
-          isActivatingContext={isActivatingContext}
-          onCreateContext={() => void createWorkspaceContext()}
-          onSaveContext={(draft) => void saveWorkspaceContext(draft)}
-          onActivateContext={() => void activateWorkspaceContext()}
-          onRetry={() => void load()}
-        />
-        <DiexOnboardingDataFlowStep dataFlow={dataFlow} />
-        <DiexOnboardingAiTriageStep
-          isDone={isAiTriageStarted}
-          onStart={() => setIsAiTriageStarted(true)}
-        />
-      </StyledSteps>
-      <StyledFooter>
-        <Button
-          title={isContinuing ? 'Avançando...' : 'Continuar'}
-          disabled={isContinuing}
-          isLoading={isContinuing}
-          onClick={onContinue}
-        />
-      </StyledFooter>
+        <StyledFooter>
+          <StyledHint>Mínimo de 20 caracteres.</StyledHint>
+          <Button
+            type="submit"
+            title={isSubmitting ? 'Preparando seu CRM...' : 'Preparar meu CRM'}
+            Icon={IconArrowRight}
+            disabled={!canSubmit}
+            isLoading={isSubmitting}
+          />
+        </StyledFooter>
+      </StyledCard>
     </StyledRoot>
   );
 };

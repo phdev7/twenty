@@ -1,11 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { type LanguageModelUsage, Output, generateText } from 'ai';
 import { isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { type QueryRunner, Repository } from 'typeorm';
+import { z } from 'zod';
 
 import { BillingCreditService } from 'src/engine/core-modules/billing/services/billing-credit.service';
+import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
 import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
 import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
@@ -21,6 +24,23 @@ import { UserVarsService } from 'src/engine/core-modules/user/user-vars/services
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
+import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
+import { AiModelRegistryService } from 'src/engine/metadata-modules/ai/ai-models/services/ai-model-registry.service';
+import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
+import { type DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
+import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
+
+const generatedWorkspaceContextSchema = z.object({
+  businessDescription: z.string(),
+  idealCustomerProfile: z.string(),
+  toneOfVoice: z.string(),
+  commercialRules: z.string(),
+  objectionPlaybook: z.string(),
+  competitiveLandscape: z.string(),
+  forbiddenClaims: z.string(),
+});
 
 export enum OnboardingStepKeys {
   ONBOARDING_CONNECT_ACCOUNT_PENDING = 'ONBOARDING_CONNECT_ACCOUNT_PENDING',
@@ -43,6 +63,10 @@ export class OnboardingService {
   constructor(
     private readonly billingService: BillingService,
     private readonly billingCreditService: BillingCreditService,
+    private readonly billingUsageService: BillingUsageService,
+    private readonly aiBillingService: AiBillingService,
+    private readonly aiModelRegistryService: AiModelRegistryService,
+    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     private readonly userVarsService: UserVarsService<OnboardingKeyValueTypeMap>,
     private readonly twentyConfigService: TwentyConfigService,
     @InjectRepository(WorkspaceEntity)
@@ -52,6 +76,183 @@ export class OnboardingService {
     @InjectMessageQueue(MessageQueue.workspaceQueue)
     private readonly messageQueueService: MessageQueueService,
   ) {}
+
+  async completeDiexOnboarding({
+    operationDescription,
+    userId,
+    userWorkspaceId,
+    workspace,
+  }: {
+    operationDescription: string;
+    userId: string;
+    userWorkspaceId: string;
+    workspace: WorkspaceEntity;
+  }) {
+    const [workspaceOwner] = await this.userWorkspaceRepository.find({
+      where: { workspaceId: workspace.id },
+      order: { createdAt: 'ASC' },
+      take: 1,
+    });
+
+    if (!isDefined(workspaceOwner) || workspaceOwner.userId !== userId) {
+      throw new ForbiddenException(
+        'Only the workspace owner can define its initial operation context.',
+      );
+    }
+
+    await this.billingUsageService.hasAvailableCreditsOrThrow(workspace.id);
+
+    const resolvedModelId = workspace.fastModel;
+
+    this.aiModelRegistryService.validateModelAvailability(
+      resolvedModelId,
+      workspace,
+    );
+
+    const registeredModel =
+      await this.aiModelRegistryService.resolveModelForAgent({
+        modelId: resolvedModelId,
+      });
+    let usage: LanguageModelUsage | undefined;
+    let generatedContext:
+      | z.infer<typeof generatedWorkspaceContextSchema>
+      | undefined;
+
+    try {
+      const result = await generateText({
+        model: registeredModel.model,
+        system: [
+          'Você organiza contexto operacional para um CRM brasileiro.',
+          'Resuma somente fatos presentes na descrição do usuário.',
+          'Não invente preços, concorrentes, regras, garantias ou características.',
+          'Quando não houver informação suficiente, escreva "A revisar com o usuário".',
+          'Use português do Brasil, texto direto e útil para agentes comerciais de IA.',
+        ].join(' '),
+        prompt: `Descrição da operação:\n\n${operationDescription.trim()}`,
+        output: Output.object({ schema: generatedWorkspaceContextSchema }),
+      });
+
+      usage = result.usage;
+
+      if (!isDefined(result.output)) {
+        throw new Error('AI did not return the workspace context.');
+      }
+
+      generatedContext = result.output;
+
+      await this.persistGeneratedWorkspaceContext({
+        workspaceId: workspace.id,
+        generatedContext,
+      });
+    } finally {
+      if (isDefined(usage)) {
+        void this.aiBillingService.calculateAndBillUsage(
+          resolvedModelId,
+          {
+            usage,
+            cacheCreationTokens: usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+          },
+          workspace.id,
+          UsageOperationType.AI_WORKFLOW_TOKEN,
+          null,
+          userWorkspaceId,
+        );
+      }
+    }
+
+    if (!isDefined(generatedContext)) {
+      throw new Error('AI did not generate the workspace context.');
+    }
+
+    await this.workspaceRepository.update(workspace.id, {
+      onboardingCurrentProcess: operationDescription.trim(),
+      onboardingCompanyDescription: generatedContext.businessDescription,
+      onboardingIdealCustomerProfile: generatedContext.idealCustomerProfile,
+      onboardingToneOfVoice: generatedContext.toneOfVoice,
+    });
+
+    await Promise.all([
+      this.setOnboardingConnectAccountPending({
+        userId,
+        workspaceId: workspace.id,
+        value: false,
+      }),
+      this.setOnboardingInstallAppsPending({
+        userId,
+        workspaceId: workspace.id,
+        value: false,
+      }),
+      this.setOnboardingCreateProfilePending({
+        userId,
+        workspaceId: workspace.id,
+        value: false,
+      }),
+      this.setOnboardingInviteTeamPending({
+        workspaceId: workspace.id,
+        value: false,
+      }),
+    ]);
+
+    return { success: true, contextStatus: WorkspaceContextStatus.DRAFT };
+  }
+
+  private async persistGeneratedWorkspaceContext({
+    workspaceId,
+    generatedContext,
+  }: {
+    workspaceId: string;
+    generatedContext: z.infer<typeof generatedWorkspaceContextSchema>;
+  }): Promise<void> {
+    const authContext = buildSystemAuthContext(workspaceId);
+
+    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+      const repository =
+        await this.globalWorkspaceOrmManager.getRepository<DiexWorkspaceContextWorkspaceEntity>(
+          workspaceId,
+          'diexWorkspaceContext',
+          { shouldBypassPermissionChecks: true },
+        );
+      const [existingContext] = await repository.find({
+        order: { createdAt: 'ASC' },
+        take: 1,
+      });
+      const richTextFields = {
+        businessDescription: {
+          markdown: generatedContext.businessDescription,
+        },
+        idealCustomerProfile: {
+          markdown: generatedContext.idealCustomerProfile,
+        },
+        toneOfVoice: { markdown: generatedContext.toneOfVoice },
+        commercialRules: { markdown: generatedContext.commercialRules },
+        objectionPlaybook: { markdown: generatedContext.objectionPlaybook },
+        competitiveLandscape: {
+          markdown: generatedContext.competitiveLandscape,
+        },
+        forbiddenClaims: { markdown: generatedContext.forbiddenClaims },
+      };
+
+      if (isDefined(existingContext)) {
+        await repository.save({
+          ...existingContext,
+          ...richTextFields,
+          name: 'Contexto inicial gerado pela IA',
+          status: WorkspaceContextStatus.DRAFT,
+          reviewedAt: null,
+        });
+        return;
+      }
+
+      await repository.save(
+        repository.create({
+          ...richTextFields,
+          name: 'Contexto inicial gerado pela IA',
+          status: WorkspaceContextStatus.DRAFT,
+          reviewedAt: null,
+        }),
+      );
+    }, authContext);
+  }
 
   private isWorkspaceActivationPending(workspace: WorkspaceEntity) {
     return (
