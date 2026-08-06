@@ -1,4 +1,5 @@
 import { type ObjectManifest } from 'twenty-shared/application';
+import { DIEX_STANDARD_OBJECTS } from 'twenty-shared/metadata';
 import { FieldMetadataType, TagColor } from 'twenty-shared/types';
 
 export enum WorkspaceArchitectureArtifactType {
@@ -29,28 +30,36 @@ export enum WorkspaceArchitectureArtifactStatus {
 export const WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER =
   'd1e18000-0000-4000-8000-000000000001';
 
+// The field identifiers live in DIEX_STANDARD_OBJECTS, which is what the index
+// builder resolves against. Deriving them from the object identifier instead
+// produced the d1e18000 prefix while the registry declares d1e18100, so every
+// field was created under an id no index could find and workspace creation
+// threw before any schema was built.
+const ARTIFACT_FIELDS =
+  DIEX_STANDARD_OBJECTS.workspaceArchitectureArtifact.fields;
+
 export const WORKSPACE_ARCHITECTURE_ARTIFACT_FIELD_IDS = {
-  name: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000001`,
-  artifactKey: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000002`,
-  artifactType: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000003`,
-  status: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000004`,
-  schemaVersion: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000005`,
-  version: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000006`,
-  parentVersion: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000007`,
-  sourceDescription: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000008`,
-  payload: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000009`,
-  summary: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}00000000000a`,
-  templateVersions: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}00000000000b`,
-  idempotencyKey: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}00000000000c`,
-  approvedAt: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}00000000000d`,
-  appliedAt: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}00000000000e`,
-  completedAt: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}00000000000f`,
-  errorDetails: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000010`,
-  modelId: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000011`,
-  promptVersion: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000012`,
-  datasetVersion: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000013`,
-  estimatedCostCents: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000014`,
-  actualCostCents: `${WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER.slice(0, 24)}000000000015`,
+  name: ARTIFACT_FIELDS.name.universalIdentifier,
+  artifactKey: ARTIFACT_FIELDS.artifactKey.universalIdentifier,
+  artifactType: ARTIFACT_FIELDS.artifactType.universalIdentifier,
+  status: ARTIFACT_FIELDS.status.universalIdentifier,
+  schemaVersion: ARTIFACT_FIELDS.schemaVersion.universalIdentifier,
+  version: ARTIFACT_FIELDS.version.universalIdentifier,
+  parentVersion: ARTIFACT_FIELDS.parentVersion.universalIdentifier,
+  sourceDescription: ARTIFACT_FIELDS.sourceDescription.universalIdentifier,
+  payload: ARTIFACT_FIELDS.payload.universalIdentifier,
+  summary: ARTIFACT_FIELDS.summary.universalIdentifier,
+  templateVersions: ARTIFACT_FIELDS.templateVersions.universalIdentifier,
+  idempotencyKey: ARTIFACT_FIELDS.idempotencyKey.universalIdentifier,
+  approvedAt: ARTIFACT_FIELDS.approvedAt.universalIdentifier,
+  appliedAt: ARTIFACT_FIELDS.appliedAt.universalIdentifier,
+  completedAt: ARTIFACT_FIELDS.completedAt.universalIdentifier,
+  errorDetails: ARTIFACT_FIELDS.errorDetails.universalIdentifier,
+  modelId: ARTIFACT_FIELDS.modelId.universalIdentifier,
+  promptVersion: ARTIFACT_FIELDS.promptVersion.universalIdentifier,
+  datasetVersion: ARTIFACT_FIELDS.datasetVersion.universalIdentifier,
+  estimatedCostCents: ARTIFACT_FIELDS.estimatedCostCents.universalIdentifier,
+  actualCostCents: ARTIFACT_FIELDS.actualCostCents.universalIdentifier,
 } as const;
 
 const artifactTypeOptions = Object.values(
@@ -240,8 +249,7 @@ export const WorkspaceArchitectureArtifactStandardObjectDefinition = {
       isNullable: true,
     },
     {
-      universalIdentifier:
-        WORKSPACE_ARCHITECTURE_ARTIFACT_FIELD_IDS.modelId,
+      universalIdentifier: WORKSPACE_ARCHITECTURE_ARTIFACT_FIELD_IDS.modelId,
       type: FieldMetadataType.TEXT,
       name: 'modelId',
       label: 'Modelo',
