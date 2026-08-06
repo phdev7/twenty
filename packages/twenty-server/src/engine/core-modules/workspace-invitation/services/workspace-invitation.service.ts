@@ -406,7 +406,15 @@ export class WorkspaceInvitationService {
       { errors: [], result: [] },
     );
 
-    if (result.result.length > 0) {
+    // Skipping the step sends an empty list, which produces no results. Gating
+    // the flag on results sent therefore left it pending forever, and the
+    // server kept redirecting the workspace back to /invite-team on every
+    // load. The step is complete once it has been answered, whether the answer
+    // was a list of invitations or a deliberate skip.
+    const hasAnsweredInviteTeamStep =
+      normalizedEmails.length === 0 || result.result.length > 0;
+
+    if (hasAnsweredInviteTeamStep) {
       await this.onboardingService
         .setOnboardingInviteTeamPending({
           workspaceId: workspace.id,
