@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { TokenModule } from 'src/engine/core-modules/auth/token/token.module';
 import { BillingModule } from 'src/engine/core-modules/billing/billing.module';
 import { OnboardingController } from 'src/engine/core-modules/onboarding/onboarding.controller';
 import { OnboardingResolver } from 'src/engine/core-modules/onboarding/onboarding.resolver';
@@ -13,6 +14,7 @@ import { OnboardingInviteSuggestionsModule } from 'src/modules/onboarding-invite
 
 @Module({
   imports: [
+    TokenModule,
     BillingModule,
     AiBillingModule,
     UserVarsModule,
