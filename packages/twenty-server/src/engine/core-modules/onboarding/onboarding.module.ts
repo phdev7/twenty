@@ -10,6 +10,7 @@ import { UserVarsModule } from 'src/engine/core-modules/user/user-vars/user-vars
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AiBillingModule } from 'src/engine/metadata-modules/ai/ai-billing/ai-billing.module';
+import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { OnboardingInviteSuggestionsModule } from 'src/modules/onboarding-invite-suggestions/onboarding-invite-suggestions.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { OnboardingInviteSuggestionsModule } from 'src/modules/onboarding-invite
     TokenModule,
     BillingModule,
     AiBillingModule,
+    WorkspaceCacheStorageModule,
     UserVarsModule,
     OnboardingInviteSuggestionsModule,
     TypeOrmModule.forFeature([WorkspaceEntity, UserWorkspaceEntity]),
