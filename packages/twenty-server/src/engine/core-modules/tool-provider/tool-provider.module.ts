@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecordCrudModule } from 'src/engine/core-modules/record-crud/record-crud.module';
 import { TOOL_PROVIDERS } from 'src/engine/core-modules/tool-provider/constants/tool-providers.token';
 import { ActionToolProvider } from 'src/engine/core-modules/tool-provider/providers/action-tool.provider';
+import { AgendaToolProvider } from 'src/engine/core-modules/tool-provider/providers/agenda-tool.provider';
 import { AiGovernanceToolProvider } from 'src/engine/core-modules/tool-provider/providers/ai-governance-tool.provider';
 import { CommercialIntelligenceToolProvider } from 'src/engine/core-modules/tool-provider/providers/commercial-intelligence-tool.provider';
 import { CustomerSuccessToolProvider } from 'src/engine/core-modules/tool-provider/providers/customer-success-tool.provider';
@@ -46,6 +47,7 @@ import { DiexToolsModule } from 'src/modules/diex/tools/diex-tools.module';
 import { InboxModule } from 'src/modules/inbox/inbox.module';
 import { RenewalModule } from 'src/modules/renewal/renewal.module';
 import { MeetingsModule } from 'src/modules/meetings/meetings.module';
+import { AgendaModule } from 'src/modules/agenda/agenda.module';
 import { AiGovernanceModule } from 'src/modules/ai-governance/ai-governance.module';
 import { WorkspaceContextModule } from 'src/modules/workspace-context/workspace-context.module';
 import { WorkspaceArchitectureModule } from 'src/modules/workspace-architecture/workspace-architecture.module';
@@ -86,6 +88,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     WorkspaceArchitectureModule,
     CommercialIntelligenceModule,
     CustomerSuccessModule,
+    AgendaModule,
     AiGovernanceModule,
     RenewalModule,
     MeetingsModule,
@@ -109,6 +112,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     WorkspaceArchitectureToolProvider,
     CommercialIntelligenceToolProvider,
     CustomerSuccessToolProvider,
+    AgendaToolProvider,
     AiGovernanceToolProvider,
     DiexBadgeToolProvider,
     DiexWorkspaceApprovalToolProvider,
@@ -135,6 +139,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         workspaceArchitectureProvider: WorkspaceArchitectureToolProvider,
         commercialIntelligenceProvider: CommercialIntelligenceToolProvider,
         customerSuccessProvider: CustomerSuccessToolProvider,
+        agendaProvider: AgendaToolProvider,
         aiGovernanceProvider: AiGovernanceToolProvider,
         renewalProvider: RenewalToolProvider,
         meetingsProvider: MeetingsToolProvider,
@@ -155,6 +160,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         workspaceArchitectureProvider,
         commercialIntelligenceProvider,
         customerSuccessProvider,
+        agendaProvider,
         aiGovernanceProvider,
         renewalProvider,
         meetingsProvider,
@@ -176,6 +182,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         WorkspaceArchitectureToolProvider,
         CommercialIntelligenceToolProvider,
         CustomerSuccessToolProvider,
+        AgendaToolProvider,
         AiGovernanceToolProvider,
         RenewalToolProvider,
         MeetingsToolProvider,
