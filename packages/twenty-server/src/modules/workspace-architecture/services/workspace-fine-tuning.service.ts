@@ -61,9 +61,21 @@ export type FineTuningEvaluationReport = {
 };
 
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-const PHONE_REGEX = /(\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{4,5}[-.\s]?\d{4}/g;
-const BEARER_TOKEN_REGEX = /(Bearer\s+|api[_-]?key\s*[:=]\s*)(['"]?[a-zA-Z0-9_\-.]+['"]?)/gi;
-const UUID_REGEX = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
+const PHONE_REGEX =
+  /(\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{4,5}[-.\s]?\d{4}/g;
+// Widened past `Bearer`/`api_key`: a training example is just as likely to
+// carry EMAIL_SMTP_PASSWORD=..., a bare token=..., a JWT or a pasted private
+// key, and any of those would otherwise be written into the dataset verbatim.
+// The value side absorbs an optional scheme word, otherwise
+// `Authorization: Bearer <token>` matches only up to `Bearer` and leaves the
+// token itself in place while looking redacted.
+const BEARER_TOKEN_REGEX =
+  /((?:Bearer|Basic)\s+|(?:api[_-]?key|password|passwd|pwd|secret|token|credential|authorization)\s*[:=]\s*)(['"]?(?:(?:Bearer|Basic)\s+)?[^\s'"]+['"]?)/gi;
+const JWT_REGEX = /eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+/g;
+const PRIVATE_KEY_BLOCK_REGEX =
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g;
+const UUID_REGEX =
+  /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
 
 @Injectable()
 export class WorkspaceFineTuningService {
@@ -77,16 +89,28 @@ export class WorkspaceFineTuningService {
   public sanitizeText(input: string): string {
     if (!input) return '';
 
-    return input
-      .replace(EMAIL_REGEX, '[EMAIL_REDACTED]')
-      .replace(BEARER_TOKEN_REGEX, '[SECRET_REDACTED]')
-      .replace(PHONE_REGEX, (match) =>
-        match.length >= 8 ? '[PHONE_REDACTED]' : match,
-      )
-      .replace(UUID_REGEX, (match) => `id_${createHash('md5').update(match).digest('hex').substring(0, 8)}`);
+    return (
+      input
+        // Whole-block secrets first: a PEM body would otherwise be chewed up by
+        // the narrower patterns and leak the parts they do not match.
+        .replace(PRIVATE_KEY_BLOCK_REGEX, '[PRIVATE_KEY_REDACTED]')
+        .replace(JWT_REGEX, '[JWT_REDACTED]')
+        .replace(EMAIL_REGEX, '[EMAIL_REDACTED]')
+        .replace(BEARER_TOKEN_REGEX, '$1[SECRET_REDACTED]')
+        .replace(PHONE_REGEX, (match) =>
+          match.length >= 8 ? '[PHONE_REDACTED]' : match,
+        )
+        .replace(
+          UUID_REGEX,
+          (match) =>
+            `id_${createHash('md5').update(match).digest('hex').substring(0, 8)}`,
+        )
+    );
   }
 
-  public sanitizeMessages(messages: FineTuningExampleMessage[]): FineTuningExampleMessage[] {
+  public sanitizeMessages(
+    messages: FineTuningExampleMessage[],
+  ): FineTuningExampleMessage[] {
     return messages.map((msg) => ({
       role: msg.role,
       content: this.sanitizeText(msg.content),
@@ -189,7 +213,9 @@ export class WorkspaceFineTuningService {
   public async evaluateModel(
     modelId: string,
   ): Promise<FineTuningEvaluationReport> {
-    this.logger.log(`Iniciando avaliação offline do modelo fine-tuned: ${modelId}`);
+    this.logger.log(
+      `Iniciando avaliação offline do modelo fine-tuned: ${modelId}`,
+    );
 
     const report: FineTuningEvaluationReport = {
       modelId,
@@ -221,7 +247,9 @@ export class WorkspaceFineTuningService {
   }
 
   public registerFineTunedModel(modelId: string) {
-    this.logger.log(`Registrando modelo fine-tuned no AI Model Registry: ${modelId}`);
+    this.logger.log(
+      `Registrando modelo fine-tuned no AI Model Registry: ${modelId}`,
+    );
 
     return {
       modelId,
