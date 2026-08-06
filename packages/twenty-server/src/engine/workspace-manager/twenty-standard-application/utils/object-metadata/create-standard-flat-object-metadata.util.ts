@@ -28,6 +28,7 @@ import { buildOfferStandardFlatObjectMetadata } from 'src/engine/workspace-manag
 import { buildAiActionStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-ai-action-standard-flat-object-metadata.util';
 import { buildDiexWorkspaceContextStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-diex-workspace-context-standard-flat-object-metadata.util';
 import { buildDiexAccessRequestStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-diex-access-request-standard-flat-object-metadata.util';
+import { buildWorkspaceArchitectureArtifactStandardFlatObjectMetadata } from 'src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/compute-workspace-architecture-artifact-standard-flat-object-metadata.util';
 
 export const STANDARD_FLAT_OBJECT_METADATA_BUILDERS_BY_OBJECT_NAME = {
   successPlan: buildSuccessPlanStandardFlatObjectMetadata,
@@ -38,6 +39,8 @@ export const STANDARD_FLAT_OBJECT_METADATA_BUILDERS_BY_OBJECT_NAME = {
   offer: buildOfferStandardFlatObjectMetadata,
   aiAction: buildAiActionStandardFlatObjectMetadata,
   diexWorkspaceContext: buildDiexWorkspaceContextStandardFlatObjectMetadata,
+  workspaceArchitectureArtifact:
+    buildWorkspaceArchitectureArtifactStandardFlatObjectMetadata,
   diexAccessRequest: buildDiexAccessRequestStandardFlatObjectMetadata,
   attachment: ({
     now,

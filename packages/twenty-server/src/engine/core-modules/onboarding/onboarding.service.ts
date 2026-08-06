@@ -31,8 +31,10 @@ import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspac
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { type DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
 import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
+import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
+import { workspaceOperationProfileSchema } from 'src/modules/workspace-architecture/types/workspace-operation-profile.schema';
 
-const generatedWorkspaceContextSchema = z.object({
+const generatedWorkspaceContextSchema = workspaceOperationProfileSchema.extend({
   businessDescription: z.string(),
   idealCustomerProfile: z.string(),
   toneOfVoice: z.string(),
@@ -67,6 +69,7 @@ export class OnboardingService {
     private readonly aiBillingService: AiBillingService,
     private readonly aiModelRegistryService: AiModelRegistryService,
     private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    private readonly workspaceArchitectureService: WorkspaceArchitectureService,
     private readonly userVarsService: UserVarsService<OnboardingKeyValueTypeMap>,
     private readonly twentyConfigService: TwentyConfigService,
     @InjectRepository(WorkspaceEntity)
@@ -122,10 +125,13 @@ export class OnboardingService {
       const result = await generateText({
         model: registeredModel.model,
         system: [
-          'Você organiza contexto operacional para um CRM brasileiro.',
-          'Resuma somente fatos presentes na descrição do usuário.',
+          'Você é o extrator de perfil operacional do Arquiteto de Workspace do Diex CRM.',
+          'Transforme a descrição livre em fatos estruturados úteis para montar um workspace.',
+          'Resuma somente fatos presentes na descrição do usuário e preserve o sentido original.',
           'Não invente preços, concorrentes, regras, garantias ou características.',
-          'Quando não houver informação suficiente, escreva "A revisar com o usuário".',
+          'Campos textuais sem evidência devem ser nulos; listas sem evidência devem ficar vazias.',
+          'Toda inferência reversível deve entrar em hypotheses e toda lacuna relevante em unconfirmedInformation.',
+          'Não bloqueie a recomendação apenas por haver lacunas.',
           'Use português do Brasil, texto direto e útil para agentes comerciais de IA.',
         ].join(' '),
         prompt: `Descrição da operação:\n\n${operationDescription.trim()}`,
@@ -143,6 +149,16 @@ export class OnboardingService {
       await this.persistGeneratedWorkspaceContext({
         workspaceId: workspace.id,
         generatedContext,
+      });
+      await this.workspaceArchitectureService.createInitialArchitecture({
+        workspaceId: workspace.id,
+        sourceDescription: operationDescription.trim(),
+        operationProfile: {
+          ...generatedContext,
+          commercialRules: [generatedContext.commercialRules],
+          originalResponse: operationDescription.trim(),
+        },
+        modelId: resolvedModelId,
       });
     } finally {
       if (isDefined(usage)) {

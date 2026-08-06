@@ -17,6 +17,9 @@ export const STANDARD_AGENT = {
   diexCustomerSuccessReview: {
     universalIdentifier: 'd1e0a000-0000-4000-8000-000000000005',
   },
+  diexWorkspaceArchitect: {
+    universalIdentifier: 'd1e0a000-0000-4000-8000-000000000006',
+  },
 } as const satisfies Record<
   string,
   {

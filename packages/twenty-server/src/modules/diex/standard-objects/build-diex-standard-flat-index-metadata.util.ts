@@ -51,6 +51,19 @@ const DIEX_STANDARD_INDEX_CONFIGS = {
     uniqueIndexes: [],
     isSearchable: true,
   },
+  workspaceArchitectureArtifact: {
+    uniqueIndexes: [
+      {
+        fieldName: 'artifactKey',
+        indexName: 'artifactKeyUniqueIndex',
+      },
+      {
+        fieldName: 'idempotencyKey',
+        indexName: 'idempotencyKeyUniqueIndex',
+      },
+    ],
+    isSearchable: true,
+  },
   offer: {
     uniqueIndexes: [
       {
@@ -144,6 +157,13 @@ export const buildDiexAccessRequestStandardFlatIndexMetadatas = (
 
 export const buildDiexWorkspaceContextStandardFlatIndexMetadatas = (
   args: Omit<CreateStandardIndexArgs<'diexWorkspaceContext'>, 'context'>,
+) => buildDiexStandardFlatIndexMetadatas(args);
+
+export const buildWorkspaceArchitectureArtifactStandardFlatIndexMetadatas = (
+  args: Omit<
+    CreateStandardIndexArgs<'workspaceArchitectureArtifact'>,
+    'context'
+  >,
 ) => buildDiexStandardFlatIndexMetadatas(args);
 
 export const buildOfferStandardFlatIndexMetadatas = (

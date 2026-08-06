@@ -47,6 +47,7 @@ const DEFAULT_FUNCTION_READ_WRITE_OBJECT_NAMES = [
 const DEFAULT_FUNCTION_READ_ONLY_OBJECT_NAMES = [
   'workspaceMember',
   'diexWorkspaceContext',
+  'workspaceArchitectureArtifact',
 ] as const;
 
 export const STANDARD_ROLE_OBJECT_PERMISSION_DEFINITIONS = [

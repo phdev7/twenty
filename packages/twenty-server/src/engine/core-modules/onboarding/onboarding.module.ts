@@ -12,6 +12,7 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
 import { AiBillingModule } from 'src/engine/metadata-modules/ai/ai-billing/ai-billing.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { OnboardingInviteSuggestionsModule } from 'src/modules/onboarding-invite-suggestions/onboarding-invite-suggestions.module';
+import { WorkspaceArchitectureModule } from 'src/modules/workspace-architecture/workspace-architecture.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { OnboardingInviteSuggestionsModule } from 'src/modules/onboarding-invite
     WorkspaceCacheStorageModule,
     UserVarsModule,
     OnboardingInviteSuggestionsModule,
+    WorkspaceArchitectureModule,
     TypeOrmModule.forFeature([WorkspaceEntity, UserWorkspaceEntity]),
   ],
   exports: [OnboardingService],

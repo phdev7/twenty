@@ -13,8 +13,15 @@ export const filterAndSortNavigationMenuItems = (
     (meta) => meta.isActive,
   );
 
+  const isFirstStepsHidden =
+    typeof window !== 'undefined' &&
+    window.localStorage.getItem('diex_first_steps_hidden') === 'true';
+
   return navigationMenuItems
     .filter((item) => {
+      if (item.name === 'Primeiros passos' && isFirstStepsHidden) {
+        return false;
+      }
       if (item.type === NavigationMenuItemType.FOLDER) {
         return true;
       }

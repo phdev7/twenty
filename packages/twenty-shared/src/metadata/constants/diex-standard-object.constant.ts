@@ -353,6 +353,86 @@ export const DIEX_STANDARD_OBJECTS = {
       },
     },
   },
+  workspaceArchitectureArtifact: {
+    universalIdentifier: 'd1e18000-0000-4000-8000-000000000001',
+    fields: {
+      ...buildDiexStandardObjectSystemFields(
+        'd1e18000-0000-4000-8000-000000000001',
+      ),
+      name: { universalIdentifier: 'd1e18100-0000-4000-8000-000000000001' },
+      artifactKey: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000002',
+      },
+      artifactType: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000003',
+      },
+      status: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000004',
+      },
+      schemaVersion: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000005',
+      },
+      version: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000006',
+      },
+      parentVersion: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000007',
+      },
+      sourceDescription: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000008',
+      },
+      payload: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000009',
+      },
+      summary: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-00000000000a',
+      },
+      templateVersions: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-00000000000b',
+      },
+      idempotencyKey: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-00000000000c',
+      },
+      approvedAt: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-00000000000d',
+      },
+      appliedAt: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-00000000000e',
+      },
+      completedAt: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-00000000000f',
+      },
+      errorDetails: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000010',
+      },
+      modelId: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000011',
+      },
+      promptVersion: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000012',
+      },
+      datasetVersion: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000013',
+      },
+      estimatedCostCents: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000014',
+      },
+      actualCostCents: {
+        universalIdentifier: 'd1e18100-0000-4000-8000-000000000015',
+      },
+    },
+    indexes: {
+      artifactKeyUniqueIndex: {
+        universalIdentifier: '4fdb9f68-c20c-5148-bbe5-c9fe48823fe5',
+      },
+      idempotencyKeyUniqueIndex: {
+        universalIdentifier: '25aa9f9c-9a38-5718-84f6-6ef87d250873',
+      },
+      searchVectorGinIndex: {
+        universalIdentifier: '69fa4c38-5078-5914-8627-f4c592efeb78',
+      },
+    },
+  },
   diexAccessRequest: {
     universalIdentifier: 'd1e17000-0000-4000-8000-000000000001',
     fields: {

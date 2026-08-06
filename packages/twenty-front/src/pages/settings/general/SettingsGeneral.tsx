@@ -13,7 +13,8 @@ import { SettingsSecuritySettings } from '@/settings/security/components/Setting
 import { NameField } from '@/settings/workspace/components/NameField';
 import { WorkspaceLogoUploader } from '@/settings/workspace/components/WorkspaceLogoUploader';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
-import { IconHistory, IconKey, IconSettings } from 'twenty-ui/icon';
+import { IconHistory, IconKey, IconRocket, IconSettings } from 'twenty-ui/icon';
+import { Button } from 'twenty-ui/input';
 import { H2Title } from 'twenty-ui/typography';
 import { Section } from 'twenty-ui/layout';
 import { PermissionFlagType } from '~/generated-metadata/graphql';
@@ -74,6 +75,21 @@ export const SettingsGeneral = () => {
             <SettingsWorkspaceDomainCard />
           </Section>
         )}
+        <Section>
+          <H2Title
+            title="Primeiros passos"
+            description="Reabra o guia inicial de onboarding e configuração do Arquiteto de Workspace no menu lateral."
+          />
+          <Button
+            title="Reabrir Primeiros passos"
+            Icon={IconRocket}
+            variant="secondary"
+            onClick={() => {
+              window.localStorage.removeItem('diex_first_steps_hidden');
+              window.location.reload();
+            }}
+          />
+        </Section>
         <Section>
           <DeleteWorkspace />
         </Section>

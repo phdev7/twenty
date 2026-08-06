@@ -37,6 +37,7 @@ import {
   buildCustomerRenewalStandardFlatIndexMetadatas,
   buildDiexAccessRequestStandardFlatIndexMetadatas,
   buildDiexWorkspaceContextStandardFlatIndexMetadatas,
+  buildWorkspaceArchitectureArtifactStandardFlatIndexMetadatas,
   buildOfferStandardFlatIndexMetadatas,
   buildSuccessMilestoneStandardFlatIndexMetadatas,
   buildSuccessPlanStandardFlatIndexMetadatas,
@@ -75,6 +76,8 @@ const STANDARD_FLAT_INDEX_METADATA_BUILDERS_BY_OBJECT_NAME = {
   dashboard: buildDashboardStandardFlatIndexMetadatas,
   diexAccessRequest: buildDiexAccessRequestStandardFlatIndexMetadatas,
   diexWorkspaceContext: buildDiexWorkspaceContextStandardFlatIndexMetadatas,
+  workspaceArchitectureArtifact:
+    buildWorkspaceArchitectureArtifactStandardFlatIndexMetadatas,
   inboxAutomation: buildInboxAutomationStandardFlatIndexMetadatas,
   inboxConversation: buildInboxConversationStandardFlatIndexMetadatas,
   inboxConversationEvent: buildInboxConversationEventStandardFlatIndexMetadatas,

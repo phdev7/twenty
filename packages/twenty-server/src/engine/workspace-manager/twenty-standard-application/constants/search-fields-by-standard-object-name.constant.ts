@@ -23,6 +23,10 @@ export const SEARCH_FIELDS_BY_STANDARD_OBJECT_NAME = {
   customerRenewalEvent: [{ name: 'name', type: FieldMetadataType.TEXT }],
   diexAccessRequest: [{ name: 'name', type: FieldMetadataType.TEXT }],
   diexWorkspaceContext: [{ name: 'name', type: FieldMetadataType.TEXT }],
+  workspaceArchitectureArtifact: [
+    { name: 'name', type: FieldMetadataType.TEXT },
+    { name: 'artifactKey', type: FieldMetadataType.TEXT },
+  ],
   offer: [{ name: 'name', type: FieldMetadataType.TEXT }],
   successMilestone: [{ name: 'name', type: FieldMetadataType.TEXT }],
   successPlan: [{ name: 'name', type: FieldMetadataType.TEXT }],

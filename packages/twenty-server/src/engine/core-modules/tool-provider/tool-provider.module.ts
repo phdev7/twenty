@@ -21,6 +21,7 @@ import { ViewToolProvider } from 'src/engine/core-modules/tool-provider/provider
 import { WebhookToolProvider } from 'src/engine/core-modules/tool-provider/providers/webhook-tool.provider';
 import { WorkflowToolProvider } from 'src/engine/core-modules/tool-provider/providers/workflow-tool.provider';
 import { WorkspaceContextToolProvider } from 'src/engine/core-modules/tool-provider/providers/workspace-context-tool.provider';
+import { WorkspaceArchitectureToolProvider } from 'src/engine/core-modules/tool-provider/providers/workspace-architecture-tool.provider';
 import { ToolExecutorService } from 'src/engine/core-modules/tool-provider/services/tool-executor.service';
 import { ToolModule } from 'src/engine/core-modules/tool/tool.module';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
@@ -47,6 +48,7 @@ import { RenewalModule } from 'src/modules/renewal/renewal.module';
 import { MeetingsModule } from 'src/modules/meetings/meetings.module';
 import { AiGovernanceModule } from 'src/modules/ai-governance/ai-governance.module';
 import { WorkspaceContextModule } from 'src/modules/workspace-context/workspace-context.module';
+import { WorkspaceArchitectureModule } from 'src/modules/workspace-architecture/workspace-architecture.module';
 
 import { ToolIndexResolver } from './resolvers/tool-index.resolver';
 import { ToolRegistryService } from './services/tool-registry.service';
@@ -81,6 +83,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     WebhookModule,
     UserRoleModule,
     WorkspaceContextModule,
+    WorkspaceArchitectureModule,
     CommercialIntelligenceModule,
     CustomerSuccessModule,
     AiGovernanceModule,
@@ -103,6 +106,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     WebhookToolProvider,
     WorkflowToolProvider,
     WorkspaceContextToolProvider,
+    WorkspaceArchitectureToolProvider,
     CommercialIntelligenceToolProvider,
     CustomerSuccessToolProvider,
     AiGovernanceToolProvider,
@@ -128,6 +132,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         workflowProvider: WorkflowToolProvider,
         dashboardProvider: DashboardToolProvider,
         workspaceContextProvider: WorkspaceContextToolProvider,
+        workspaceArchitectureProvider: WorkspaceArchitectureToolProvider,
         commercialIntelligenceProvider: CommercialIntelligenceToolProvider,
         customerSuccessProvider: CustomerSuccessToolProvider,
         aiGovernanceProvider: AiGovernanceToolProvider,
@@ -147,6 +152,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         workflowProvider,
         dashboardProvider,
         workspaceContextProvider,
+        workspaceArchitectureProvider,
         commercialIntelligenceProvider,
         customerSuccessProvider,
         aiGovernanceProvider,
@@ -167,6 +173,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         WorkflowToolProvider,
         DashboardToolProvider,
         WorkspaceContextToolProvider,
+        WorkspaceArchitectureToolProvider,
         CommercialIntelligenceToolProvider,
         CustomerSuccessToolProvider,
         AiGovernanceToolProvider,

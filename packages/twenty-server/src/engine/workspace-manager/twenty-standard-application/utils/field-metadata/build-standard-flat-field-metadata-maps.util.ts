@@ -33,6 +33,7 @@ import { buildOfferStandardFlatFieldMetadatas } from 'src/engine/workspace-manag
 import { buildAiActionStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-ai-action-standard-flat-field-metadata.util';
 import { buildDiexWorkspaceContextStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-diex-workspace-context-standard-flat-field-metadata.util';
 import { buildDiexAccessRequestStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-diex-access-request-standard-flat-field-metadata.util';
+import { buildWorkspaceArchitectureArtifactStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workspace-architecture-artifact-standard-flat-field-metadata.util';
 import { buildMessageCampaignStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-campaign-standard-flat-field-metadata.util';
 import { buildMessageListStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-list-standard-flat-field-metadata.util';
 import { buildMessageListMemberStandardFlatFieldMetadatas } from 'src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-message-list-member-standard-flat-field-metadata.util';
@@ -68,6 +69,8 @@ const STANDARD_FLAT_FIELD_METADATA_BUILDERS_BY_OBJECT_NAME = {
   offer: buildOfferStandardFlatFieldMetadatas,
   aiAction: buildAiActionStandardFlatFieldMetadatas,
   diexWorkspaceContext: buildDiexWorkspaceContextStandardFlatFieldMetadatas,
+  workspaceArchitectureArtifact:
+    buildWorkspaceArchitectureArtifactStandardFlatFieldMetadatas,
   diexAccessRequest: buildDiexAccessRequestStandardFlatFieldMetadatas,
   attachment: buildAttachmentStandardFlatFieldMetadatas,
   blocklist: buildBlocklistStandardFlatFieldMetadatas,
