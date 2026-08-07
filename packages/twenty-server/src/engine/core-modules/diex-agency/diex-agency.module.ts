@@ -16,6 +16,7 @@ import { DiexAiContextScopeService } from 'src/engine/core-modules/diex-agency/s
 import { DiexAgencyAiCopilotService } from 'src/engine/core-modules/diex-agency/services/diex-agency-ai-copilot.service';
 import { DiexAgencyCascadeSuspensionGuard } from 'src/engine/core-modules/diex-agency/guards/diex-agency-cascade-suspension.guard';
 import { DiexAgencySubscriber } from 'src/engine/core-modules/diex-agency/subscribers/diex-agency.subscriber';
+import { SecretEncryptionModule } from 'src/engine/core-modules/secret-encryption/secret-encryption.module';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
@@ -23,6 +24,7 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
 @Module({
   imports: [
     AuthModule,
+    SecretEncryptionModule,
     TypeOrmModule.forFeature([
       DiexAgencyEntity,
       DiexAgencyMetricDefinitionEntity,

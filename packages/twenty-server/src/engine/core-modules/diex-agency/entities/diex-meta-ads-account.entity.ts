@@ -12,6 +12,7 @@ import {
 
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
 import { DiexAgencyEntity } from 'src/engine/core-modules/diex-agency/diex-agency.entity';
+import { type EncryptedString } from 'src/engine/core-modules/secret-encryption/branded-strings/encrypted-string.type';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 
 export enum MetaAdsStatus {
@@ -53,8 +54,9 @@ export class DiexMetaAdsAccountEntity {
   @Column({ type: 'text' })
   accountName: string;
 
+  // Long-lived Meta token: never exposed over GraphQL and never stored in clear
   @Column({ type: 'text' })
-  accessToken: string;
+  accessToken: EncryptedString;
 
   @Field(() => MetaAdsStatus)
   @Column({
