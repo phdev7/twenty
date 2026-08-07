@@ -18,7 +18,7 @@ const createEnumIfNotExists = async (
   );
 };
 
-@RegisteredInstanceCommand('2.25.0', 1785700000000)
+@RegisteredInstanceCommand('2.26.0', 1786000000000)
 export class CreateDiexAgencyAndFormsFastInstanceCommand
   implements FastInstanceCommand
 {

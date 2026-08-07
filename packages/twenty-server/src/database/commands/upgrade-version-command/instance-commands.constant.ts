@@ -127,7 +127,7 @@ import { AddAgentForeignKeyToRoleTargetFastInstanceCommand } from './2-25/2-25-i
 import { AddPageLayoutCascadeDeleteIndexesFastInstanceCommand } from './2-25/2-25-instance-command-fast-1784904030251-add-page-layout-cascade-delete-indexes';
 import { CreateWorkspaceInvitationStateFastInstanceCommand } from './2-25/2-25-instance-command-fast-1785630893000-create-workspace-invitation-state';
 import { BackfillWorkspaceInvitationStateSlowInstanceCommand } from './2-25/2-25-instance-command-slow-1785630893001-backfill-workspace-invitation-state';
-import { CreateDiexAgencyAndFormsFastInstanceCommand } from './2-25/2-25-instance-command-fast-1785700000000-create-diex-agency-and-forms';
+import { CreateDiexAgencyAndFormsFastInstanceCommand } from './2-26/2-26-instance-command-fast-1786000000000-create-diex-agency-and-forms';
 import { AddDiexOnboardingProfileToWorkspaceFastInstanceCommand } from './2-26/2-26-instance-command-fast-1785900000000-add-diex-onboarding-profile-to-workspace';
 
 export const INSTANCE_COMMANDS = [
