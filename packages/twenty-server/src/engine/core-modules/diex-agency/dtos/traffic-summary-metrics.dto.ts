@@ -1,5 +1,20 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+@ObjectType('DiexAdvancedTrafficMetrics')
+export class DiexAdvancedTrafficMetricsDTO {
+  @Field()
+  currentCac: number;
+
+  @Field()
+  cacChangePercentage: number;
+
+  @Field()
+  currentLtv: number;
+
+  @Field()
+  ltvChangePercentage: number;
+}
+
 @ObjectType('DiexTrafficSummaryMetrics')
 export class DiexTrafficSummaryMetricsDTO {
   @Field()
@@ -34,19 +49,4 @@ export class DiexTrafficSummaryMetricsDTO {
 
   @Field(() => DiexAdvancedTrafficMetricsDTO, { nullable: true })
   advancedMetrics?: DiexAdvancedTrafficMetricsDTO;
-}
-
-@ObjectType('DiexAdvancedTrafficMetrics')
-export class DiexAdvancedTrafficMetricsDTO {
-  @Field()
-  currentCac: number;
-
-  @Field()
-  cacChangePercentage: number;
-
-  @Field()
-  currentLtv: number;
-
-  @Field()
-  ltvChangePercentage: number;
 }
