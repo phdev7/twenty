@@ -202,7 +202,7 @@ export class WorkspaceEntity {
   @Column({ type: 'integer', default: 90 })
   eventLogRetentionDays: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'uuid', nullable: true })
   managedByAgencyId: string | null;
 

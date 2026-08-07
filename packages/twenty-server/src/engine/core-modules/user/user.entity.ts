@@ -80,7 +80,7 @@ export class UserEntity {
   @Column({ default: false })
   isAgencyManager: boolean;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'uuid', nullable: true })
   agencyId: string | null;
 
