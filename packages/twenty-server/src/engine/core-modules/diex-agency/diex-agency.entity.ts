@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -17,6 +17,8 @@ export enum DiexAgencyStatus {
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',
 }
+
+registerEnumType(DiexAgencyStatus, { name: 'DiexAgencyStatus' });
 
 @ObjectType('DiexAgency')
 @Entity({ name: 'diexAgency', schema: 'core' })
@@ -42,7 +44,7 @@ export class DiexAgencyEntity {
   @Column({ type: 'integer', default: 5 })
   workspaceSlotsLimit: number;
 
-  @Field()
+  @Field(() => DiexAgencyStatus)
   @Column({ type: 'varchar', default: DiexAgencyStatus.ACTIVE })
   status: DiexAgencyStatus;
 

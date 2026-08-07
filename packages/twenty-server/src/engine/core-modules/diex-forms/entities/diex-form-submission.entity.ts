@@ -1,3 +1,4 @@
+import GraphQLJSON from 'graphql-type-json';
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
@@ -38,7 +39,9 @@ export class DiexFormSubmissionEntity {
   @Index('IDX_DIEX_FORM_SUBMISSION_FORM_ID')
   formId: string;
 
-  @ManyToOne(() => DiexFormEntity, (form) => form.submissions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => DiexFormEntity, (form) => form.submissions, {
+    onDelete: 'CASCADE',
+  })
   form: Relation<DiexFormEntity>;
 
   @Field(() => UUIDScalarType)
@@ -46,7 +49,7 @@ export class DiexFormSubmissionEntity {
   @Index('IDX_DIEX_FORM_SUBMISSION_WORKSPACE_ID')
   workspaceId: string;
 
-  @Field()
+  @Field(() => GraphQLJSON)
   @Column({ type: 'jsonb' })
   submittedData: Record<string, any>;
 
