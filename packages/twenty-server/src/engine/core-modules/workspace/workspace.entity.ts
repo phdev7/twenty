@@ -27,6 +27,7 @@ import { ApplicationEntity } from 'src/engine/core-modules/application/applicati
 import { ApplicationDTO } from 'src/engine/core-modules/application/dtos/application.dto';
 import { ApprovedAccessDomainEntity } from 'src/engine/core-modules/approved-access-domain/approved-access-domain.entity';
 import { EmailingDomainEntity } from 'src/engine/core-modules/emailing-domain/emailing-domain.entity';
+import { DiexAgencyEntity } from 'src/engine/core-modules/diex-agency/diex-agency.entity';
 import { FeatureFlagEntity } from 'src/engine/core-modules/feature-flag/feature-flag.entity';
 import { FileEntity } from 'src/engine/core-modules/file/entities/file.entity';
 import { KeyValuePairEntity } from 'src/engine/core-modules/key-value-pair/key-value-pair.entity';
@@ -200,6 +201,17 @@ export class WorkspaceEntity {
   @Field()
   @Column({ type: 'integer', default: 90 })
   eventLogRetentionDays: number;
+
+  @Field({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
+  managedByAgencyId: string | null;
+
+  @ManyToOne(() => DiexAgencyEntity, (agency) => agency.managedWorkspaces, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'managedByAgencyId' })
+  managedByAgency: Relation<DiexAgencyEntity>;
 
   // Relations
   @OneToMany(() => AppTokenEntity, (appToken) => appToken.workspace, {

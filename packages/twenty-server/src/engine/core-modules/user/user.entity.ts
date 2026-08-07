@@ -77,6 +77,14 @@ export class UserEntity {
   canAccessFullAdminPanel: boolean;
 
   @Field()
+  @Column({ default: false })
+  isAgencyManager: boolean;
+
+  @Field({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
+  agencyId: string | null;
+
+  @Field()
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

@@ -54,8 +54,15 @@ export class ImpersonationAuthorizationService {
     );
 
     if (level === 'server') {
+      const isAgencyManagerAuthorized =
+        impersonatorUserWorkspace.user.isAgencyManager === true &&
+        isDefined(impersonatorUserWorkspace.user.agencyId) &&
+        targetUserWorkspace.workspace.managedByAgencyId ===
+          impersonatorUserWorkspace.user.agencyId;
+
       const hasServerLevelImpersonatePermission =
-        impersonatorUserWorkspace.user.canImpersonate === true &&
+        (impersonatorUserWorkspace.user.canImpersonate === true ||
+          isAgencyManagerAuthorized) &&
         targetUserWorkspace.workspace.allowImpersonation === true;
 
       if (!hasServerLevelImpersonatePermission) {

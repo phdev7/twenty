@@ -32,6 +32,12 @@ export enum AppPath {
   DiexAccessRequests = '/access-requests/inbox',
   DiexCalendar = '/diex/calendar',
   DiexFirstSteps = '/diex/first-steps',
+  AgencyPortal = '/agency-portal',
+  AgencyTrafficDashboard = '/agency/traffic-dashboard',
+  AgencyCustomMetrics = '/agency/custom-metrics',
+  AgencyMetaAds = '/agency/meta-ads',
+  AgencyClientReports = '/agency/client-reports',
+  DiexFormBuilder = '/forms/builder',
 
   Settings = `settings`,
   SettingsCatchAll = `/${Settings}/*`,

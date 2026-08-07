@@ -6,4 +6,5 @@ export const SETTINGS_ADMIN_TABS = {
   HEALTH_STATUS: 'health-status',
   ENTERPRISE: 'enterprise',
   WORKSPACE_APPROVALS: 'workspace-approvals',
+  AGENCIES: 'agencies',
 };

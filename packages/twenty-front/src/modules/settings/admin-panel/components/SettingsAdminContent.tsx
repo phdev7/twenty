@@ -8,6 +8,7 @@ import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomState
 import { t } from '@lingui/core/macro';
 import {
   IconApps,
+  IconBuildingSkyscraper,
   IconCheck,
   IconHeart,
   IconKey,
@@ -58,6 +59,12 @@ export const SettingsAdminContent = () => {
       id: SETTINGS_ADMIN_TABS.WORKSPACE_APPROVALS,
       title: t`Approvals`,
       Icon: IconCheck,
+      disabled: !canAccessFullAdminPanel,
+    },
+    {
+      id: SETTINGS_ADMIN_TABS.AGENCIES,
+      title: t`Agências`,
+      Icon: IconBuildingSkyscraper,
       disabled: !canAccessFullAdminPanel,
     },
     ...(!isBillingEnabled

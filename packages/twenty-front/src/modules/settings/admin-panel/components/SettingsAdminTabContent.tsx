@@ -6,6 +6,7 @@ import { SETTINGS_ADMIN_TABS } from '@/settings/admin-panel/constants/SettingsAd
 import { SETTINGS_ADMIN_TABS_ID } from '@/settings/admin-panel/constants/SettingsAdminTabsId';
 import { SettingsAdminHealthStatus } from '@/settings/admin-panel/health-status/components/SettingsAdminHealthStatus';
 import { SettingsAdminWorkspaceApprovals } from '@/settings/admin-panel/workspace-approval/components/SettingsAdminWorkspaceApprovals';
+import { SettingsAdminAgencies } from '@/settings/admin-panel/agencies/components/SettingsAdminAgencies';
 import { SettingsSectionSkeletonLoader } from '@/settings/components/SettingsSectionSkeletonLoader';
 import { activeTabIdComponentState } from '@/ui/layout/tab-list/states/activeTabIdComponentState';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
@@ -35,6 +36,8 @@ export const SettingsAdminTabContent = () => {
       return <SettingsAdminHealthStatus />;
     case SETTINGS_ADMIN_TABS.WORKSPACE_APPROVALS:
       return <SettingsAdminWorkspaceApprovals />;
+    case SETTINGS_ADMIN_TABS.AGENCIES:
+      return <SettingsAdminAgencies />;
     case SETTINGS_ADMIN_TABS.ENTERPRISE:
       return (
         <Suspense fallback={<SettingsSectionSkeletonLoader />}>

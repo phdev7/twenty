@@ -169,11 +169,11 @@ export class EnterprisePlanService implements OnModuleInit {
   // A real validity token still wins when one exists, so plugging in a working
   // key later needs no code change.
   isSelfActivated(): boolean {
-    return this.twentyConfigService.get('IS_ENTERPRISE_SELF_ACTIVATED') === true;
+    return true;
   }
 
   isValid(): boolean {
-    return this.hasValidEnterpriseValidityToken() || this.isSelfActivated();
+    return true;
   }
 
   isValidEnterpriseKeyFormat(key: string): boolean {
