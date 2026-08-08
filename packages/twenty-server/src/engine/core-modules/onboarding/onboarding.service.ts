@@ -6,7 +6,6 @@ import { isNonEmptyString } from '@sniptt/guards';
 import { isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { type QueryRunner, Repository } from 'typeorm';
-import { z } from 'zod';
 
 import { BillingCreditService } from 'src/engine/core-modules/billing/services/billing-credit.service';
 import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
@@ -33,24 +32,11 @@ import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system
 import { type DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
 import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
 import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
-import { workspaceOperationProfileSchema } from 'src/modules/workspace-architecture/types/workspace-operation-profile.schema';
-
-// The system prompt tells the model to return null for anything the user did
-// not mention. Requiring plain z.string() here contradicted that in the same
-// function: a description that never touched objections, competitors or
-// forbidden claims produced nulls, the structured output was rejected, and the
-// user was told to "revise a descrição" for a description that was fine.
-const generatedText = z.string().trim().min(1).nullable();
-
-const generatedWorkspaceContextSchema = workspaceOperationProfileSchema.extend({
-  businessDescription: generatedText,
-  idealCustomerProfile: generatedText,
-  toneOfVoice: generatedText,
-  commercialRules: generatedText,
-  objectionPlaybook: generatedText,
-  competitiveLandscape: generatedText,
-  forbiddenClaims: generatedText,
-});
+import {
+  type GeneratedWorkspaceContext,
+  generatedWorkspaceContextSchema,
+  normalizeGeneratedWorkspaceContext,
+} from 'src/engine/core-modules/onboarding/types/generated-workspace-context.schema';
 
 export enum OnboardingStepKeys {
   ONBOARDING_CONNECT_ACCOUNT_PENDING = 'ONBOARDING_CONNECT_ACCOUNT_PENDING',
@@ -125,9 +111,7 @@ export class OnboardingService {
         modelId: resolvedModelId,
       });
     let usage: LanguageModelUsage | undefined;
-    let generatedContext:
-      | z.infer<typeof generatedWorkspaceContextSchema>
-      | undefined;
+    let generatedContext: GeneratedWorkspaceContext | undefined;
 
     try {
       const result = await generateText({
@@ -161,15 +145,10 @@ export class OnboardingService {
       await this.workspaceArchitectureService.createInitialArchitecture({
         workspaceId: workspace.id,
         sourceDescription: operationDescription.trim(),
-        operationProfile: {
-          ...generatedContext,
-          // The profile keeps commercialRules as a list of non-empty strings,
-          // so an absent rule must drop out rather than become [null].
-          commercialRules: isNonEmptyString(generatedContext.commercialRules)
-            ? [generatedContext.commercialRules]
-            : [],
-          originalResponse: operationDescription.trim(),
-        },
+        operationProfile: normalizeGeneratedWorkspaceContext(
+          generatedContext,
+          operationDescription.trim(),
+        ),
         modelId: resolvedModelId,
       });
     } finally {
@@ -249,7 +228,7 @@ export class OnboardingService {
     generatedContext,
   }: {
     workspaceId: string;
-    generatedContext: z.infer<typeof generatedWorkspaceContextSchema>;
+    generatedContext: GeneratedWorkspaceContext;
   }): Promise<void> {
     const authContext = buildSystemAuthContext(workspaceId);
 
