@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { type LanguageModelUsage, Output, generateText } from 'ai';
+import { isNonEmptyString } from '@sniptt/guards';
 import { isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { type QueryRunner, Repository } from 'typeorm';
@@ -34,14 +35,21 @@ import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-o
 import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
 import { workspaceOperationProfileSchema } from 'src/modules/workspace-architecture/types/workspace-operation-profile.schema';
 
+// The system prompt tells the model to return null for anything the user did
+// not mention. Requiring plain z.string() here contradicted that in the same
+// function: a description that never touched objections, competitors or
+// forbidden claims produced nulls, the structured output was rejected, and the
+// user was told to "revise a descrição" for a description that was fine.
+const generatedText = z.string().trim().min(1).nullable();
+
 const generatedWorkspaceContextSchema = workspaceOperationProfileSchema.extend({
-  businessDescription: z.string(),
-  idealCustomerProfile: z.string(),
-  toneOfVoice: z.string(),
-  commercialRules: z.string(),
-  objectionPlaybook: z.string(),
-  competitiveLandscape: z.string(),
-  forbiddenClaims: z.string(),
+  businessDescription: generatedText,
+  idealCustomerProfile: generatedText,
+  toneOfVoice: generatedText,
+  commercialRules: generatedText,
+  objectionPlaybook: generatedText,
+  competitiveLandscape: generatedText,
+  forbiddenClaims: generatedText,
 });
 
 export enum OnboardingStepKeys {
@@ -155,7 +163,11 @@ export class OnboardingService {
         sourceDescription: operationDescription.trim(),
         operationProfile: {
           ...generatedContext,
-          commercialRules: [generatedContext.commercialRules],
+          // The profile keeps commercialRules as a list of non-empty strings,
+          // so an absent rule must drop out rather than become [null].
+          commercialRules: isNonEmptyString(generatedContext.commercialRules)
+            ? [generatedContext.commercialRules]
+            : [],
           originalResponse: operationDescription.trim(),
         },
         modelId: resolvedModelId,
@@ -180,11 +192,31 @@ export class OnboardingService {
       throw new Error('AI did not generate the workspace context.');
     }
 
+    // Only fills what the sign-up left blank. These columns hold the answers the
+    // requester typed and are what the admin reads when approving, so replacing
+    // them with the AI's rewording destroyed the original record of what was
+    // said — including onboardingCurrentProcess, which answered a different
+    // question entirely.
+    const keepExisting = (existing: string | null, generated: string | null) =>
+      isNonEmptyString(existing) ? existing : (generated ?? existing);
+
     await this.workspaceRepository.update(workspace.id, {
-      onboardingCurrentProcess: operationDescription.trim(),
-      onboardingCompanyDescription: generatedContext.businessDescription,
-      onboardingIdealCustomerProfile: generatedContext.idealCustomerProfile,
-      onboardingToneOfVoice: generatedContext.toneOfVoice,
+      onboardingCompanyDescription: keepExisting(
+        workspace.onboardingCompanyDescription,
+        generatedContext.businessDescription,
+      ),
+      onboardingIdealCustomerProfile: keepExisting(
+        workspace.onboardingIdealCustomerProfile,
+        generatedContext.idealCustomerProfile,
+      ),
+      onboardingToneOfVoice: keepExisting(
+        workspace.onboardingToneOfVoice,
+        generatedContext.toneOfVoice,
+      ),
+      onboardingCurrentProcess: keepExisting(
+        workspace.onboardingCurrentProcess,
+        operationDescription.trim(),
+      ),
     });
 
     await Promise.all([
@@ -232,20 +264,25 @@ export class OnboardingService {
         order: { createdAt: 'ASC' },
         take: 1,
       });
+      // A field the description never covered stays empty rather than null, so
+      // the First Steps card can mark it "vazio" and ask the operator to fill
+      // it instead of the whole onboarding failing.
       const richTextFields = {
         businessDescription: {
-          markdown: generatedContext.businessDescription,
+          markdown: generatedContext.businessDescription ?? '',
         },
         idealCustomerProfile: {
-          markdown: generatedContext.idealCustomerProfile,
+          markdown: generatedContext.idealCustomerProfile ?? '',
         },
-        toneOfVoice: { markdown: generatedContext.toneOfVoice },
-        commercialRules: { markdown: generatedContext.commercialRules },
-        objectionPlaybook: { markdown: generatedContext.objectionPlaybook },
+        toneOfVoice: { markdown: generatedContext.toneOfVoice ?? '' },
+        commercialRules: { markdown: generatedContext.commercialRules ?? '' },
+        objectionPlaybook: {
+          markdown: generatedContext.objectionPlaybook ?? '',
+        },
         competitiveLandscape: {
-          markdown: generatedContext.competitiveLandscape,
+          markdown: generatedContext.competitiveLandscape ?? '',
         },
-        forbiddenClaims: { markdown: generatedContext.forbiddenClaims },
+        forbiddenClaims: { markdown: generatedContext.forbiddenClaims ?? '' },
       };
 
       if (isDefined(existingContext)) {

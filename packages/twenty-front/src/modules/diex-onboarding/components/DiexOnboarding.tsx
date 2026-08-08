@@ -70,12 +70,15 @@ const StyledHint = styled.span`
 
 export const DiexOnboarding = ({
   isSubmitting,
+  initialDescription = '',
   onSubmit,
 }: {
   isSubmitting: boolean;
+  initialDescription?: string;
   onSubmit: (operationDescription: string) => void;
 }) => {
-  const [operationDescription, setOperationDescription] = useState('');
+  const [operationDescription, setOperationDescription] =
+    useState(initialDescription);
   const normalizedDescription = operationDescription.trim();
   const canSubmit = normalizedDescription.length >= 20 && !isSubmitting;
 
@@ -93,11 +96,15 @@ export const DiexOnboarding = ({
         <StyledIcon>
           <IconSparkles size={20} />
         </StyledIcon>
-        <StyledTitle>Descreva sua operação atualmente:</StyledTitle>
+        <StyledTitle>
+          {initialDescription
+            ? 'Confirme a descrição da sua operação:'
+            : 'Descreva sua operação atualmente:'}
+        </StyledTitle>
         <StyledDescription>
-          Conte o que sua empresa faz, quem atende, como vende e quais são os
-          principais processos ou dificuldades. A IA organizará a resposta e
-          deixará o contexto do CRM pronto para sua revisão.
+          {initialDescription
+            ? 'Reunimos o que você respondeu no cadastro. Ajuste o que quiser e a IA organizará o contexto do CRM.'
+            : 'Conte o que sua empresa faz, quem atende, como vende e quais são os principais processos ou dificuldades. A IA organizará a resposta e deixará o contexto do CRM pronto para sua revisão.'}
         </StyledDescription>
         <TextArea
           textAreaId="diex-operation-description"

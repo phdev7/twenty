@@ -4,6 +4,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { BillingCreditService } from 'src/engine/core-modules/billing/services/billing-credit.service';
+import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
+import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
+import { AiModelRegistryService } from 'src/engine/metadata-modules/ai/ai-models/services/ai-model-registry.service';
+import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
 import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
@@ -44,6 +49,38 @@ describe('OnboardingService', () => {
           provide: BillingCreditService,
           useValue: {
             creditWorkspaceBalance: jest.fn(),
+          },
+        },
+        {
+          provide: BillingUsageService,
+          useValue: {
+            hasAvailableCreditsOrThrow: jest.fn(),
+          },
+        },
+        {
+          provide: AiBillingService,
+          useValue: {
+            calculateAndBillUsage: jest.fn(),
+          },
+        },
+        {
+          provide: AiModelRegistryService,
+          useValue: {
+            validateModelAvailability: jest.fn(),
+            resolveModelForAgent: jest.fn(),
+          },
+        },
+        {
+          provide: GlobalWorkspaceOrmManager,
+          useValue: {
+            executeInWorkspaceContext: jest.fn(),
+            getRepository: jest.fn(),
+          },
+        },
+        {
+          provide: WorkspaceArchitectureService,
+          useValue: {
+            createInitialArchitecture: jest.fn(),
           },
         },
         {

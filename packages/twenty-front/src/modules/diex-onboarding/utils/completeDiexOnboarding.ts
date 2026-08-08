@@ -26,6 +26,14 @@ export const completeDiexOnboarding = async (
   );
 
   if (!response.ok) {
-    throw new Error(String(response.status));
+    // The server explains why (no AI provider configured, model unavailable,
+    // credits exhausted). Discarding it left the user re-writing a description
+    // that was never the problem.
+    const reason = await response
+      .json()
+      .then((body) => body?.messages?.[0] ?? body?.message)
+      .catch(() => undefined);
+
+    throw new Error(reason ?? `HTTP ${response.status}`);
   }
 };
