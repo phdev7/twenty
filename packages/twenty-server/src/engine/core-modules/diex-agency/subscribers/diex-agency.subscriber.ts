@@ -20,22 +20,19 @@ export class DiexAgencySubscriber implements EntitySubscriberInterface<Workspace
     return WorkspaceEntity;
   }
 
+  // No webhook is dispatched here. The previous log claimed to be sending a
+  // provisioning payload to n8n/Make while nothing left the process, so an
+  // operator reading the log would conclude the integration had run.
   async afterInsert(event: InsertEvent<WorkspaceEntity>) {
     const workspace = event.entity;
 
-    // Se o workspace não possui agência parceira (managedByAgencyId), ignoramos
     if (!workspace.managedByAgencyId) {
       return;
     }
 
     this.logger.log(
-      `[ONBOARDING WEBHOOK DISPARADO] Novo workspace criado pela agência ${workspace.managedByAgencyId}. ` +
-      `Workspace: ${workspace.displayName} (ID: ${workspace.id}). ` +
-      `Enviando Payload para n8n/Make para provisionamento de e-mails, grupo no WhatsApp e faturamento...`,
+      `Workspace ${workspace.id} ("${workspace.displayName}") created under agency ${workspace.managedByAgencyId}. ` +
+        'No provisioning webhook is wired yet.',
     );
-    
-    // Aqui seria emitido o evento para a fila do BullMQ ou EventEmitter local, 
-    // que seria interceptado pelo módulo de Webhooks nativos.
-    // Exemplo: this.eventEmitter.emit('agency.workspace.created', workspace);
   }
 }

@@ -1,19 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 
-import { DiexAiContextScopeService } from 'src/engine/core-modules/diex-agency/services/diex-ai-context-scope.service';
-import { DiexAgencyMetricEntryEntity } from 'src/engine/core-modules/diex-agency/entities/diex-agency-metric-entry.entity';
-import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
-import { DiexCopilotResponseDTO } from 'src/engine/core-modules/diex-agency/dtos/copilot-response.dto';
 import { AskDiexCopilotInput } from 'src/engine/core-modules/diex-agency/dtos/ask-diex-copilot.input';
+import { DiexCopilotResponseDTO } from 'src/engine/core-modules/diex-agency/dtos/copilot-response.dto';
+import { DiexAgencyMetricEntryEntity } from 'src/engine/core-modules/diex-agency/entities/diex-agency-metric-entry.entity';
+import {
+  MetricUnitType,
+  type DiexAgencyMetricDefinitionEntity,
+} from 'src/engine/core-modules/diex-agency/entities/diex-agency-metric-definition.entity';
+import { DiexAiContextScopeService } from 'src/engine/core-modules/diex-agency/services/diex-ai-context-scope.service';
+import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+
+const REPORTING_WINDOW_DAYS = 30;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// The metric entry is scoped by the client it belongs to, not by a `workspaceId`
+// column. Naming the wrong column made every non-admin request fail with
+// "column metrics.workspaceId does not exist" instead of returning data.
+const METRIC_ENTRY_WORKSPACE_COLUMN = 'clientWorkspaceId';
+
+type MetricTotals = {
+  label: string;
+  code: string;
+  unitType: MetricUnitType;
+  currencyCode: string;
+  current: number;
+  previous: number;
+};
 
 @Injectable()
 export class DiexAgencyAiCopilotService {
   constructor(
     private readonly scopeService: DiexAiContextScopeService,
+    // eslint-disable-next-line twenty/prefer-workspace-scoped-repository
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
+    // eslint-disable-next-line twenty/prefer-workspace-scoped-repository
     @InjectRepository(DiexAgencyMetricEntryEntity)
     private readonly metricEntryRepository: Repository<DiexAgencyMetricEntryEntity>,
   ) {}
@@ -27,59 +50,208 @@ export class DiexAgencyAiCopilotService {
       input.currentWorkspaceId,
     );
 
-    // RLS Enforcement Strict Check: Se a IA tentar consultar um ID de workspace forçado no input (hallucination attack), barramos:
     if (input.currentWorkspaceId) {
-      this.scopeService.enforceWorkspacePermission(scopeContext, input.currentWorkspaceId);
+      this.scopeService.enforceWorkspacePermission(
+        scopeContext,
+        input.currentWorkspaceId,
+      );
     }
 
-    const qb = this.workspaceRepository.createQueryBuilder('workspace');
-    this.scopeService.applyRlsToQueryBuilder(qb, scopeContext, 'id');
+    const workspaceQueryBuilder =
+      this.workspaceRepository.createQueryBuilder('workspace');
 
-    const authorizedWorkspaces = await qb.getMany();
-    // displayName is nullable on the entity, so unnamed workspaces are dropped
-    // rather than surfacing "undefined" inside the assistant's reply.
+    this.scopeService.applyRlsToQueryBuilder(
+      workspaceQueryBuilder,
+      scopeContext,
+      'id',
+    );
+
+    const authorizedWorkspaces = await workspaceQueryBuilder.getMany();
     const workspaceNames = authorizedWorkspaces
-      .map((w) => w.displayName)
+      .map((workspace) => workspace.displayName)
       .filter((name): name is string => typeof name === 'string');
-    const promptLower = input.prompt.toLowerCase();
 
-    // Query Metrics with RLS applied to prevent cross-tenant data leakage
-    const metricsQb = this.metricEntryRepository.createQueryBuilder('metrics');
-    this.scopeService.applyRlsToQueryBuilder(metricsQb, scopeContext, 'workspaceId');
-    const realMetrics = await metricsQb.getMany();
+    const metricsQueryBuilder = this.metricEntryRepository
+      .createQueryBuilder('metrics')
+      .innerJoinAndSelect('metrics.metricDefinition', 'definition');
 
-    let reply = '';
-    let actionSuggested = '';
+    this.scopeService.applyRlsToQueryBuilder(
+      metricsQueryBuilder,
+      scopeContext,
+      METRIC_ENTRY_WORKSPACE_COLUMN,
+    );
 
-    if (scopeContext.scopeLevel === 'GLOBAL') {
-      reply = `[Modo Super Admin Global]\nAnalisando todo o ecossistema Diex (${authorizedWorkspaces.length} workspaces ativos no total).\n\n`;
-
-      if (promptLower.includes('tráfego') || promptLower.includes('spend') || promptLower.includes('roi')) {
-        reply += `📊 **Resumo de Tráfego Global Diex**:\n- Investimento Total Consolidado: R$ 42.500,00 neste mês.\n- Leads Totais Gerados: 1.120 leads.\n- CPL Médio da Plataforma: R$ 37,94.\n- ROAS Médio: 3,1x.\n- ${realMetrics.length} métricas ativas reportadas.`;
-        actionSuggested = 'Acessar painel de controle do Super Admin em /settings/admin-panel';
-      } else {
-        reply += `🔍 **Panorama de Operações Globais**:\n- Workspaces Ativos: ${authorizedWorkspaces.length}\n- Status de Saúde: 100% dos contêineres operantes.\n- Taxa de Adoção de IA: 88% dos workspaces ativos estão gerando sinais comerciais automáticos.`;
-        actionSuggested = 'Revisar relatórios de agências parceiras em /settings/admin-panel';
-      }
-    } else if (scopeContext.scopeLevel === 'AGENCY_SCOPED') {
-      reply = `[Modo Gestor de Agência com RLS Ativo]\nAnalisando os clientes autorizados da sua agência: **${workspaceNames.join(', ')}** (${authorizedWorkspaces.length} clientes, ${realMetrics.length} pontos de dados).\n\n`;
-
-      if (promptLower.includes('cpl') || promptLower.includes('gargalo') || promptLower.includes('ruim')) {
-        reply += `🚨 **Análise de Desempenho & Gargalos nos Clientes**:\n- O RLS confirmou acesso seguro aos dados dos seus clientes.\n- Identificamos uma variação de +24% no CPL geral da sua agência no Meta Ads.\n- Recomendação: Ajustar os públicos de remarketing das campanhas ativas.`;
-        actionSuggested = 'Conectar nova conta de anúncios em /agency/meta-ads';
-      } else {
-        reply += `📈 **Desempenho Geral da Carteira da Agência**:\n- Baseado nos ${realMetrics.length} dados coletados de tráfego, o Custo por Lead Médio Geral é R$ 36,40.\n- Todos os dados estão atualizados e sincronizados no Portal do Cliente com segurança (Row-Level Security).`;
-        actionSuggested = 'Exportar relatório executivo em /agency/client-reports';
-      }
-    } else {
-      reply = `[Modo Workspace Individual]\nAnalisando dados do workspace atual (${workspaceNames[0] || 'Atual'}).\n\nForam encontrados ${realMetrics.length} métricas comerciais. A esteira de tráfego pago está operando normalmente e restrita apenas à sua conta.`;
-    }
+    const entries = await metricsQueryBuilder.getMany();
+    const totals = this.aggregateByMetric(entries);
 
     return {
-      reply,
+      reply: this.buildReply({
+        scopeLevel: scopeContext.scopeLevel,
+        workspaceCount: authorizedWorkspaces.length,
+        workspaceNames,
+        totals,
+        entryCount: entries.length,
+      }),
       scopeLevel: scopeContext.scopeLevel,
       workspacesAnalyzed: workspaceNames,
-      actionSuggested,
+      actionSuggested: this.suggestAction(scopeContext.scopeLevel),
     };
+  }
+
+  private aggregateByMetric(
+    entries: DiexAgencyMetricEntryEntity[],
+  ): MetricTotals[] {
+    const now = Date.now();
+    const currentWindowStart =
+      now - REPORTING_WINDOW_DAYS * MILLISECONDS_PER_DAY;
+    const previousWindowStart =
+      now - 2 * REPORTING_WINDOW_DAYS * MILLISECONDS_PER_DAY;
+    const totalsByCode = new Map<string, MetricTotals>();
+
+    for (const entry of entries) {
+      const definition = entry.metricDefinition as
+        | DiexAgencyMetricDefinitionEntity
+        | undefined;
+
+      if (!definition) {
+        continue;
+      }
+
+      const periodEnd = new Date(entry.periodEnd).getTime();
+      const isCurrent = periodEnd >= currentWindowStart;
+      const isPrevious =
+        periodEnd >= previousWindowStart && periodEnd < currentWindowStart;
+
+      if (!isCurrent && !isPrevious) {
+        continue;
+      }
+
+      const totals = totalsByCode.get(definition.code) ?? {
+        label: definition.name,
+        code: definition.code,
+        unitType: definition.unitType,
+        currencyCode: definition.currencyCode ?? 'BRL',
+        current: 0,
+        previous: 0,
+      };
+
+      if (isCurrent) {
+        totals.current += Number(entry.value);
+      } else {
+        totals.previous += Number(entry.value);
+      }
+
+      totalsByCode.set(definition.code, totals);
+    }
+
+    return [...totalsByCode.values()].sort((left, right) =>
+      left.label.localeCompare(right.label),
+    );
+  }
+
+  private formatValue(totals: MetricTotals, value: number): string {
+    switch (totals.unitType) {
+      case MetricUnitType.CURRENCY:
+        return new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: totals.currencyCode,
+        }).format(value);
+      case MetricUnitType.PERCENTAGE:
+        return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`;
+      case MetricUnitType.RATIO:
+        return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}x`;
+      default:
+        return value.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+    }
+  }
+
+  private formatVariation(totals: MetricTotals): string {
+    if (totals.previous === 0) {
+      return 'sem base de comparação';
+    }
+
+    const variation =
+      ((totals.current - totals.previous) / Math.abs(totals.previous)) * 100;
+    const sign = variation >= 0 ? '+' : '';
+
+    return `${sign}${variation.toLocaleString('pt-BR', {
+      maximumFractionDigits: 1,
+    })}% vs. período anterior`;
+  }
+
+  private buildReply({
+    scopeLevel,
+    workspaceCount,
+    workspaceNames,
+    totals,
+    entryCount,
+  }: {
+    scopeLevel: string;
+    workspaceCount: number;
+    workspaceNames: string[];
+    totals: MetricTotals[];
+    entryCount: number;
+  }): string {
+    const header = this.buildHeader({
+      scopeLevel,
+      workspaceCount,
+      workspaceNames,
+    });
+
+    // An empty result is reported as empty. Filling the gap with plausible
+    // figures would let an operator forward invented spend and ROAS to a client
+    // as if the platform had measured them.
+    if (totals.length === 0) {
+      return (
+        `${header}\n\n` +
+        `Nenhuma métrica foi registrada nos últimos ${REPORTING_WINDOW_DAYS} dias ` +
+        `para os workspaces a que você tem acesso. ` +
+        `Registre entradas de métricas ou conecte uma conta do Meta Ads para que eu possa analisar os números.`
+      );
+    }
+
+    const lines = totals.map(
+      (metric) =>
+        `- ${metric.label}: ${this.formatValue(metric, metric.current)} (${this.formatVariation(metric)})`,
+    );
+
+    return (
+      `${header}\n\n` +
+      `Últimos ${REPORTING_WINDOW_DAYS} dias, a partir de ${entryCount} registro(s):\n` +
+      lines.join('\n')
+    );
+  }
+
+  private buildHeader({
+    scopeLevel,
+    workspaceCount,
+    workspaceNames,
+  }: {
+    scopeLevel: string;
+    workspaceCount: number;
+    workspaceNames: string[];
+  }): string {
+    switch (scopeLevel) {
+      case 'GLOBAL':
+        return `[Administrador do servidor] Analisando ${workspaceCount} workspace(s) da instância.`;
+      case 'AGENCY_SCOPED':
+        return (
+          `[Gestor de agência] Analisando ${workspaceCount} cliente(s) autorizado(s)` +
+          (workspaceNames.length > 0 ? `: ${workspaceNames.join(', ')}.` : '.')
+        );
+      default:
+        return `[Workspace individual] Analisando ${workspaceNames[0] ?? 'o workspace atual'}.`;
+    }
+  }
+
+  private suggestAction(scopeLevel: string): string | undefined {
+    switch (scopeLevel) {
+      case 'GLOBAL':
+        return '/settings/admin-panel';
+      case 'AGENCY_SCOPED':
+        return '/agency/meta-ads';
+      default:
+        return undefined;
+    }
   }
 }

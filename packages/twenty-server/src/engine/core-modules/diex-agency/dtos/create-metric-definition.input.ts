@@ -1,5 +1,12 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 import {
   MetricUnitType,
@@ -8,6 +15,12 @@ import {
 
 @InputType('CreateMetricDefinitionInput')
 export class CreateMetricDefinitionInput {
+  // Required only for server admins, who have no agency of their own to infer.
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsUUID()
+  agencyId?: string;
+
   @Field()
   @IsNotEmpty()
   @IsString()
@@ -27,7 +40,9 @@ export class CreateMetricDefinitionInput {
   @IsString()
   currencyCode?: string;
 
-  @Field(() => TargetComparisonType, { defaultValue: TargetComparisonType.HIGHER_IS_BETTER })
+  @Field(() => TargetComparisonType, {
+    defaultValue: TargetComparisonType.HIGHER_IS_BETTER,
+  })
   @IsOptional()
   @IsEnum(TargetComparisonType)
   targetComparison?: TargetComparisonType;

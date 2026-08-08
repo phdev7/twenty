@@ -76,16 +76,24 @@ export class DiexAgencyTrafficService {
     });
   }
 
+  async getMetricDefinitionOrThrow(
+    metricDefinitionId: string,
+  ): Promise<DiexAgencyMetricDefinitionEntity> {
+    const definition = await this.metricDefRepository.findOne({
+      where: { id: metricDefinitionId },
+    });
+
+    if (!definition) {
+      throw new NotFoundException('Definição de métrica não encontrada.');
+    }
+
+    return definition;
+  }
+
   async createMetricEntry(
     input: CreateMetricEntryInput,
   ): Promise<DiexAgencyMetricEntryEntity> {
-    const def = await this.metricDefRepository.findOne({
-      where: { id: input.metricDefinitionId },
-    });
-
-    if (!def) {
-      throw new NotFoundException('Definição de métrica não encontrada.');
-    }
+    await this.getMetricDefinitionOrThrow(input.metricDefinitionId);
 
     const entry = this.metricEntryRepository.create({
       metricDefinitionId: input.metricDefinitionId,

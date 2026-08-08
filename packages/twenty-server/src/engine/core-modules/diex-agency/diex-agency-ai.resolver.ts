@@ -9,6 +9,7 @@ import { DiexCopilotResponseDTO } from 'src/engine/core-modules/diex-agency/dtos
 import { PreventNestToAutoLogGraphqlErrorsFilter } from 'src/engine/core-modules/graphql/filters/prevent-nest-to-auto-log-graphql-errors.filter';
 import { ResolverValidationPipe } from 'src/engine/core-modules/graphql/pipes/resolver-validation.pipe';
 import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
+import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { UserAuthGuard } from 'src/engine/guards/user-auth.guard';
 import { PermissionsGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/permissions/utils/permissions-graphql-api-exception.filter';
 
@@ -19,7 +20,9 @@ import { PermissionsGraphqlApiExceptionFilter } from 'src/engine/metadata-module
   PermissionsGraphqlApiExceptionFilter,
   PreventNestToAutoLogGraphqlErrorsFilter,
 )
-@UseGuards(UserAuthGuard)
+// Scope is enforced per call by DiexAiContextScopeService, which decides which
+// workspaces the caller may see, so no workspace permission flag applies here.
+@UseGuards(UserAuthGuard, NoPermissionGuard)
 export class DiexAgencyAiResolver {
   constructor(private readonly copilotService: DiexAgencyAiCopilotService) {}
 

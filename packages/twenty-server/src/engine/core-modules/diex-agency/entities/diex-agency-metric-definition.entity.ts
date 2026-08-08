@@ -83,7 +83,10 @@ export class DiexAgencyMetricDefinitionEntity {
   @Column({ type: 'boolean', default: true })
   isVisibleToClient: boolean;
 
-  @OneToMany(() => DiexAgencyMetricEntryEntity, (entry) => entry.metricDefinition)
+  @OneToMany(
+    () => DiexAgencyMetricEntryEntity,
+    (entry) => entry.metricDefinition,
+  )
   entries: Relation<DiexAgencyMetricEntryEntity[]>;
 
   @Field()

@@ -1,4 +1,9 @@
-import { UseFilters, UseGuards, UsePipes } from '@nestjs/common';
+import {
+  ForbiddenException,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
@@ -13,10 +18,13 @@ import { PreventNestToAutoLogGraphqlErrorsFilter } from 'src/engine/core-modules
 import { ResolverValidationPipe } from 'src/engine/core-modules/graphql/pipes/resolver-validation.pipe';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
+import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { UserAuthGuard } from 'src/engine/guards/user-auth.guard';
 import { PermissionsGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/permissions/utils/permissions-graphql-api-exception.filter';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
+// Agency membership is not a workspace permission flag, so each resolver
+// resolves the caller's agency through DiexAgencyService instead of relying on
+// a settings guard.
 @Resolver(() => DiexAgencyEntity)
 @MetadataResolver()
 @UsePipes(ResolverValidationPipe)
@@ -24,20 +32,26 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
   PermissionsGraphqlApiExceptionFilter,
   PreventNestToAutoLogGraphqlErrorsFilter,
 )
-@UseGuards(UserAuthGuard)
+@UseGuards(UserAuthGuard, NoPermissionGuard)
 export class DiexAgencyResolver {
   constructor(private readonly diexAgencyService: DiexAgencyService) {}
 
   @Query(() => [DiexAgencyEntity])
-  async diexAgencies(@AuthUser() user: AuthContextUser): Promise<DiexAgencyEntity[]> {
+  async diexAgencies(
+    @AuthUser() user: AuthContextUser,
+  ): Promise<DiexAgencyEntity[]> {
     if (!user.canAccessFullAdminPanel) {
-      throw new ForbiddenException('Apenas Administradores do sistema podem listar todas as agências.');
+      throw new ForbiddenException(
+        'Apenas Administradores do sistema podem listar todas as agências.',
+      );
     }
     return await this.diexAgencyService.listAllAgencies();
   }
 
   @Query(() => DiexAgencyEntity, { nullable: true })
-  async myDiexAgency(@AuthUser() user: AuthContextUser): Promise<DiexAgencyEntity | null> {
+  async myDiexAgency(
+    @AuthUser() user: AuthContextUser,
+  ): Promise<DiexAgencyEntity | null> {
     return await this.diexAgencyService.getAgencyByUserId(user.id);
   }
 
@@ -46,30 +60,25 @@ export class DiexAgencyResolver {
     @AuthUser() user: AuthContextUser,
     @Args('agencyId', { nullable: true }) agencyId?: string,
   ): Promise<WorkspaceEntity[]> {
-    let targetAgencyId = agencyId;
+    const targetAgencyId =
+      await this.diexAgencyService.resolveAgencyIdForCallerOrThrow(
+        user,
+        agencyId,
+      );
 
-    if (!targetAgencyId) {
-      const agency = await this.diexAgencyService.getAgencyByUserId(user.id);
-      if (!agency) {
-        throw new NotFoundException('Agência não vinculada a este usuário.');
-      }
-      targetAgencyId = agency.id;
-    }
-
-    if (!user.canAccessFullAdminPanel) {
-      const myAgency = await this.diexAgencyService.getAgencyByUserId(user.id);
-      if (!myAgency || myAgency.id !== targetAgencyId) {
-        throw new ForbiddenException('Acesso negado aos workspaces desta agência.');
-      }
-    }
-
-    return await this.diexAgencyService.listAgencyManagedWorkspaces(targetAgencyId);
+    return await this.diexAgencyService.listAgencyManagedWorkspaces(
+      targetAgencyId,
+    );
   }
 
   @Query(() => DiexAgencyMetricsDTO)
-  async diexAgencyMetrics(@AuthUser() user: AuthContextUser): Promise<DiexAgencyMetricsDTO> {
+  async diexAgencyMetrics(
+    @AuthUser() user: AuthContextUser,
+  ): Promise<DiexAgencyMetricsDTO> {
     if (!user.canAccessFullAdminPanel) {
-      throw new ForbiddenException('Apenas Administradores têm acesso às métricas globais de agências.');
+      throw new ForbiddenException(
+        'Apenas Administradores têm acesso às métricas globais de agências.',
+      );
     }
     return await this.diexAgencyService.getMetrics();
   }
@@ -80,7 +89,9 @@ export class DiexAgencyResolver {
     @AuthUser() user: AuthContextUser,
   ): Promise<DiexAgencyEntity> {
     if (!user.canAccessFullAdminPanel) {
-      throw new ForbiddenException('Apenas Administradores podem cadastrar novas agências parceiras.');
+      throw new ForbiddenException(
+        'Apenas Administradores podem cadastrar novas agências parceiras.',
+      );
     }
     return await this.diexAgencyService.createAgency(input);
   }
@@ -91,7 +102,9 @@ export class DiexAgencyResolver {
     @AuthUser() user: AuthContextUser,
   ): Promise<DiexAgencyEntity> {
     if (!user.canAccessFullAdminPanel) {
-      throw new ForbiddenException('Apenas Administradores podem alterar limites de slots de agências.');
+      throw new ForbiddenException(
+        'Apenas Administradores podem alterar limites de slots de agências.',
+      );
     }
     return await this.diexAgencyService.updateAgencySlots(input);
   }
@@ -101,15 +114,14 @@ export class DiexAgencyResolver {
     @Args('input') input: CreateAgencyWorkspaceInput,
     @AuthUser() user: AuthContextUser,
   ): Promise<WorkspaceEntity> {
-    const agency = await this.diexAgencyService.getAgencyByUserId(user.id);
-    if (!agency && !user.canAccessFullAdminPanel) {
-      throw new ForbiddenException('Apenas Gerentes de Agência ou Administradores podem criar workspaces de clientes.');
-    }
-
-    const agencyId = agency ? agency.id : (await this.diexAgencyService.listAllAgencies())[0]?.id;
-    if (!agencyId) {
-      throw new NotFoundException('Nenhuma agência válida encontrada para associar o novo workspace.');
-    }
+    // An admin without an agency of their own must name the target agency.
+    // Falling back to the first row of listAllAgencies attached the client to
+    // whichever agency happened to sort first, silently and irreversibly.
+    const agencyId =
+      await this.diexAgencyService.resolveAgencyIdForCallerOrThrow(
+        user,
+        input.agencyId,
+      );
 
     return await this.diexAgencyService.createAgencyWorkspace(agencyId, input);
   }

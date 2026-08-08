@@ -1,6 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder, In } from 'typeorm';
+import { isDefined } from 'twenty-shared/utils';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
@@ -36,7 +37,9 @@ export class DiexAiContextScopeService {
     }
 
     if (user.canAccessFullAdminPanel) {
-      const allWorkspaces = await this.workspaceRepository.find({ select: ['id'] });
+      const allWorkspaces = await this.workspaceRepository.find({
+        select: ['id'],
+      });
       return {
         userId: user.id,
         scopeLevel: 'GLOBAL',
@@ -74,11 +77,19 @@ export class DiexAiContextScopeService {
       };
     }
 
+    // currentWorkspaceId is caller-supplied, so membership decides whether it
+    // enters the allow-list. Trusting it directly let any authenticated user
+    // name someone else's workspace and have enforceWorkspacePermission check
+    // that id against a list containing only that same id.
+    const isMember =
+      isDefined(currentWorkspaceId) &&
+      (await this.isUserMemberOfWorkspace(user.id, currentWorkspaceId));
+
     return {
       userId: user.id,
       scopeLevel: 'SINGLE_WORKSPACE',
       agencyId: null,
-      allowedWorkspaceIds: currentWorkspaceId ? [currentWorkspaceId] : [],
+      allowedWorkspaceIds: isMember ? [currentWorkspaceId] : [],
     };
   }
 
