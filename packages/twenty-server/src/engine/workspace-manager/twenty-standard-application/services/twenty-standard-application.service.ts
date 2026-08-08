@@ -11,6 +11,7 @@ import { TWENTY_STANDARD_ALL_METADATA_NAME } from 'src/engine/workspace-manager/
 import { computeTwentyStandardApplicationAllFlatEntityMaps } from 'src/engine/workspace-manager/twenty-standard-application/utils/twenty-standard-application-all-flat-entity-maps.constant';
 import { WorkspaceMigrationBuilderException } from 'src/engine/workspace-manager/workspace-migration/exceptions/workspace-migration-builder-exception';
 import { WorkspaceMigrationValidateBuildAndRunService } from 'src/engine/workspace-manager/workspace-migration/services/workspace-migration-validate-build-and-run-service';
+import { summarizeFailedMigrationReport } from 'src/engine/workspace-manager/workspace-migration/utils/summarize-failed-migration-report.util';
 import { FromToAllUniversalFlatEntityMaps } from 'src/engine/workspace-manager/workspace-migration/types/workspace-migration-orchestrator.type';
 
 // TODO completely deprecate this file once we've created the twenty-standard twenty-app manifest
@@ -99,7 +100,9 @@ export class TwentyStandardApplicationService {
     if (validateAndBuildResult.status === 'fail') {
       throw new WorkspaceMigrationBuilderException(
         validateAndBuildResult,
-        'Multiple validation errors occurred while synchronizing twenty-standard application',
+        `Multiple validation errors occurred while synchronizing twenty-standard application: ${summarizeFailedMigrationReport(
+          validateAndBuildResult.report,
+        )}`,
       );
     }
   }

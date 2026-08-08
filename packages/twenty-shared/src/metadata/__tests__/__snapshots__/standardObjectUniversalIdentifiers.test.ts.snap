@@ -4020,27 +4020,27 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
     "universalIdentifier": "20202020-1ba1-48ba-bc83-ef7e5990ed10",
     "views": {
       "agenda": {
-        "universalIdentifier": "d1e18000-0000-4000-8000-000000000001",
+        "universalIdentifier": "d1e19000-0000-4000-8000-000000000001",
         "viewFields": {
           "assignee": {
-            "universalIdentifier": "d1e18010-0000-4000-8000-000000000004",
+            "universalIdentifier": "d1e19010-0000-4000-8000-000000000004",
           },
           "dueAt": {
-            "universalIdentifier": "d1e18010-0000-4000-8000-000000000003",
+            "universalIdentifier": "d1e19010-0000-4000-8000-000000000003",
           },
           "status": {
-            "universalIdentifier": "d1e18010-0000-4000-8000-000000000002",
+            "universalIdentifier": "d1e19010-0000-4000-8000-000000000002",
           },
           "taskTargets": {
-            "universalIdentifier": "d1e18010-0000-4000-8000-000000000005",
+            "universalIdentifier": "d1e19010-0000-4000-8000-000000000005",
           },
           "title": {
-            "universalIdentifier": "d1e18010-0000-4000-8000-000000000001",
+            "universalIdentifier": "d1e19010-0000-4000-8000-000000000001",
           },
         },
         "viewFilters": {
           "assigneeIsMe": {
-            "universalIdentifier": "d1e18020-0000-4000-8000-000000000001",
+            "universalIdentifier": "d1e19020-0000-4000-8000-000000000001",
           },
         },
       },
@@ -4887,6 +4887,109 @@ exports[`STANDARD_OBJECTS universal identifiers should never change without an e
         },
       },
     },
+  },
+  "workspaceArchitectureArtifact": {
+    "fields": {
+      "actualCostCents": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000015",
+      },
+      "appliedAt": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-00000000000e",
+      },
+      "approvedAt": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-00000000000d",
+      },
+      "artifactKey": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000002",
+      },
+      "artifactType": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000003",
+      },
+      "completedAt": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-00000000000f",
+      },
+      "createdAt": {
+        "universalIdentifier": "252fda79-e8d7-5197-a790-74afe9b0afbc",
+      },
+      "createdBy": {
+        "universalIdentifier": "8b0300b2-ab4b-5e36-be65-eef1b1263edf",
+      },
+      "datasetVersion": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000013",
+      },
+      "deletedAt": {
+        "universalIdentifier": "755bdbda-3d7d-5288-88fb-51c26d882d8e",
+      },
+      "errorDetails": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000010",
+      },
+      "estimatedCostCents": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000014",
+      },
+      "id": {
+        "universalIdentifier": "7341b036-8c4c-5d8c-9e2e-ecd38a4e9d47",
+      },
+      "idempotencyKey": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-00000000000c",
+      },
+      "modelId": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000011",
+      },
+      "name": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000001",
+      },
+      "parentVersion": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000007",
+      },
+      "payload": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000009",
+      },
+      "position": {
+        "universalIdentifier": "d2d92b18-145d-5e8c-a7bf-1ad4e18c96f6",
+      },
+      "promptVersion": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000012",
+      },
+      "schemaVersion": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000005",
+      },
+      "searchVector": {
+        "universalIdentifier": "f0a42a48-97f9-54c6-95e7-2fdf8342178c",
+      },
+      "sourceDescription": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000008",
+      },
+      "status": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000004",
+      },
+      "summary": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-00000000000a",
+      },
+      "templateVersions": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-00000000000b",
+      },
+      "updatedAt": {
+        "universalIdentifier": "b599982f-00e0-50f9-b858-ce1e0bf5023f",
+      },
+      "updatedBy": {
+        "universalIdentifier": "c07da5fa-9476-5f31-b194-16d33e1ed645",
+      },
+      "version": {
+        "universalIdentifier": "d1e18100-0000-4000-8000-000000000006",
+      },
+    },
+    "indexes": {
+      "artifactKeyUniqueIndex": {
+        "universalIdentifier": "4fdb9f68-c20c-5148-bbe5-c9fe48823fe5",
+      },
+      "idempotencyKeyUniqueIndex": {
+        "universalIdentifier": "25aa9f9c-9a38-5718-84f6-6ef87d250873",
+      },
+      "searchVectorGinIndex": {
+        "universalIdentifier": "69fa4c38-5078-5914-8627-f4c592efeb78",
+      },
+    },
+    "universalIdentifier": "d1e18000-0000-4000-8000-000000000001",
   },
   "workspaceMember": {
     "fields": {

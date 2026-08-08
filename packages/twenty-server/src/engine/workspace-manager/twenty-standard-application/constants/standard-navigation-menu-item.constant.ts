@@ -32,7 +32,7 @@ export const STANDARD_NAVIGATION_MENU_ITEMS = {
     position: 3,
   },
   agenda: {
-    universalIdentifier: 'd1e18030-0000-4000-8000-000000000001',
+    universalIdentifier: 'd1e19030-0000-4000-8000-000000000001',
     type: NavigationMenuItemType.VIEW,
     name: 'Agenda',
     icon: 'IconCalendarEvent',

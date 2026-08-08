@@ -137,9 +137,14 @@ export const SettingsAdminWorkspaceApprovals = () => {
       });
 
       await refetch();
-    } catch {
+    } catch (error) {
+      // The server reason is what makes an approval failure actionable: a
+      // blanket message once hid a metadata build error behind "could not
+      // approve", which read as a permission problem for days.
+      const reason = error instanceof Error ? error.message : String(error);
+
       enqueueErrorSnackBar({
-        message: t`Could not approve this workspace.`,
+        message: t`Could not approve this workspace: ${reason}`,
       });
     } finally {
       setApprovingWorkspaceId(null);
