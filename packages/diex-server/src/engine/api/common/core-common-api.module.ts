@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CommonArgsProcessors } from 'src/engine/api/common/common-args-processors/common-args-processors';
@@ -29,8 +29,16 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
 
 @Module({
   imports: [
-    WorkspaceQueryHookModule,
-    WorkspaceQueryRunnerModule,
+    // Second lazy edge on the same ring as the one in record-crud.module. The
+    // ring is core-common-api -> workspace-query-hook -> workspace-member-query-hook
+    // -> user-workspace -> onboarding -> workspace-architecture -> record-crud
+    // -> core-common-api, and a require cycle throws only at the edge that reads
+    // a class binding first. Which edge that is depends on where the process
+    // enters the graph: the server enters at core-common-api, the worker enters
+    // at workspace-query-hook. One forwardRef fixes one entry point, so both
+    // reads have to be deferred.
+    forwardRef(() => WorkspaceQueryHookModule),
+    forwardRef(() => WorkspaceQueryRunnerModule),
     PermissionsModule,
     TypeOrmModule.forFeature([RoleTargetEntity]),
     UserRoleModule,
