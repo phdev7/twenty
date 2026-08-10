@@ -1,0 +1,79 @@
+import { ViewCalendarLayout, ViewKey, ViewType } from 'diex-shared/types';
+
+import { type FlatView } from 'src/engine/metadata-modules/flat-view/types/flat-view.type';
+
+import {
+  createStandardViewFlatMetadata,
+  type CreateStandardViewArgs,
+} from 'src/engine/workspace-manager/diex-standard-application/utils/view/create-standard-view-flat-metadata.util';
+
+export const computeStandardTaskViews = (
+  args: Omit<CreateStandardViewArgs<'task'>, 'context'>,
+): Record<string, FlatView> => {
+  return {
+    allTasks: createStandardViewFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'allTasks',
+        name: 'Todas as {objectLabelPlural}',
+        type: ViewType.TABLE,
+        key: ViewKey.INDEX,
+        position: 0,
+        icon: 'IconList',
+      },
+    }),
+    byStatus: createStandardViewFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'byStatus',
+        name: 'Por status',
+        type: ViewType.KANBAN,
+        key: null,
+        position: 1,
+        icon: 'IconLayoutKanban',
+        mainGroupByFieldName: 'status',
+      },
+    }),
+    assignedToMe: createStandardViewFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'assignedToMe',
+        name: 'Atribuídas a mim',
+        type: ViewType.TABLE,
+        key: null,
+        position: 2,
+        icon: 'IconUserCircle',
+        mainGroupByFieldName: 'status',
+      },
+    }),
+    agenda: createStandardViewFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'agenda',
+        name: 'Minha agenda',
+        type: ViewType.CALENDAR,
+        key: null,
+        position: 3,
+        icon: 'IconCalendarEvent',
+        calendarFieldName: 'dueAt',
+        calendarLayout: ViewCalendarLayout.MONTH,
+      },
+    }),
+    taskRecordPageFields: createStandardViewFlatMetadata({
+      ...args,
+      objectName: 'task',
+      context: {
+        viewName: 'taskRecordPageFields',
+        name: 'Campos da tarefa',
+        type: ViewType.FIELDS_WIDGET,
+        key: null,
+        position: 0,
+        icon: 'IconList',
+      },
+    }),
+  };
+};

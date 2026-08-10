@@ -1,0 +1,1 @@
+export const DEFAULT_API_KEY_NAME = 'DIEX_API_KEY';

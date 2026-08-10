@@ -2,19 +2,19 @@
 
 ## Decisão
 
-O Diex CRM passa a evoluir sobre o fork do Twenty. Chatwoot permanece como
+O Diex CRM passa a evoluir sobre o fork do Diex. Chatwoot permanece como
 referência de produto para atendimento e inbox; o CRM Diex anterior permanece
 como fonte de regras comerciais e dados a migrar.
 
 Não haverá três aplicações em produção. O destino é uma única plataforma:
 
-- núcleo, UX, metadados e multiworkspace do Twenty;
+- núcleo, UX, metadados e multiworkspace do Diex;
 - domínio comercial, Customer Success e inteligência da Diex;
 - padrões de inbox, distribuição e colaboração inspirados no Chatwoot.
 
 ## Por que esta é a base
 
-O Twenty já entrega a infraestrutura mais cara de reconstruir corretamente:
+O Diex já entrega a infraestrutura mais cara de reconstruir corretamente:
 
 - frontend React e backend NestJS no mesmo monorepo;
 - PostgreSQL como fonte de verdade;
@@ -26,7 +26,7 @@ O Twenty já entrega a infraestrutura mais cara de reconstruir corretamente:
 
 O Chatwoot possui o inbox mais maduro, mas exigiria reconstruir o núcleo de CRM.
 O Diex anterior possui conhecimento comercial relevante, mas exigiria evoluir
-uma infraestrutura menor. O Twenty reduz tempo de mercado e concentra o
+uma infraestrutura menor. O Diex reduz tempo de mercado e concentra o
 investimento nas funções que diferenciam e vendem o Diex.
 
 ## Arquitetura-alvo
@@ -126,7 +126,7 @@ desabilitados.
 1. Consolidar identidade, domínio comercial, CS, IA e MCP.
 2. Entregar inbox comercial conectado à Evolution, com painel seguro,
    consentimento, prévia e confirmação de envio.
-3. Expandir canais aproveitando e-mail e calendário nativos do Twenty.
+3. Expandir canais aproveitando e-mail e calendário nativos do Diex.
 4. Importar cada `team_id` para um workspace isolado usando
    `tools/diex-migration`, com prévia, checksums e upsert idempotente.
 5. Operar uma validação assistida por cliente.

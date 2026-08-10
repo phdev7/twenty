@@ -1,16 +1,16 @@
-# Twenty Website — Product & Brand Context
+# Diex Website — Product & Brand Context
 
-> Strategic context for design work on the Twenty marketing site (`packages/twenty-website`). Loaded by every `impeccable` invocation.
+> Strategic context for design work on the Diex marketing site (`packages/diex-website`). Loaded by every `impeccable` invocation.
 
 ## Register
 
-**Brand.** The marketing site is a public-facing surface where the design itself is part of the credibility argument. Prospects evaluate Twenty partly by how the site feels. The product app (`packages/twenty-front`) is a separate product-register surface, governed elsewhere.
+**Brand.** The marketing site is a public-facing surface where the design itself is part of the credibility argument. Prospects evaluate Diex partly by how the site feels. The product app (`packages/diex-front`) is a separate product-register surface, governed elsewhere.
 
 ## Users & Purpose
 
 The primary audience varies by route, but the working assumption for partner-related pages is:
 
-- **Who:** A budget-holding decision maker (founder, RevOps lead, or COO) shopping for a CRM implementation partner. Already on Twenty's site, evaluating a shortlist of partners.
+- **Who:** A budget-holding decision maker (founder, RevOps lead, or COO) shopping for a CRM implementation partner. Already on Diex's site, evaluating a shortlist of partners.
 - **Context:** Doing a side-by-side comparison across 2–5 candidates over a single browsing session. Will spend 30–90 seconds on each profile before deciding whether to book a call.
 - **Decision being made:** "Is this partner credible, the right size, the right specialty, and within budget? Do I trust them enough to commit 30 minutes to a discovery call?"
 
@@ -32,7 +32,7 @@ Specifically:
 
 **Editorial · Founder-led · Considered.**
 
-The site reads like a thoughtful indie publication, not a SaaS landing page. Serif headlines, plenty of whitespace, deliberate typographic rhythm. Quietly opinionated — Twenty has a point of view about CRM (open-source, customizable, well-designed) and the site reflects that without shouting.
+The site reads like a thoughtful indie publication, not a SaaS landing page. Serif headlines, plenty of whitespace, deliberate typographic rhythm. Quietly opinionated — Diex has a point of view about CRM (open-source, customizable, well-designed) and the site reflects that without shouting.
 
 Tonal anchors:
 - Stripe's documentation for clarity, Linear's marketing for restraint, an editorial print magazine for typography choices.
@@ -70,7 +70,7 @@ Tonal anchors:
 - Next.js 16 app router (Server Components by default, `'use client'` for interactivity).
 - Linaria styled-components (`@linaria/react`) for zero-runtime CSS-in-JS.
 - Lingui (`@lingui/react`) for i18n; never hardcode user-visible strings.
-- Theme tokens in `packages/twenty-website/src/theme/`. Colors are CSS variables resolved to OKLCH-tinted neutrals.
+- Theme tokens in `packages/diex-website/src/theme/`. Colors are CSS variables resolved to OKLCH-tinted neutrals.
 - `@tabler/icons-react` for iconography (no Heroicons, no custom SVGs unless purposeful).
 - `@radix-ui/react-*` for primitives (Popover etc) where headless behavior is needed.
 

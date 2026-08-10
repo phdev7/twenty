@@ -1,0 +1,131 @@
+---
+title: CLI
+description: yarn diex Befehle zum Ausführen von Funktionen, Streamen von Logs, Verwalten von App-Installationen und Wechseln von Remotes.
+icon: terminal
+---
+
+Die `yarn diex` CLI ist Ihre Schnittstelle für alles, was mit der App zu tun hat. Vollständige Befehlsliste:
+
+| Befehl                                          | Was es tut                                                                               | Dokumentiert in                                                                                                      |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `dev`                                           | Überwacht Ihre Quelldateien und synchronisiert Änderungen in Echtzeit                    | [Schnellstart](/l/de/developers/extend/apps/getting-started/quick-start)                                                  |
+| `plan`                                          | Metadatenänderungen anzeigen, ohne sie anzuwenden                                        | [Synchronisierung & Wiederherstellung](/l/de/developers/extend/apps/operations/sync-and-recovery#previewing-changes-plan) |
+| `apply`                                         | Metadatenänderungen anwenden, nachdem der Plan angezeigt wurde                           | [Synchronisierung & Wiederherstellung](/l/de/developers/extend/apps/operations/sync-and-recovery)                         |
+| `dev:build`                                     | Die App kompilieren und den API-Client generieren (`--tarball`, um ein `.tgz` zu packen) | [Veröffentlichen](/l/de/developers/extend/apps/operations/publishing)                                                     |
+| `dev:typecheck`                                 | TypeScript-Typprüfung ausführen                                                          | [Tests](/l/de/developers/extend/apps/operations/testing)                                                                  |
+| `dev:add`                                       | Ein Gerüst für eine neue Entität erstellen                                               | [Gerüste](/l/de/developers/extend/apps/getting-started/scaffolding)                                                       |
+| `dev:generate-client`                           | Den typisierten API-Client erneut generieren                                             | diese Seite                                                                                                          |
+| `dev:function:exec` / `dev:function:logs`       | Funktionen ausführen und ihre Protokolle streamen                                        | diese Seite                                                                                                          |
+| `dev:translations-extract`                      | Übersetzbare Zeichenketten in `locales/`-Kataloge extrahieren                            | [Übersetzungen](/l/de/developers/extend/apps/translations/overview)                                                       |
+| `dev:catalog-sync`                              | Eine Synchronisierung des Marktplatzkatalogs auslösen                                    | [Veröffentlichen](/l/de/developers/extend/apps/operations/publishing#how-marketplace-discovery-works)                     |
+| `app:publish` / `app:install` / `app:uninstall` | Release-Lebenszyklus                                                                     | [Veröffentlichen](/l/de/developers/extend/apps/operations/publishing) und diese Seite                                     |
+| `docker:*`                                      | Den lokalen Diex-Server-Container verwalten                                            | [Lokaler Server](/l/de/developers/extend/apps/getting-started/local-server)                                               |
+| `remote:*`                                      | Serververbindungen verwalten                                                             | diese Seite                                                                                                          |
+
+Jeder Befehl akzeptiert `-r, --remote \<name>`, um ein bestimmtes Remote statt des Standard-Remotes anzusteuern.
+
+## Funktionen ausführen (`yarn diex dev:function:exec`)
+
+Eine Logikfunktion manuell ausführen, ohne sie über HTTP, Cron oder ein Datenbankereignis auszulösen:
+
+```bash filename="Terminal"
+# Execute by function name
+yarn diex dev:function:exec -n create-new-post-card
+
+# Execute by universalIdentifier
+yarn diex dev:function:exec -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
+
+# Pass a JSON payload
+yarn diex dev:function:exec -n create-new-post-card -p '{"name": "Hello"}'
+
+# Execute the install and uninstall hooks
+yarn diex dev:function:exec --postInstall
+yarn diex dev:function:exec --preInstall
+yarn diex dev:function:exec --uninstall
+```
+
+## Funktionsprotokolle ansehen (`yarn diex dev:function:logs`)
+
+Ausführungsprotokolle für die Logikfunktionen Ihrer App streamen:
+
+```bash filename="Terminal"
+# Stream all function logs
+yarn diex dev:function:logs
+
+# Filter by function name
+yarn diex dev:function:logs -n create-new-post-card
+
+# Filter by universalIdentifier
+yarn diex dev:function:logs -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
+```
+
+<Note>
+Dies unterscheidet sich von `yarn diex docker:logs`, das die Docker-Container-Logs anzeigt. `yarn diex dev:function:logs` zeigt die Funktionsausführungsprotokolle Ihrer App vom Diex-Server.
+</Note>
+
+## Generieren des typisierten Clients (`yarn diex dev:generate-client`)
+
+Generieren Sie den typisierten API-Client (`diex-client-sdk`) erneut aus dem Schema des aktiven Remotes, ohne eine App zu erstellen oder zu synchronisieren. Verwenden Sie ihn, um in jedem Projekt einen typisierten Client zu erhalten – zum Beispiel für einen Backend-Dienst in einem separaten Repository –, der mit Ihrer Diex-Instanz kommuniziert:
+
+```bash filename="Terminal"
+# In your project (no Diex app definition required)
+yarn add diex-sdk diex-client-sdk
+
+# Connect to the Diex instance to generate the client from
+yarn diex remote:add
+
+# Generate the typed client into node_modules/diex-client-sdk
+yarn diex dev:generate-client
+```
+
+Importieren Sie dann den Client in Ihrem Code:
+
+```typescript
+import { CoreApiClient } from 'diex-client-sdk/core';
+```
+
+Führen Sie den Befehl erneut aus, wann immer sich Ihr Datenmodell ändert, um die generierten Typen zu aktualisieren.
+
+<Note>
+Der Client wird in `node_modules` generiert, daher wird er nicht zusammen mit Ihrem Code eingecheckt. Führen Sie `yarn diex dev:generate-client` nach jeder Installation aus (zum Beispiel in einem `postinstall`-Skript oder in CI).
+</Note>
+
+## Eine App deinstallieren (`yarn diex app:uninstall`)
+
+Entfernen Sie Ihre App aus dem aktiven Arbeitsbereich:
+
+```bash filename="Terminal"
+yarn diex app:uninstall
+
+# Skip the confirmation prompt
+yarn diex app:uninstall --yes
+```
+
+## Remotes verwalten
+
+Ein **Remote** ist ein Diex-Server, mit dem sich Ihre App verbindet. Während der Einrichtung erstellt das Scaffolding-Tool automatisch eines für Sie. Sie können jederzeit weitere Remotes hinzufügen oder zwischen ihnen wechseln.
+
+```bash filename="Terminal"
+# Add a new remote (opens a browser for OAuth login)
+yarn diex remote:add
+
+# Connect to a local Diex server (auto-detects port 2020 or 3000)
+yarn diex remote:add --local
+
+# Add a remote non-interactively (useful for CI)
+yarn diex remote:add --url https://your-diex-server.com --api-key $DIEX_API_KEY --as my-remote
+
+# List all configured remotes
+yarn diex remote:list
+
+# Set the active remote
+yarn diex remote:use <name>
+
+# Check that the active remote's authentication is still valid
+yarn diex remote:status
+
+# Remove a remote
+yarn diex remote:remove <name>
+```
+
+Ihre Anmeldedaten werden in `~/.diex/config.json` gespeichert.

@@ -1,0 +1,105 @@
+---
+title: CLI
+description: Команды `yarn diex` для выполнения функций, потоковой передачи логов, управления установками приложений и переключения удалённых серверов.
+icon: terminal
+---
+
+Помимо `dev`, `dev:build`, `dev:add` и `dev:typecheck`, CLI `yarn diex` предоставляет команды для выполнения функций, просмотра логов и управления установками приложений.
+
+## Выполнение функций (`yarn diex dev:function:exec`)
+
+Запустите логическую функцию вручную, не вызывая её через HTTP, cron или событие базы данных:
+
+```bash filename="Terminal"
+# Execute by function name
+yarn diex dev:function:exec -n create-new-post-card
+
+# Execute by universalIdentifier
+yarn diex dev:function:exec -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
+
+# Pass a JSON payload
+yarn diex dev:function:exec -n create-new-post-card -p '{"name": "Hello"}'
+
+# Execute the post-install function
+yarn diex dev:function:exec --postInstall
+```
+
+## Просмотр логов функций (`yarn diex dev:function:logs`)
+
+Потоковая передача журналов выполнения логических функций вашего приложения:
+
+```bash filename="Terminal"
+# Stream all function logs
+yarn diex dev:function:logs
+
+# Filter by function name
+yarn diex dev:function:logs -n create-new-post-card
+
+# Filter by universalIdentifier
+yarn diex dev:function:logs -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
+```
+
+<Note>
+Это отличается от `yarn diex docker:logs`, который показывает логи контейнера Docker. `yarn diex dev:function:logs` показывает журналы выполнения функций вашего приложения с сервера Diex.
+</Note>
+
+## Генерация типизированного клиента (`yarn diex dev:generate-client`)
+
+Повторно сгенерируйте типизированный API‑клиент (`diex-client-sdk`) из схемы активного удалённого экземпляра, не выполняя сборку или синхронизацию приложения. Используйте это, чтобы получить типизированного клиента в любом проекте — например, в backend‑сервисе в отдельном репозитории — который взаимодействует с вашим экземпляром Diex:
+
+```bash filename="Terminal"
+# In your project (no Diex app definition required)
+yarn add diex-sdk diex-client-sdk
+
+# Connect to the Diex instance to generate the client from
+yarn diex remote:add
+
+# Generate the typed client into node_modules/diex-client-sdk
+yarn diex dev:generate-client
+```
+
+Затем импортируйте клиента в свой код:
+
+```typescript
+import { CoreApiClient } from 'diex-client-sdk/core';
+```
+
+Повторно запустите команду при каждом изменении вашей модели данных, чтобы обновить сгенерированные типы.
+
+<Note>
+Клиент генерируется внутри `node_modules`, поэтому он не добавляется в ваш репозиторий вместе с кодом. Запускайте `yarn diex dev:generate-client` после каждой установки (например, в скрипте `postinstall` или в CI).
+</Note>
+
+## Удаление приложения (`yarn diex app:uninstall`)
+
+Удалите свое приложение из активного рабочего пространства:
+
+```bash filename="Terminal"
+yarn diex app:uninstall
+
+# Skip the confirmation prompt
+yarn diex app:uninstall --yes
+```
+
+## Управление удалёнными серверами
+
+**Remote** — это сервер Diex, к которому подключается ваше приложение. Во время настройки скаффолдер автоматически создаст его для вас. Вы можете в любой момент добавлять новые удалённые серверы или переключаться между ними.
+
+```bash filename="Terminal"
+# Add a new remote (opens a browser for OAuth login)
+yarn diex remote:add
+
+# Connect to a local Diex server (auto-detects port 2020 or 3000)
+yarn diex remote:add --local
+
+# Add a remote non-interactively (useful for CI)
+yarn diex remote:add --url https://your-diex-server.com --api-key $DIEX_API_KEY --as my-remote
+
+# List all configured remotes
+yarn diex remote:list
+
+# Set the active remote
+yarn diex remote:use <name>
+```
+
+Ваши учётные данные хранятся в `~/.diex/config.json`.

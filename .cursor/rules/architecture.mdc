@@ -1,10 +1,10 @@
 ---
-description: Twenty CRM architecture overview - monorepo structure, tech stack, and development principles
+description: Diex CRM architecture overview - monorepo structure, tech stack, and development principles
 globs: []
 alwaysApply: true
 ---
 
-# Twenty Architecture
+# Diex Architecture
 
 ## Tech Stack
 - **Frontend**: React 18, TypeScript, Jotai, Styled Components, Vite
@@ -14,11 +14,11 @@ alwaysApply: true
 ## Package Structure
 ```
 packages/
-├── twenty-front/     # React app
-├── twenty-server/    # NestJS API  
-├── twenty-ui/        # Shared components
-├── twenty-shared/    # Common types/utils
-└── twenty-emails/    # Email templates
+├── diex-front/     # React app
+├── diex-server/    # NestJS API
+├── diex-ui/        # Shared components
+├── diex-shared/    # Common types/utils
+└── diex-emails/    # Email templates
 ```
 
 ## Key Principles

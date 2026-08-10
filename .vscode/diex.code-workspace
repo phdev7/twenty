@@ -1,0 +1,154 @@
+{
+  "folders": [
+    {
+      "name": "ROOT",
+      "path": "../"
+    },
+    {
+      "name": "packages/diex-docker",
+      "path": "../packages/diex-docker"
+    },
+    {
+      "name": "packages/diex-front",
+      "path": "../packages/diex-front"
+    },
+    {
+      "name": "packages/diex-ui",
+      "path": "../packages/diex-ui"
+    },
+    {
+      "name": "packages/diex-emails",
+      "path": "../packages/diex-emails"
+    },
+    {
+      "name": "packages/diex-shared",
+      "path": "../packages/diex-shared"
+    },
+    {
+      "name": "packages/diex-server",
+      "path": "../packages/diex-server"
+    },
+    {
+      "name": "packages/diex-utils",
+      "path": "../packages/diex-utils"
+    },
+    {
+      "name": "packages/diex-zapier",
+      "path": "../packages/diex-zapier"
+    },
+    {
+      "name": "packages/diex-oxlint-rules",
+      "path": "../packages/diex-oxlint-rules"
+    },
+    {
+      "name": "packages/diex-e2e-testing",
+      "path": "../packages/diex-e2e-testing"
+    },
+    {
+      "name": "packages/diex-docs",
+      "path": "../packages/diex-docs"
+    },
+    {
+      "name": "packages/create-diex-app",
+      "path": "../packages/create-diex-app"
+    },
+    {
+      "name": "packages/diex-apps",
+      "path": "../packages/diex-apps"
+    },
+    {
+      "name": "packages/diex-claude-skills",
+      "path": "../packages/diex-claude-skills"
+    },
+    {
+      "name": "packages/diex-cli",
+      "path": "../packages/diex-cli"
+    },
+    {
+      "name": "packages/diex-client-sdk",
+      "path": "../packages/diex-client-sdk"
+    },
+    {
+      "name": "packages/diex-companion",
+      "path": "../packages/diex-companion"
+    },
+    {
+      "name": "packages/diex-front-component-renderer",
+      "path": "../packages/diex-front-component-renderer"
+    },
+    {
+      "name": "packages/diex-sdk",
+      "path": "../packages/diex-sdk"
+    },
+    {
+      "name": "packages/diex-website",
+      "path": "../packages/diex-website"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": false,
+    "files.eol": "auto",
+    "[typescript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.oxc": "explicit",
+        "source.addMissingImports": "always"
+      }
+    },
+    "[javascript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.oxc": "explicit",
+        "source.addMissingImports": "always"
+      }
+    },
+    "[typescriptreact]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.oxc": "explicit",
+        "source.addMissingImports": "always"
+      }
+    },
+    "[json]": {
+      "editor.formatOnSave": true
+    },
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
+    "cSpell.enableFiletypes": [
+      "!javascript",
+      "!json",
+      "!typescript",
+      "!typescriptreact",
+      "md",
+      "mdx"
+    ],
+    "cSpell.words": [
+      "diexhq"
+    ],
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "[javascript][typescript][typescriptreact]": {
+      "editor.codeActionsOnSave": {
+        "source.fixAll.oxc": "explicit",
+        "source.addMissingImports": "always"
+      }
+    },
+    "search.exclude": {
+      "**/.yarn": true,
+    },
+    "files.exclude": {
+      "packages/": true
+    },
+    "oxc.lint.enable": true,
+    "jest.runMode": "on-demand",
+    "jest.disabledWorkspaceFolders": [
+      "ROOT",
+      "packages/diex-zapier",
+      "packages/diex-docker",
+      "packages/diex-utils",
+      "packages/diex-postgres"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: diex-db
+    image: postgres:16
+    environment:
+      POSTGRES_DB: diex
+      POSTGRES_USER: diex
+      POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD}
+    volumes:
+      - diex-db-data:/var/lib/postgresql/data:Z
+
+  redis:
+    container_name: diex-redis
+    image: redis:latest
+    command: ["--maxmemory-policy", "noeviction"]
+    volumes:
+      - diex-redis-data:/data:Z
+
+  server:
+    container_name: diex-server
+    image: diexcrm/diex:latest
+    environment:
+      NODE_PORT: "3000"
+      SERVER_URL: ${SERVER_URL}
+      PG_DATABASE_URL: "postgresql://diex:${PG_DATABASE_PASSWORD}@diex-db:5432/diex"
+      REDIS_URL: "redis://diex-redis:6379"
+      APP_SECRET: ${APP_SECRET}
+      NODE_ENV: production
+      LOG_LEVEL: info
+    volumes:
+      - diex-server-data:/app/docker-data:Z
+    ports:
+      - 127.0.0.1:8080:3000
+
+  worker:
+    container_name: diex-worker
+    image: diexcrm/diex:latest
+    command: yarn worker:prod
+    environment:
+      SERVER_URL: ${SERVER_URL}
+      PG_DATABASE_URL: "postgresql://diex:${PG_DATABASE_PASSWORD}@diex-db:5432/diex"
+      REDIS_URL: "redis://diex-redis:6379"
+      APP_SECRET: ${APP_SECRET}
+      DISABLE_DB_MIGRATIONS: "true"
+      NODE_ENV: production
+      LOG_LEVEL: info
+    volumes:
+      - diex-server-data:/app/docker-data:Z
+    init: true
+
+volumes:
+  diex-db-data:
+  diex-server-data:
+  diex-redis-data:

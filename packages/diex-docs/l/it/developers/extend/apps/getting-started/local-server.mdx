@@ -1,0 +1,87 @@
+---
+title: Server locale
+description: Gestisci il server Docker Diex locale — avvia, arresta, aggiorna, istanza di test parallela e configurazione manuale dell'SDK.
+icon: server
+---
+
+## Gestire il server locale
+
+Usa `yarn diex docker:*` per controllare il container Diex locale:
+
+| Comando                                | Cosa fa                                            |
+| -------------------------------------- | -------------------------------------------------- |
+| `yarn diex docker:start`             | Avvia il server (scarica l'immagine se necessario) |
+| `yarn diex docker:start 2.2.0`       | Avvia una versione specifica del server            |
+| `yarn diex docker:start --port 3030` | Avvia su una porta personalizzata                  |
+| `yarn diex docker:stop`              | Arresta il server (conserva i dati)                |
+| `yarn diex docker:status`            | Mostra URL, versione e credenziali di accesso      |
+| `yarn diex docker:logs`              | Trasmetti in streaming i log del server            |
+| `yarn diex docker:reset`             | Cancella i dati e riparti da zero                  |
+| `yarn diex docker:upgrade`           | Scarica l'ultima immagine `diex-app-dev`         |
+| `yarn diex docker:upgrade 2.2.0`     | Aggiorna a una versione specifica                  |
+
+I dati persistono tra i riavvii in due volumi Docker (`diex-app-dev-data` per PostgreSQL, `diex-app-dev-storage` per i file). Usa `reset` per cancellare tutto.
+
+## Blocco della versione del server
+
+Quando non viene passata alcuna versione, `docker:start` risolve la versione dall'intervallo `engines.diex` della tua app in `package.json`, lo stesso intervallo rispetto al quale il server effettua la convalida quando la tua app viene installata. Avvia l'immagine `diex-app-dev` più recente pubblicata che soddisfa l'intervallo, ricorrendo a `latest` quando il campo è assente o nessuna versione pubblicata corrisponde:
+
+```json filename="package.json"
+{
+  "engines": {
+    "diex": ">=2.2.0"
+  }
+}
+```
+
+Passa esplicitamente una versione per ignorare l'intervallo per una singola esecuzione: `yarn diex docker:start 2.3.0`. Se un container esiste già con una versione diversa, `docker:start` lo aggiorna sul posto (ricreando il container ma preservando i volumi dei tuoi dati).
+
+## Aggiornamento dell'immagine del server
+
+`yarn diex docker:upgrade` scarica l'ultima immagine, confronta i digest e ricrea il container solo se è cambiato qualcosa. I volumi vengono preservati — viene sostituito solo il container. Se è stata scaricata una nuova immagine e il container era in esecuzione, l'upgrade avvia automaticamente un nuovo container; esegui poi `yarn diex docker:start` per attendere che diventi operativo.
+
+```bash filename="Terminal"
+yarn diex docker:upgrade            # Latest
+yarn diex docker:upgrade 2.2.0      # Specific version
+```
+
+Verifica la versione in esecuzione con `yarn diex docker:status` (mostra `APP_VERSION` incorporata nel container).
+
+## Esecuzione di un'istanza di test parallela
+
+Passa `--test` a qualsiasi comando `docker:*` per gestire una seconda istanza completamente isolata — utile per test di integrazione o per sperimentare senza toccare i tuoi dati di sviluppo principali:
+
+| Comando                             | Cosa fa                                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| `yarn diex docker:start --test`   | Avvia l'istanza di test (per impostazione predefinita usa la porta 2021) |
+| `yarn diex docker:stop --test`    | Arrestala                                                                |
+| `yarn diex docker:status --test`  | Mostra il suo stato                                                      |
+| `yarn diex docker:logs --test`    | Trasmetti in streaming i suoi log                                        |
+| `yarn diex docker:reset --test`   | Cancella i suoi dati                                                     |
+| `yarn diex docker:upgrade --test` | Aggiorna la sua immagine                                                 |
+
+L'istanza di test ha il proprio container (`diex-app-dev-test`), i propri volumi (`diex-app-dev-test-data`, `diex-app-dev-test-storage`) e la propria configurazione — viene eseguita insieme alla tua istanza principale senza conflitti. Combina `--test` con `--port` per sovrascrivere 2021.
+
+## Configurazione manuale (senza lo scaffolder)
+
+Salta lo strumento di scaffolding se stai aggiungendo l'SDK a un progetto esistente:
+
+```bash filename="Terminal"
+yarn add diex-sdk diex-client-sdk
+```
+
+Aggiungi lo script a `package.json`:
+
+```json filename="package.json"
+{
+  "scripts": {
+    "diex": "diex"
+  }
+}
+```
+
+Ora puoi eseguire `yarn diex dev`, `yarn diex docker:start` e il resto.
+
+<Note>
+Non installare `diex-sdk` globalmente — bloccalo per progetto in modo che ogni app usi la propria versione.
+</Note>

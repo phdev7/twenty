@@ -1,0 +1,1 @@
+export const DIEX_EXPERIENCE_NOTES_MIN_LENGTH = 200;

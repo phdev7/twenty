@@ -1,5 +1,5 @@
 ---
-description: Guidelines and best practices for working with Nx in the Twenty workspace, including workspace architecture understanding, configuration management, and generator usage.
+description: Guidelines and best practices for working with Nx in the Diex workspace, including workspace architecture understanding, configuration management, and generator usage.
 globs: ["**/nx.json", "**/project.json", "**/workspace.json"]
 alwaysApply: true
 ---
@@ -9,17 +9,17 @@ alwaysApply: true
 ## Core Commands
 ```bash
 # Run target for specific project
-npx nx run twenty-front:build
-npx nx run twenty-server:test
+npx nx run diex-front:build
+npx nx run diex-server:test
 
 # Lint diff with main (recommended - much faster!)
-npx nx lint:diff-with-main twenty-front           # Lint only files changed vs main
-npx nx lint:diff-with-main twenty-server
-npx nx lint:diff-with-main twenty-front --configuration=fix  # Auto-fix changed files
+npx nx lint:diff-with-main diex-front           # Lint only files changed vs main
+npx nx lint:diff-with-main diex-server
+npx nx lint:diff-with-main diex-front --configuration=fix  # Auto-fix changed files
 
 # Run target for all projects (slower)
 npx nx run-many --target=build --all
-npx nx run-many --target=test --projects=twenty-front,twenty-server
+npx nx run-many --target=test --projects=diex-front,diex-server
 
 # Generate/modify projects
 npx nx g @nx/react:app my-app
@@ -38,11 +38,11 @@ npx nx g @nx/react:component my-component
   "targets": {
     "build": {
       "executor": "@nx/vite:build",
-      "options": { "outputPath": "dist/packages/twenty-front" }
+      "options": { "outputPath": "dist/packages/diex-front" }
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "options": { "jestConfig": "packages/twenty-front/jest.config.mjs" }
+      "options": { "jestConfig": "packages/diex-front/jest.config.mjs" }
     }
   }
 }

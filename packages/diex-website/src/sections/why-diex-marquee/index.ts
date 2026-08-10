@@ -1,0 +1,1 @@
+export { WhyDiexMarquee } from './WhyDiexMarquee';

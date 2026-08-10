@@ -1,0 +1,71 @@
+#!/bin/bash
+set -e
+if [ ! -f "$(dirname "$0")/.env" ]; then
+    echo "Error: .env file not found"
+    exit 1
+fi
+source "$(dirname "$0")/.env"
+
+## steps to cleanup and start over from scratch - useful when testing
+#podman pod stop diex-pod
+#podman pod rm diex-pod
+#podman volume rm diex-db-data diex-server-data diex-redis-data
+# end of cleanup
+
+podman volume create diex-db-data
+podman volume create diex-server-data
+podman volume create diex-redis-data
+
+podman pod create --name diex-pod -p 127.0.0.1:8080:3000
+
+podman run -d --pod diex-pod --name diex-db \
+  -e POSTGRES_DB=diex \
+  -e POSTGRES_USER=diex \
+  -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+  -v diex-db-data:/var/lib/postgresql/data:Z \
+  docker.io/library/postgres:16
+
+podman run -d --pod diex-pod --name diex-redis \
+  -v diex-redis-data:/data:Z \
+  docker.io/library/redis:latest
+
+podman run -d --pod diex-pod --name diex-server \
+  -e NODE_PORT=3000 \
+  -e SERVER_URL="$SERVER_URL" \
+  -e PG_DATABASE_URL="postgresql://diex:$POSTGRES_PASSWORD@diex-db:5432/diex" \
+  -e REDIS_URL="redis://diex-redis:6379" \
+  -e APP_SECRET="$APP_SECRET" \
+  -e NODE_ENV=production \
+  -e LOG_LEVEL=info \
+  -v diex-server-data:/app/docker-data:Z \
+  docker.io/diexcrm/diex:latest
+
+podman run -d --pod diex-pod --name diex-worker \
+  --init \
+  -e SERVER_URL="$SERVER_URL" \
+  -e PG_DATABASE_URL="postgresql://diex:$POSTGRES_PASSWORD@diex-db:5432/diex" \
+  -e REDIS_URL="redis://diex-redis:6379" \
+  -e APP_SECRET="$APP_SECRET" \
+  -e DISABLE_DB_MIGRATIONS=true \
+  -e NODE_ENV=production \
+  -e LOG_LEVEL=info \
+  -v diex-server-data:/app/docker-data:Z \
+  docker.io/diexcrm/diex:latest \
+  yarn worker:prod
+
+# wait some time, check status
+sleep 30
+podman ps --pod -f name=diex-pod
+
+
+mkdir -p ~/.config/systemd/user
+if [ ! -f "diexcrm.service" ]; then
+    echo "Error: diexcrm.service file not found"
+    exit 1
+fi
+cp diexcrm.service ~/.config/systemd/user
+
+systemctl --user daemon-reload
+systemctl --user enable diexcrm.service
+systemctl --user start diexcrm.service
+

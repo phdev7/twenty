@@ -1,0 +1,133 @@
+import { useContext } from 'react';
+import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
+import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
+import { flattenedFieldMetadataItemsSelector } from '@/object-metadata/states/flattenedFieldMetadataItemsSelector';
+import { turnSortsIntoOrderBy } from '@/object-record/object-sort-dropdown/utils/turnSortsIntoOrderBy';
+import { currentRecordFilterGroupsComponentState } from '@/object-record/record-filter-group/states/currentRecordFilterGroupsComponentState';
+import { useFilterValueDependencies } from '@/object-record/record-filter/hooks/useFilterValueDependencies';
+import { anyFieldFilterValueComponentState } from '@/object-record/record-filter/states/anyFieldFilterValueComponentState';
+import { currentRecordFiltersComponentState } from '@/object-record/record-filter/states/currentRecordFiltersComponentState';
+import { useCurrentRecordGroupDefinition } from '@/object-record/record-group/hooks/useCurrentRecordGroupDefinition';
+import { useRecordGroupFilter } from '@/object-record/record-group/hooks/useRecordGroupFilter';
+import { currentRecordSortsComponentState } from '@/object-record/record-sort/states/currentRecordSortsComponentState';
+import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { DashboardGlobalFiltersContext } from '@/page-layout/dashboard/contexts/DashboardGlobalFiltersContext';
+import {
+  formatDashboardDateFilterValue,
+  getDashboardDateRange,
+  pickDashboardDateField,
+  pickDashboardWorkspaceMemberField,
+} from '@/page-layout/dashboard/utils/dashboardGlobalFilterUtils';
+import { type RecordGqlOperationFilter } from 'diex-shared/types';
+import {
+  combineFilters,
+  computeRecordGqlOperationFilter,
+  turnAnyFieldFilterIntoRecordGqlFilter,
+} from 'diex-shared/utils';
+
+export const useFindManyRecordIndexTableParams = (
+  objectNameSingular: string,
+  instanceId?: string,
+) => {
+  const { objectMetadataItem } = useObjectMetadataItem({
+    objectNameSingular,
+  });
+  const { objectMetadataItems } = useObjectMetadataItems();
+
+  const { isEnabled, filters } = useContext(DashboardGlobalFiltersContext);
+
+  const { recordGroupFilter } = useRecordGroupFilter(
+    objectMetadataItem?.fields,
+  );
+
+  const currentRecordGroupDefinition = useCurrentRecordGroupDefinition();
+
+  const currentRecordFilterGroups = useAtomComponentStateValue(
+    currentRecordFilterGroupsComponentState,
+    instanceId,
+  );
+
+  const currentRecordSorts = useAtomComponentStateValue(
+    currentRecordSortsComponentState,
+    instanceId,
+  );
+
+  const currentRecordFilters = useAtomComponentStateValue(
+    currentRecordFiltersComponentState,
+    instanceId,
+  );
+
+  const { filterValueDependencies } = useFilterValueDependencies();
+
+  const flattenedFieldMetadataItems = useAtomStateValue(
+    flattenedFieldMetadataItemsSelector,
+  );
+
+  const currentFilters = computeRecordGqlOperationFilter({
+    fieldMetadataItems: flattenedFieldMetadataItems,
+    recordFilterGroups: currentRecordFilterGroups,
+    recordFilters: currentRecordFilters,
+    filterValueDependencies,
+  });
+
+  const anyFieldFilterValue = useAtomComponentStateValue(
+    anyFieldFilterValueComponentState,
+    instanceId,
+  );
+
+  const { recordGqlOperationFilter: anyFieldFilter } =
+    turnAnyFieldFilterIntoRecordGqlFilter({
+      fields: objectMetadataItem?.fields ?? [],
+      filterValue: anyFieldFilterValue,
+    });
+
+  const orderBy = turnSortsIntoOrderBy(
+    objectMetadataItem,
+    currentRecordSorts,
+    objectMetadataItems,
+  );
+
+  const dashboardFiltersList: RecordGqlOperationFilter[] = [];
+
+  if (isEnabled && objectMetadataItem?.fields) {
+    const dateRange = getDashboardDateRange(filters);
+    const dateField = pickDashboardDateField(objectMetadataItem.fields);
+
+    if (dateRange && dateField) {
+      dashboardFiltersList.push({
+        [dateField.name]: {
+          gte: formatDashboardDateFilterValue(dateRange.start, dateField),
+          lte: formatDashboardDateFilterValue(dateRange.end, dateField),
+        },
+      });
+    }
+
+    const workspaceMemberField = pickDashboardWorkspaceMemberField(
+      objectMetadataItem.fields,
+    );
+
+    if (filters.workspaceMemberId && workspaceMemberField) {
+      dashboardFiltersList.push({
+        [`${workspaceMemberField.name}Id`]: {
+          eq: filters.workspaceMemberId,
+        },
+      });
+    }
+  }
+
+  const combinedFilter = combineFilters([
+    currentFilters,
+    recordGroupFilter,
+    anyFieldFilter,
+    ...dashboardFiltersList,
+  ]);
+
+  return {
+    objectNameSingular,
+    filter: combinedFilter,
+    orderBy,
+    // If we have a current record group definition, we only want to fetch 8 records by page
+    ...(currentRecordGroupDefinition ? { limit: 8 } : {}),
+  };
+};

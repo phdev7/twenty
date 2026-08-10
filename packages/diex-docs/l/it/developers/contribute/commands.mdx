@@ -1,0 +1,77 @@
+---
+title: Comandi
+icon: terminal
+description: Comandi utili per sviluppare Diex.
+---
+
+I comandi possono essere eseguiti dalla radice del repository usando `npx nx`. Usa `npx nx run {project}:{command}` per specificare esplicitamente il target.
+
+## Avviare l'app
+
+```bash
+npx nx start diex-front          # Frontend dev server (http://localhost:3001)
+npx nx start diex-server         # Backend server (http://localhost:3000)
+npx nx run diex-server:worker    # Background worker
+```
+
+## Database
+
+```bash
+npx nx database:reset diex-server                          # Reset and seed database
+npx nx run diex-server:database:migrate:prod               # Run migrations
+npx nx run diex-server:database:migrate:generate --name <name> --type <fast|slow>  # Generate a migration
+```
+
+## Linting
+
+```bash
+npx nx lint:diff-with-main diex-front    # Lint changed files (fastest)
+npx nx lint:diff-with-main diex-server
+npx nx lint diex-front --configuration=fix  # Auto-fix
+```
+
+## Controllo dei tipi
+
+```bash
+npx nx typecheck diex-front
+npx nx typecheck diex-server
+```
+
+## Testing
+
+```bash
+# Frontend
+npx nx test diex-front                          # Jest unit tests
+npx nx storybook:build diex-front               # Build Storybook
+npx nx storybook:test diex-front                # Storybook tests
+
+# Backend
+npx nx run diex-server:test:unit                # Unit tests
+npx nx run diex-server:test:integration         # Integration tests
+npx nx run diex-server:test:integration:with-db-reset  # Integration with DB reset
+
+# Single file (fastest)
+npx jest path/to/test.test.ts --config=packages/{project}/jest.config.mjs
+```
+
+## GraphQL
+
+```bash
+npx nx run diex-front:graphql:generate                        # Regenerate types
+npx nx run diex-front:graphql:generate --configuration=metadata  # Metadata schema
+```
+
+## Traduzioni
+
+```bash
+npx nx run diex-front:lingui:extract   # Extract strings
+npx nx run diex-front:lingui:compile   # Compile translations
+```
+
+## Compilazione
+
+```bash
+npx nx build diex-shared   # Must be built first
+npx nx build diex-front
+npx nx build diex-server
+```

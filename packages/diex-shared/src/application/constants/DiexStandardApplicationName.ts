@@ -1,0 +1,1 @@
+export const DIEX_STANDARD_APPLICATION_NAME = 'Diex CRM Core';

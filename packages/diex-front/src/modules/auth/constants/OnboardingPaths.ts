@@ -1,0 +1,14 @@
+import { AppPath } from 'diex-shared/types';
+
+export const ONBOARDING_PATHS = [
+  AppPath.WorkspaceActivation,
+  AppPath.WorkspaceApprovalPending,
+  AppPath.DiexOnboarding,
+  AppPath.CreateProfile,
+  AppPath.SyncEmails,
+  AppPath.InstallApps,
+  AppPath.InviteTeam,
+  AppPath.PlanRequired,
+  AppPath.PlanRequiredSuccess,
+  AppPath.BookCall,
+];

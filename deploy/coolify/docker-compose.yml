@@ -30,7 +30,7 @@ x-diex-environment: &diex-environment
   AUTH_PASSWORD_ENABLED: "true"
   IS_EMAIL_VERIFICATION_REQUIRED: ${IS_EMAIL_VERIFICATION_REQUIRED:-true}
   STORAGE_TYPE: ${STORAGE_TYPE:-local}
-  STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/app/packages/twenty-server/.local-storage}
+  STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/app/packages/diex-server/.local-storage}
   STORAGE_S3_REGION: ${STORAGE_S3_REGION:-}
   STORAGE_S3_NAME: ${STORAGE_S3_NAME:-}
   STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT:-}
@@ -67,7 +67,7 @@ services:
   server:
     <<: *diex-runtime
     volumes:
-      - diex-local-storage:/app/packages/twenty-server/.local-storage
+      - diex-local-storage:/app/packages/diex-server/.local-storage
     environment:
       <<: *diex-environment
       NODE_PORT: 3000
@@ -83,7 +83,7 @@ services:
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.entrypoints=http"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.middlewares=${DIEX_PROXY_ROUTER}-redirect"
       # Apex serves the landing/default subdomain; the regex serves one router
-      # for every tenant workspace, since Twenty addresses them as
+      # for every tenant workspace, since Diex addresses them as
       # {workspace-subdomain}.${SERVER_HOST} once multiworkspace is on.
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.rule=Host(`${SERVER_HOST}`) || HostRegexp(`^[a-z0-9][a-z0-9-]*\\.${SERVER_HOST_REGEX}$$`)"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-http.service=${DIEX_PROXY_ROUTER}-service"
@@ -109,7 +109,7 @@ services:
     <<: *diex-runtime
     command: ["yarn", "worker:prod"]
     volumes:
-      - diex-local-storage:/app/packages/twenty-server/.local-storage
+      - diex-local-storage:/app/packages/diex-server/.local-storage
     environment:
       <<: *diex-environment
       DISABLE_DB_MIGRATIONS: "true"

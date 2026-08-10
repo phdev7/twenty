@@ -1,0 +1,100 @@
+import { type FlatViewGroup } from 'src/engine/metadata-modules/flat-view-group/types/flat-view-group.type';
+import {
+  createStandardViewGroupFlatMetadata,
+  type CreateStandardViewGroupArgs,
+} from 'src/engine/workspace-manager/diex-standard-application/utils/view-group/create-standard-view-group-flat-metadata.util';
+
+export const computeStandardOpportunityViewGroups = (
+  args: Omit<CreateStandardViewGroupArgs<'opportunity'>, 'context'>,
+): Record<string, FlatViewGroup> => {
+  return {
+    byStageNew: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'new',
+        isVisible: true,
+        fieldValue: 'NEW',
+        position: 0,
+      },
+    }),
+    byStageScreening: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'screening',
+        isVisible: true,
+        fieldValue: 'SCREENING',
+        position: 1,
+      },
+    }),
+    byStageMeeting: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'meeting',
+        isVisible: true,
+        fieldValue: 'MEETING',
+        position: 2,
+      },
+    }),
+    byStageProposal: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'proposal',
+        isVisible: true,
+        fieldValue: 'PROPOSAL',
+        position: 4,
+      },
+    }),
+    byStageDiagnosisComplete: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'diagnosisComplete',
+        isVisible: true,
+        fieldValue: 'DIAGNOSIS_COMPLETE',
+        position: 3,
+      },
+    }),
+    byStageNegotiation: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'negotiation',
+        isVisible: true,
+        fieldValue: 'NEGOTIATION',
+        position: 5,
+      },
+    }),
+    byStageCustomer: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'customer',
+        isVisible: true,
+        fieldValue: 'CUSTOMER',
+        position: 6,
+      },
+    }),
+    byStageLost: createStandardViewGroupFlatMetadata({
+      ...args,
+      objectName: 'opportunity',
+      context: {
+        viewName: 'byStage',
+        viewGroupName: 'lost',
+        isVisible: true,
+        fieldValue: 'LOST',
+        position: 7,
+      },
+    }),
+  };
+};

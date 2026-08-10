@@ -2,7 +2,7 @@
 
 ## Decisão
 
-O Twenty passa a ser o único core do CRM. Chatwoot e o Diex CRM Laravel são
+O Diex passa a ser o único core do CRM. Chatwoot e o Diex CRM Laravel são
 fontes de produto e migração, não runtimes permanentes.
 
 A topologia de produção é:
@@ -17,7 +17,7 @@ A topologia de produção é:
   todos os workspaces.
 
 Isso substitui os três processos Laravel atuais (`app`, `horizon`,
-`scheduler`) por dois processos Twenty. PostgreSQL e Redis continuam
+`scheduler`) por dois processos Diex. PostgreSQL e Redis continuam
 separados do runtime e cada ambiente mantém recursos próprios.
 
 ## Evidência do ambiente atual
@@ -49,7 +49,7 @@ O novo stack corrige os dois riscos operacionais principais:
 - domínio final: `crm.bydiex.com`;
 - recursos exclusivos e tags de imagem imutáveis;
 - criação de workspace limitada a administradores do servidor;
-- múltiplos workspaces habilitados com isolamento nativo do Twenty;
+- múltiplos workspaces habilitados com isolamento nativo do Diex;
 - backup PostgreSQL a cada seis horas, retenção local de 14 dias e cópia S3
   de pelo menos 30 dias.
 
@@ -58,7 +58,7 @@ ou API key entre ambientes.
 
 ## Endereçamento multi-tenant
 
-Com `IS_MULTIWORKSPACE_ENABLED=true`, o Twenty resolve o tenant pelo
+Com `IS_MULTIWORKSPACE_ENABLED=true`, o Diex resolve o tenant pelo
 subdomínio. Não existe modo multiworkspace em host único: cada workspace passa
 a responder em `{subdomain}.${SERVER_HOST}` e o padrão da instância em
 `${DEFAULT_SUBDOMAIN}.${SERVER_HOST}`.
@@ -118,7 +118,7 @@ O arquivo de exemplo contém placeholders, nunca credenciais reais.
 ### Proteção da homologação
 
 A homologação não usa Basic Auth no proxy. O controle de acesso fica no próprio
-Twenty, evitando disputa pelo cabeçalho `Authorization` usado por API keys,
+Diex, evitando disputa pelo cabeçalho `Authorization` usado por API keys,
 publicação do app e MCP. O Traefik mantém HTTPS e `noindex`.
 
 Webhooks do provedor validam segredo exclusivo; a rota de migração exige API
@@ -155,15 +155,15 @@ migração. Depois do aceite, a chave deve ser revogada e a variável removida.
 ## Cutover e rollback
 
 1. Manter `crm.bydiex.com` apontando para o Laravel durante a migração.
-2. Migrar snapshot para o Twenty em homologação.
+2. Migrar snapshot para o Diex em homologação.
 3. Abrir uma janela curta de escrita no legado, gerar backup final e importar
    o delta.
-4. Trocar o domínio para o `server` Twenty.
+4. Trocar o domínio para o `server` Diex.
 5. Manter o Laravel parado, mas recuperável, por sete dias.
 6. Em falha crítica, restaurar o domínio para o legado e reabrir escrita
-   somente após reconciliar o delta produzido no Twenty.
+   somente após reconciliar o delta produzido no Diex.
 7. Após o aceite, manter o banco legado em modo arquivado por 30 dias antes
    de qualquer remoção.
 
-O rollback não reutiliza o banco Twenty no Laravel nem o banco Laravel no
-Twenty.
+O rollback não reutiliza o banco Diex no Laravel nem o banco Laravel no
+Diex.

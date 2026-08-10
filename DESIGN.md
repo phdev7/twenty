@@ -1,6 +1,6 @@
-# Twenty Website — DESIGN.md
+# Diex Website — DESIGN.md
 
-> Visual system for the Twenty marketing site. Distilled from `packages/twenty-website/src/theme/`. Loaded by every `impeccable` invocation alongside PRODUCT.md.
+> Visual system for the Diex marketing site. Distilled from `packages/diex-website/src/theme/`. Loaded by every `impeccable` invocation alongside PRODUCT.md.
 
 ## Theme
 

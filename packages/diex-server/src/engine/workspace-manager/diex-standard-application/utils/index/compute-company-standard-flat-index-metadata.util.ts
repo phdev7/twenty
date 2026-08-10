@@ -1,0 +1,73 @@
+import { type FlatIndexMetadata } from 'src/engine/metadata-modules/flat-index-metadata/types/flat-index-metadata.type';
+import { IndexType } from 'src/engine/metadata-modules/index-metadata/types/indexType.types';
+import { type AllStandardObjectIndexName } from 'src/engine/workspace-manager/diex-standard-application/types/all-standard-object-index-name.type';
+import {
+  type CreateStandardIndexArgs,
+  createStandardIndexFlatMetadata,
+} from 'src/engine/workspace-manager/diex-standard-application/utils/index/create-standard-index-flat-metadata.util';
+
+export const buildCompanyStandardFlatIndexMetadatas = ({
+  now,
+  objectName,
+  workspaceId,
+  standardObjectMetadataRelatedEntityIds,
+  dependencyFlatEntityMaps,
+  diexStandardApplicationId,
+}: Omit<CreateStandardIndexArgs<'company'>, 'context'>): Record<
+  AllStandardObjectIndexName<'company'>,
+  FlatIndexMetadata
+> => ({
+  legacyDiexIdUniqueIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'legacyDiexIdUniqueIndex',
+      relatedFieldNames: ['legacyDiexId'],
+      isUnique: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    diexStandardApplicationId,
+    now,
+  }),
+  accountOwnerIdIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'accountOwnerIdIndex',
+      relatedFieldNames: ['accountOwner'],
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    diexStandardApplicationId,
+    now,
+  }),
+  domainNameUniqueIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'domainNameUniqueIndex',
+      relatedFieldNames: ['domainName'],
+      isUnique: true,
+      hasDeterministicUniversalIdentifier: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    diexStandardApplicationId,
+    now,
+  }),
+  searchVectorGinIndex: createStandardIndexFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      indexName: 'searchVectorGinIndex',
+      relatedFieldNames: ['searchVector'],
+      indexType: IndexType.GIN,
+      hasDeterministicUniversalIdentifier: true,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    diexStandardApplicationId,
+    now,
+  }),
+});

@@ -1,0 +1,50 @@
+{
+  "name": "diex",
+  "version": "0.1.0",
+  "description": "Create, operate, develop, publish, and query Diex apps through Codex.",
+  "author": {
+    "name": "Diex PBC",
+    "url": "https://diex.com/"
+  },
+  "homepage": "https://docs.diex.com/",
+  "repository": "https://github.com/diexhq/diex",
+  "license": "AGPL-3.0",
+  "keywords": [
+    "diex",
+    "create-diex-app",
+    "mcp",
+    "oauth",
+    "crm",
+    "apps",
+    "scaffolding",
+    "cli",
+    "diex-sdk",
+    "publishing"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Diex",
+    "shortDescription": "Create, develop, publish, and query apps",
+    "longDescription": "Scaffold, develop, deploy, and publish Diex apps end-to-end. Five focused skills cover app creation, entity development (objects, fields, logic, layouts, front components), remote/sync/deploy operations, marketplace publishing assets, and workspace data retrieval via MCP. The bundled Diex docs MCP server keeps guidance current, and the setup helper wires per-user workspace MCP with OAuth in one command.",
+    "developerName": "Diex PBC",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://diex.com/",
+    "privacyPolicyURL": "https://diex.com/privacy-policy",
+    "termsOfServiceURL": "https://diex.com/terms",
+    "defaultPrompt": [
+      "Create and run a new Diex app",
+      "Push a Diex app to production",
+      "Develop a Diex app feature"
+    ],
+    "brandColor": "#000000",
+    "composerIcon": "./assets/diex-logo.svg",
+    "logo": "./assets/diex-logo.png",
+    "screenshots": []
+  }
+}

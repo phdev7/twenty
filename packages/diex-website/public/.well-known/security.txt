@@ -1,0 +1,5 @@
+Contact: https://github.com/diexhq/diex/issues/new
+Contact: security@diex.com
+Preferred-Languages: en
+Canonical: https://diex.com/.well-known/security.txt
+Policy: https://github.com/diexhq/diex/security/policy

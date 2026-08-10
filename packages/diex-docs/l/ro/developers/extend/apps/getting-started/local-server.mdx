@@ -1,0 +1,87 @@
+---
+title: Server local
+description: Gestionează serverul Diex Docker local — pornește, oprește, actualizează, rulează o instanță de testare în paralel și configurează manual SDK-ul.
+icon: server
+---
+
+## Gestionarea serverului local
+
+Folosiți `yarn diex docker:*` pentru a controla containerul Diex local:
+
+| Comandă                                | Ce face                                                      |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `yarn diex docker:start`             | Pornește serverul (descarcă imaginea dacă este necesar)      |
+| `yarn diex docker:start 2.2.0`       | Pornește o anumită versiune a serverului                     |
+| `yarn diex docker:start --port 3030` | Pornește pe un port personalizat                             |
+| `yarn diex docker:stop`              | Oprește serverul (păstrează datele)                          |
+| `yarn diex docker:status`            | Afișează URL-ul, versiunea și credențialele de autentificare |
+| `yarn diex docker:logs`              | Transmite în flux jurnalele serverului                       |
+| `yarn diex docker:reset`             | Șterge datele și pornește de la zero                         |
+| `yarn diex docker:upgrade`           | Descarcă cea mai recentă imagine `diex-app-dev`            |
+| `yarn diex docker:upgrade 2.2.0`     | Actualizează la o versiune specifică                         |
+
+Datele persistă între reporniri în două volume Docker (`diex-app-dev-data` pentru PostgreSQL, `diex-app-dev-storage` pentru fișiere). Folosiți `reset` pentru a șterge totul.
+
+## Fixarea versiunii serverului
+
+Când nu este transmisă nicio versiune, `docker:start` rezolvă versiunea din intervalul `engines.diex` al aplicației tale din `package.json` — același interval față de care serverul validează când aplicația ta este instalată. Pornește cea mai nouă imagine publicată `diex-app-dev` care satisface intervalul, revenind la `latest` atunci când câmpul lipsește sau nicio versiune publicată nu se potrivește:
+
+```json filename="package.json"
+{
+  "engines": {
+    "diex": ">=2.2.0"
+  }
+}
+```
+
+Transmite explicit o versiune pentru a suprascrie intervalul pentru o singură rulare: `yarn diex docker:start 2.3.0`. Dacă un container există deja pe o versiune diferită, `docker:start` îl actualizează pe loc (recreând containerul, dar păstrând volumele tale de date).
+
+## Actualizarea imaginii serverului
+
+`yarn diex docker:upgrade` descarcă cea mai recentă imagine, compară digest-urile și recreează containerul doar dacă s-a schimbat ceva. Volumele de date sunt păstrate — doar containerul este înlocuit. Dacă a fost descărcată o imagine nouă și containerul rula, actualizarea pornește automat un container nou; rulați apoi `yarn diex docker:start` pentru a aștepta până când devine funcțional.
+
+```bash filename="Terminal"
+yarn diex docker:upgrade            # Latest
+yarn diex docker:upgrade 2.2.0      # Specific version
+```
+
+Puteți verifica versiunea care rulează cu `yarn diex docker:status` (aceasta afișează `APP_VERSION` încorporat în container).
+
+## Rularea unei instanțe de test în paralel
+
+Adăugați `--test` la orice comandă `docker:*` pentru a gestiona o a doua instanță, complet izolată — utilă pentru teste de integrare sau pentru a experimenta fără a atinge datele principale de dezvoltare:
+
+| Comandă                             | Ce face                                             |
+| ----------------------------------- | --------------------------------------------------- |
+| `yarn diex docker:start --test`   | Pornește instanța de test (implicit pe portul 2021) |
+| `yarn diex docker:stop --test`    | Oprește-o                                           |
+| `yarn diex docker:status --test`  | Afișează-i starea                                   |
+| `yarn diex docker:logs --test`    | Transmite în flux jurnalele sale                    |
+| `yarn diex docker:reset --test`   | Șterge-i datele                                     |
+| `yarn diex docker:upgrade --test` | Actualizează-i imaginea                             |
+
+Instanța de test are propriul container (`diex-app-dev-test`), propriile volume (`diex-app-dev-test-data`, `diex-app-dev-test-storage`) și propria configurație — rulează alături de instanța principală, fără conflicte. Combinați `--test` cu `--port` pentru a înlocui portul 2021.
+
+## Configurare manuală (fără generator)
+
+Săriți peste generatorul de schelet dacă adăugați SDK-ul într-un proiect existent:
+
+```bash filename="Terminal"
+yarn add diex-sdk diex-client-sdk
+```
+
+Adăugați scriptul în `package.json`:
+
+```json filename="package.json"
+{
+  "scripts": {
+    "diex": "diex"
+  }
+}
+```
+
+Acum puteți rula `yarn diex dev`, `yarn diex docker:start` și restul.
+
+<Note>
+Nu instalați `diex-sdk` global — fixați-l per proiect astfel încât fiecare aplicație să folosească propria versiune.
+</Note>

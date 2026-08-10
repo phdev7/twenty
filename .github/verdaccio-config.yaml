@@ -7,13 +7,13 @@ uplinks:
   npmjs:
     url: https://registry.npmjs.org/
 packages:
-  'twenty-sdk':
+  'diex-sdk':
     access: $all
     publish: $all
-  'twenty-client-sdk':
+  'diex-client-sdk':
     access: $all
     publish: $all
-  'create-twenty-app':
+  'create-diex-app':
     access: $all
     publish: $all
   '**':

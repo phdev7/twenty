@@ -1,0 +1,4 @@
+interface:
+  display_name: "Use Diex MCP"
+  short_description: "Query Diex MCP and format readable records."
+  default_prompt: "Use $use-diex-mcp to connect Codex to Diex MCP or retrieve readable workspace data."

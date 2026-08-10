@@ -1,0 +1,7 @@
+apiVersion: v2
+name: diex
+description: A Helm chart to deploy Diex CRM (server + worker) with optional PostgreSQL and Redis dependencies.
+type: application
+version: 0.1.0
+appVersion: "v1.14.0"
+icon: https://raw.githubusercontent.com/diexhq/diex/2f25922f4cd5bd61e1427c57c4f8ea224e1d552c/packages/diex-website/public/images/core/logo.svg

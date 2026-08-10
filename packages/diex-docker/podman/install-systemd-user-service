@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+mkdir -p ~/.config/systemd/user
+[ -f diexcrm.service ] || { echo "Error: diexcrm.service not found"; exit 1; }
+cp diexcrm.service ~/.config/systemd/user
+
+
+systemctl --user daemon-reload
+systemctl --user enable diexcrm.service
+systemctl --user start diexcrm.service

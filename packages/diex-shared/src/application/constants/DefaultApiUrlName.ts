@@ -1,0 +1,1 @@
+export const DEFAULT_API_URL_NAME = 'DIEX_API_URL';

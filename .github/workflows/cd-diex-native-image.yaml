@@ -38,8 +38,8 @@ jobs:
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
-          file: packages/twenty-docker/twenty/Dockerfile
-          target: twenty
+          file: packages/diex-docker/diex/Dockerfile
+          target: diex
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/twenty-diex:${{ inputs.image_tag }}
           build-args: |

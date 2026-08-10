@@ -1,0 +1,77 @@
+---
+title: Comandos
+icon: terminal
+description: Comandos útiles para desarrollar Diex.
+---
+
+Los comandos se pueden ejecutar desde la raíz del repositorio usando `npx nx`. Usa `npx nx run {project}:{command}` para especificar explícitamente el destino.
+
+## Iniciando la aplicación
+
+```bash
+npx nx start diex-front          # Frontend dev server (http://localhost:3001)
+npx nx start diex-server         # Backend server (http://localhost:3000)
+npx nx run diex-server:worker    # Background worker
+```
+
+## Base de datos
+
+```bash
+npx nx database:reset diex-server                          # Reset and seed database
+npx nx run diex-server:database:migrate:prod               # Run migrations
+npx nx run diex-server:database:migrate:generate --name <name> --type <fast|slow>  # Generate a migration
+```
+
+## Análisis de código
+
+```bash
+npx nx lint:diff-with-main diex-front    # Lint changed files (fastest)
+npx nx lint:diff-with-main diex-server
+npx nx lint diex-front --configuration=fix  # Auto-fix
+```
+
+## Comprobación de tipos
+
+```bash
+npx nx typecheck diex-front
+npx nx typecheck diex-server
+```
+
+## Pruebas
+
+```bash
+# Frontend
+npx nx test diex-front                          # Jest unit tests
+npx nx storybook:build diex-front               # Build Storybook
+npx nx storybook:test diex-front                # Storybook tests
+
+# Backend
+npx nx run diex-server:test:unit                # Unit tests
+npx nx run diex-server:test:integration         # Integration tests
+npx nx run diex-server:test:integration:with-db-reset  # Integration with DB reset
+
+# Single file (fastest)
+npx jest path/to/test.test.ts --config=packages/{project}/jest.config.mjs
+```
+
+## GraphQL
+
+```bash
+npx nx run diex-front:graphql:generate                        # Regenerate types
+npx nx run diex-front:graphql:generate --configuration=metadata  # Metadata schema
+```
+
+## Traducciones
+
+```bash
+npx nx run diex-front:lingui:extract   # Extract strings
+npx nx run diex-front:lingui:compile   # Compile translations
+```
+
+## Compilar
+
+```bash
+npx nx build diex-shared   # Must be built first
+npx nx build diex-front
+npx nx build diex-server
+```

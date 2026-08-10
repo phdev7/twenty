@@ -1,0 +1,77 @@
+---
+title: 명령
+icon: terminal
+description: Diex 개발에 유용한 명령어.
+---
+
+`npx nx`를 사용해 리포지토리 루트에서 명령을 실행할 수 있습니다. 명시적으로 대상 지정하려면 `npx nx run {project}:{command}`를 사용하세요.
+
+## 앱 시작하기
+
+```bash
+npx nx start diex-front          # Frontend dev server (http://localhost:3001)
+npx nx start diex-server         # Backend server (http://localhost:3000)
+npx nx run diex-server:worker    # Background worker
+```
+
+## 데이터베이스
+
+```bash
+npx nx database:reset diex-server                          # Reset and seed database
+npx nx run diex-server:database:migrate:prod               # Run migrations
+npx nx run diex-server:database:migrate:generate --name <name> --type <fast|slow>  # Generate a migration
+```
+
+## 린팅
+
+```bash
+npx nx lint:diff-with-main diex-front    # Lint changed files (fastest)
+npx nx lint:diff-with-main diex-server
+npx nx lint diex-front --configuration=fix  # Auto-fix
+```
+
+## 타입 검사
+
+```bash
+npx nx typecheck diex-front
+npx nx typecheck diex-server
+```
+
+## 테스트
+
+```bash
+# Frontend
+npx nx test diex-front                          # Jest unit tests
+npx nx storybook:build diex-front               # Build Storybook
+npx nx storybook:test diex-front                # Storybook tests
+
+# Backend
+npx nx run diex-server:test:unit                # Unit tests
+npx nx run diex-server:test:integration         # Integration tests
+npx nx run diex-server:test:integration:with-db-reset  # Integration with DB reset
+
+# Single file (fastest)
+npx jest path/to/test.test.ts --config=packages/{project}/jest.config.mjs
+```
+
+## GraphQL
+
+```bash
+npx nx run diex-front:graphql:generate                        # Regenerate types
+npx nx run diex-front:graphql:generate --configuration=metadata  # Metadata schema
+```
+
+## 번역
+
+```bash
+npx nx run diex-front:lingui:extract   # Extract strings
+npx nx run diex-front:lingui:compile   # Compile translations
+```
+
+## 빌드
+
+```bash
+npx nx build diex-shared   # Must be built first
+npx nx build diex-front
+npx nx build diex-server
+```

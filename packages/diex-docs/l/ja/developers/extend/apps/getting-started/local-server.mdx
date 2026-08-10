@@ -1,0 +1,87 @@
+---
+title: ローカルサーバー
+description: ローカルの Diex Docker サーバーを管理します — 起動、停止、アップグレード、並列テスト用インスタンス、および手動での SDK セットアップ。
+icon: server
+---
+
+## ローカルサーバーの管理
+
+ローカルの Diex コンテナを操作するには `yarn diex docker:*` を使用します:
+
+| コマンド                                   | 機能                          |
+| -------------------------------------- | --------------------------- |
+| `yarn diex docker:start`             | サーバーを起動します（必要に応じてイメージを取得）   |
+| `yarn diex docker:start 2.2.0`       | 特定のサーバーバージョンを起動する           |
+| `yarn diex docker:start --port 3030` | カスタムポートで起動                  |
+| `yarn diex docker:stop`              | サーバーを停止します（データは保持）          |
+| `yarn diex docker:status`            | URL、バージョン、ログイン資格情報を表示       |
+| `yarn diex docker:logs`              | サーバーログをストリーム表示              |
+| `yarn diex docker:reset`             | データを消去してクリーンに開始             |
+| `yarn diex docker:upgrade`           | `diex-app-dev` の最新イメージを取得 |
+| `yarn diex docker:upgrade 2.2.0`     | 特定のバージョンにアップグレードする          |
+
+データは再起動をまたいで、2 つの Docker ボリューム（PostgreSQL 用の `diex-app-dev-data`、ファイル用の `diex-app-dev-storage`）に永続化されます。 `reset` を使用して、すべてを消去します。
+
+## サーバーのバージョンを固定する
+
+バージョンが指定されていない場合、`docker:start` は `package.json` 内のアプリの `engines.diex` の範囲からバージョンを解決します。これは、アプリのインストール時にサーバーが検証に使用する範囲と同じです。 このコマンドは、その範囲を満たす最新の公開済み `diex-app-dev` イメージを起動し、フィールドが存在しない場合や公開済みバージョンが一致しない場合は `latest` にフォールバックします。
+
+```json filename="package.json"
+{
+  "engines": {
+    "diex": ">=2.2.0"
+  }
+}
+```
+
+単回の実行でその範囲を上書きするには、バージョンを明示的に指定します: `yarn diex docker:start 2.3.0`。 すでに別バージョンのコンテナが存在する場合、`docker:start` はその場でアップグレードします（データボリュームを保持したままコンテナを再作成します）。
+
+## サーバーイメージのアップグレード
+
+`yarn diex docker:upgrade` は最新のイメージを取得してダイジェストを比較し、実際に変更があった場合にのみコンテナを再作成します。 ボリュームは保持されます — 置き換えられるのはコンテナだけです。 新しいイメージが取得され、コンテナが稼働中だった場合、アップグレードは自動的に新しいコンテナを起動します。その後、`yarn diex docker:start` を実行して、正常稼働になるまで待機します。
+
+```bash filename="Terminal"
+yarn diex docker:upgrade            # Latest
+yarn diex docker:upgrade 2.2.0      # Specific version
+```
+
+`yarn diex docker:status` で実行中のバージョンを確認できます。コンテナの `APP_VERSION` が表示されます。
+
+## テスト用インスタンスを並行実行する
+
+任意の `docker:*` コマンドに `--test` を指定すると、完全に分離された第2のインスタンスを管理できます。統合テストの実行や、メインの開発データに触れることなく試す際に便利です。
+
+| コマンド                                | 機能                               |
+| ----------------------------------- | -------------------------------- |
+| `yarn diex docker:start --test`   | テスト用インスタンスを起動します（デフォルトはポート2021）。 |
+| `yarn diex docker:stop --test`    | 停止する                             |
+| `yarn diex docker:status --test`  | ステータスを表示                         |
+| `yarn diex docker:logs --test`    | ログをストリーム表示                       |
+| `yarn diex docker:reset --test`   | データを消去                           |
+| `yarn diex docker:upgrade --test` | イメージをアップグレード                     |
+
+テスト用インスタンスは、専用のボリューム（`diex-app-dev-test-data`、`diex-app-dev-test-storage`）と設定を備えた独自の Docker コンテナ（`diex-app-dev-test`）内で実行されるため、メインのインスタンスと競合することなく並行して実行できます。 `--test` と `--port` を併用して、2021 を上書きできます。
+
+## 手動セットアップ（スキャフォルダーなし）
+
+既存プロジェクトに SDK を追加する場合はスキャフォルダーを省略します:
+
+```bash filename="Terminal"
+yarn add diex-sdk diex-client-sdk
+```
+
+`package.json` にスクリプトを追加します:
+
+```json filename="package.json"
+{
+  "scripts": {
+    "diex": "diex"
+  }
+}
+```
+
+これで `yarn diex dev`、`yarn diex docker:start` などを実行できます。
+
+<Note>
+`diex-sdk` をグローバルインストールしないでください — プロジェクトごとに固定し、各アプリがそれぞれのバージョンを使用するようにします。
+</Note>

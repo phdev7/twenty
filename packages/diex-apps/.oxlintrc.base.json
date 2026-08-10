@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["diex-shared", "diex-shared/*"],
+            "message": "diex-apps applications must not import from diex-shared directly. Import the runtime types and helpers you need from diex-sdk instead so the app bundle stays minimal."
+          }
+        ]
+      }
+    ]
+  }
+}

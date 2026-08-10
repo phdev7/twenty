@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O **Arquiteto de Workspace** é um agente autônomo e supervisionado especialista em infraestrutura, onboarding e evolução contínua de workspaces no **Diex CRM**. Ele interpreta descrições operacionais em linguagem natural, extrai um perfil canônico (`WorkspaceOperationProfile`), combina templates declarativos (`WorkspaceBlueprint`), calcula diffs seguros (`WorkspaceChangeSet`), solicita aprovação explícita e publica a estrutura sobre os metadados nativos do Twenty.
+O **Arquiteto de Workspace** é um agente autônomo e supervisionado especialista em infraestrutura, onboarding e evolução contínua de workspaces no **Diex CRM**. Ele interpreta descrições operacionais em linguagem natural, extrai um perfil canônico (`WorkspaceOperationProfile`), combina templates declarativos (`WorkspaceBlueprint`), calcula diffs seguros (`WorkspaceChangeSet`), solicita aprovação explícita e publica a estrutura sobre os metadados nativos do Diex.
 
 ---
 
@@ -12,7 +12,7 @@ Para garantir segurança, auditabilidade e isolamento entre workspaces, o sistem
 
 1. **Estado Recomendado**: O que a IA sugere (Artefatos `OPERATION_PROFILE` e `BLUEPRINT` em status `AWAITING_APPROVAL`).
 2. **Estado Aprovado**: O que o usuário autorizou expressamente (`CHANGE_SET` com status `APPROVED`).
-3. **Estado Publicado**: Os metadados aplicados no banco PostgreSQL e no cache de entidades nativo do Twenty (`STATUS: ACTIVE`).
+3. **Estado Publicado**: Os metadados aplicados no banco PostgreSQL e no cache de entidades nativo do Diex (`STATUS: ACTIVE`).
 
 ### Fluxo Obrigatório
 `INSPEÇÃO → PROPOSTA → VALIDAÇÃO → PREVIEW → APROVAÇÃO → APLICAÇÃO → VERIFICAÇÃO → PUBLICAÇÃO`

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create App"
+  short_description: "Scaffold and develop Diex apps."
+  default_prompt: "Use $create-app to scaffold and run a new Diex app."
