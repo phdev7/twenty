@@ -1,4 +1,6 @@
 import { useLingui } from '@lingui/react/macro';
+import { useNavigate } from 'react-router-dom';
+import { AppPath } from 'diex-shared/types';
 
 import { isMultiWorkspaceEnabledState } from '@/client-config/states/isMultiWorkspaceEnabledState';
 import { SettingsPageContainer } from '@/settings/components/SettingsPageContainer';
@@ -27,6 +29,7 @@ const GENERAL_TAB_LOGS = 'logs';
 
 export const SettingsGeneral = () => {
   const { t } = useLingui();
+  const navigate = useNavigate();
 
   const isMultiWorkspaceEnabled = useAtomStateValue(
     isMultiWorkspaceEnabledState,
@@ -81,13 +84,10 @@ export const SettingsGeneral = () => {
             description="Reabra o guia inicial de onboarding e configuração do Arquiteto de Workspace no menu lateral."
           />
           <Button
-            title="Reabrir Primeiros passos"
+            title="Abrir Primeiros passos"
             Icon={IconRocket}
             variant="secondary"
-            onClick={() => {
-              window.localStorage.removeItem('diex_first_steps_hidden');
-              window.location.reload();
-            }}
+            onClick={() => navigate(AppPath.DiexFirstSteps)}
           />
         </Section>
         <Section>

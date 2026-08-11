@@ -9,6 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
+import { PermissionFlagType } from 'diex-shared/constants';
+
 import { RestApiExceptionFilter } from 'src/engine/api/rest/rest-api-exception.filter';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
 import { CompleteDiexOnboardingInput } from 'src/engine/core-modules/onboarding/dtos/complete-diex-onboarding.input';
@@ -17,8 +19,10 @@ import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspac
 import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
 import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-workspace-id.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
+import { AuthWorkspaceMemberId } from 'src/engine/decorators/auth/auth-workspace-member-id.decorator';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
+import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { AiRestApiExceptionFilter } from 'src/engine/metadata-modules/ai/filters/ai-api-exception.filter';
 import { type WorkspaceCustomPageBlockInput } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
@@ -40,6 +44,7 @@ export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService) {}
 
   @Post('operation-context')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async completeDiexOnboarding(
     @Body() body: CompleteDiexOnboardingInput,
     @AuthUser() user: AuthContextUser,
@@ -78,6 +83,7 @@ export class OnboardingController {
   }
 
   @Post('architecture/regenerate')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async regenerateArchitecture(
     @AuthUser() user: AuthContextUser,
     @AuthWorkspace() workspace: WorkspaceEntity,
@@ -91,6 +97,7 @@ export class OnboardingController {
   }
 
   @Post('pages')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async updatePages(
     @Body()
     body: {
@@ -227,6 +234,7 @@ export class OnboardingController {
   }
 
   @Post('architecture/approve')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async approveArchitecture(
     @Body() body: { version?: unknown },
     @AuthUser() user: AuthContextUser,
@@ -240,6 +248,7 @@ export class OnboardingController {
   }
 
   @Post('architecture/apply')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async applyArchitecture(
     @Body() body: { version?: unknown },
     @AuthUser() user: AuthContextUser,
@@ -253,6 +262,7 @@ export class OnboardingController {
   }
 
   @Post('goal')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async setCommercialGoal(
     @Body() body: { goal?: unknown },
     @AuthUser() user: AuthContextUser,
@@ -266,13 +276,21 @@ export class OnboardingController {
   }
 
   @Post('first-commercial-flow')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async executeFirstCommercialFlow(
+    @AuthUser() user: AuthContextUser,
     @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthWorkspaceMemberId() workspaceMemberId: string,
   ) {
-    return this.onboardingService.executeFirstCommercialFlow(workspace.id);
+    return this.onboardingService.executeFirstCommercialFlow({
+      workspaceId: workspace.id,
+      userId: user.id,
+      workspaceMemberId,
+    });
   }
 
   @Post('complete')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async completeDiexCommercialOnboarding(
     @AuthUser() user: AuthContextUser,
     @AuthWorkspace() workspace: WorkspaceEntity,

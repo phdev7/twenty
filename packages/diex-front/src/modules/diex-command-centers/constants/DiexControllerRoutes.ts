@@ -1,5 +1,6 @@
 export const DIEX_CONTROLLER_ROUTES = {
   aiExecuteAction: '/rest/diex/ai/execute-action',
+  aiReviewAction: '/rest/diex/ai/review-action',
   customerSuccessReview: '/rest/diex/customer-success/review',
   customerSuccessHandoff: '/rest/diex/customer-success/handoff',
   customerSuccessMilestoneAction:

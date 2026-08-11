@@ -20,6 +20,7 @@ export type WorkspaceTemplateDefinition = {
   description: string;
   kind: WorkspaceTemplateKind;
   activationCriteria: string[];
+  exclusionCriteria?: string[];
   compatibleSegments: string[];
   prerequisites: string[];
   objects: WorkspaceTemplateComponent[];

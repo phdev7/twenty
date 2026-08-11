@@ -1,5 +1,5 @@
 import { styled } from '@linaria/react';
-import { AppPath } from 'diex-shared/types';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'diex-ui/input';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
@@ -10,7 +10,6 @@ import {
   StyledText,
 } from '@/diex-onboarding/components/DiexOnboardingStepCard';
 import { type DataFlowSummary } from '@/diex-onboarding/types/diexOnboardingTypes';
-import { useNavigateApp } from '~/hooks/useNavigateApp';
 
 const StyledMetrics = styled.div`
   display: grid;
@@ -39,15 +38,17 @@ const StyledMetricLabel = styled.div`
 type DiexOnboardingDataFlowStepProps = {
   index?: number;
   dataFlow: DataFlowSummary;
+  inboxRoute?: string;
   onRefresh?: () => void;
 };
 
 export const DiexOnboardingDataFlowStep = ({
   index = 6,
   dataFlow,
+  inboxRoute = '/inbox',
   onRefresh,
 }: DiexOnboardingDataFlowStepProps) => {
-  const navigateApp = useNavigateApp();
+  const navigate = useNavigate();
   const isDataFlowing = dataFlow.messageCount > 0;
 
   return (
@@ -64,7 +65,7 @@ export const DiexOnboardingDataFlowStep = ({
       <StyledText>
         {isDataFlowing
           ? 'As mensagens estão chegando e virando contato e histórico sozinhas.'
-          : 'Depois de conectar, mande uma mensagem de outro celular para o número comercial. Ela deve aparecer aqui em segundos.'}
+          : 'Depois de conectar, mande uma mensagem de outro celular para o canal principal. Ela deve aparecer aqui em segundos.'}
       </StyledText>
       <StyledMetrics>
         <StyledMetric>
@@ -86,13 +87,13 @@ export const DiexOnboardingDataFlowStep = ({
       </StyledMetrics>
       <StyledActions>
         <Button
-          title="Abrir Inbox Comercial"
+          title="Abrir Inbox da operação"
           variant="secondary"
-          onClick={() => navigateApp(AppPath.Inbox)}
+          onClick={() => navigate(inboxRoute)}
         />
         {onRefresh ? (
           <Button
-            title="Atualizar prova do primeiro lead"
+            title="Atualizar prova da primeira entrada"
             variant="secondary"
             onClick={onRefresh}
           />

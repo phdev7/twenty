@@ -47,25 +47,43 @@ export const useDiexOnboarding = () => {
         await Promise.all([
           getDiexOnboardingRoute<DiexCommercialReadiness>(
             '/rest/diex/onboarding/readiness',
-          ),
+          ).catch(() => null),
           getDiexOnboardingRoute<DiexArchitectureState>(
             '/rest/diex/onboarding/architecture',
-          ),
+          ).catch(() => null),
           getDiexOnboardingRoute<
             NonNullable<DiexArchitectureState['pageCatalog']>
-          >('/rest/diex/onboarding/pages'),
+          >('/rest/diex/onboarding/pages').catch(() => null),
         ]);
-      setReadiness(nextReadiness);
-      setArchitecture({
-        ...nextArchitecture,
-        pageCatalog: nextPageCatalog,
-      });
+
+      if (!nextReadiness && !nextArchitecture && !nextPageCatalog) {
+        throw new Error('Não foi possível carregar a ativação da operação.');
+      }
+
+      if (nextReadiness) {
+        setReadiness(nextReadiness);
+      }
+
+      if (nextArchitecture) {
+        setArchitecture({
+          ...nextArchitecture,
+          pageCatalog:
+            nextPageCatalog ?? nextArchitecture.pageCatalog ?? undefined,
+        });
+      } else if (nextPageCatalog) {
+        setArchitecture((current) => ({
+          profile: current?.profile ?? null,
+          blueprint: current?.blueprint ?? null,
+          changeSet: current?.changeSet ?? null,
+          pageCatalog: nextPageCatalog,
+        }));
+      }
       setCommercialError(null);
     } catch (error) {
       setCommercialError(
         error instanceof Error
           ? error.message
-          : 'Não foi possível carregar a prontidão comercial.',
+          : 'Não foi possível carregar a prontidão da operação.',
       );
     } finally {
       setIsLoadingCommercialData(false);
@@ -142,7 +160,7 @@ export const useDiexOnboarding = () => {
   }, [refreshCommercialData]);
 
   const createPage = useCallback(
-    async (label: string, description: string): Promise<void> => {
+    async (label: string, description: string): Promise<boolean> => {
       setIsUpdatingArchitecture(true);
 
       try {
@@ -153,12 +171,14 @@ export const useDiexOnboarding = () => {
           aiGenerated: false,
         });
         await refreshCommercialData();
+        return true;
       } catch (error) {
         setCommercialError(
           error instanceof Error
             ? error.message
             : 'Não foi possível criar a página operacional.',
         );
+        return false;
       } finally {
         setIsUpdatingArchitecture(false);
       }
@@ -237,7 +257,7 @@ export const useDiexOnboarding = () => {
   );
 
   const updatePage = useCallback(
-    async (page: DiexPageUpdateInput): Promise<void> => {
+    async (page: DiexPageUpdateInput): Promise<boolean> => {
       setIsUpdatingArchitecture(true);
 
       try {
@@ -246,12 +266,14 @@ export const useDiexOnboarding = () => {
           ...page,
         });
         await refreshCommercialData();
+        return true;
       } catch (error) {
         setCommercialError(
           error instanceof Error
             ? error.message
             : 'Não foi possível adaptar a página operacional.',
         );
+        return false;
       } finally {
         setIsUpdatingArchitecture(false);
       }
@@ -268,7 +290,7 @@ export const useDiexOnboarding = () => {
         await refreshCommercialData();
       } catch (error) {
         setCommercialError(
-          error instanceof Error ? error.message : 'Não foi possível salvar o objetivo comercial.',
+          error instanceof Error ? error.message : 'Não foi possível salvar o objetivo da operação.',
         );
       } finally {
         setIsSavingGoal(false);

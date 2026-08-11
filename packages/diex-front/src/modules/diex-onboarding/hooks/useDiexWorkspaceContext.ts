@@ -75,7 +75,7 @@ export const useDiexWorkspaceContext = () => {
     let createdContext: WorkspaceContextRecord;
 
     try {
-      const created = await createOneRecord({ name: 'Contexto comercial' });
+      const created = await createOneRecord({ name: 'Contexto operacional' });
 
       if (!created?.id) {
         throw new Error('O contexto não foi criado.');
@@ -88,7 +88,7 @@ export const useDiexWorkspaceContext = () => {
       });
     } catch {
       enqueueErrorSnackBar({
-        message: 'Não foi possível criar o contexto comercial.',
+        message: 'Não foi possível criar o contexto operacional.',
       });
       return;
     }
@@ -131,7 +131,7 @@ export const useDiexWorkspaceContext = () => {
           ...workspaceContext,
           ...richTextFields,
         });
-        enqueueSuccessSnackBar({ message: 'Contexto comercial salvo.' });
+        enqueueSuccessSnackBar({ message: 'Contexto operacional salvo.' });
 
         try {
           await refetch();
@@ -144,7 +144,7 @@ export const useDiexWorkspaceContext = () => {
         }
       } catch {
         enqueueErrorSnackBar({
-          message: 'Não foi possível salvar o contexto comercial.',
+          message: 'Não foi possível salvar o contexto operacional.',
         });
       } finally {
         setIsSavingContext(false);
@@ -203,7 +203,7 @@ export const useDiexWorkspaceContext = () => {
       }
     } catch {
       enqueueErrorSnackBar({
-        message: 'Não foi possível ativar o contexto comercial.',
+        message: 'Não foi possível ativar o contexto operacional.',
       });
     } finally {
       setIsActivatingContext(false);

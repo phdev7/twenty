@@ -21,6 +21,12 @@ export const workspacePageRendererSchema = z.enum([
   'CUSTOM',
 ]);
 
+export const workspacePageCopyOriginSchema = z.enum([
+  'PROFILE',
+  'USER',
+  'AI',
+]);
+
 export const workspacePageBlockTypeSchema = z.enum([
   'KPI',
   'LIST',
@@ -35,9 +41,7 @@ export const workspacePageBlockTypeSchema = z.enum([
 export type WorkspacePageBlockType = z.infer<
   typeof workspacePageBlockTypeSchema
 >;
-export type WorkspacePageRenderer = z.infer<
-  typeof workspacePageRendererSchema
->;
+export type WorkspacePageRenderer = z.infer<typeof workspacePageRendererSchema>;
 
 export const workspacePageDataContractKindSchema = z.enum([
   'OBJECT',
@@ -49,6 +53,13 @@ export const workspacePageDataContractKindSchema = z.enum([
   'CUSTOM',
 ]);
 
+export const workspacePageDataClassificationSchema = z.enum([
+  'PUBLIC_WORKSPACE',
+  'INTERNAL',
+  'CONFIDENTIAL',
+  'SENSITIVE',
+]);
+
 export const workspacePageDataContractSchema = z.object({
   key: z.string().min(1),
   source: z.string().min(1),
@@ -56,6 +67,8 @@ export const workspacePageDataContractSchema = z.object({
   objectName: z.string().min(1).nullable().default(null),
   objectMetadataId: z.uuid().nullable().default(null),
   fieldNames: z.array(z.string().min(1)).default([]),
+  dataClassification: workspacePageDataClassificationSchema
+    .default('INTERNAL'),
   required: z.boolean().default(false),
   fallback: z.string().min(1),
 });
@@ -73,7 +86,7 @@ export const workspacePageCapabilityContractSchema = z.object({
   version: z.string().min(1),
   key: z.string().min(1),
   dependencies: z.array(z.string().min(1)).default([]),
-  fallbackRoute: z.string().min(1).default('/diex/pages/first-steps'),
+  fallbackRoute: z.string().min(1).default('/diex/first-steps'),
 });
 
 export type WorkspacePageDataContract = z.infer<
@@ -91,7 +104,7 @@ export const workspacePageBlockSchema = z.object({
   dataContracts: z.array(workspacePageDataContractSchema).default([]),
   actions: z.array(workspacePageActionSchema).default([]),
   actionLabel: z.string().min(1).default('Abrir primeiros passos'),
-  actionRoute: z.string().min(1).default('/diex/pages/first-steps'),
+  actionRoute: z.string().min(1).default('/diex/first-steps'),
   sourceTemplateIds: z.array(z.string().min(1)).default([]),
   configuration: z.record(z.string(), z.unknown()).default({}),
   position: z.number().int().nonnegative().default(0),
@@ -109,13 +122,16 @@ export const workspacePageCatalogItemSchema = z.object({
   capabilities: z.array(z.string().min(1)).default([]),
   blocks: z.array(workspacePageBlockSchema).default([]),
   lifecycle: workspacePageLifecycleSchema,
+  copyOrigin: workspacePageCopyOriginSchema.default('PROFILE'),
   status: workspacePageStatusSchema,
   sourceTemplateIds: z.array(z.string().min(1)),
   primaryAction: z.string().min(1),
   dataSources: z.array(z.string().min(1)),
   dataContracts: z.array(workspacePageDataContractSchema).default([]),
   actions: z.array(workspacePageActionSchema).default([]),
-  capabilityContract: workspacePageCapabilityContractSchema.nullable().default(null),
+  capabilityContract: workspacePageCapabilityContractSchema
+    .nullable()
+    .default(null),
   emptyState: z.object({
     title: z.string().min(1),
     description: z.string().min(1),

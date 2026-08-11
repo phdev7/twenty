@@ -2,12 +2,27 @@ import { useCallback } from 'react';
 
 import { DEBUG_FOCUS_STACK } from '@/ui/utilities/focus/constants/DebugFocusStack';
 import { currentGlobalHotkeysConfigSelector } from '@/ui/utilities/focus/states/currentGlobalHotkeysConfigSelector';
+import { pendingHotkeyState } from '@/ui/utilities/hotkey/states/internal/pendingHotkeysState';
+import { isNonTextWritingKey } from '@/ui/utilities/hotkey/utils/isNonTextWritingKey';
 import { useStore } from 'jotai';
 import {
   type Hotkey,
   type OptionsOrDependencyArray,
 } from 'react-hotkeys-hook/dist/types';
 import { logDebug } from '~/utils/logDebug';
+
+const isTextEntryTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return (
+    target.isContentEditable ||
+    target.closest(
+      'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="searchbox"]',
+    ) !== null
+  );
+};
 
 export const useGlobalHotkeysCallback = (
   dependencies?: OptionsOrDependencyArray,
@@ -33,6 +48,15 @@ export const useGlobalHotkeysCallback = (
       const currentGlobalHotkeysConfig = store.get(
         currentGlobalHotkeysConfigSelector.atom,
       );
+
+      if (
+        !containsModifier &&
+        isTextEntryTarget(keyboardEvent.target) &&
+        !isNonTextWritingKey(keyboardEvent.key)
+      ) {
+        store.set(pendingHotkeyState.atom, null);
+        return;
+      }
 
       if (
         containsModifier &&

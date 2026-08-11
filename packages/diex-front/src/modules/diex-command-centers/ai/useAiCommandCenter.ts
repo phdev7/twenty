@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import { useApolloClient, useQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client/react';
 import { useCallback, useState } from 'react';
 
 import { currentUserState } from '@/auth/states/currentUserState';
@@ -102,13 +102,6 @@ const AI_QUERY = gql`
     }
   }
 `;
-const REVIEW_ACTION = gql`
-  mutation DiexReviewAiAction($id: UUID!, $data: AiActionUpdateInput!) {
-    updateAiAction(id: $id, data: $data) {
-      id
-    }
-  }
-`;
 type QueryData = {
   aiActions?: { edges?: Array<{ node: AiAction }> };
   workspaceMembers?: {
@@ -123,7 +116,6 @@ type QueryData = {
 };
 
 export const useAiCommandCenter = () => {
-  const client = useApolloClient();
   const currentUser = useAtomStateValue(currentUserState);
   const {
     enqueueErrorSnackBar,
@@ -171,18 +163,10 @@ export const useAiCommandCenter = () => {
           (decision === 'APPROVED'
             ? 'Proposta aprovada manualmente no Centro de IA.'
             : 'Proposta rejeitada manualmente no Centro de IA.');
-        await client.mutate({
-          mutation: REVIEW_ACTION,
-          variables: {
-            id,
-            data: {
-              status: decision,
-              approvedAt:
-                decision === 'APPROVED' ? new Date().toISOString() : null,
-              reviewerId: currentReviewer.id,
-              approvalNotes: { markdown: normalizedNote, blocknote: null },
-            },
-          },
+        await postLogicFunction(DIEX_CONTROLLER_ROUTES.aiReviewAction, {
+          actionId: id,
+          decision,
+          note: normalizedNote,
         });
         await refetch();
         enqueueSuccessSnackBar({
@@ -203,7 +187,6 @@ export const useAiCommandCenter = () => {
     },
     [
       actions,
-      client,
       currentReviewer,
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
@@ -218,9 +201,16 @@ export const useAiCommandCenter = () => {
       options?: { confirmationToken?: string; targetStage?: string },
     ): Promise<boolean> => {
       const action = actions.find((item) => item.id === id);
-      if (!action || action.status !== 'APPROVED') {
+      const isReconciliation =
+        action?.status === 'EXECUTING' && mode === 'PREVIEW';
+
+      if (
+        !action ||
+        (action.status !== 'APPROVED' && !isReconciliation)
+      ) {
         enqueueWarningSnackBar({
-          message: 'Somente propostas aprovadas podem entrar no executor.',
+          message:
+            'Somente propostas aprovadas ou execuções em reconciliação podem entrar no executor.',
         });
         return false;
       }
@@ -240,6 +230,31 @@ export const useAiCommandCenter = () => {
               : {}),
           },
         );
+        if (isReconciliation) {
+          await refetch();
+
+          if (
+            result.mode === 'APPLY' &&
+            result.actionId === id &&
+            result.executed
+          ) {
+            setExecutionPreviews((current) => {
+              const next = { ...current };
+              delete next[id];
+              return next;
+            });
+            enqueueSuccessSnackBar({ message: result.message });
+            return true;
+          }
+
+          if (result.mode === 'PREVIEW' && result.actionId === id) {
+            setExecutionPreviews((current) => ({ ...current, [id]: result }));
+            enqueueWarningSnackBar({ message: result.message });
+            return false;
+          }
+
+          throw new Error('invalid-reconciliation');
+        }
         if (mode === 'PREVIEW') {
           if (result.mode !== 'PREVIEW' || result.actionId !== id)
             throw new Error('invalid-preview');
@@ -252,6 +267,12 @@ export const useAiCommandCenter = () => {
             enqueueWarningSnackBar({ message: result.blockedReason });
           }
           return result.supported;
+        }
+        if (result.mode === 'PREVIEW' && result.actionId === id) {
+          setExecutionPreviews((current) => ({ ...current, [id]: result }));
+          await refetch();
+          enqueueWarningSnackBar({ message: result.message });
+          return false;
         }
         if (
           result.mode !== 'APPLY' ||

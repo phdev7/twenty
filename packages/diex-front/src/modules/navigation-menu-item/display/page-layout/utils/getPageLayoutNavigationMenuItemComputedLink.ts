@@ -3,10 +3,10 @@ import { getAppPath, isDefined } from 'diex-shared/utils';
 import { type NavigationMenuItem } from '~/generated-metadata/graphql';
 
 export const getPageLayoutNavigationMenuItemComputedLink = (
-  item: Pick<NavigationMenuItem, 'pageLayoutId' | 'name'>,
+  item: Pick<NavigationMenuItem, 'pageLayoutId' | 'name' | 'userWorkspaceId'>,
 ): string => {
-  if (item.name === 'Primeiros passos') {
-    return '/diex/pages/first-steps';
+  if (item.userWorkspaceId == null && item.name === 'Primeiros passos') {
+    return AppPath.DiexFirstSteps;
   }
 
   if (!isDefined(item.pageLayoutId)) {

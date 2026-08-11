@@ -1,4 +1,8 @@
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
+import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
+import { type OnboardingOfferSummary } from '@/diex-onboarding/types/diexOnboardingTypes';
+
+type OnboardingOfferRecord = ObjectRecord & OnboardingOfferSummary;
 
 // Cheap totals to show that messages are flowing: nobody needs the records
 // themselves here, just how many exist.
@@ -24,12 +28,32 @@ export const useDiexOnboardingDataFlow = () => {
       recordGqlFields: { id: true },
     });
 
-  const { totalCount: offerCount, refetch: refetchOfferCount } =
-    useFindManyRecords({
-      objectNameSingular: 'offer',
-      limit: 1,
-      recordGqlFields: { id: true, status: true },
-    });
+  const {
+    records: offers,
+    totalCount: offerCount,
+    refetch: refetchOfferCount,
+  } = useFindManyRecords<OnboardingOfferRecord>({
+    objectNameSingular: 'offer',
+    limit: 50,
+    recordGqlFields: {
+      id: true,
+      name: true,
+      status: true,
+      valueProposition: { markdown: true },
+    },
+  });
+  const offerSummaries = offers.map(({ id, name, status, valueProposition }) => ({
+    id,
+    name,
+    status,
+    valueProposition,
+  }));
+  const activeOfferCount = offerSummaries.filter(
+    ({ status }) => status === 'ACTIVE',
+  ).length;
+  const draftOfferCount = offerSummaries.filter(
+    ({ status }) => status === 'DRAFT',
+  ).length;
 
   const refetchDataFlow = async (): Promise<void> => {
     await Promise.all([
@@ -46,6 +70,9 @@ export const useDiexOnboardingDataFlow = () => {
       messageCount: messageCount ?? 0,
       peopleCount: peopleCount ?? 0,
       offerCount: offerCount ?? 0,
+      activeOfferCount,
+      draftOfferCount,
+      offers: offerSummaries,
     },
     refetchDataFlow,
   };

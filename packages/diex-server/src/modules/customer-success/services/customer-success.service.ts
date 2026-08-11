@@ -377,8 +377,12 @@ export class CustomerSuccessService {
             input.workspaceId,
             SuccessPlanWorkspaceEntity,
           );
+        const planLegacyDiexId = `DIEX_SUCCESS_PLAN:${opportunityId}`;
         const existingPlan = await planRepository.findOne({
-          where: { opportunityId },
+          where: [
+            { opportunityId },
+            { legacyDiexId: planLegacyDiexId },
+          ] as never,
         });
         const renewalDate = toDate(input.renewalDate, 'renewalDate');
         const recurringRevenueMicros = Number.isFinite(
@@ -386,7 +390,7 @@ export class CustomerSuccessService {
         )
           ? Math.max(0, Math.round(input.recurringRevenueMicros))
           : 0;
-        const planId = existingPlan?.id ?? `diex-success-plan:${opportunityId}`;
+        const planId = existingPlan?.id ?? null;
         const fingerprint = `${opportunityId}:${input.ownerId}:${renewalDate.toISOString()}:${recurringRevenueMicros}:${input.objectives}:${input.successCriteria}`;
         const confirmation = issueConfirmationToken({
           workspaceId: input.workspaceId,
@@ -445,13 +449,14 @@ export class CustomerSuccessService {
             successCriteria: input.successCriteria.trim(),
           },
           milestones: milestoneDefinitions.map((milestone) => ({
-            id: `diex-customer-success-milestone:${opportunity.id}:${milestone.key}`,
+            id: milestone.key,
+            legacyDiexId: `DIEX_CUSTOMER_SUCCESS_MILESTONE:${opportunity.id}:${milestone.key}`,
             name: milestone.name,
             category: milestone.category,
             dueAt: new Date(Date.now() + milestone.days * DAY_MS).toISOString(),
           })),
           task: {
-            id: `diex-customer-success-handoff-task:${opportunity.id}`,
+            legacyDiexId: `DIEX_CUSTOMER_SUCCESS_HANDOFF_TASK:${opportunity.id}`,
             title: `Kickoff de Customer Success — ${opportunity.name}`,
             dueAt: nextReviewAt,
             assignee: { id: input.ownerId },
@@ -495,7 +500,7 @@ export class CustomerSuccessService {
 
         const plan = (existingPlan ??
           planRepository.create({
-            id: planId,
+            legacyDiexId: planLegacyDiexId,
           } as never)) as SuccessPlanWorkspaceEntity;
         Object.assign(plan, {
           name: preview.plan.name,
@@ -530,12 +535,12 @@ export class CustomerSuccessService {
         let milestonesCreated = 0;
         for (const milestone of preview.milestones) {
           const existing = await milestoneRepository.findOne({
-            where: { id: milestone.id },
+            where: { legacyDiexId: milestone.legacyDiexId },
           });
           if (existing) continue;
           await milestoneRepository.save(
             milestoneRepository.create({
-              id: milestone.id,
+              legacyDiexId: milestone.legacyDiexId,
               name: milestone.name,
               category: milestone.category,
               status: 'PLANNED',
@@ -550,20 +555,29 @@ export class CustomerSuccessService {
             input.workspaceId,
             'task',
           );
-        const taskId = preview.task.id;
-        const existingTask = await taskRepository.findOne({
-          where: { id: taskId },
+        let task = await taskRepository.findOne({
+          where: { legacyDiexId: preview.task.legacyDiexId },
         });
-        if (!existingTask) {
-          await taskRepository.save(
-            taskRepository.create({
-              id: taskId,
+        if (!task) {
+          await taskRepository.upsert(
+            {
+              legacyDiexId: preview.task.legacyDiexId,
               title: preview.task.title,
               status: 'TODO',
               dueAt: new Date(preview.task.dueAt),
               assigneeId: input.ownerId,
               diexSuccessPlanId: savedPlan.id,
-            } as never),
+            } as never,
+            ['legacyDiexId'],
+          );
+          task = await taskRepository.findOne({
+            where: { legacyDiexId: preview.task.legacyDiexId },
+          });
+        }
+
+        if (!task) {
+          throw new BadRequestException(
+            'A tarefa de handoff não pôde ser criada.',
           );
         }
 
@@ -574,7 +588,7 @@ export class CustomerSuccessService {
           created: true,
           alreadyCreated: Boolean(existingPlan),
           successPlanId: savedPlan.id,
-          taskId,
+          taskId: task.id,
           milestonesCreated,
           milestonesExpected: preview.milestones.length,
           warnings: preview.warnings,

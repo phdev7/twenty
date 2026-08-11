@@ -11,6 +11,7 @@ import { UserVarsModule } from 'src/engine/core-modules/user/user-vars/user-vars
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AiBillingModule } from 'src/engine/metadata-modules/ai/ai-billing/ai-billing.module';
+import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { OnboardingInviteSuggestionsModule } from 'src/modules/onboarding-invite-suggestions/onboarding-invite-suggestions.module';
 import { WorkspaceArchitectureModule } from 'src/modules/workspace-architecture/workspace-architecture.module';
@@ -25,6 +26,11 @@ import { WorkspaceArchitectureModule } from 'src/modules/workspace-architecture/
     UserVarsModule,
     OnboardingInviteSuggestionsModule,
     WorkspaceArchitectureModule,
+    // OnboardingController protege rotas com SettingsPermissionGuard, que é um
+    // mixin injetando PermissionsService e é instanciado no contexto deste
+    // módulo. Sem este import a aplicação inteira falha no bootstrap, não só a
+    // rota protegida.
+    PermissionsModule,
     TypeOrmModule.forFeature([WorkspaceEntity, UserWorkspaceEntity]),
   ],
   exports: [OnboardingService],

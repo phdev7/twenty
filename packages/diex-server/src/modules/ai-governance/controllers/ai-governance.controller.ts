@@ -35,6 +35,7 @@ type ProposeBody = {
   inboxConversationId?: unknown;
   idempotencyKey?: unknown;
   contextVersion?: unknown;
+  customObject?: unknown;
 };
 
 type ExecuteBody = {
@@ -45,8 +46,68 @@ type ExecuteBody = {
   targetStage?: unknown;
 };
 
+type ReviewBody = {
+  actionId?: unknown;
+  decision?: unknown;
+  note?: unknown;
+};
+
 const readString = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
+
+const readCustomObject = (
+  value: unknown,
+): {
+  objectName: string;
+  recordId?: string;
+  operation: 'CREATE' | 'UPDATE';
+  fields: Record<string, unknown>;
+} | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new BadRequestException(
+      'A ação adaptativa deve informar um objeto válido.',
+    );
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const objectName = readString(candidate.objectName);
+  const operation = candidate.operation;
+
+  if (!objectName) {
+    throw new BadRequestException(
+      'A ação adaptativa exige o nome do objeto de destino.',
+    );
+  }
+
+  if (operation !== 'CREATE' && operation !== 'UPDATE') {
+    throw new BadRequestException(
+      'A operação adaptativa deve ser CREATE ou UPDATE.',
+    );
+  }
+
+  if (
+    typeof candidate.fields !== 'object' ||
+    candidate.fields === null ||
+    Array.isArray(candidate.fields)
+  ) {
+    throw new BadRequestException(
+      'A ação adaptativa exige um conjunto explícito de campos.',
+    );
+  }
+
+  const fields = candidate.fields as Record<string, unknown>;
+
+  return {
+    objectName,
+    recordId: readString(candidate.recordId) || undefined,
+    operation,
+    fields,
+  };
+};
 
 @Controller('rest/diex/ai')
 @UseGuards(JwtAuthGuard, WorkspaceAuthGuard)
@@ -73,10 +134,12 @@ export class AiGovernanceController {
       inboxConversationId: readString(body?.inboxConversationId),
       idempotencyKey: readString(body?.idempotencyKey),
       contextVersion: readString(body?.contextVersion),
+      customObject: readCustomObject(body?.customObject),
     });
   }
 
   @Post('execute-action')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async execute(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @AuthWorkspaceMemberId() workspaceMemberId: string,
@@ -90,6 +153,30 @@ export class AiGovernanceController {
       confirmExecute: body?.confirmExecute === true,
       confirmationToken: readString(body?.confirmationToken),
       targetStage: readString(body?.targetStage),
+    });
+  }
+
+  @Post('review-action')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
+  async review(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthWorkspaceMemberId() workspaceMemberId: string,
+    @Body() body: ReviewBody,
+  ) {
+    const decision = readString(body?.decision);
+
+    if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+      throw new BadRequestException(
+        'A decisão da ação de IA deve ser APPROVED ou REJECTED.',
+      );
+    }
+
+    return this.aiGovernanceService.review({
+      workspaceId: workspace.id,
+      workspaceMemberId,
+      actionId: readString(body?.actionId),
+      decision,
+      note: readString(body?.note),
     });
   }
 

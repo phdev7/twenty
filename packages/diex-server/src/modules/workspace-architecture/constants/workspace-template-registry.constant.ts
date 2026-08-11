@@ -67,7 +67,7 @@ const BASELINE_FORBIDDEN_RULES = [
   'Não excluir objetos, campos ou registros automaticamente.',
   'Não publicar mudança estrutural sem aprovação explícita.',
   'Não enviar comunicação externa fora dos canais, da janela de horário e dos limites definidos na política de IA do workspace.',
-  'Não contatar titular que não tenha origem e consentimento registrados no próprio workspace.',
+  'Não contatar titular sem origem, finalidade e base legal registradas no próprio workspace; respeite oposição, bloqueio e descadastro, e exija consentimento quando ele for a base legal aplicável.',
   'Não inferir, deduzir ou completar dado pessoal ausente, nem obter dado de fonte externa não configurada.',
   'Não expor dado pessoal em assunto de e-mail, prévia de notificação ou mensagem legível por terceiro.',
   'Não reutilizar dado de um workspace em outro, nem em treinamento, avaliação ou exemplo.',
@@ -790,6 +790,7 @@ const businessTemplates = [
       'Trate qualquer menção a sintoma, diagnóstico, procedimento, medicamento ou exame como dado pessoal sensível.',
       'Em mensagem para paciente, limite-se a confirmar presença, orientar preparo, reagendar falta e lembrar retorno.',
       'Não inicie oferta clínica nem sugira tratamento: a indicação é ato da profissional responsável.',
+      'Antes de produzir publicidade, identifique a profissão regulada, o conselho aplicável e a política aprovada pela responsável; não aplique automaticamente regras médicas a odontologia, nutrição, fisioterapia ou estética.',
     ],
     // Acrescenta à baseline. A publicidade médica é regulada e o descumprimento
     // recai sobre a profissional, não sobre a ferramenta, então o sistema recusa
@@ -797,8 +798,8 @@ const businessTemplates = [
     // automação no dia.
     forbiddenRules: [
       'Não prometer, garantir ou sugerir resultado de tratamento em mensagem, campanha ou automação.',
-      'Não usar imagem de antes e depois, depoimento de paciente ou caso clínico com finalidade publicitária.',
-      'Não anunciar preço, desconto, promoção, sorteio ou condição comercial de procedimento.',
+      'Não publicar imagem de paciente, antes e depois, depoimento ou caso clínico sem autorização registrada, finalidade permitida, requisitos do conselho profissional aplicável e aprovação humana explícita.',
+      'Não anunciar preço, desconto, promoção, sorteio ou condição comercial antes de identificar a profissão regulada, validar a regra aplicável e obter aprovação humana explícita.',
       'Não afirmar especialidade, título ou exclusividade de técnica sem registro informado pela responsável.',
       'Não registrar diagnóstico, prescrição, evolução ou resultado de exame: este CRM não é prontuário eletrônico.',
       'Não expor dado de saúde em assunto de e-mail, prévia de notificação ou mensagem que terceiro possa ler.',
@@ -806,7 +807,7 @@ const businessTemplates = [
     readinessCriteria: [
       'scheduling_configured',
       'responsavel_tecnica_definida',
-      'consentimento_de_contato_registrado',
+      'base_legal_de_contato_registrada',
     ],
     glossary: {
       paciente:

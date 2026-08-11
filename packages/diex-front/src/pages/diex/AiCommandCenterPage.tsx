@@ -557,6 +557,34 @@ export const AiCommandCenterPage = () => {
                       </StyledButtons>
                     </>
                   ) : null}
+                  {selectedAction.status === 'EXECUTING' ? (
+                    <>
+                      <StyledText>
+                        A execução já foi assumida. A reconciliação apenas busca o
+                        recibo existente; ela não inicia outro envio nem repete a
+                        alteração.
+                      </StyledText>
+                      {preview?.supported === false ? (
+                        <StyledText>{preview.message}</StyledText>
+                      ) : null}
+                      <StyledButtons>
+                        <Button
+                          title="Reconciliar execução"
+                          size="small"
+                          variant="secondary"
+                          disabled={
+                            busyExecution?.actionId === selectedAction.id
+                          }
+                          onClick={() =>
+                            void executeAction(
+                              selectedAction.id,
+                              'PREVIEW',
+                            )
+                          }
+                        />
+                      </StyledButtons>
+                    </>
+                  ) : null}
                 </>
               )}
             </CommandCenterCard>

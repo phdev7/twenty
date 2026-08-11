@@ -179,7 +179,9 @@ export const inferWorkspacePageDataContracts = ({
     const aliasMatch = normalizedMetadata.find(({ candidates }) =>
       candidates.some((candidate) =>
         aliasCandidates.some(
-          (alias) => normalize(alias) === candidate || candidate.includes(normalize(alias)),
+          (alias) =>
+            normalize(alias) === candidate ||
+            candidate.includes(normalize(alias)),
         ),
       ),
     );
@@ -226,6 +228,34 @@ export const inferWorkspacePageDataContracts = ({
 
     return [...preferred, ...remaining].slice(0, 8);
   };
+  const classifyData = (
+    object: WorkspacePageMetadataObject | null,
+  ): WorkspacePageDataContract['dataClassification'] => {
+    if (!object) {
+      return 'INTERNAL';
+    }
+
+    const fields = object.fields
+      .map(({ name, label }) => `${name} ${label}`)
+      .join(' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    if (
+      /(diagnost|prescric|saude|health|prontuario|cpf|rg|documento)/.test(
+        fields,
+      )
+    ) {
+      return 'SENSITIVE';
+    }
+
+    if (/(valor|preco|price|margem|salario|contract|contrato)/.test(fields)) {
+      return 'CONFIDENTIAL';
+    }
+
+    return 'INTERNAL';
+  };
 
   return dataSources.map((source, position) => {
     const normalizedSource = normalize(source);
@@ -258,6 +288,7 @@ export const inferWorkspacePageDataContracts = ({
       objectName: object?.nameSingular ?? null,
       objectMetadataId: object?.id ?? null,
       fieldNames: object ? pickFields(object) : [],
+      dataClassification: classifyData(object),
       required: position === 0,
       fallback: object
         ? `Nenhum registro de ${object.labelSingular.toLowerCase()} foi encontrado. Use a ação configurada para iniciar esta operação.`
@@ -288,7 +319,7 @@ export const buildWorkspacePageActions = ({
   {
     key: `${pageKey}:onboarding`,
     label: 'Continuar ativação da operação',
-    route: '/diex/pages/first-steps',
+    route: '/diex/first-steps',
     confirmationRequired: false,
     requiresApproval: false,
     requiredPermission: 'workspace_access',

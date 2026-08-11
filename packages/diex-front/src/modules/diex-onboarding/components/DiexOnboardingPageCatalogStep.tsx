@@ -107,6 +107,18 @@ const StyledBlockEditor = styled.div`
   gap: ${themeCssVariables.spacing[2]};
 `;
 
+const StyledAdvanced = styled.details`
+  border-top: 1px solid ${themeCssVariables.border.color.light};
+  padding-top: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledAdvancedSummary = styled.summary`
+  color: ${themeCssVariables.font.color.secondary};
+  cursor: pointer;
+  font-size: ${themeCssVariables.font.size.xs};
+  margin-bottom: ${themeCssVariables.spacing[2]};
+`;
+
 const StyledBlockRow = styled.div`
   align-items: center;
   display: grid;
@@ -131,11 +143,11 @@ type DiexOnboardingPageCatalogStepProps = {
   catalog: DiexPageCatalogState | null;
   isLoading: boolean;
   isUpdating: boolean;
-  onCreate: (label: string, description: string) => void;
+  onCreate: (label: string, description: string) => Promise<boolean>;
   onArchive: (key: string) => void;
   onRestore: (key: string) => void;
   onToggleNavigation: (page: DiexPageCatalogItem) => void;
-  onUpdate: (page: DiexPageUpdateInput) => void;
+  onUpdate: (page: DiexPageUpdateInput) => Promise<boolean>;
 };
 
 export const DiexOnboardingPageCatalogStep = ({
@@ -160,8 +172,10 @@ export const DiexOnboardingPageCatalogStep = ({
       key: page.key,
       label: page.label,
       description: page.description,
+      icon: page.icon,
       renderer: page.renderer,
       navigationGroup: page.navigationGroup,
+      capabilities: page.capabilities,
       primaryAction: page.primaryAction,
       dataSources: page.dataSources,
       blocks: page.blocks,
@@ -229,11 +243,9 @@ export const DiexOnboardingPageCatalogStep = ({
       title="Páginas e menu adaptados à operação"
     >
       <StyledText>
-        Todas as páginas são compostas pelo perfil da empresa. O núcleo
-        comercial mantém as rotas e dados críticos protegidos, mas título,
-        objetivo, renderer, fontes, ação principal e posição no menu podem ser
-        adaptados por workspace. Arquivamento continua reversível e não apaga
-        dados.
+        O menu e as páginas seguem o perfil da empresa. O administrador pode
+        renomear, reorganizar, ocultar, arquivar ou criar páginas sem apagar os
+        dados. A configuração técnica fica disponível apenas quando necessária.
       </StyledText>
       {isLoading && pages.length === 0 ? (
         <StyledText>Preparando catálogo operacional...</StyledText>
@@ -245,13 +257,11 @@ export const DiexOnboardingPageCatalogStep = ({
                 <StyledLabel>{page.label}</StyledLabel>
                 <StyledDescription>{page.description}</StyledDescription>
                 <StyledDescription>
-                  {page.capabilities.length > 0
-                    ? `Capacidades: ${page.capabilities.join(' · ')}`
-                    : `Renderer ${page.renderer.toLowerCase()} · ${page.blocks.length} blocos`}
+                  Ação principal: {page.primaryAction}
                 </StyledDescription>
                 <StyledStatus>
                   {page.lifecycle === 'CORE'
-                    ? 'essencial'
+                    ? 'núcleo adaptável'
                     : page.status === 'HIDDEN'
                       ? 'aguardando publicação da arquitetura'
                     : page.status === 'ARCHIVED'
@@ -272,12 +282,39 @@ export const DiexOnboardingPageCatalogStep = ({
                 ) : page.status === 'HIDDEN' ? null : page.editable ? (
                   <>
                     <Button
+                      title="Mover para cima"
+                      variant="secondary"
+                      disabled={isUpdating || page.position === 0}
+                      onClick={() =>
+                        void onUpdate({
+                          key: page.key,
+                          position: Math.max(0, page.position - 1),
+                        })
+                      }
+                    />
+                    <Button
+                      title="Mover para baixo"
+                      variant="secondary"
+                      disabled={
+                        isUpdating || page.position >= pages.length - 1
+                      }
+                      onClick={() =>
+                        void onUpdate({
+                          key: page.key,
+                          position: Math.min(
+                            pages.length - 1,
+                            page.position + 1,
+                          ),
+                        })
+                      }
+                    />
+                    <Button
                       title={page.showInNavigation ? 'Ocultar menu' : 'Mostrar menu'}
                       variant="secondary"
                       disabled={isUpdating}
                       onClick={() => onToggleNavigation(page)}
                     />
-                    {page.lifecycle === 'CORE' ? null : (
+                    {page.key === 'first-steps' ? null : (
                       <Button
                         title="Arquivar"
                         variant="secondary"
@@ -286,7 +323,7 @@ export const DiexOnboardingPageCatalogStep = ({
                       />
                     )}
                     <Button
-                      title="Editar adaptação"
+                      title="Editar página"
                       variant="secondary"
                       disabled={isUpdating}
                       onClick={() => startEditing(page)}
@@ -318,149 +355,190 @@ export const DiexOnboardingPageCatalogStep = ({
                       )
                     }
                   />
-                  <StyledForm>
-                    <StyledSelect
-                      aria-label="Renderer da página"
-                      value={editDraft.renderer ?? 'OPERATIONS'}
-                      onChange={(event) =>
-                        setEditDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                renderer: event.target.value as DiexPageRenderer,
-                              }
-                            : current,
-                        )
-                      }
-                    >
-                      {PAGE_RENDERERS.map((renderer) => (
-                        <option key={renderer} value={renderer}>
-                          {renderer}
-                        </option>
-                      ))}
-                    </StyledSelect>
-                    <StyledInput
-                      aria-label="Grupo do menu"
-                      placeholder="Grupo do menu"
-                      value={editDraft.navigationGroup ?? ''}
-                      onChange={(event) =>
-                        setEditDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                navigationGroup: event.target.value,
-                              }
-                            : current,
-                        )
-                      }
-                    />
-                    <StyledInput
-                      aria-label="Ação principal"
-                      placeholder="Ação principal"
-                      value={editDraft.primaryAction ?? ''}
-                      onChange={(event) =>
-                        setEditDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                primaryAction: event.target.value,
-                              }
-                            : current,
-                        )
-                      }
-                    />
-                    <StyledInput
-                      aria-label="Fontes de dados"
-                      placeholder="Fontes de dados separadas por vírgula"
-                      value={editDraft.dataSources?.join(', ') ?? ''}
-                      onChange={(event) =>
-                        setEditDraft((current) =>
-                          current
-                            ? {
-                                ...current,
+                  <StyledAdvanced>
+                    <StyledAdvancedSummary>
+                      Configuração avançada de menu, dados e blocos
+                    </StyledAdvancedSummary>
+                    <StyledForm>
+                      <StyledSelect
+                        aria-label="Renderer da página"
+                        value={editDraft.renderer ?? 'OPERATIONS'}
+                        onChange={(event) =>
+                          setEditDraft((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  renderer: event.target
+                                    .value as DiexPageRenderer,
+                                }
+                              : current,
+                          )
+                        }
+                      >
+                        {PAGE_RENDERERS.map((renderer) => (
+                          <option key={renderer} value={renderer}>
+                            {renderer}
+                          </option>
+                        ))}
+                      </StyledSelect>
+                      <StyledInput
+                        aria-label="Grupo do menu"
+                        placeholder="Grupo do menu"
+                        value={editDraft.navigationGroup ?? ''}
+                        onChange={(event) =>
+                          setEditDraft((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  navigationGroup: event.target.value,
+                                }
+                              : current,
+                          )
+                        }
+                      />
+                      <StyledInput
+                        aria-label="Ícone da página"
+                        placeholder="Ícone: chart, whatsapp, calendar..."
+                        value={editDraft.icon ?? ''}
+                        onChange={(event) =>
+                          setEditDraft((current) =>
+                            current
+                              ? { ...current, icon: event.target.value }
+                              : current,
+                          )
+                        }
+                      />
+                      <StyledInput
+                        aria-label="Capacidades da página"
+                        placeholder="Capacidades separadas por vírgula"
+                        value={editDraft.capabilities?.join(', ') ?? ''}
+                        onChange={(event) =>
+                          setEditDraft((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  capabilities: event.target.value
+                                    .split(',')
+                                    .map((capability) => capability.trim())
+                                    .filter(Boolean),
+                                }
+                              : current,
+                          )
+                        }
+                      />
+                      <StyledInput
+                        aria-label="Ação principal"
+                        placeholder="Ação principal"
+                        value={editDraft.primaryAction ?? ''}
+                        onChange={(event) =>
+                          setEditDraft((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  primaryAction: event.target.value,
+                                }
+                              : current,
+                          )
+                        }
+                      />
+                      <StyledInput
+                        aria-label="Fontes de dados"
+                        placeholder="Fontes de dados separadas por vírgula"
+                        value={editDraft.dataSources?.join(', ') ?? ''}
+                        onChange={(event) =>
+                          setEditDraft((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  dataSources: event.target.value
+                                    .split(',')
+                                    .map((source) => source.trim())
+                                    .filter(Boolean),
+                                }
+                              : current,
+                          )
+                        }
+                      />
+                    </StyledForm>
+                    <StyledBlockEditor>
+                      <StyledDescription>
+                        Blocos da página. A ordem e a fonte orientam a leitura
+                        da operação sem alterar os dados nativos.
+                      </StyledDescription>
+                      {(editDraft.blocks ?? []).map((block, index) => (
+                        <StyledBlockRow key={block.key}>
+                          <StyledInput
+                            aria-label={`Nome do bloco ${index + 1}`}
+                            value={block.label}
+                            onChange={(event) =>
+                              updateDraftBlock(index, {
+                                label: event.target.value,
+                                title: event.target.value,
+                              })
+                            }
+                          />
+                          <StyledSelect
+                            aria-label={`Tipo do bloco ${index + 1}`}
+                            value={block.type}
+                            onChange={(event) =>
+                              updateDraftBlock(index, {
+                                type: event.target
+                                  .value as DiexPageBlock['type'],
+                              })
+                            }
+                          >
+                            {[
+                              'KPI',
+                              'LIST',
+                              'PIPELINE',
+                              'INBOX',
+                              'CALENDAR',
+                              'TIMELINE',
+                              'CHECKLIST',
+                              'AI_SUMMARY',
+                            ].map((type) => (
+                              <option key={type} value={type}>
+                                {type}
+                              </option>
+                            ))}
+                          </StyledSelect>
+                          <StyledInput
+                            aria-label={`Fontes do bloco ${index + 1}`}
+                            placeholder="Fontes separadas por vírgula"
+                            value={block.dataSources.join(', ')}
+                            onChange={(event) =>
+                              updateDraftBlock(index, {
                                 dataSources: event.target.value
                                   .split(',')
                                   .map((source) => source.trim())
                                   .filter(Boolean),
-                              }
-                            : current,
-                        )
-                      }
-                    />
-                  </StyledForm>
-                  <StyledBlockEditor>
-                    <StyledDescription>
-                      Blocos da página. A ordem e a fonte orientam a leitura
-                      comercial sem alterar os dados nativos.
-                    </StyledDescription>
-                    {(editDraft.blocks ?? []).map((block, index) => (
-                      <StyledBlockRow key={block.key}>
-                        <StyledInput
-                          aria-label={`Nome do bloco ${index + 1}`}
-                          value={block.label}
-                          onChange={(event) =>
-                            updateDraftBlock(index, {
-                              label: event.target.value,
-                              title: event.target.value,
-                            })
-                          }
-                        />
-                        <StyledSelect
-                          aria-label={`Tipo do bloco ${index + 1}`}
-                          value={block.type}
-                          onChange={(event) =>
-                            updateDraftBlock(index, {
-                              type: event.target.value as DiexPageBlock['type'],
-                            })
-                          }
-                        >
-                          {[
-                            'KPI',
-                            'LIST',
-                            'PIPELINE',
-                            'INBOX',
-                            'CALENDAR',
-                            'TIMELINE',
-                            'CHECKLIST',
-                            'AI_SUMMARY',
-                          ].map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </StyledSelect>
-                        <StyledInput
-                          aria-label={`Fontes do bloco ${index + 1}`}
-                          placeholder="Fontes separadas por vírgula"
-                          value={block.dataSources.join(', ')}
-                          onChange={(event) =>
-                            updateDraftBlock(index, {
-                              dataSources: event.target.value
-                                .split(',')
-                                .map((source) => source.trim())
-                                .filter(Boolean),
-                            })
-                          }
-                        />
+                              })
+                            }
+                          />
+                          <Button
+                            title="Remover bloco"
+                            variant="secondary"
+                            disabled={
+                              isUpdating ||
+                              (editDraft.blocks?.length ?? 0) <= 1
+                            }
+                            onClick={() => removeDraftBlock(index)}
+                          />
+                        </StyledBlockRow>
+                      ))}
+                      <StyledActions>
                         <Button
-                          title="Remover bloco"
+                          title="Adicionar bloco"
                           variant="secondary"
-                          disabled={isUpdating || (editDraft.blocks?.length ?? 0) <= 1}
-                          onClick={() => removeDraftBlock(index)}
+                          disabled={
+                            isUpdating ||
+                            (editDraft.blocks?.length ?? 0) >= 12
+                          }
+                          onClick={addDraftBlock}
                         />
-                      </StyledBlockRow>
-                    ))}
-                    <StyledActions>
-                      <Button
-                        title="Adicionar bloco"
-                        variant="secondary"
-                        disabled={
-                          isUpdating || (editDraft.blocks?.length ?? 0) >= 12
-                        }
-                        onClick={addDraftBlock}
-                      />
-                    </StyledActions>
-                  </StyledBlockEditor>
+                      </StyledActions>
+                    </StyledBlockEditor>
+                  </StyledAdvanced>
                   <StyledActions>
                     <Button
                       title="Salvar adaptação"
@@ -470,10 +548,13 @@ export const DiexOnboardingPageCatalogStep = ({
                         (editDraft.label ?? '').trim().length < 2 ||
                         (editDraft.description ?? '').trim().length < 1
                       }
-                      onClick={() => {
-                        onUpdate(editDraft);
-                        setEditDraft(null);
-                      }}
+                      onClick={() =>
+                        void onUpdate(editDraft).then((updated) => {
+                          if (updated) {
+                            setEditDraft(null);
+                          }
+                        })
+                      }
                     />
                     <Button
                       title="Cancelar"
@@ -497,7 +578,7 @@ export const DiexOnboardingPageCatalogStep = ({
         />
         <StyledTextarea
           aria-label="Objetivo da nova página"
-          placeholder="Objetivo: que decisão ou ação comercial esta página deve apoiar?"
+          placeholder="Objetivo: que decisão ou ação da operação esta página deve apoiar?"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
@@ -507,11 +588,14 @@ export const DiexOnboardingPageCatalogStep = ({
           title="Criar página personalizada"
           variant="primary"
           disabled={isUpdating || label.trim().length < 2}
-          onClick={() => {
-            onCreate(label, description);
-            setLabel('');
-            setDescription('');
-          }}
+          onClick={() =>
+            void onCreate(label, description).then((created) => {
+              if (created) {
+                setLabel('');
+                setDescription('');
+              }
+            })
+          }
         />
       </StyledActions>
     </DiexOnboardingStepCard>

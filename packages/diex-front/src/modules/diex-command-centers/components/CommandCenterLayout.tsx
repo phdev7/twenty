@@ -224,7 +224,7 @@ export const CommandCenterCard = ({
 export const CommandCenterEmptyState = ({
   message,
   actionLabel = 'Continuar ativação comercial',
-  to = '/diex/pages/first-steps',
+  to = '/diex/first-steps',
 }: {
   message: string;
   actionLabel?: string;
@@ -250,7 +250,7 @@ export const CommandCenterStartState = ({
   title,
   message,
   actionLabel = 'Abrir primeiros passos',
-  to = '/diex/pages/first-steps',
+  to = '/diex/first-steps',
 }: {
   title: string;
   message: string;

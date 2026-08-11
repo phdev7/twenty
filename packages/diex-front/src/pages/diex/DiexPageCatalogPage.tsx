@@ -38,11 +38,11 @@ export const DiexPageCatalogPage = () => {
           catalog={architecture?.pageCatalog ?? null}
           isLoading={isLoadingCommercialData}
           isUpdating={isUpdatingArchitecture}
-          onCreate={(label, description) => void createPage(label, description)}
+          onCreate={createPage}
           onArchive={(key) => void archivePage(key)}
           onRestore={(key) => void restorePage(key)}
           onToggleNavigation={(page) => void togglePageNavigation(page)}
-          onUpdate={(page) => void updatePage(page)}
+          onUpdate={updatePage}
         />
       </StyledBody>
     </PageCardLayout>

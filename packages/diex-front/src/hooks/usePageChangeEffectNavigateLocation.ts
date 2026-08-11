@@ -155,9 +155,19 @@ export const usePageChangeEffectNavigateLocation = () => {
     return AppPath.CreateProfile;
   }
 
+  const isAllowedDuringDiexWorkspaceSetup =
+    someMatchingLocationOf([
+      AppPath.DiexFirstSteps,
+      AppPath.Inbox,
+      AppPath.InviteTeam,
+      AppPath.DiexCalendar,
+    ]) ||
+    location.pathname === '/diex/pages' ||
+    location.pathname.startsWith('/diex/pages/');
+
   if (
     onboardingStatus === OnboardingStatus.DIEX_WORKSPACE_SETUP &&
-    !isMatchingLocation(location, AppPath.DiexFirstSteps)
+    !isAllowedDuringDiexWorkspaceSetup
   ) {
     return AppPath.DiexFirstSteps;
   }

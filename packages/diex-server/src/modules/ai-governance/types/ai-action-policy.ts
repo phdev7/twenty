@@ -3,11 +3,25 @@ import {
   AiActionType,
 } from 'src/modules/ai-governance/standard-objects/ai-action.standard-object-definition';
 
-export type AiActionWriteSetEntry = {
+export type AiActionCoreWriteSetEntry = {
   resourceType: 'OPPORTUNITY' | 'INBOX_CONVERSATION' | 'SUCCESS_PLAN' | 'TASK';
   resourceId: string | null;
   operation: 'CREATE' | 'UPDATE';
 };
+
+export type AiActionCustomWriteSetEntry = {
+  resourceType: 'CUSTOM_OBJECT';
+  resourceId: string | null;
+  objectName: string;
+  operation: 'CREATE' | 'UPDATE';
+  fields: string[];
+  payload: Record<string, unknown>;
+  approvalClass: 'HUMAN_APPROVAL';
+};
+
+export type AiActionWriteSetEntry =
+  | AiActionCoreWriteSetEntry
+  | AiActionCustomWriteSetEntry;
 
 export type AiActionPolicy = {
   version: string;
@@ -30,8 +44,8 @@ const DEFAULT_POLICY: AiActionPolicy = {
   requiresApproval: true,
   expiryMs: 24 * 60 * 60 * 1000,
   maxAttempts: 3,
-  maxProposalsPerHour: 100,
-  maxExecutionsPerHour: 50,
+  maxProposalsPerHour: 10_000,
+  maxExecutionsPerHour: 10_000,
   estimatedCostCredits: 1,
 };
 
@@ -64,21 +78,21 @@ const POLICY_BY_ACTION_TYPE: Record<AiActionType, AiActionPolicy> = {
     ...DEFAULT_POLICY,
     riskLevel: AiActionRiskLevel.HIGH,
     expiryMs: 12 * 60 * 60 * 1000,
-    maxProposalsPerHour: 50,
+    maxProposalsPerHour: 1_000,
     estimatedCostCredits: 2,
   },
   [AiActionType.CS_INTERVENTION]: {
     ...DEFAULT_POLICY,
     riskLevel: AiActionRiskLevel.HIGH,
     expiryMs: 24 * 60 * 60 * 1000,
-    maxProposalsPerHour: 50,
+    maxProposalsPerHour: 1_000,
     estimatedCostCredits: 2,
   },
   [AiActionType.EXPANSION]: {
     ...DEFAULT_POLICY,
     riskLevel: AiActionRiskLevel.HIGH,
     expiryMs: 24 * 60 * 60 * 1000,
-    maxProposalsPerHour: 50,
+    maxProposalsPerHour: 1_000,
     estimatedCostCredits: 2,
   },
 };
@@ -94,12 +108,33 @@ export const buildAiActionWriteSet = ({
   opportunityId,
   inboxConversationId,
   successPlanId,
+  customObject,
 }: {
   type: AiActionType;
   opportunityId?: string;
   inboxConversationId?: string;
   successPlanId?: string;
+  customObject?: {
+    objectName: string;
+    recordId?: string;
+    operation: 'CREATE' | 'UPDATE';
+    fields: Record<string, unknown>;
+  };
 }): AiActionWriteSetEntry[] => {
+  if (customObject) {
+    return [
+      {
+        resourceType: 'CUSTOM_OBJECT',
+        resourceId: customObject.recordId?.trim() || null,
+        objectName: customObject.objectName.trim(),
+        operation: customObject.operation,
+        fields: Object.keys(customObject.fields),
+        payload: customObject.fields,
+        approvalClass: 'HUMAN_APPROVAL',
+      },
+    ];
+  }
+
   const writeSet: AiActionWriteSetEntry[] =
     type === AiActionType.REPLY
       ? []

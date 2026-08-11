@@ -6,13 +6,20 @@ import { GlobalWorkspaceOrmManager } from 'src/engine/diex-orm/global-workspace-
 import { createCalculateCommercialScoreTool } from 'src/modules/commercial-intelligence/tools/calculate-commercial-score.tool';
 import { createGetCommercialPrioritiesTool } from 'src/modules/commercial-intelligence/tools/get-commercial-priorities.tool';
 import { type CommercialIntelligenceToolDependencies } from 'src/modules/commercial-intelligence/tools/types/commercial-intelligence-tool-dependencies.type';
+import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
 
 @Injectable()
 export class CommercialIntelligenceToolWorkspaceService {
   private readonly deps: CommercialIntelligenceToolDependencies;
 
-  constructor(globalWorkspaceOrmManager: GlobalWorkspaceOrmManager) {
-    this.deps = { globalWorkspaceOrmManager };
+  constructor(
+    globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    workspaceArchitectureService: WorkspaceArchitectureService,
+  ) {
+    this.deps = {
+      globalWorkspaceOrmManager,
+      workspaceArchitectureService,
+    };
   }
 
   generateCommercialIntelligenceTools(workspaceId: string): ToolSet {

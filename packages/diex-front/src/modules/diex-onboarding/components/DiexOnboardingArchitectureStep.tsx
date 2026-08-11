@@ -154,7 +154,7 @@ export const DiexOnboardingArchitectureStep = ({
 
   return (
     <DiexOnboardingStepCard
-      index={3}
+      index={4}
       isDone={isPublished}
       title="Revisar e aprovar a arquitetura recomendada"
       badges={
@@ -175,13 +175,13 @@ export const DiexOnboardingArchitectureStep = ({
         <StyledText>Carregando recomendação...</StyledText>
       ) : !hasRecommendation ? (
         <StyledText>
-          Gere o contexto comercial para a IA montar a recomendação da operação.
+          Gere o contexto da operação para a IA montar a recomendação adaptada.
         </StyledText>
       ) : (
         <>
           <StyledText>
-            Entendemos que sua empresa vende{' '}
-            <strong>{segment || 'uma oferta comercial'}</strong> para{' '}
+            Entendemos que sua operação entrega{' '}
+            <strong>{segment || 'um serviço ou resultado'}</strong> para{' '}
             <strong>{idealCustomer || 'um cliente ideal ainda não definido'}</strong>
             {salesCycle ? `, com ciclo de ${salesCycle}.` : '.'} A publicação só
             acontece depois da aprovação explícita.
@@ -245,7 +245,7 @@ export const DiexOnboardingArchitectureStep = ({
           <StyledList>
             {[
               ['Objetos', 'objects'],
-              ['Campos comerciais', 'fields'],
+              ['Campos operacionais', 'fields'],
               ['Pipeline recomendado', 'pipelines'],
               ['Páginas', 'pages'],
               ['Dashboards', 'dashboards'],

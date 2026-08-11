@@ -82,13 +82,16 @@ export const DEFAULT_WORKSPACE_AI_POLICY: WorkspaceAiPolicy = {
   limits: {
     maxProposalsPerHour: 10_000,
     maxExecutionsPerHour: 10_000,
-    maxEstimatedCreditsPerDay: 200,
+    maxEstimatedCreditsPerDay: 1_000_000,
     maxExternalMessagesPerDay: 100_000,
   },
   operatingWindow: {
     timezone: 'America/Sao_Paulo',
-    start: '07:00',
-    end: '20:00',
+    // Start and end equal means 24 hours in the execution policy. Workspaces
+    // can narrow this window without blocking night or global operations by
+    // default.
+    start: '00:00',
+    end: '00:00',
   },
   allowedChannels: ['WHATSAPP', 'EMAIL', 'INBOX'],
   blockedActionTypes: [],

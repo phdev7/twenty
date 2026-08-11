@@ -14,17 +14,6 @@ import {
 
 const SECTION_LIMIT = 10;
 
-// This workspace's pipeline, not Diex's defaults: CUSTOMER is the won stage
-// and LOST closes the other way, so "still open" is everything before them.
-const OPEN_OPPORTUNITY_STAGES = [
-  'NEW',
-  'SCREENING',
-  'MEETING',
-  'DIAGNOSIS_COMPLETE',
-  'PROPOSAL',
-  'NEGOTIATION',
-];
-
 const getCommercialPrioritiesSchema = z.object({
   assigneeId: z
     .string()
@@ -56,7 +45,7 @@ const minutesSince = (value?: string | Date | null): number | null => {
 export const createGetCommercialPrioritiesTool = (
   deps: Pick<
     CommercialIntelligenceToolDependencies,
-    'globalWorkspaceOrmManager'
+    'globalWorkspaceOrmManager' | 'workspaceArchitectureService'
   >,
   context: CommercialIntelligenceToolContext,
 ) => ({
@@ -72,7 +61,51 @@ export const createGetCommercialPrioritiesTool = (
     );
     const now = new Date();
     const assigneeId = parameters.assigneeId?.trim() || undefined;
+    const architecture =
+      await deps.workspaceArchitectureService.inspectWorkspaceArchitecture(
+        context.workspaceId,
+      );
+    const stageOptions =
+      architecture.objects
+        .find(({ nameSingular }) => nameSingular === 'opportunity')
+        ?.fields.find(({ name }) => name === 'stage')?.options ?? [];
+    const normalizeStage = (value: string) =>
+      value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+    const terminalPattern =
+      /(^|[ _-])(won|lost|renewed|churned|closed)([ _-]|$)|ganh|perdid|cancelad|churn|fechad|fechamento|concluid|finalizad|renovad|convertid|vendid|reprovad|desist/;
+    const explicitTerminalStages = new Set(
+      stageOptions
+        .filter(({ value, label }) => {
+          const normalizedValue = normalizeStage(String(value));
+          const normalizedLabel = normalizeStage(String(label));
 
+          return (
+            ['customer', 'cliente'].includes(normalizedValue) ||
+            ['customer', 'cliente'].includes(normalizedLabel) ||
+            terminalPattern.test(`${normalizedValue} ${normalizedLabel}`)
+          );
+        })
+        .map(({ value }) => String(value)),
+    );
+    const orderedStageOptions = [...stageOptions].sort(
+      (left, right) =>
+        (typeof left.position === 'number' ? left.position : 0) -
+        (typeof right.position === 'number' ? right.position : 0),
+    );
+    const terminalStages =
+      explicitTerminalStages.size > 0
+        ? explicitTerminalStages
+        : new Set(
+            orderedStageOptions.length > 1
+              ? orderedStageOptions.slice(-1).map(({ value }) => String(value))
+              : [],
+          );
+    const openOpportunityStages = orderedStageOptions
+      .map(({ value }) => String(value))
+      .filter((value) => !terminalStages.has(value));
     const {
       waitingOnUsRecords,
       followUpDueRecords,
@@ -149,11 +182,11 @@ export const createGetCommercialPrioritiesTool = (
           opportunityRepository.find({
             where: [
               {
-                stage: In(OPEN_OPPORTUNITY_STAGES),
+                stage: In(openOpportunityStages),
                 nextCommercialActionAt: LessThanOrEqual(now),
               },
               {
-                stage: In(OPEN_OPPORTUNITY_STAGES),
+                stage: In(openOpportunityStages),
                 dealRisk: 'HIGH',
               },
             ],

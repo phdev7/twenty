@@ -190,13 +190,38 @@ export const DiexFirstStepsPage = () => {
     completeCommercialOnboarding,
     load,
   } = useDiexOnboarding();
+  const operationLabel = readiness?.readinessPack?.operationLabel ?? 'operação';
+  const readyLabel =
+    readiness?.readinessPack?.readyLabel ?? 'CRM pronto para vender';
+  const hasOpportunityFlow = Boolean(
+    readiness?.readinessPack?.criteria.some(
+      ({ key, required }) => key === 'first_opportunity_created' && required,
+    ),
+  );
+  const protectsRevenue =
+    readiness?.goal === 'CUSTOMER_SUCCESS_RENEWALS';
+  const activeOperationalPages =
+    architecture?.pageCatalog?.items.filter(
+      ({ status }) => status === 'ACTIVE',
+    ) ?? [];
+  const inboxRoute =
+    activeOperationalPages.find(({ key }) => key === 'inbox-commercial')
+      ?.route ??
+    activeOperationalPages.find(({ renderer }) => renderer === 'INBOX')?.route ??
+    '/diex/pages';
+  const cockpitRoute =
+    activeOperationalPages.find(
+      ({ key }) => key === 'commercial-intelligence',
+    )?.route ??
+    activeOperationalPages.find(({ renderer }) => renderer === 'DASHBOARD')
+      ?.route ??
+    '/diex/pages';
 
   const handleFinishSetup = async () => {
     setIsFinishingSetup(true);
 
     try {
       await completeCommercialOnboarding();
-      window.localStorage.setItem('diex_first_steps_hidden', 'true');
       setIsCompletionModalOpen(false);
       navigate(AppPath.Index);
       window.location.reload();
@@ -204,7 +229,7 @@ export const DiexFirstStepsPage = () => {
       setFlowError(
         error instanceof Error
           ? error.message
-          : 'Não foi possível concluir o onboarding comercial.',
+          : 'Não foi possível concluir a ativação da operação.',
       );
       setIsFinishingSetup(false);
     }
@@ -234,7 +259,9 @@ export const DiexFirstStepsPage = () => {
         setTriageResult(triage);
       } catch {
         setFlowError(
-          'O contato, a oportunidade e o follow-up foram criados. A classificação com IA precisa ser repetida.',
+          hasOpportunityFlow
+            ? 'O contato, a oportunidade e a próxima ação foram criados. A classificação com IA precisa ser repetida.'
+            : 'O contato, o responsável e a próxima ação foram definidos. A classificação com IA precisa ser repetida.',
         );
       }
       await refreshCommercialData();
@@ -242,7 +269,7 @@ export const DiexFirstStepsPage = () => {
       setFlowError(
         error instanceof Error
           ? error.message
-          : 'Não foi possível executar o primeiro fluxo comercial.',
+          : 'Não foi possível executar o primeiro fluxo operacional.',
       );
     }
   };
@@ -255,7 +282,9 @@ export const DiexFirstStepsPage = () => {
     ) ?? [];
   const journeyActionLabel =
     journey?.phase === 'DISCOVERY_REVIEW'
-      ? 'Revisar contexto e oferta'
+      ? journey.blockers.includes('goal_defined')
+        ? 'Definir objetivo'
+        : 'Revisar contexto e oferta'
       : journey?.phase === 'ARCHITECTURE_APPROVAL'
         ? 'Revisar arquitetura'
         : journey?.phase === 'CHANNEL_CONNECTION'
@@ -274,9 +303,11 @@ export const DiexFirstStepsPage = () => {
     }
 
     if (journey.phase === 'DISCOVERY_REVIEW') {
-      const targetId = journey.blockers.includes('offer_registered')
-        ? 'diex-onboarding-offer'
-        : 'diex-onboarding-context';
+      const targetId = journey.blockers.includes('goal_defined')
+        ? 'diex-onboarding-goal'
+        : journey.blockers.includes('offer_registered')
+          ? 'diex-onboarding-offer'
+          : 'diex-onboarding-context';
       document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
@@ -307,7 +338,7 @@ export const DiexFirstStepsPage = () => {
     }
 
     if (journey.phase === 'COCKPIT_OPERATIONAL') {
-      navigate('/diex/pages/commercial-intelligence');
+      navigate(cockpitRoute);
     }
   };
 
@@ -317,10 +348,14 @@ export const DiexFirstStepsPage = () => {
     >
       <StyledBody>
         <StyledIntro>
-          <StyledTitle>Chegue ao primeiro resultado comercial</StyledTitle>
+          <StyledTitle>
+            Chegue ao primeiro resultado da {operationLabel}
+          </StyledTitle>
           <StyledSubtitle>
-            O onboarding só termina quando uma conversa real virar próxima ação
-            no pipeline. O CRM precisa sair daqui pronto para operar e vender.
+            {hasOpportunityFlow
+              ? 'A ativação só termina quando uma entrada real virar contato, oportunidade e próxima ação com responsável.'
+              : 'A ativação só termina quando uma entrada real virar contato, responsável e próxima ação executável.'}{' '}
+            O Diex precisa sair daqui pronto para operar e gerar resultado.
           </StyledSubtitle>
         </StyledIntro>
         <DiexOnboardingReadinessCard
@@ -353,11 +388,13 @@ export const DiexFirstStepsPage = () => {
             ) : null}
           </StyledJourneyFocus>
         ) : null}
-        <DiexOnboardingGoalStep
-          selectedGoal={readiness?.goal ?? null}
-          isSaving={isSavingGoal}
-          onSelect={(goal) => void setCommercialGoal(goal)}
-        />
+        <div id="diex-onboarding-goal">
+          <DiexOnboardingGoalStep
+            selectedGoal={readiness?.goal ?? null}
+            isSaving={isSavingGoal}
+            onSelect={(goal) => void setCommercialGoal(goal)}
+          />
+        </div>
         <div id="diex-onboarding-context">
           <DiexOnboardingContextStep
             index={2}
@@ -375,6 +412,18 @@ export const DiexFirstStepsPage = () => {
             onRetry={() => void load()}
           />
         </div>
+        <div id="diex-onboarding-offer">
+          <DiexOnboardingOfferStep
+            offers={dataFlow.offers}
+            activeOfferCount={
+              readiness?.counts.activeOffers ?? dataFlow.activeOfferCount
+            }
+            isReady={readiness?.items.find(
+              ({ key }) => key === 'offer_registered',
+            )?.ready}
+            onChanged={() => void load()}
+          />
+        </div>
         <div id="diex-onboarding-architecture">
           <DiexOnboardingArchitectureStep
             architecture={architecture}
@@ -384,15 +433,6 @@ export const DiexFirstStepsPage = () => {
             onApprove={() => void approveArchitecture()}
             onApply={() => void applyArchitecture()}
             onRegenerate={() => void regenerateArchitecture()}
-          />
-        </div>
-        <div id="diex-onboarding-offer">
-          <DiexOnboardingOfferStep
-            offerCount={dataFlow.offerCount}
-            isReady={readiness?.items.find(
-              ({ key }) => key === 'offer_registered',
-            )?.ready}
-            onCreated={() => void load()}
           />
         </div>
         <DiexOnboardingWhatsappStep
@@ -405,61 +445,95 @@ export const DiexFirstStepsPage = () => {
         <DiexOnboardingDataFlowStep
           index={6}
           dataFlow={dataFlow}
+          inboxRoute={inboxRoute}
           onRefresh={() => void load()}
         />
         <DiexOnboardingAiTriageStep
           isDone={Boolean(
-            readiness?.evidence.firstOpportunityId &&
-              readiness.evidence.firstFollowUpCreated &&
-              readiness.evidence.firstAiTriageCompleted,
+            readiness?.firstValueRun?.status === 'COMPLETED' ||
+              (readiness?.evidence.firstConversationId &&
+                readiness.evidence.firstFollowUpCreated &&
+                readiness.evidence.firstAiTriageCompleted),
           )}
           canRun={Boolean(readiness?.evidence.firstConversationId)}
           isRunning={isExecutingFirstFlow}
           triageResult={triageResult}
+          requiresOpportunity={hasOpportunityFlow}
+          readyLabel={readyLabel}
           onStart={() => void handleFirstCommercialFlow()}
         />
         <DiexOnboardingPageCatalogStep
           catalog={architecture?.pageCatalog ?? null}
           isLoading={isLoadingCommercialData}
           isUpdating={isUpdatingArchitecture}
-          onCreate={(label, description) => void createPage(label, description)}
+          onCreate={createPage}
           onArchive={(key) => void archivePage(key)}
           onRestore={(key) => void restorePage(key)}
           onToggleNavigation={(page) => void togglePageNavigation(page)}
-          onUpdate={(page) => void updatePage(page)}
+          onUpdate={updatePage}
         />
         <StyledCockpit>
-          <StyledCockpitTitle>Seu cockpit inicial de receita</StyledCockpitTitle>
+          <StyledCockpitTitle>
+            Seu cockpit inicial de {operationLabel.toLowerCase()}
+          </StyledCockpitTitle>
           <StyledSubtitle>
-            A pergunta operacional é: qual ação gera mais receita hoje?
+            A pergunta operacional é:{' '}
+            {protectsRevenue
+              ? 'qual ação protege mais receita hoje?'
+              : 'qual ação gera mais resultado hoje?'}
           </StyledSubtitle>
           <StyledCockpitMetrics>
-            <StyledCockpitMetric>
-              <StyledCockpitValue>
-                {formatPipelineValue(
-                  readiness?.dashboard.pipelineValueMicros ?? 0,
-                  readiness?.dashboard.pipelineCurrencyCode ?? 'BRL',
-                )}
-              </StyledCockpitValue>
-              <StyledCockpitLabel>Valor no pipeline</StyledCockpitLabel>
-            </StyledCockpitMetric>
-            <StyledCockpitMetric>
-              <StyledCockpitValue>
-                {readiness?.dashboard.unassignedOpportunities ?? 0}
-              </StyledCockpitValue>
-              <StyledCockpitLabel>Oportunidades sem responsável</StyledCockpitLabel>
-            </StyledCockpitMetric>
+            {hasOpportunityFlow ? (
+              <>
+                <StyledCockpitMetric>
+                  <StyledCockpitValue>
+                    {formatPipelineValue(
+                      readiness?.dashboard.pipelineValueMicros ?? 0,
+                      readiness?.dashboard.pipelineCurrencyCode ?? 'BRL',
+                    )}
+                  </StyledCockpitValue>
+                  <StyledCockpitLabel>Valor no pipeline</StyledCockpitLabel>
+                </StyledCockpitMetric>
+                <StyledCockpitMetric>
+                  <StyledCockpitValue>
+                    {readiness?.dashboard.unassignedOpportunities ?? 0}
+                  </StyledCockpitValue>
+                  <StyledCockpitLabel>
+                    Oportunidades sem responsável
+                  </StyledCockpitLabel>
+                </StyledCockpitMetric>
+              </>
+            ) : (
+              <>
+                <StyledCockpitMetric>
+                  <StyledCockpitValue>
+                    {readiness?.counts.conversations ?? 0}
+                  </StyledCockpitValue>
+                  <StyledCockpitLabel>
+                    Entradas acompanhadas
+                  </StyledCockpitLabel>
+                </StyledCockpitMetric>
+                <StyledCockpitMetric>
+                  <StyledCockpitValue>
+                    {readiness?.counts.activeOwners ?? 0}
+                  </StyledCockpitValue>
+                  <StyledCockpitLabel>
+                    Responsáveis ativos
+                  </StyledCockpitLabel>
+                </StyledCockpitMetric>
+              </>
+            )}
             <StyledCockpitMetric>
               <StyledCockpitValue>
                 {readiness?.dashboard.overdueFollowUps ?? 0}
               </StyledCockpitValue>
-              <StyledCockpitLabel>Follow-ups vencidos</StyledCockpitLabel>
+              <StyledCockpitLabel>Ações vencidas</StyledCockpitLabel>
             </StyledCockpitMetric>
             <StyledCockpitMetric>
               <StyledCockpitValue>
                 {readiness?.dashboard.unansweredLeads ?? 0}
               </StyledCockpitValue>
-              <StyledCockpitLabel>Leads sem resposta</StyledCockpitLabel>
+              <StyledCockpitLabel>Entradas sem resposta</StyledCockpitLabel>
             </StyledCockpitMetric>
             <StyledCockpitMetric>
               <StyledCockpitValue>
@@ -477,7 +551,7 @@ export const DiexFirstStepsPage = () => {
               <StyledCockpitValue>
                 {readiness?.dashboard.commercialRisks ?? 0}
               </StyledCockpitValue>
-              <StyledCockpitLabel>Riscos comerciais</StyledCockpitLabel>
+              <StyledCockpitLabel>Riscos da operação</StyledCockpitLabel>
             </StyledCockpitMetric>
           </StyledCockpitMetrics>
           <StyledActions>
@@ -489,14 +563,14 @@ export const DiexFirstStepsPage = () => {
               />
             ) : null}
             <Button
-              title="Abrir Inbox Comercial"
+              title={`Abrir Inbox da ${operationLabel}`}
               variant="secondary"
-              onClick={() => navigate('/diex/pages/inbox-commercial')}
+              onClick={() => navigate(inboxRoute)}
             />
             <Button
-              title="Abrir cockpit comercial"
+              title="Abrir cockpit da operação"
               variant="secondary"
-              onClick={() => navigate('/diex/pages/commercial-intelligence')}
+              onClick={() => navigate(cockpitRoute)}
             />
           </StyledActions>
         </StyledCockpit>
@@ -520,13 +594,14 @@ export const DiexFirstStepsPage = () => {
           <StyledModalContent>
             <StyledModalTitle>
               <IconSparkles size={24} color={themeCssVariables.color.blue} />
-              Seu CRM está pronto para vender.
+              {readyLabel}.
             </StyledModalTitle>
             <StyledModalText>
               O contexto foi ativado, a arquitetura foi aprovada, o canal recebeu
-              uma conversa real, a empresa foi vinculada e a IA classificou o
-              lead com resposta sugerida. O sistema criou oportunidade,
-              responsável e follow-up; o cockpit já mostra a próxima ação comercial.
+              uma conversa real, identificou o contato e a IA classificou a
+              intenção. O sistema definiu o responsável, criou a próxima ação
+              {hasOpportunityFlow ? ' e vinculou a oportunidade' : ''}; o cockpit
+              já mostra a prioridade da operação.
             </StyledModalText>
             <Button
               title="Ir para a plataforma"

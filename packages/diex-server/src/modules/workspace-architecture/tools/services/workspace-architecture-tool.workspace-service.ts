@@ -266,14 +266,14 @@ export class WorkspaceArchitectureToolWorkspaceService {
       },
       get_workspace_setup_readiness: {
         description:
-          'Calcula o mesmo readiness comercial usado pelo onboarding e pelo cockpit: contexto, oferta, pipeline, responsáveis, WhatsApp, primeira oportunidade, follow-up e triagem.',
+          'Calcula o mesmo readiness adaptativo usado pelo onboarding e pelo cockpit: contexto, oferta, fluxo, responsáveis, canal, primeira entrada, primeiro registro, próxima ação e leitura da IA.',
         inputSchema: emptyInputSchema,
         execute: async () =>
           this.workspaceCommercialReadinessService.getReadiness(workspaceId),
       },
       get_workspace_onboarding_evidence: {
         description:
-          'Retorna a trilha durável de marcos e eventos reconciliados do onboarding comercial. Somente leitura; custo de IA zero.',
+          'Retorna a trilha durável de marcos, primeiro valor e eventos reconciliados da ativação da operação. Somente leitura; custo de IA zero.',
         inputSchema: emptyInputSchema,
         execute: async () =>
           (await this.workspaceArchitectureService.getOnboardingEvidence(
@@ -357,10 +357,7 @@ export class WorkspaceArchitectureToolWorkspaceService {
         inputSchema: z.object({
           planId: z.string().trim().min(1),
           headers: z.array(z.string().trim().min(1)).min(1).max(100),
-          rows: z
-            .array(z.record(z.string(), z.unknown()))
-            .min(1)
-            .max(500),
+          rows: z.array(z.record(z.string(), z.unknown())).min(1).max(500),
         }),
         execute: async ({
           planId,
@@ -399,14 +396,14 @@ export class WorkspaceArchitectureToolWorkspaceService {
       },
       get_workspace_adaptive_drift: {
         description:
-          'Compara perfil, blueprint aprovado, catálogo adaptativo, contratos de páginas e itens obrigatórios para encontrar drift antes de perder leads ou deixar uma tela sem direção. Somente leitura; custo de IA zero.',
+          'Compara perfil, blueprint aprovado, catálogo adaptativo, contratos de páginas e itens obrigatórios para encontrar drift antes de perder uma entrada ou deixar uma tela sem direção. Somente leitura; custo de IA zero.',
         inputSchema: emptyInputSchema,
         execute: async () =>
           this.workspaceArchitectureService.getAdaptiveDrift(workspaceId),
       },
       create_workspace_page: {
         description:
-          'Cria uma página operacional personalizada para este workspace. A página é criada como proposta da IA e começa com estado seguro, sem alterar metadados nativos.',
+          'Cria e publica imediatamente uma página operacional personalizada, sem alterar metadados nativos. Use somente quando um operador com permissão DATA_MODEL pedir explicitamente para aplicar a criação; para recomendações, não execute esta ferramenta.',
         inputSchema: z.object({
           label: z.string().trim().min(2).describe('Nome da página.'),
           description: z
@@ -414,9 +411,16 @@ export class WorkspaceArchitectureToolWorkspaceService {
             .trim()
             .min(1)
             .optional()
-            .describe('Decisão ou ação comercial que a página deve apoiar.'),
+            .describe('Decisão ou ação da operação que a página deve apoiar.'),
           renderer: z
-            .enum(['INBOX', 'DASHBOARD', 'PIPELINE', 'CALENDAR', 'OPERATIONS', 'CUSTOM'])
+            .enum([
+              'INBOX',
+              'DASHBOARD',
+              'PIPELINE',
+              'CALENDAR',
+              'OPERATIONS',
+              'CUSTOM',
+            ])
             .optional(),
           icon: z.string().trim().min(1).optional(),
           navigationGroup: z.string().trim().min(1).optional(),
@@ -458,7 +462,7 @@ export class WorkspaceArchitectureToolWorkspaceService {
       },
       update_workspace_page: {
         description:
-          'Atualiza nome, descrição, renderer, blocos, fontes de dados, posição ou visibilidade no menu de qualquer página adaptativa deste workspace. Rotas nativas, dados e exclusão das páginas essenciais continuam protegidos.',
+          'Atualiza e publica imediatamente nome, descrição, renderer, blocos, fontes de dados, posição ou visibilidade no menu. Use somente após pedido explícito de um operador com permissão DATA_MODEL. Rotas nativas, dados e exclusão das páginas essenciais continuam protegidos.',
         inputSchema: z.object({
           key: z.string().min(1).describe('Chave da página.'),
           label: z.string().trim().min(2).optional(),
@@ -466,7 +470,14 @@ export class WorkspaceArchitectureToolWorkspaceService {
           showInNavigation: z.boolean().optional(),
           position: z.number().int().nonnegative().optional(),
           renderer: z
-            .enum(['INBOX', 'DASHBOARD', 'PIPELINE', 'CALENDAR', 'OPERATIONS', 'CUSTOM'])
+            .enum([
+              'INBOX',
+              'DASHBOARD',
+              'PIPELINE',
+              'CALENDAR',
+              'OPERATIONS',
+              'CUSTOM',
+            ])
             .optional(),
           icon: z.string().trim().min(1).optional(),
           navigationGroup: z.string().trim().min(1).optional(),
@@ -520,14 +531,14 @@ export class WorkspaceArchitectureToolWorkspaceService {
       },
       archive_workspace_page: {
         description:
-          'Arquiva uma página recomendada ou personalizada de forma reversível. Nunca remove páginas essenciais nem dados.',
+          'Arquiva imediatamente uma página recomendada ou personalizada de forma reversível, somente após pedido explícito de um operador com permissão DATA_MODEL. Nunca remove páginas essenciais nem dados.',
         inputSchema: z.object({ key: z.string().min(1) }),
         execute: async ({ key }: { key: string }) =>
           this.workspaceArchitectureService.archivePage(workspaceId, key),
       },
       restore_workspace_page: {
         description:
-          'Restaura uma página arquivada e a devolve ao menu adaptativo.',
+          'Restaura imediatamente uma página arquivada e a devolve ao menu adaptativo, somente após pedido explícito de um operador com permissão DATA_MODEL.',
         inputSchema: z.object({ key: z.string().min(1) }),
         execute: async ({ key }: { key: string }) =>
           this.workspaceArchitectureService.restorePage(workspaceId, key),
@@ -590,7 +601,7 @@ export class WorkspaceArchitectureToolWorkspaceService {
           sourceDescription: z
             .string()
             .min(1)
-            .describe('Descrição aberta da operação comercial.'),
+            .describe('Descrição aberta da operação e do resultado desejado.'),
         }),
         execute: async ({ sourceDescription }: { sourceDescription: string }) =>
           this.workspaceArchitectureService.extractOperationProfileFromText({
@@ -600,7 +611,7 @@ export class WorkspaceArchitectureToolWorkspaceService {
       },
       update_workspace_ai_context: {
         description:
-          'Atualiza o contexto de IA do workspace com novos objetivos, restrições ou termos comerciais.',
+          'Atualiza o contexto de IA do workspace com novos objetivos, restrições, regras, ofertas ou termos da operação.',
         inputSchema: z.object({
           aiContext: z
             .record(z.string(), z.unknown())
@@ -618,7 +629,7 @@ export class WorkspaceArchitectureToolWorkspaceService {
       },
       explain_workspace_recommendation: {
         description:
-          'Gera uma explicação em linguagem comercial e acessível sobre as recomendações do blueprint, destacando o valor econômico, sem expor JSONs ou metadados brutos.',
+          'Gera uma explicação acessível sobre as recomendações do blueprint, destacando impacto operacional e valor econômico, sem expor JSONs ou metadados brutos.',
         inputSchema: z.object({
           version: z
             .number()

@@ -17,10 +17,6 @@ export const buildMcpServerCard = ({
   description:
     'Operate sales, Inbox, Customer Success, renewals, tasks, notes and custom CRM objects from AI assistants. Tools are discovered at runtime and isolated by the authenticated Diex workspace.',
   websiteUrl: 'https://bydiex.com',
-  repository: {
-    url: 'https://github.com/phdev7/twenty',
-    source: 'github',
-  },
   remotes: [
     {
       type: 'streamable-http',

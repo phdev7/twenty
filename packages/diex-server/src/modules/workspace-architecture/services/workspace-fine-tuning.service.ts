@@ -255,9 +255,33 @@ export class WorkspaceFineTuningService {
     return report;
   }
 
-  public registerFineTunedModel(modelId: string) {
+  public registerFineTunedModel(
+    modelId: string,
+    evaluationReport?: FineTuningEvaluationReport,
+  ) {
     const isAvailableInRegistry =
       this.aiModelRegistryService.getModel(modelId) !== undefined;
+
+    if (!evaluationReport || evaluationReport.evaluationStatus !== 'EVALUATED') {
+      return {
+        modelId,
+        registered: false,
+        fallbackModelId: AUTO_SELECT_SMART_MODEL_ID,
+        status: 'BLOCKED_EVALUATION_REQUIRED',
+        reason:
+          'Um modelo específico só pode ser publicado depois de benchmark versionado, avaliação por nicho e aprovação explícita.',
+      };
+    }
+
+    if (!evaluationReport.passed) {
+      return {
+        modelId,
+        registered: false,
+        fallbackModelId: AUTO_SELECT_SMART_MODEL_ID,
+        status: 'BLOCKED_EVALUATION_FAILED',
+        reason: 'O relatório de avaliação não atingiu os critérios de segurança e qualidade.',
+      };
+    }
 
     this.logger.log(
       `Modelo ${modelId} ${isAvailableInRegistry ? 'encontrado' : 'não encontrado'} no AI Model Registry; nenhum registro artificial foi criado.`,

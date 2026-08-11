@@ -223,14 +223,14 @@ export class WorkspaceApprovalService {
       await repository.save(
         repository.create({
           name: 'Contexto inicial do cadastro',
-          status: WorkspaceContextStatus.ACTIVE,
+          status: WorkspaceContextStatus.DRAFT,
           businessDescription: { markdown: businessDescription },
           idealCustomerProfile: { markdown: idealCustomerProfile },
           toneOfVoice: { markdown: toneOfVoice },
           commercialRules: commercialRules
             ? { markdown: commercialRules }
             : null,
-          reviewedAt: new Date(),
+          reviewedAt: null,
         }),
       );
     }, authContext);

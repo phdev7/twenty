@@ -68,14 +68,19 @@ export const DiexNavigationSection = () => {
     const [nextReadiness, nextPageCatalog] = await Promise.all([
       getDiexOnboardingRoute<ReadinessResponse>(
         '/rest/diex/onboarding/readiness',
-      ),
+      ).catch(() => null),
       getDiexOnboardingRoute<DiexPageCatalogState>(
         '/rest/diex/onboarding/pages',
-      ),
+      ).catch(() => null),
     ]);
 
-    setReadiness(nextReadiness);
-    setPageCatalog(nextPageCatalog);
+    if (nextReadiness) {
+      setReadiness(nextReadiness);
+    }
+
+    if (nextPageCatalog) {
+      setPageCatalog(nextPageCatalog);
+    }
   }, []);
 
   useEffect(() => {
@@ -111,7 +116,10 @@ export const DiexNavigationSection = () => {
           usedRoutes.add(item.route);
           items.push({
             label: item.label,
-            to: item.route,
+            to:
+              item.key === 'first-steps'
+                ? item.nativeRoute ?? '/diex/first-steps'
+                : item.route,
             Icon: getDiexNavigationIcon(item.icon),
             group: item.navigationGroup,
           });
@@ -129,45 +137,20 @@ export const DiexNavigationSection = () => {
       return catalogLinks;
     }
 
-    const links: DiexNavigationLink[] = [
-      ...(!readiness?.ready
-        ? [
-            {
-              label: 'Primeiros passos',
-              to: '/diex/pages/first-steps',
-              Icon: IconRocket,
-              group: 'Ativação',
-            },
-          ]
-        : []),
+    return [
       {
-        label: 'Inbox Comercial',
-        to: '/diex/pages/inbox-commercial',
-        Icon: IconBrandWhatsapp,
-        group: 'Receita',
+        label: 'Configurar operação',
+        to: '/diex/first-steps',
+        Icon: IconRocket,
+        group: 'Ativação',
       },
       {
-        label: 'Inteligência Comercial',
-        to: '/diex/pages/commercial-intelligence',
-        Icon: IconChartLine,
-        group: 'Receita',
-      },
-      {
-        label: 'Agenda',
-        to: '/diex/pages/calendar',
-        Icon: IconCalendar,
-        group: 'Execução',
+        label: 'Páginas e menu',
+        to: '/diex/pages',
+        Icon: IconSettings,
+        group: 'Configuração',
       },
     ];
-
-    links.push({
-      label: 'Páginas e menu',
-      to: '/diex/pages',
-      Icon: IconSettings,
-      group: 'Configuração',
-    });
-
-    return links;
   }, [pageCatalog, readiness?.ready]);
 
   const groupedLinks = links.reduce<Record<string, DiexNavigationLink[]>>(

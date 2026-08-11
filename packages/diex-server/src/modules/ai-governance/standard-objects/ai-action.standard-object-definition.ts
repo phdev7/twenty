@@ -151,6 +151,11 @@ export const AiActionStandardObjectDefinition = {
   description:
     'Proposta rastreável da IA com evidência, aprovação humana e recibo de execução.',
   icon: 'IconRobot',
+  // Lifecycle fields are controlled by the governed propose/review/execute
+  // endpoints. The generic record UI must not create or mutate an approval
+  // receipt outside that state machine.
+  isUICreatable: false,
+  isUIEditable: false,
   labelIdentifierFieldMetadataUniversalIdentifier:
     AI_ACTION_NAME_FIELD_UNIVERSAL_IDENTIFIER,
   fields: [

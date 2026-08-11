@@ -27,6 +27,7 @@ import { type CodeExecutionStreamEmitter } from 'src/engine/core-modules/tool-pr
 import { CodeInterpreterService } from 'src/engine/core-modules/code-interpreter/code-interpreter.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
+import { AI_GOVERNED_METADATA_MUTATION_TOOL_NAMES } from 'src/engine/core-modules/tool-provider/constants/ai-governed-metadata-mutation-tool-names.constant';
 import { ToolRegistryService } from 'src/engine/core-modules/tool-provider/services/tool-registry.service';
 import {
   createExecuteToolTool,
@@ -156,10 +157,14 @@ export class ChatExecutionService {
       onCodeExecutionUpdate,
     };
 
-    const toolCatalog = await this.toolRegistry.buildToolIndex(
-      workspace.id,
-      roleId,
-      { userId, userWorkspaceId, locale },
+    const toolCatalog = (
+      await this.toolRegistry.buildToolIndex(workspace.id, roleId, {
+        userId,
+        userWorkspaceId,
+        locale,
+      })
+    ).filter(
+      ({ name }) => !AI_GOVERNED_METADATA_MUTATION_TOOL_NAMES.has(name),
     );
 
     const skillCatalog = await this.skillService.findAllFlatSkills(
@@ -171,7 +176,9 @@ export class ChatExecutionService {
     );
 
     const preloadedTools = await this.toolRegistry.getToolsByName(
-      AI_CHAT_TOOL_NAMES_TO_PRELOAD,
+      AI_CHAT_TOOL_NAMES_TO_PRELOAD.filter(
+        (name) => !AI_GOVERNED_METADATA_MUTATION_TOOL_NAMES.has(name),
+      ),
       toolContext,
       { compactOutput: true, spillLargeOutput: true },
     );
@@ -223,12 +230,19 @@ export class ChatExecutionService {
       [LEARN_TOOLS_TOOL_NAME]: createLearnToolsTool(
         this.toolRegistry,
         toolContext,
-        { spillLargeOutput: true },
+        {
+          excludeTools: AI_GOVERNED_METADATA_MUTATION_TOOL_NAMES,
+          spillLargeOutput: true,
+        },
       ),
       [EXECUTE_TOOL_TOOL_NAME]: createExecuteToolTool(
         this.toolRegistry,
         toolContext,
-        { compactOutput: true, spillLargeOutput: true },
+        {
+          excludeTools: AI_GOVERNED_METADATA_MUTATION_TOOL_NAMES,
+          compactOutput: true,
+          spillLargeOutput: true,
+        },
       ),
       [LOAD_SKILL_TOOL_NAME]: createLoadSkillTool(
         (skillNames) =>

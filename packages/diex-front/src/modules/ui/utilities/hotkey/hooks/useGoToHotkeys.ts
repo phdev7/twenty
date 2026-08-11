@@ -24,6 +24,8 @@ export const useGoToHotkeys = ({
       navigate(location);
     },
     {
+      // Keep the listener mounted so the global callback can clear a stale
+      // sequence while the user is typing. The callback never consumes text.
       enableOnContentEditable: true,
       enableOnFormTags: true,
       preventDefault: true,

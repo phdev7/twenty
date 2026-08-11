@@ -54,9 +54,10 @@ const JOURNEY_LABELS: Record<string, string> = {
   DISCOVERY_REVIEW: 'Revisar o entendimento da operação',
   ARCHITECTURE_APPROVAL: 'Aprovar a arquitetura recomendada',
   CHANNEL_CONNECTION: 'Conectar e validar o canal principal',
-  FIRST_REVENUE_FLOW: 'Executar o primeiro fluxo de receita',
+  FIRST_REVENUE_FLOW: 'Executar o primeiro fluxo de resultado',
   TEAM_ENABLEMENT: 'Configurar a equipe para operar',
   COCKPIT_OPERATIONAL: 'Abrir o cockpit com dados acionáveis',
+  READY: 'CRM pronto para operar',
   SELLING_READY: 'CRM pronto para vender',
 };
 
@@ -137,56 +138,61 @@ type DiexOnboardingReadinessCardProps = {
 export const DiexOnboardingReadinessCard = ({
   readiness,
   isLoading,
-}: DiexOnboardingReadinessCardProps) => (
-  <StyledCard>
-    <StyledHeader>
-      <StyledTitle>Pronto para vender</StyledTitle>
-      {readiness ? (
-        <DiexOnboardingBadge tone={readiness.ready ? 'green' : 'orange'}>
-          {readiness.ready ? 'Pronto para vender' : 'Em preparação'}
-        </DiexOnboardingBadge>
-      ) : null}
-    </StyledHeader>
-    <StyledScore>
-      {isLoading && !readiness
-        ? 'Calculando evidências comerciais...'
-        : `${readiness?.score ?? 0}% concluído · ${readiness?.activation?.completedCount ?? 0}/${readiness?.activation?.totalCount ?? readiness?.items.length ?? 0} provas · Próxima ação: ${readiness?.nextAction ?? 'carregar onboarding'}`}
-    </StyledScore>
-    <StyledProgress>
-      <StyledProgressValue score={readiness?.score ?? 0} />
-    </StyledProgress>
-    {readiness?.onboardingJourney ? (
-      <StyledJourney>
-        <StyledJourneyLabel>
-          Fase {readiness.onboardingJourney.phaseIndex + 1} ·{' '}
-          {JOURNEY_LABELS[readiness.onboardingJourney.phase] ??
-            readiness.onboardingJourney.phase}
-        </StyledJourneyLabel>
-        <StyledScore>{readiness.onboardingJourney.nextAction}</StyledScore>
-        {readiness.onboardingJourney.blockers.length > 0 ? (
-          <StyledScore>
-            Bloqueios atuais:{' '}
-            {readiness.onboardingJourney.blockers
-              .map(
-                (blocker) =>
-                  readiness.items.find(({ key }) => key === blocker)?.label ??
-                  blocker,
-              )
-              .join(' · ')}
-          </StyledScore>
+}: DiexOnboardingReadinessCardProps) => {
+  const readyLabel =
+    readiness?.readinessPack?.readyLabel ?? 'CRM pronto para vender';
+
+  return (
+    <StyledCard>
+      <StyledHeader>
+        <StyledTitle>{readyLabel}</StyledTitle>
+        {readiness ? (
+          <DiexOnboardingBadge tone={readiness.ready ? 'green' : 'orange'}>
+            {readiness.ready ? readyLabel : 'Em preparação'}
+          </DiexOnboardingBadge>
         ) : null}
-      </StyledJourney>
-    ) : null}
-    <StyledItems>{readiness?.items.map(renderItem)}</StyledItems>
-    {readiness?.tracks?.length ? (
-      <StyledTracks>
-        {readiness.tracks.map((track) => (
-          <StyledTrack key={track.key}>
-            {track.label}: {track.score}%
-            {track.selected ? '' : ' · disponível'}
-          </StyledTrack>
-        ))}
-      </StyledTracks>
-    ) : null}
-  </StyledCard>
-);
+      </StyledHeader>
+      <StyledScore>
+        {isLoading && !readiness
+          ? 'Calculando evidências da operação...'
+          : `${readiness?.score ?? 0}% concluído · ${readiness?.activation?.completedCount ?? 0}/${readiness?.activation?.totalCount ?? readiness?.items.length ?? 0} provas · Próxima ação: ${readiness?.nextAction ?? 'carregar onboarding'}`}
+      </StyledScore>
+      <StyledProgress>
+        <StyledProgressValue score={readiness?.score ?? 0} />
+      </StyledProgress>
+      {readiness?.onboardingJourney ? (
+        <StyledJourney>
+          <StyledJourneyLabel>
+            Fase {readiness.onboardingJourney.phaseIndex + 1} ·{' '}
+            {JOURNEY_LABELS[readiness.onboardingJourney.phase] ??
+              readiness.onboardingJourney.phase}
+          </StyledJourneyLabel>
+          <StyledScore>{readiness.onboardingJourney.nextAction}</StyledScore>
+          {readiness.onboardingJourney.blockers.length > 0 ? (
+            <StyledScore>
+              Bloqueios atuais:{' '}
+              {readiness.onboardingJourney.blockers
+                .map(
+                  (blocker) =>
+                    readiness.items.find(({ key }) => key === blocker)?.label ??
+                    blocker,
+                )
+                .join(' · ')}
+            </StyledScore>
+          ) : null}
+        </StyledJourney>
+      ) : null}
+      <StyledItems>{readiness?.items.map(renderItem)}</StyledItems>
+      {readiness?.tracks?.length ? (
+        <StyledTracks>
+          {readiness.tracks.map((track) => (
+            <StyledTrack key={track.key}>
+              {track.label}: {track.score}%
+              {track.selected ? '' : ' · disponível'}
+            </StyledTrack>
+          ))}
+        </StyledTracks>
+      ) : null}
+    </StyledCard>
+  );
+};

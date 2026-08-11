@@ -37,6 +37,4 @@ export const workspaceImportBatchSchema = z.object({
   error: z.string().nullable(),
 });
 
-export type WorkspaceImportBatch = z.infer<
-  typeof workspaceImportBatchSchema
->;
+export type WorkspaceImportBatch = z.infer<typeof workspaceImportBatchSchema>;

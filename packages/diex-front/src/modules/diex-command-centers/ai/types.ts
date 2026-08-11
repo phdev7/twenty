@@ -56,7 +56,7 @@ export type AiActionExecutionPreview =
       executionKind: 'TASK';
       actionId: string;
       task: {
-        id: string;
+        id: string | null;
         title: string;
         dueAt: string;
         assignee: DiexNamedRecord;

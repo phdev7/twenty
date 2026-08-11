@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { isNonEmptyString } from '@sniptt/guards';
-import { type Repository } from 'typeorm';
+import { In, type Repository } from 'typeorm';
 
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { GlobalWorkspaceOrmManager } from 'src/engine/diex-orm/global-workspace-datasource/global-workspace-orm.manager';
@@ -18,6 +18,10 @@ import { OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-obj
 import { TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
 import { DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
 import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
+import {
+  type WorkspaceReadinessCriterion,
+  type WorkspaceReadinessPack,
+} from 'src/modules/workspace-architecture/types/workspace-readiness-pack';
 
 type CommercialRepositories = {
   aiActionRepository: WorkspaceRepository<AiActionWorkspaceEntity>;
@@ -59,17 +63,18 @@ export class WorkspaceCommercialReadinessService {
       defaultTeam,
       workspace,
       currentOnboardingEvidence,
-    ] =
-      await Promise.all([
-        this.getWorkspaceContext(workspaceId),
-        repositories.offerRepository.count({ where: { status: 'ACTIVE' } }),
-        repositories.teamRepository.findOne({
-          where: { status: 'ACTIVE', isDefault: true },
-          relations: { memberships: true },
-        }),
-        this.workspaceRepository.findOne({ where: { id: workspaceId } }),
-        this.workspaceArchitectureService.getOnboardingEvidence(workspaceId),
-      ]);
+      readinessPack,
+    ] = await Promise.all([
+      this.getWorkspaceContext(workspaceId),
+      repositories.offerRepository.count({ where: { status: 'ACTIVE' } }),
+      repositories.teamRepository.findOne({
+        where: { status: 'ACTIVE', isDefault: true },
+        relations: { memberships: true },
+      }),
+      this.workspaceRepository.findOne({ where: { id: workspaceId } }),
+      this.workspaceArchitectureService.getOnboardingEvidence(workspaceId),
+      this.workspaceArchitectureService.getWorkspaceReadinessPack(workspaceId),
+    ]);
     const firstConversation =
       await this.findFirstInboundCommercialConversation(repositories);
     const firstFollowUpTask = firstConversation
@@ -78,19 +83,27 @@ export class WorkspaceCommercialReadinessService {
           order: { createdAt: 'ASC' },
         })
       : null;
-    const firstFollowUpCount = firstConversation
-      ? await repositories.taskRepository.count({
-          where: { diexInboxConversationId: firstConversation.id },
-        })
-      : 0;
     const firstAiAction = firstConversation
       ? await repositories.aiActionRepository.findOne({
           where: {
             inboxConversationId: firstConversation.id,
             actionType: 'REPLY',
+            status: In([
+              'PENDING_APPROVAL',
+              'APPROVED',
+              'EXECUTING',
+              'EXECUTED',
+            ]),
           },
+          order: { createdAt: 'ASC' },
         })
       : null;
+    const hasValidAiTriage = Boolean(
+      firstAiAction &&
+        isNonEmptyString(firstAiAction.rationale?.markdown) &&
+        isNonEmptyString(firstAiAction.proposedAction?.markdown) &&
+        firstAiAction.confidence !== null,
+    );
     const cockpitAggregates =
       await this.getCommercialCockpitAggregates(repositories);
     const [profile, blueprint, changeSet, pageCatalog] = await Promise.all([
@@ -132,22 +145,28 @@ export class WorkspaceCommercialReadinessService {
     ).length;
     const adaptiveReview =
       await this.workspaceArchitectureService.getAdaptiveDrift(workspaceId);
-    const activeCockpitPages = pageCatalog.items.filter(
-      (page) => page.status === 'ACTIVE' && page.showInNavigation,
+    const cockpitPages = pageCatalog.items.filter(
+      (page) =>
+        page.status === 'ACTIVE' &&
+        (page.renderer === 'DASHBOARD' ||
+          /(cockpit|dashboard|intelligence|overview)/.test(page.key) ||
+          page.capabilities.some((capability) =>
+            /(analytics|cockpit|dashboard|intelligence|reporting)/.test(
+              capability,
+            ),
+          )),
     );
-    const cockpitOperational =
-      activeCockpitPages.length > 0 &&
-      !adaptiveReview.drift.some(({ severity }) => severity === 'BLOCKED') &&
-      activeCockpitPages.every(
-        (page) =>
-          page.capabilityContract !== null &&
-          page.dataContracts.length > 0 &&
-          page.actions.length > 0 &&
-          page.blocks.every(
+    const cockpitOperational = cockpitPages.some(
+      (page) =>
+        page.capabilityContract !== null &&
+        page.actions.length > 0 &&
+        page.blocks.length > 0 &&
+        (page.dataContracts.length > 0 ||
+          page.blocks.some(
             (block) =>
               block.dataContracts.length > 0 && block.actions.length > 0,
-          ),
-      );
+          )),
+    );
     const contextActive =
       context?.status === WorkspaceContextStatus.ACTIVE &&
       isNonEmptyString(context.businessDescription?.markdown) &&
@@ -175,128 +194,106 @@ export class WorkspaceCommercialReadinessService {
       (changeSet?.status === 'PARTIALLY_APPLIED' &&
         blueprint?.status === 'PARTIALLY_APPLIED' &&
         hasPipelinePublication);
-    const goal = workspace?.onboardingPrimaryGoal ?? 'SELL_MORE';
-    const goalWeights: Record<string, Record<string, number>> = {
-      SELL_MORE: {
-        context_active: 1,
-        offer_registered: 2,
-        ideal_customer_defined: 2,
-        pipeline_approved: 2,
-        owners_defined: 1,
-        channel_connected: 2,
-        first_conversation_received: 2,
-        first_company_linked: 2,
-        first_opportunity_created: 3,
-        first_follow_up_created: 3,
-        first_ai_triage_completed: 2,
-      },
-      RESPOND_FASTER: {
-        channel_connected: 3,
-        first_conversation_received: 3,
-        first_ai_triage_completed: 3,
-        owners_defined: 2,
-        first_follow_up_created: 1,
-      },
-      ORGANIZE_WHATSAPP: {
-        channel_connected: 3,
-        first_conversation_received: 3,
-        first_company_linked: 2,
-        owners_defined: 2,
-        pipeline_approved: 1,
-      },
-      CONTROL_FOLLOWUPS: {
-        first_follow_up_created: 4,
-        owners_defined: 2,
-        pipeline_approved: 2,
-        first_opportunity_created: 2,
-        channel_connected: 1,
-      },
-      CUSTOMER_SUCCESS_RENEWALS: {
-        context_active: 2,
-        offer_registered: 2,
-        ideal_customer_defined: 2,
-        owners_defined: 3,
-        first_follow_up_created: 3,
-        pipeline_approved: 2,
-      },
+    const goal = workspace?.onboardingPrimaryGoal ?? null;
+    const profilePayload =
+      profile?.payload && typeof profile.payload === 'object'
+        ? (profile.payload as Record<string, unknown>)
+        : {};
+    const readTextList = (key: string): string[] =>
+      Array.isArray(profilePayload[key])
+        ? profilePayload[key].filter(
+            (value): value is string =>
+              typeof value === 'string' && value.trim().length > 0,
+          )
+        : [];
+    const profileSignals = [
+      ...readTextList('responsibilityRules'),
+      ...readTextList('commercialRules'),
+      ...readTextList('restrictions'),
+      ...readTextList('approvalRules'),
+    ]
+      .join(' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+    const teamSignals = readTextList('teamAndRoles')
+      .join(' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+    const activeCapabilityIds = new Set(
+      pageCatalog.items
+        .filter(({ status }) => status === 'ACTIVE')
+        .flatMap(({ capabilities }) => capabilities),
+    );
+    const architectureApproved =
+      ['ACTIVE', 'PARTIALLY_APPLIED'].includes(String(blueprint?.status)) &&
+      ['ACTIVE', 'PARTIALLY_APPLIED'].includes(String(changeSet?.status));
+    const genericCriterionReady = (criterion: WorkspaceReadinessCriterion) => {
+      const { key } = criterion;
+
+      if (key === 'context_active') return contextActive;
+      if (key === 'goal_defined') return isNonEmptyString(goal);
+      if (key === 'ideal_customer_defined') {
+        return isNonEmptyString(context?.idealCustomerProfile?.markdown);
+      }
+      if (key === 'offer_registered') return activeOfferCount > 0;
+      if (key === 'architecture_approved') return architectureApproved;
+      if (key === 'pipeline_approved') return pipelineApproved;
+      if (key === 'owners_defined') return activeMembershipCount > 0;
+      if (key === 'channel_connected') {
+        return currentOnboardingEvidence?.channel.state === 'CONNECTED';
+      }
+      if (key === 'first_conversation_received') {
+        return firstConversation !== null;
+      }
+      if (key === 'first_contact_identified') {
+        return Boolean(firstConversation?.personId);
+      }
+      if (key === 'first_company_linked') {
+        return Boolean(firstConversation?.companyId);
+      }
+      if (key === 'first_opportunity_created') {
+        return Boolean(firstConversation?.opportunityId);
+      }
+      if (key === 'first_follow_up_created') {
+        return Boolean(firstFollowUpTask?.id && firstFollowUpTask.assigneeId);
+      }
+      if (key === 'first_ai_triage_completed') return hasValidAiTriage;
+      if (key === 'cockpit_operational') return cockpitOperational;
+      if (key === 'routing_rule_published') {
+        return (
+          activeMembershipCount > 1 &&
+          /(distribu|rotea|fila|carteira|round robin)/.test(profileSignals)
+        );
+      }
+      if (key === 'sla_defined') return readTextList('slaTargets').length > 0;
+      if (key === 'approval_matrix_defined') {
+        return readTextList('approvalRules').length > 0;
+      }
+      if (key === 'required_fields_validated') return architectureApproved;
+      if (key === 'scheduling_configured') {
+        return activeCapabilityIds.has('scheduling');
+      }
+      if (key === 'responsavel_tecnica_definida') {
+        return /(responsavel|tecnica|profissional|diretor|gestor)/.test(
+          teamSignals,
+        );
+      }
+      if (key === 'base_legal_de_contato_registrada') {
+        return /(base legal|consent|opt.?in|contrato|legitimo interesse|tutela da saude|obrigacao legal|autoriz)/.test(
+          profileSignals,
+        );
+      }
+      if (key.endsWith('_configured')) {
+        return activeCapabilityIds.has(key.replace(/_configured$/, ''));
+      }
+
+      return false;
     };
-    const items = [
-      {
-        key: 'context_active',
-        label: 'Contexto comercial ativo',
-        ready: contextActive,
-        required: true,
-      },
-      {
-        key: 'offer_registered',
-        label: 'Produto ou oferta cadastrada',
-        ready: activeOfferCount > 0,
-        required: true,
-      },
-      {
-        key: 'ideal_customer_defined',
-        label: 'Cliente ideal definido',
-        ready: isNonEmptyString(context?.idealCustomerProfile?.markdown),
-        required: true,
-      },
-      {
-        key: 'pipeline_approved',
-        label: 'Pipeline aprovado e publicado',
-        ready: pipelineApproved,
-        required: true,
-      },
-      {
-        key: 'owners_defined',
-        label: 'Responsáveis definidos',
-        ready: activeMembershipCount > 0,
-        required: true,
-      },
-      {
-        key: 'channel_connected',
-        label: 'WhatsApp conectado e saudável',
-        ready: currentOnboardingEvidence?.channel.state === 'CONNECTED',
-        required: true,
-      },
-      {
-        key: 'first_conversation_received',
-        label: 'Primeira conversa recebida',
-        ready: firstConversation !== null,
-        required: true,
-      },
-      {
-        key: 'first_company_linked',
-        label: 'Empresa vinculada ao primeiro lead',
-        ready: Boolean(firstConversation?.companyId),
-        required: true,
-      },
-      {
-        key: 'first_opportunity_created',
-        label: 'Primeira oportunidade criada',
-        ready: Boolean(firstConversation?.opportunityId),
-        required: true,
-      },
-      {
-        key: 'first_follow_up_created',
-        label: 'Primeiro follow-up criado',
-        ready: firstFollowUpCount > 0,
-        required: true,
-      },
-      {
-        key: 'first_ai_triage_completed',
-        label: 'Triagem com IA e resposta sugerida',
-        ready: firstAiAction !== null,
-        required: true,
-      },
-      {
-        key: 'cockpit_operational',
-        label: 'Cockpit inicial operacional',
-        ready: cockpitOperational,
-        required: true,
-      },
-    ].map((item) => ({
-      ...item,
-      weight: goalWeights[goal]?.[item.key] ??
-        (item.key === 'cockpit_operational' ? 2 : 1),
+    const items = readinessPack.criteria.map((criterion) => ({
+      ...criterion,
+      ready: genericCriterionReady(criterion),
     }));
     const totalWeight = items.reduce((total, item) => total + item.weight, 0);
     const completedWeight = items.reduce(
@@ -316,8 +313,7 @@ export class WorkspaceCommercialReadinessService {
       for (const capability of page.capabilities) {
         if (
           selectedCapabilityIds.includes(capability) &&
-          (!adaptiveCapabilityPages.has(capability) ||
-            page.status === 'ACTIVE')
+          (!adaptiveCapabilityPages.has(capability) || page.status === 'ACTIVE')
         ) {
           adaptiveCapabilityPages.set(capability, {
             label: page.label,
@@ -329,26 +325,24 @@ export class WorkspaceCommercialReadinessService {
 
     const tracks = [
       {
-        key: 'sales',
-        label: 'Vendas',
+        key: 'operation',
+        label: readinessPack.operationLabel,
         selected: true,
         items,
       },
-      ...[...adaptiveCapabilityPages.entries()].map(
-        ([capability, page]) => ({
-          key: `capability_${capability}`,
-          label: page.label,
-          selected: true,
-          items: [
-            {
-              key: `${capability}_page`,
-              label: `Página de ${page.label} disponível`,
-              ready: page.status === 'ACTIVE',
-              required: true,
-            },
-          ],
-        }),
-      ),
+      ...[...adaptiveCapabilityPages.entries()].map(([capability, page]) => ({
+        key: `capability_${capability}`,
+        label: page.label,
+        selected: true,
+        items: [
+          {
+            key: `${capability}_page`,
+            label: `Página de ${page.label} disponível`,
+            ready: page.status === 'ACTIVE',
+            required: true,
+          },
+        ],
+      })),
     ].map((track) => {
       const trackWeight = track.items.reduce(
         (total, item) => total + (item.weight ?? 1),
@@ -372,26 +366,82 @@ export class WorkspaceCommercialReadinessService {
         | { operationManifest?: { version?: number } }
         | undefined
     )?.operationManifest;
-    const evidenceRecordIds: Record<string, string | null> = {
+    const knownEvidenceRecordIds: Record<string, string | null> = {
       context_active: context?.id ?? null,
-      offer_registered: null,
+      goal_defined: goal,
+      offer_registered: activeOfferCount > 0 ? 'offer:active' : null,
       ideal_customer_defined: context?.id ?? null,
+      architecture_approved: changeSet?.id ?? null,
       pipeline_approved: changeSet?.id ?? null,
       owners_defined: defaultTeam?.id ?? null,
       channel_connected:
         currentOnboardingEvidence?.channel.instanceName ?? null,
       first_conversation_received: firstConversation?.id ?? null,
+      first_contact_identified: firstConversation?.personId ?? null,
       first_company_linked: firstConversation?.companyId ?? null,
       first_opportunity_created: firstConversation?.opportunityId ?? null,
-      first_follow_up_created: firstFollowUpTask?.id ?? null,
-      first_ai_triage_completed: firstAiAction?.id ?? null,
+      first_follow_up_created:
+        firstFollowUpTask?.id && firstFollowUpTask.assigneeId
+          ? firstFollowUpTask.id
+          : null,
+      first_ai_triage_completed: hasValidAiTriage
+        ? firstAiAction?.id ?? null
+        : null,
       cockpit_operational: cockpitOperational
         ? `setup-state:${pageCatalog.version}`
         : null,
     };
+    const evidenceRecordIds = Object.fromEntries(
+      items.map(({ key }) => [key, knownEvidenceRecordIds[key] ?? null]),
+    );
+    const firstValueCriteria = items.filter(
+      (criterion) => criterion.firstValue,
+    );
+    const firstValueRunSteps = firstValueCriteria.map((criterion) => ({
+      key: criterion.key,
+      label: criterion.label,
+      ready: criterion.ready,
+      recordId: evidenceRecordIds[criterion.key] ?? null,
+      source: criterion.source,
+      occurredAt: criterion.ready
+        ? currentOnboardingEvidence?.milestones.find(
+            ({ key }) => key === criterion.key,
+          )?.firstSeenAt ?? new Date().toISOString()
+        : null,
+    }));
+    const firstValueRunReady = firstValueRunSteps.every(({ ready }) => ready);
+    const firstValueRunStarted = firstValueRunSteps.some(({ ready }) => ready);
+    const previousFirstValueRun = currentOnboardingEvidence?.firstValueRun;
+    const firstValueRun = {
+      id: `diex-first-value:${workspaceId}`,
+      correlationId:
+        firstConversation?.id ??
+        firstConversation?.opportunityId ??
+        `workspace:${workspaceId}`,
+      goal,
+      status: firstValueRunReady
+        ? ('COMPLETED' as const)
+        : firstValueRunSteps.some(({ ready }) => ready)
+          ? ('IN_PROGRESS' as const)
+          : ('NOT_STARTED' as const),
+      startedAt:
+        previousFirstValueRun &&
+        previousFirstValueRun.status !== 'NOT_STARTED'
+          ? previousFirstValueRun.startedAt
+          : firstValueRunStarted
+            ? new Date().toISOString()
+            : new Date(0).toISOString(),
+      completedAt: firstValueRunReady
+        ? previousFirstValueRun?.completedAt ??
+          new Date().toISOString()
+        : null,
+      steps: firstValueRunSteps,
+    };
     const onboardingEvidence =
       await this.workspaceArchitectureService.reconcileOnboardingEvidence({
         workspaceId,
+        readinessCriteria: readinessPack.criteria,
+        firstValueRun,
         milestones: items.map(({ key, ready }) => ({
           key,
           ready,
@@ -399,14 +449,15 @@ export class WorkspaceCommercialReadinessService {
         })),
       });
     return {
-      ready: onboardingEvidence.journey.phase === 'SELLING_READY',
+      ready: onboardingEvidence.journey.phase === 'READY',
       score: totalWeight
         ? Math.round((completedWeight / totalWeight) * 100)
         : 100,
       items,
       tracks,
       nextAction: onboardingEvidence.journey.nextAction,
-      goal: workspace?.onboardingPrimaryGoal ?? null,
+      goal,
+      readinessPack,
       counts: {
         activeOffers: activeOfferCount,
         activeOwners: activeMembershipCount,
@@ -428,10 +479,11 @@ export class WorkspaceCommercialReadinessService {
         firstConversationId: firstConversation?.id ?? null,
         firstCompanyLinked: Boolean(firstConversation?.companyId),
         firstOpportunityId: firstConversation?.opportunityId ?? null,
-        firstFollowUpCreated: firstFollowUpCount > 0,
-        firstAiTriageCompleted: firstAiAction !== null,
-        whatsappValidatedByMessage:
-          firstConversation?.channel === 'WHATSAPP',
+        firstFollowUpCreated: Boolean(
+          firstFollowUpTask?.id && firstFollowUpTask.assigneeId,
+        ),
+        firstAiTriageCompleted: hasValidAiTriage,
+        whatsappValidatedByMessage: firstConversation?.channel === 'WHATSAPP',
         primaryChannel: firstConversation?.channel ?? null,
         channelValidation: {
           status: firstConversation
@@ -451,6 +503,7 @@ export class WorkspaceCommercialReadinessService {
       },
       activation: onboardingEvidence.activation,
       onboardingJourney: onboardingEvidence.journey,
+      firstValueRun: onboardingEvidence.firstValueRun,
       adaptiveReview,
       architecture: {
         profileStatus: profile?.status ?? null,
@@ -534,9 +587,7 @@ export class WorkspaceCommercialReadinessService {
       conversations: toNumber(conversationAggregate?.conversations),
       opportunities: toNumber(opportunityAggregate?.opportunities),
       followUps: toNumber(taskAggregate?.followUps),
-      pipelineValueMicros: toNumber(
-        opportunityAggregate?.pipelineValueMicros,
-      ),
+      pipelineValueMicros: toNumber(opportunityAggregate?.pipelineValueMicros),
       unassignedOpportunities: toNumber(
         opportunityAggregate?.unassignedOpportunities,
       ),
@@ -545,9 +596,7 @@ export class WorkspaceCommercialReadinessService {
       averageResponseMinutes:
         conversationAggregate?.averageResponseMinutes == null
           ? null
-          : Math.round(
-              toNumber(conversationAggregate.averageResponseMinutes),
-            ),
+          : Math.round(toNumber(conversationAggregate.averageResponseMinutes)),
       nextActions: toNumber(taskAggregate?.nextActions),
       commercialRisks: toNumber(opportunityAggregate?.commercialRisks),
     };
@@ -627,9 +676,25 @@ export class WorkspaceCommercialReadinessService {
   private async findFirstInboundCommercialConversation(
     repositories: CommercialRepositories,
   ) {
+    const inboundMessages = await repositories.messageRepository.find({
+      where: { direction: 'INBOUND' },
+      order: { sentAt: 'ASC' },
+      take: 2_000,
+    });
+    const conversationIds = [
+      ...new Set(
+        inboundMessages
+          .map(({ inboxConversationId }) => inboxConversationId)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0),
+      ),
+    ];
+
+    if (conversationIds.length === 0) {
+      return null;
+    }
+
     const conversations = await repositories.conversationRepository.find({
-      order: { createdAt: 'ASC' },
-      take: 500,
+      where: { id: In(conversationIds) } as never,
     });
     const channelPriority: Record<string, number> = {
       WHATSAPP: 0,
@@ -644,19 +709,16 @@ export class WorkspaceCommercialReadinessService {
 
       return priorityDifference !== 0
         ? priorityDifference
-        : Date.parse(String(left.createdAt)) - Date.parse(String(right.createdAt));
+        : Date.parse(String(left.createdAt)) -
+            Date.parse(String(right.createdAt));
     });
 
-    for (const conversation of orderedConversations) {
-      const inboundMessage = await repositories.messageRepository.findOne({
-        where: {
-          inboxConversationId: conversation.id,
-          direction: 'INBOUND',
-        },
-        order: { sentAt: 'ASC' },
-      });
+    const firstInboundConversationIds = new Set(
+      inboundMessages.map(({ inboxConversationId }) => inboxConversationId),
+    );
 
-      if (inboundMessage) {
+    for (const conversation of orderedConversations) {
+      if (firstInboundConversationIds.has(conversation.id)) {
         return conversation;
       }
     }

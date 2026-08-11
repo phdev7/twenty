@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { createHash } from 'node:crypto';
@@ -15,6 +15,7 @@ import { FindRecordsService } from 'src/engine/core-modules/record-crud/services
 import { type ObjectRecordProperties } from 'src/engine/core-modules/record-crud/types/object-record-properties.type';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
+import { getWorkspaceAuthContext } from 'src/engine/core-modules/auth/storage/workspace-auth-context.storage';
 import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
 import { AiModelRegistryService } from 'src/engine/metadata-modules/ai/ai-models/services/ai-model-registry.service';
 import { FieldMetadataService } from 'src/engine/metadata-modules/field-metadata/services/field-metadata.service';
@@ -99,6 +100,11 @@ import {
   type WorkspaceTemplateDefinition,
 } from 'src/modules/workspace-architecture/types/workspace-template.type';
 import {
+  buildWorkspaceReadinessPack,
+  type WorkspaceReadinessCriterion,
+  type WorkspaceReadinessPack,
+} from 'src/modules/workspace-architecture/types/workspace-readiness-pack';
+import {
   type WorkspaceDeclarativeMaterializationStatus,
   WorkspaceDeclarativeAdapterRegistry,
 } from 'src/modules/workspace-architecture/services/workspace-declarative-adapter.registry';
@@ -152,6 +158,7 @@ export type WorkspacePageDataSource = {
   source: string;
   kind: WorkspacePageDataContract['kind'];
   objectName: string | null;
+  dataClassification: WorkspacePageDataContract['dataClassification'];
   records: unknown[];
   count: number | null;
   fallback: string;
@@ -212,12 +219,14 @@ const tokenize = (value: string): string[] =>
 const includesCriterion = (tokens: string[], criterion: string): boolean => {
   const criterionTokens = tokenize(criterion);
 
-  return criterionTokens.length > 0 &&
+  return (
+    criterionTokens.length > 0 &&
     tokens.some((_, index) =>
       criterionTokens.every(
         (token, offset) => tokens[index + offset] === token,
       ),
-    );
+    )
+  );
 };
 
 const DIEX_CORE_PAGE_KEYS = new Set([
@@ -298,6 +307,86 @@ const readConfigurationStrings = (
           typeof item === 'string' && item.trim().length > 0,
       )
     : [];
+};
+
+const UNIVERSAL_OPERATION_OBJECT_NAMES = new Set([
+  'person',
+  'company',
+  'opportunity',
+  'task',
+  'inboxConversation',
+  'diexWorkspaceContext',
+]);
+
+const getAdaptiveDefaultDataSources = (
+  metadataObjects: WorkspacePageMetadataObject[],
+  pageContext: string,
+): string[] => {
+  const pageTokens = new Set(
+    tokenize(pageContext).filter(
+      (token) =>
+        token.length >= 3 &&
+        ![
+          'acao',
+          'acoes',
+          'dados',
+          'gestao',
+          'operacao',
+          'operacional',
+          'pagina',
+          'proxima',
+          'proximo',
+          'visao',
+        ].includes(token),
+    ),
+  );
+  const customObjects = metadataObjects.filter(
+    ({ isCustom, nameSingular }) =>
+      isCustom || !UNIVERSAL_OPERATION_OBJECT_NAMES.has(nameSingular),
+  );
+  const scoredObjects = customObjects
+    .map((object, sourcePosition) => {
+      const objectTokens = new Set(
+        tokenize(
+          `${object.nameSingular} ${object.namePlural} ${object.labelSingular}`,
+        ),
+      );
+      const score = [...pageTokens].reduce(
+        (total, pageToken) =>
+          total +
+          ([...objectTokens].some(
+            (objectToken) =>
+              objectToken === pageToken ||
+              (pageToken.length >= 4 &&
+                objectToken.length >= 4 &&
+                (objectToken.startsWith(pageToken.slice(0, 4)) ||
+                  pageToken.startsWith(objectToken.slice(0, 4)))),
+          )
+            ? 1
+            : 0),
+        0,
+      );
+
+      return { object, score, sourcePosition };
+    })
+    .sort(
+      (left, right) =>
+        right.score - left.score || left.sourcePosition - right.sourcePosition,
+    );
+  const semanticMatches = scoredObjects.filter(({ score }) => score > 0);
+  const customSources = [
+    ...new Set(
+      semanticMatches
+        .map(
+          ({ object }) => object.labelSingular || object.nameSingular,
+        )
+        .filter((value) => value.trim().length > 0),
+    ),
+  ].slice(0, 4);
+
+  return customSources.length > 0
+    ? [...customSources, 'tarefas']
+    : ['contatos', 'empresas', 'oportunidades', 'tarefas'];
 };
 
 const PAGE_RENDERERS = new Set([
@@ -383,7 +472,9 @@ export class WorkspaceArchitectureService {
       where: { id: workspaceId },
     });
     const resolvedModelId =
-      modelId ?? workspace?.fastModel ?? this.aiModelRegistryService.getDefaultSpeedModel().modelId;
+      modelId ??
+      workspace?.fastModel ??
+      this.aiModelRegistryService.getDefaultSpeedModel().modelId;
 
     if (workspace) {
       this.aiModelRegistryService.validateModelAvailability(
@@ -402,18 +493,18 @@ export class WorkspaceArchitectureService {
       const result = await generateText({
         model: registeredModel.model,
         system: [
-          'Você é o Arquiteto de Operação Comercial do Diex CRM.',
+          'Você é o Arquiteto de Operação do Diex.',
           'Conduza uma entrevista curta e transforme a resposta livre em um perfil operacional estruturado para qualquer nicho.',
           'Extraia somente fatos presentes no texto. Não invente preços, margens, concorrentes, garantias, metas, canais ou regras.',
           'Quando uma informação relevante não estiver comprovada, use null ou lista vazia e registre a lacuna em unconfirmedInformation.',
           'Use hypotheses apenas para inferências reversíveis e sempre escreva a hipótese como hipótese.',
-          'Dê prioridade a produtos e ofertas, cliente ideal, aquisição, processo de vendas, ciclo, objeções, provas, CTA, tom de voz, regras comerciais, promessas proibidas, responsáveis, metas, SLA e integrações.',
+          'Dê prioridade a produtos e ofertas, público ideal, aquisição, processo de atendimento ou vendas, ciclo, objeções, provas, CTA, tom de voz, regras da operação, promessas proibidas, responsáveis, metas, SLA e integrações.',
           'Descreva capacidades que possam orientar objetos, campos, pipeline, páginas, métricas, automações e permissões sem prender a empresa a um nicho fixo.',
-          'A recomendação deve ser útil para gerar o primeiro lead, oportunidade e follow-up, mas nunca deve fingir que esses eventos já aconteceram.',
+          'A recomendação deve ser útil para gerar a primeira entrada, o primeiro registro e a próxima ação, mas nunca deve fingir que esses eventos já aconteceram.',
           'Responda em português do Brasil, com texto objetivo.',
         ].join(' '),
         prompt: [
-          `Objetivo comercial selecionado: ${commercialGoal?.trim() || 'a definir'}`,
+          `Objetivo prioritário selecionado: ${commercialGoal?.trim() || 'a definir'}`,
           'Descrição da operação fornecida pelo cliente:',
           normalizedDescription,
           'Antes de estruturar, identifique mentalmente as lacunas que mudariam a configuração. Não faça perguntas no lugar do JSON; registre as perguntas objetivas em unconfirmedInformation.',
@@ -548,6 +639,51 @@ export class WorkspaceArchitectureService {
 
       return template;
     });
+    const selectionCorpus = tokenize(JSON.stringify(operationProfile));
+    const selectionSegmentCorpus = tokenize(
+      [operationProfile.segment ?? '', ...operationProfile.businessModels].join(
+        ' ',
+      ),
+    );
+    const selectionEvidence = (template: WorkspaceTemplateDefinition) => {
+      const matchedCriteria = template.activationCriteria.filter((criterion) =>
+        includesCriterion(selectionCorpus, criterion),
+      );
+      const matchedSegments = template.compatibleSegments.filter(
+        (segment) =>
+          segment === '*' || includesCriterion(selectionSegmentCorpus, segment),
+      );
+      const excludedBy = (template.exclusionCriteria ?? []).filter((criterion) =>
+        includesCriterion(selectionCorpus, criterion),
+      );
+      const isDependency = template.dependencies.some((dependency) =>
+        selectedTemplateIds.includes(dependency),
+      );
+      const confidence =
+        template.kind === 'BASE'
+          ? 100
+          : Math.round(
+              Math.min(
+                100,
+                Math.max(
+                  35,
+                  (matchedCriteria.length > 0 ? 60 : 0) +
+                    (matchedSegments.length > 0 ? 20 : 0) +
+                    (isDependency ? 15 : 0),
+                ),
+              ),
+            );
+
+      return {
+        matchedCriteria,
+        matchedSegments,
+        excludedBy,
+        confidence,
+        requiresConfirmation:
+          template.id === 'diex.business.healthcare-clinic' ||
+          confidence < 60,
+      };
+    };
     const compose = (
       key: keyof Pick<
         (typeof selectedTemplates)[number],
@@ -614,16 +750,26 @@ export class WorkspaceArchitectureService {
       profileVersion,
       operationProfile,
       operationManifest,
-      selectedTemplates: selectedTemplates.map((template, index) => ({
-        id: template.id,
-        version: template.version,
-        reason:
-          template.kind === 'BASE'
-            ? 'Fundação obrigatória do Diex CRM.'
-            : `Compatível com a operação descrita: ${template.activationCriteria.slice(0, 3).join(', ')}.`,
-        confidence: index === 0 ? 100 : 80,
-        optional: template.kind === 'CAPABILITY',
-      })),
+      selectedTemplates: selectedTemplates.map((template) => {
+        const evidence = selectionEvidence(template);
+
+        return {
+          id: template.id,
+          version: template.version,
+          reason:
+            template.kind === 'BASE'
+              ? 'Fundação obrigatória do Diex CRM.'
+              : evidence.matchedCriteria.length > 0
+                ? `Compatível com evidências da operação: ${evidence.matchedCriteria.slice(0, 3).join(', ')}.`
+                : `Incluído como dependência estrutural da operação: ${template.dependencies.slice(0, 3).join(', ')}.`,
+          confidence: evidence.confidence,
+          optional: template.kind === 'CAPABILITY',
+          matchedCriteria: evidence.matchedCriteria,
+          matchedSegments: evidence.matchedSegments,
+          excludedBy: evidence.excludedBy,
+          requiresConfirmation: evidence.requiresConfirmation,
+        };
+      }),
       objects: components.objects,
       fields: components.fields,
       relations: components.relations,
@@ -655,13 +801,21 @@ export class WorkspaceArchitectureService {
       ],
       glossary,
       aiInstructions: [
-        ...new Set(selectedTemplates.flatMap(({ aiInstructions }) => aiInstructions)),
+        ...new Set(
+          selectedTemplates.flatMap(({ aiInstructions }) => aiInstructions),
+        ),
       ],
       forbiddenRules: [
-        ...new Set(selectedTemplates.flatMap(({ forbiddenRules }) => forbiddenRules)),
+        ...new Set(
+          selectedTemplates.flatMap(({ forbiddenRules }) => forbiddenRules),
+        ),
       ],
       readinessCriteria: [
-        ...new Set(selectedTemplates.flatMap(({ readinessCriteria }) => readinessCriteria)),
+        ...new Set(
+          selectedTemplates.flatMap(
+            ({ readinessCriteria }) => readinessCriteria,
+          ),
+        ),
       ],
       selectedCapabilities: selectedTemplates
         .filter(({ kind }) => kind === 'CAPABILITY')
@@ -745,12 +899,17 @@ export class WorkspaceArchitectureService {
           .filter(
             ({ objectMetadataId }) => objectMetadataId === objectMetadata.id,
           )
-          .map(({ id, name, label, type, isNullable }) => ({
+          .map(({ id, name, label, type, isNullable, options }) => ({
             id,
             name,
             label,
             type,
             isNullable: isNullable ?? false,
+            options: (options ?? []).map(({ value, label, position }) => ({
+              value,
+              label,
+              position,
+            })),
           })),
       })),
       views: activeValues(flatViewMaps.byUniversalIdentifier).map(
@@ -764,7 +923,9 @@ export class WorkspaceArchitectureService {
       pageLayouts: Object.values(flatPageLayoutMaps.byUniversalIdentifier)
         .filter(isDefined)
         .map(({ id, name, type }) => ({ id, name, type })),
-      navigation: Object.values(flatNavigationMenuItemMaps.byUniversalIdentifier)
+      navigation: Object.values(
+        flatNavigationMenuItemMaps.byUniversalIdentifier,
+      )
         .filter(isDefined)
         .map(({ id, name, type, position }) => ({ id, name, type, position })),
       agents: Object.values(flatAgentMaps.byUniversalIdentifier)
@@ -817,17 +978,17 @@ export class WorkspaceArchitectureService {
       idexterno: 'externalid',
       externalid: 'externalid',
     };
-    const fieldByToken = new Map<
-      string,
-      (typeof object.fields)[number]
-    >();
+    const fieldByToken = new Map<string, (typeof object.fields)[number]>();
     for (const field of object.fields) {
       fieldByToken.set(normalized(field.name), field);
       fieldByToken.set(normalized(field.label), field);
     }
     const mappingConfidence = (
       header: string,
-    ): { field: (typeof object.fields)[number] | null; confidence: 'EXACT' | 'ALIAS' | 'UNMAPPED' } => {
+    ): {
+      field: (typeof object.fields)[number] | null;
+      confidence: 'EXACT' | 'ALIAS' | 'UNMAPPED';
+    } => {
       const exact = fieldByToken.get(normalized(header));
 
       if (exact) {
@@ -858,14 +1019,10 @@ export class WorkspaceArchitectureService {
       };
     });
     const mappedFieldNames = new Set(
-      mappings.flatMap(({ targetField }) =>
-        targetField ? [targetField] : [],
-      ),
+      mappings.flatMap(({ targetField }) => (targetField ? [targetField] : [])),
     );
     const dedupeKeys = object.fields
-      .filter(({ name }) =>
-        ['email', 'phone', 'externalId'].includes(name),
-      )
+      .filter(({ name }) => ['email', 'phone', 'externalId'].includes(name))
       .filter(({ name }) => mappedFieldNames.has(name))
       .map(({ name }) => name);
     const requiredFieldsWithoutMapping = object.fields
@@ -878,7 +1035,9 @@ export class WorkspaceArchitectureService {
     const warnings = [
       ...mappings
         .filter(({ confidence }) => confidence === 'UNMAPPED')
-        .map(({ sourceHeader }) => `Coluna sem correspondência: ${sourceHeader}.`),
+        .map(
+          ({ sourceHeader }) => `Coluna sem correspondência: ${sourceHeader}.`,
+        ),
       ...(dedupeKeys.length === 0
         ? ['Nenhuma chave segura de deduplicação foi encontrada.']
         : []),
@@ -1034,7 +1193,9 @@ export class WorkspaceArchitectureService {
     }
 
     if (rows.length > 500) {
-      throw new Error('A importação inicial aceita no máximo 500 linhas por lote.');
+      throw new Error(
+        'A importação inicial aceita no máximo 500 linhas por lote.',
+      );
     }
 
     const artifact = await this.getImportBatchByPlanId(workspaceId, planId);
@@ -1058,7 +1219,9 @@ export class WorkspaceArchitectureService {
 
     const normalizedHeaders = normalizeImportHeaders(headers);
 
-    if (JSON.stringify(normalizedHeaders) !== JSON.stringify(batch.plan.headers)) {
+    if (
+      JSON.stringify(normalizedHeaders) !== JSON.stringify(batch.plan.headers)
+    ) {
       throw new Error(
         'Os cabeçalhos enviados não correspondem à prévia aprovada. Gere uma nova prévia.',
       );
@@ -1076,7 +1239,9 @@ export class WorkspaceArchitectureService {
       .digest('hex');
 
     if (expectedPlanId !== planId) {
-      throw new Error('A prévia de importação não corresponde ao workspace atual.');
+      throw new Error(
+        'A prévia de importação não corresponde ao workspace atual.',
+      );
     }
 
     const records: ObjectRecordProperties[] = [];
@@ -1101,13 +1266,13 @@ export class WorkspaceArchitectureService {
         batch.plan.requiredFields.length > 0
           ? batch.plan.requiredFields
           : batch.plan.requiredFieldsWithoutMapping;
-      const missingFields = requiredFields.filter(
-        (fieldName) => {
-          const value = mappedRecord[fieldName];
+      const missingFields = requiredFields.filter((fieldName) => {
+        const value = mappedRecord[fieldName];
 
-          return value === undefined || value === null || String(value).trim() === '';
-        },
-      );
+        return (
+          value === undefined || value === null || String(value).trim() === ''
+        );
+      });
 
       if (missingFields.length > 0) {
         rowErrors.push({
@@ -1154,9 +1319,7 @@ export class WorkspaceArchitectureService {
         errorDetails: { markdown: validationError },
       });
 
-      throw new Error(
-        validationError,
-      );
+      throw new Error(validationError);
     }
 
     if (records.length === 0) {
@@ -1250,7 +1413,8 @@ export class WorkspaceArchitectureService {
         skippedRows,
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha na importação.';
+      const message =
+        error instanceof Error ? error.message : 'Falha na importação.';
       const rollbackFailedRecordIds: string[] = [];
 
       for (const recordId of createdRecordIds) {
@@ -1480,7 +1644,9 @@ export class WorkspaceArchitectureService {
               },
           blockedReason:
             object ||
-            objectOperations.some(({ resourceKey }) => resourceKey === objectKey)
+            objectOperations.some(
+              ({ resourceKey }) => resourceKey === objectKey,
+            )
               ? null
               : `O objeto ${objectKey} será criado antes deste campo ou não foi encontrado.`,
         };
@@ -1529,7 +1695,11 @@ export class WorkspaceArchitectureService {
       ...buildDeclarativeOperations(blueprint.blocks, 'PAGE_LAYOUT'),
       ...buildDeclarativeOperations(blueprint.navigation, 'NAVIGATION'),
       ...buildDeclarativeOperations(blueprint.dashboards, 'DASHBOARD'),
-      ...buildDeclarativeOperations(blueprint.automations, 'WORKFLOW', 'MEDIUM'),
+      ...buildDeclarativeOperations(
+        blueprint.automations,
+        'WORKFLOW',
+        'MEDIUM',
+      ),
       ...buildDeclarativeOperations(blueprint.roles, 'ROLE', 'MEDIUM'),
       ...buildDeclarativeOperations(
         blueprint.integrations,
@@ -1561,12 +1731,13 @@ export class WorkspaceArchitectureService {
         resourceKey: 'workspace-ai-operating-context',
         label: 'Contexto operacional da IA',
         reason: 'Mantém a IA alinhada ao manifesto aprovado da operação.',
-        impact: 'Evita respostas genéricas e ações baseadas em contexto antigo.',
+        impact:
+          'Evita respostas genéricas e ações baseadas em contexto antigo.',
         dependencies: [],
         reversible: true,
         risk: 'MEDIUM' as const,
         requiresMigration: false,
-        dataImpact: 'Nenhum registro comercial é alterado.',
+        dataImpact: 'Nenhum registro operacional é alterado.',
         requiredPermission: 'AI_CONFIGURATION',
         currentState: null,
         desiredState: {
@@ -1692,6 +1863,56 @@ export class WorkspaceArchitectureService {
     return parsed?.success ? parsed.data : DEFAULT_WORKSPACE_AI_POLICY;
   }
 
+  async getWorkspaceReadinessPack(
+    workspaceId: string,
+  ): Promise<WorkspaceReadinessPack> {
+    const [workspace, profileArtifact, blueprintArtifact] = await Promise.all([
+      this.workspaceRepository.findOne({ where: { id: workspaceId } }),
+      this.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.OPERATION_PROFILE,
+      ),
+      this.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.BLUEPRINT,
+      ),
+    ]);
+    const profile = profileArtifact
+      ? workspaceOperationProfileSchema.safeParse(profileArtifact.payload)
+      : null;
+    const blueprint = blueprintArtifact
+      ? workspaceBlueprintSchema.safeParse(blueprintArtifact.payload)
+      : null;
+    const selectedTemplateIds = blueprint?.success
+      ? blueprint.data.selectedTemplates.map(({ id }) => id)
+      : ['diex.base.universal'];
+    const templates = selectedTemplateIds
+      .map((id) => WORKSPACE_TEMPLATE_BY_ID.get(id))
+      .filter((template): template is WorkspaceTemplateDefinition => Boolean(template));
+
+    if (templates.length === 0) {
+      const baseTemplate = WORKSPACE_TEMPLATE_BY_ID.get('diex.base.universal');
+
+      if (baseTemplate) {
+        templates.push(baseTemplate);
+      }
+    }
+
+    return buildWorkspaceReadinessPack({
+      templates,
+      goal: workspace?.onboardingPrimaryGoal,
+      teamCount: profile?.success ? profile.data.teamCount : null,
+      hasSlaTargets:
+        profile?.success === true && profile.data.slaTargets.length > 0,
+      hasApprovalRules:
+        profile?.success === true && profile.data.approvalRules.length > 0,
+      operationLabel:
+        profile?.success === true
+          ? profile.data.segment ?? profile.data.businessModels[0] ?? null
+          : null,
+    });
+  }
+
   async recordWhatsappChannelHealth({
     workspaceId,
     state,
@@ -1708,6 +1929,8 @@ export class WorkspaceArchitectureService {
     instanceName: string | null;
     message: string;
   }): Promise<WorkspaceOnboardingEvidence> {
+    const readinessPack = await this.getWorkspaceReadinessPack(workspaceId);
+
     return this.cacheLockService.withRenewableLock(
       async () => {
         const artifact = await this.getLatestArtifact(
@@ -1748,7 +1971,7 @@ export class WorkspaceArchitectureService {
           lastCheckedAt: now,
           validatedAt:
             state === 'CONNECTED'
-              ? previousChannel?.validatedAt ?? now
+              ? (previousChannel?.validatedAt ?? now)
               : (previousChannel?.validatedAt ?? null),
           lastError: state === 'UNAVAILABLE' ? message : null,
         };
@@ -1769,15 +1992,17 @@ export class WorkspaceArchitectureService {
         const journey = deriveWorkspaceOnboardingJourney({
           milestones: current?.milestones ?? [],
           previousJourney,
+          readinessCriteria: readinessPack.criteria,
           now,
         });
         const nextEvidence = workspaceOnboardingEvidenceSchema.parse({
-          schemaVersion: '1.2.0',
+          schemaVersion: '1.3.0',
           version: (current?.version ?? 0) + 1,
           milestones: current?.milestones ?? [],
           events: [...(current?.events ?? []), event].slice(-500),
           activation: current?.activation,
           channel: nextChannel,
+          firstValueRun: current?.firstValueRun ?? null,
           journey,
           lastReconciledAt: now,
           reconciliationSource: 'evolution-connection',
@@ -1797,7 +2022,7 @@ export class WorkspaceArchitectureService {
           name: `Saúde do WhatsApp v${nextEvidence.version}`,
           summary: `Canal WhatsApp ${state.toLowerCase()} sem expor QR code ou segredo.`,
           payload: nextEvidence,
-          promptVersion: 'workspace-onboarding-evidence@1.2.0',
+          promptVersion: 'workspace-onboarding-evidence@1.3.0',
         });
 
         return nextEvidence;
@@ -1873,12 +2098,16 @@ export class WorkspaceArchitectureService {
   async reconcileOnboardingEvidence({
     workspaceId,
     milestones,
+    readinessCriteria,
+    firstValueRun,
     source = 'workspace-commercial-readiness',
   }: {
     workspaceId: string;
     milestones: Array<
       Pick<WorkspaceOnboardingEvidenceMilestone, 'key' | 'ready' | 'recordId'>
     >;
+    readinessCriteria?: WorkspaceReadinessCriterion[];
+    firstValueRun?: WorkspaceOnboardingEvidence['firstValueRun'];
     source?: string;
   }): Promise<WorkspaceOnboardingEvidence> {
     return this.cacheLockService.withRenewableLock(
@@ -1941,19 +2170,29 @@ export class WorkspaceArchitectureService {
           ({ ready }) => ready,
         ).length;
         const totalCount = nextMilestones.length;
-        const firstValueMilestone = nextMilestones.find(
-          ({ key, ready }) =>
-            ready &&
-            ['first_opportunity_created', 'first_follow_up_created'].includes(
-              key,
-            ),
+        const configuredFirstValueKeys = new Set(
+          readinessCriteria
+            ?.filter(({ firstValue }) => firstValue)
+            .map(({ key }) => key) ?? [],
         );
+        const firstValueMilestone = nextMilestones.find(({ key, ready }) => {
+          if (!ready) {
+            return false;
+          }
+
+          return configuredFirstValueKeys.size > 0
+            ? configuredFirstValueKeys.has(key)
+            : ['first_opportunity_created', 'first_follow_up_created'].includes(
+                key,
+              );
+        });
         const blockers = nextMilestones
           .filter(({ ready }) => !ready)
           .map(({ key }) => key);
         const journey = deriveWorkspaceOnboardingJourney({
           milestones: nextMilestones,
           previousJourney,
+          readinessCriteria,
           now,
         });
         const activationChanged =
@@ -1967,18 +2206,23 @@ export class WorkspaceArchitectureService {
 
         const journeyChanged =
           JSON.stringify(current?.journey ?? null) !== JSON.stringify(journey);
+        const nextFirstValueRun = firstValueRun ?? current?.firstValueRun ?? null;
+        const firstValueRunChanged =
+          JSON.stringify(current?.firstValueRun ?? null) !==
+          JSON.stringify(nextFirstValueRun);
 
         if (
           current &&
           newEvents.length === 0 &&
           !activationChanged &&
-          !journeyChanged
+          !journeyChanged &&
+          !firstValueRunChanged
         ) {
           return current;
         }
 
         const nextEvidence = workspaceOnboardingEvidenceSchema.parse({
-          schemaVersion: '1.2.0',
+          schemaVersion: '1.3.0',
           version: (current?.version ?? 0) + 1,
           milestones: nextMilestones,
           events: [...(current?.events ?? []), ...newEvents].slice(-500),
@@ -1991,6 +2235,7 @@ export class WorkspaceArchitectureService {
             firstValueAt: firstValueMilestone?.firstSeenAt ?? null,
             blockers,
           },
+          firstValueRun: nextFirstValueRun,
           journey,
           lastReconciledAt: now,
           reconciliationSource: source,
@@ -2010,7 +2255,7 @@ export class WorkspaceArchitectureService {
           name: `Evidências do onboarding v${nextEvidence.version}`,
           summary: `${nextMilestones.filter(({ ready }) => ready).length}/${nextMilestones.length} marcos comerciais confirmados.`,
           payload: nextEvidence,
-          promptVersion: 'workspace-onboarding-evidence@1.2.0',
+          promptVersion: 'workspace-onboarding-evidence@1.3.0',
         });
 
         return nextEvidence;
@@ -2087,22 +2332,23 @@ export class WorkspaceArchitectureService {
       commercialContext,
       aiPolicy,
       onboardingEvidence,
-    ] =
-      await Promise.all([
-        this.workspaceRepository.findOne({ where: { id: workspaceId } }),
-        this.getLatestArtifact(
-          workspaceId,
-          WorkspaceArchitectureArtifactType.OPERATION_PROFILE,
-        ),
-        this.getLatestArtifact(
-          workspaceId,
-          WorkspaceArchitectureArtifactType.BLUEPRINT,
-        ),
-        this.getPageCatalog(workspaceId),
-        this.getActiveCommercialContext(workspaceId),
-        this.getAiPolicy(workspaceId),
-        this.getOnboardingEvidence(workspaceId),
-      ]);
+      readinessPack,
+    ] = await Promise.all([
+      this.workspaceRepository.findOne({ where: { id: workspaceId } }),
+      this.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.OPERATION_PROFILE,
+      ),
+      this.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.BLUEPRINT,
+      ),
+      this.getPageCatalog(workspaceId),
+      this.getActiveCommercialContext(workspaceId),
+      this.getAiPolicy(workspaceId),
+      this.getOnboardingEvidence(workspaceId),
+      this.getWorkspaceReadinessPack(workspaceId),
+    ]);
     const profile = profileArtifact
       ? workspaceOperationProfileSchema.safeParse(profileArtifact.payload)
       : null;
@@ -2145,7 +2391,9 @@ export class WorkspaceArchitectureService {
       blueprintVersion: blueprintArtifact?.version ?? null,
       pageCatalogVersion: pageCatalog.version,
       onboardingJourney:
-        onboardingEvidence?.journey ?? workspaceOnboardingJourneySchema.parse(undefined),
+        onboardingEvidence?.journey ??
+        workspaceOnboardingJourneySchema.parse(undefined),
+      readinessPack,
       commercialContext,
       operationProfile,
       operationManifest: operationBlueprint?.operationManifest ?? null,
@@ -2161,7 +2409,8 @@ export class WorkspaceArchitectureService {
         forbiddenClaims: operationBlueprint?.forbiddenRules ?? [],
         unresolvedInformation:
           operationBlueprint?.operationManifest?.unresolved ??
-          operationProfile?.unconfirmedInformation ?? [],
+          operationProfile?.unconfirmedInformation ??
+          [],
       },
     };
     const contextVersion = createHash('sha256')
@@ -2266,6 +2515,7 @@ export class WorkspaceArchitectureService {
         blueprintVersion: context.blueprintVersion,
         pageCatalogVersion: context.pageCatalogVersion,
         onboardingJourney: context.onboardingJourney,
+        readinessPack: compactValue(context.readinessPack),
         commercialContext: compactValue(context.commercialContext),
         operationProfile,
         operationManifest,
@@ -2275,7 +2525,9 @@ export class WorkspaceArchitectureService {
     ].join('\n');
   }
 
-  async getPageCatalog(workspaceId: string): Promise<WorkspacePageCatalogState> {
+  async getPageCatalog(
+    workspaceId: string,
+  ): Promise<WorkspacePageCatalogState> {
     const [blueprintArtifact, profileArtifact] = await Promise.all([
       this.getLatestArtifact(
         workspaceId,
@@ -2324,11 +2576,27 @@ export class WorkspaceArchitectureService {
     const contracts = [
       ...page.dataContracts,
       ...page.blocks.flatMap((block) => block.dataContracts),
-    ].filter(
-      (contract, index, allContracts) =>
-        allContracts.findIndex(({ key }) => key === contract.key) === index,
-    ).slice(0, 24);
-    const authContext = buildSystemAuthContext(workspaceId);
+    ]
+      .filter(
+        (contract, index, allContracts) =>
+          allContracts.findIndex(({ key }) => key === contract.key) === index,
+      )
+      .slice(0, 24);
+    const authContext = (() => {
+      try {
+        return getWorkspaceAuthContext();
+      } catch {
+        throw new ForbiddenException(
+          'A leitura da página exige um membro autenticado no workspace.',
+        );
+      }
+    })();
+
+    if (authContext.workspace.id !== workspaceId) {
+      throw new ForbiddenException(
+        'A página operacional não pertence ao workspace autenticado.',
+      );
+    }
     const sources = await Promise.all(
       contracts.map(async (contract): Promise<WorkspacePageDataSource> => {
         if (!contract.objectName) {
@@ -2337,6 +2605,7 @@ export class WorkspaceArchitectureService {
             source: contract.source,
             kind: contract.kind,
             objectName: null,
+            dataClassification: contract.dataClassification,
             records: [],
             count: null,
             fallback: contract.fallback,
@@ -2357,6 +2626,7 @@ export class WorkspaceArchitectureService {
             source: contract.source,
             kind: contract.kind,
             objectName: contract.objectName,
+            dataClassification: contract.dataClassification,
             records: [],
             count: 0,
             fallback: contract.fallback,
@@ -2374,10 +2644,12 @@ export class WorkspaceArchitectureService {
             source: contract.source,
             kind: contract.kind,
             objectName: object.nameSingular,
+            dataClassification: contract.dataClassification,
             records: [],
             count: 0,
             fallback: contract.fallback,
-            error: 'O objeto ainda não possui campos publicáveis para esta página.',
+            error:
+              'O objeto ainda não possui campos publicáveis para esta página.',
           };
         }
 
@@ -2395,6 +2667,7 @@ export class WorkspaceArchitectureService {
             source: contract.source,
             kind: contract.kind,
             objectName: object.nameSingular,
+            dataClassification: contract.dataClassification,
             records: result.success ? (result.result?.records ?? []) : [],
             count: result.success ? (result.result?.count ?? 0) : 0,
             fallback: contract.fallback,
@@ -2408,6 +2681,7 @@ export class WorkspaceArchitectureService {
             source: contract.source,
             kind: contract.kind,
             objectName: object.nameSingular,
+            dataClassification: contract.dataClassification,
             records: [],
             count: 0,
             fallback: contract.fallback,
@@ -2434,8 +2708,8 @@ export class WorkspaceArchitectureService {
       profileArtifact,
       pageCatalog,
       changeSetArtifact,
-    ] =
-      await Promise.all([
+      architecture,
+    ] = await Promise.all([
         this.getLatestArtifact(
           workspaceId,
           WorkspaceArchitectureArtifactType.BLUEPRINT,
@@ -2449,11 +2723,18 @@ export class WorkspaceArchitectureService {
           workspaceId,
           WorkspaceArchitectureArtifactType.CHANGE_SET,
         ),
+        this.inspectWorkspaceArchitecture(workspaceId),
       ]);
     const blueprint = blueprintArtifact
       ? workspaceBlueprintSchema.safeParse(blueprintArtifact.payload)
       : null;
     const expectedPages = blueprint?.success ? blueprint.data.pages : [];
+    const normalizeArchitectureKey = (value: string) =>
+      value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '');
     const catalogByKey = new Map(
       pageCatalog.items.map((page) => [page.key, page]),
     );
@@ -2508,6 +2789,73 @@ export class WorkspaceArchitectureService {
       });
     }
 
+    if (blueprint?.success) {
+      for (const component of blueprint.data.objects.filter(
+        ({ required }) => required,
+      )) {
+        const expectedObjectName =
+          typeof component.configuration?.objectName === 'string'
+            ? component.configuration.objectName
+            : component.key;
+        const objectExists = architecture.objects.some((object) =>
+          [object.nameSingular, object.namePlural, object.labelSingular].some(
+            (candidate) =>
+              normalizeArchitectureKey(candidate) ===
+              normalizeArchitectureKey(expectedObjectName),
+          ),
+        );
+
+        if (!objectExists) {
+          drift.push({
+            key: `object-missing:${component.key}`,
+            severity: 'BLOCKED',
+            message: `O objeto recomendado ${component.label} não está publicado no workspace.`,
+            action:
+              'Publicar o change set aprovado ou remapear o objeto antes de usar as páginas dependentes.',
+          });
+        }
+      }
+
+      for (const component of blueprint.data.fields.filter(
+        ({ required }) => required,
+      )) {
+        const configuration = component.configuration ?? {};
+        const objectName =
+          typeof configuration.objectKey === 'string'
+            ? configuration.objectKey
+            : typeof configuration.objectName === 'string'
+              ? configuration.objectName
+              : null;
+        const fieldName =
+          typeof configuration.name === 'string'
+            ? configuration.name
+            : component.key.split('.').pop() ?? component.key;
+        const object = objectName
+          ? architecture.objects.find((candidate) =>
+              [
+                candidate.nameSingular,
+                candidate.namePlural,
+                candidate.labelSingular,
+              ].some(
+                (value) =>
+                  normalizeArchitectureKey(value) ===
+                  normalizeArchitectureKey(objectName),
+              ),
+            )
+          : null;
+
+        if (object && !object.fields.some(({ name }) => name === fieldName)) {
+          drift.push({
+            key: `field-missing:${component.key}`,
+            severity: 'BLOCKED',
+            message: `O campo recomendado ${component.label} não existe em ${object.labelSingular}.`,
+            action:
+              'Publicar o campo aprovado ou remapear o contrato para um campo existente.',
+          });
+        }
+      }
+    }
+
     for (const page of expectedPages) {
       const current = catalogByKey.get(page.key);
 
@@ -2516,14 +2864,15 @@ export class WorkspaceArchitectureService {
           key: `page-missing:${page.key}`,
           severity: page.required ? 'BLOCKED' : 'WARNING',
           message: `A página recomendada ${page.label} não está no catálogo.`,
-          action: 'Sincronizar a arquitetura aprovada com o catálogo adaptativo.',
+          action:
+            'Sincronizar a arquitetura aprovada com o catálogo adaptativo.',
         });
         continue;
       }
       if (page.required && current.status !== 'ACTIVE') {
         drift.push({
           key: `page-inactive:${page.key}`,
-          severity: 'BLOCKED',
+          severity: page.key === 'first-steps' ? 'BLOCKED' : 'WARNING',
           message: `A página obrigatória ${current.label} está ${current.status}.`,
           action: 'Restaurar a página e preservar sua posição operacional.',
         });
@@ -2541,15 +2890,55 @@ export class WorkspaceArchitectureService {
           key: `page-contract:${page.key}`,
           severity: 'WARNING',
           message: `A página ${current.label} tem componente sem contrato de dados ou ação.`,
-          action: 'Recompilar os contratos adaptativos antes de exibir a página.',
+          action:
+            'Recompilar os contratos adaptativos antes de exibir a página.',
         });
       }
-      if (current.emptyState.actionRoute !== '/diex/pages/first-steps') {
+      for (const contract of [
+        ...current.dataContracts,
+        ...current.blocks.flatMap((block) => block.dataContracts),
+      ]) {
+        if (!contract.objectName) {
+          continue;
+        }
+
+        const object = architecture.objects.find(
+          ({ nameSingular, namePlural, labelSingular }) =>
+            nameSingular === contract.objectName ||
+            namePlural === contract.objectName ||
+            labelSingular === contract.objectName,
+        );
+
+        if (!object) {
+          drift.push({
+            key: `contract-object:${page.key}:${contract.key}`,
+            severity: contract.required ? 'BLOCKED' : 'WARNING',
+            message: `O contrato ${contract.key} aponta para um objeto que não está publicado.`,
+            action: 'Remapear o contrato para um objeto existente ou publicar o objeto aprovado.',
+          });
+          continue;
+        }
+
+        const missingFields = contract.fieldNames.filter(
+          (fieldName) => !object.fields.some(({ name }) => name === fieldName),
+        );
+
+        if (missingFields.length > 0) {
+          drift.push({
+            key: `contract-fields:${page.key}:${contract.key}`,
+            severity: contract.required ? 'BLOCKED' : 'WARNING',
+            message: `O contrato ${contract.key} perdeu campos: ${missingFields.join(', ')}.`,
+            action: 'Remapear os campos ou gerar uma nova versão do contrato da página.',
+          });
+        }
+      }
+      if (current.emptyState.actionRoute !== '/diex/first-steps') {
         drift.push({
           key: `page-empty-state:${page.key}`,
           severity: 'WARNING',
           message: `A página ${current.label} encaminha um workspace vazio para uma tela operacional sem dados.`,
-          action: 'Direcionar o estado vazio para a próxima ação do onboarding comercial.',
+          action:
+            'Direcionar o estado vazio para a próxima ação da ativação operacional.',
         });
       }
     }
@@ -2558,13 +2947,14 @@ export class WorkspaceArchitectureService {
     for (const page of pageCatalog.items) {
       if (
         !expectedPageKeys.has(page.key) &&
-        page.emptyState.actionRoute !== '/diex/pages/first-steps'
+        page.emptyState.actionRoute !== '/diex/first-steps'
       ) {
         drift.push({
           key: `custom-page-empty-state:${page.key}`,
           severity: 'WARNING',
           message: `A página personalizada ${page.label} não possui uma rota segura para workspace sem dados.`,
-          action: 'Direcionar o estado vazio para a próxima ação comercial ou configurar um contrato de dados.',
+          action:
+            'Direcionar o estado vazio para a próxima ação operacional ou configurar um contrato de dados.',
         });
       }
     }
@@ -2578,7 +2968,10 @@ export class WorkspaceArchitectureService {
       blueprintVersion: blueprintArtifact?.version ?? null,
       pageCatalogVersion: pageCatalog.version,
       drift,
-      nextReview: drift.length > 0 ? 'imediata' : 'após nova aprovação ou mudança de contexto',
+      nextReview:
+        drift.length > 0
+          ? 'imediata'
+          : 'após nova aprovação ou mudança de contexto',
     };
   }
 
@@ -2622,17 +3015,15 @@ export class WorkspaceArchitectureService {
         }),
         actions: buildWorkspacePageActions({
           pageKey: `${pageKey}-${blockKey}`,
-          route:
-            block.actionRoute?.startsWith('/')
-              ? block.actionRoute
-              : '/diex/pages/first-steps',
+          route: block.actionRoute?.startsWith('/')
+            ? block.actionRoute
+            : '/diex/first-steps',
           nativeRoute: null,
         }),
         actionLabel: block.actionLabel?.trim() || 'Abrir primeiros passos',
-        actionRoute:
-          block.actionRoute?.startsWith('/')
-            ? block.actionRoute
-            : '/diex/pages/first-steps',
+        actionRoute: block.actionRoute?.startsWith('/')
+          ? block.actionRoute
+          : '/diex/first-steps',
         sourceTemplateIds: [],
         configuration: {
           pageKey,
@@ -2652,7 +3043,7 @@ export class WorkspaceArchitectureService {
     icon = 'chart',
     navigationGroup = 'Operação personalizada',
     capabilities = [],
-    dataSources = ['contatos', 'empresas', 'oportunidades', 'tarefas'],
+    dataSources,
     blocks = [],
   }: {
     workspaceId: string;
@@ -2676,13 +3067,17 @@ export class WorkspaceArchitectureService {
     const normalizedDescription =
       description?.trim() ||
       `Página operacional para acompanhar ${label.trim().toLowerCase()}.`;
-    const normalizedDataSources = dataSources.filter(
+    const normalizedDataSources = (dataSources ?? []).filter(
       (source) => source.trim().length > 0,
+    );
+    const adaptiveDefaultDataSources = getAdaptiveDefaultDataSources(
+      architecture.objects,
+      `${label} ${normalizedDescription}`,
     );
     const pageDataSources =
       normalizedDataSources.length > 0
         ? normalizedDataSources
-        : ['contatos', 'empresas', 'oportunidades', 'tarefas'];
+        : adaptiveDefaultDataSources;
     const customBlocks = this.normalizeCustomPageBlocks({
       pageKey: key,
       pageLabel: label.trim(),
@@ -2719,6 +3114,7 @@ export class WorkspaceArchitectureService {
               metadataObjects: architecture.objects,
             }),
       lifecycle: 'CUSTOM',
+      copyOrigin: aiGenerated ? 'AI' : 'USER',
       status: 'ACTIVE',
       sourceTemplateIds: [],
       primaryAction: 'Definir a próxima ação da operação',
@@ -2727,7 +3123,7 @@ export class WorkspaceArchitectureService {
         version: WORKSPACE_PAGE_CONTRACT_VERSION,
         key,
         dependencies: [...new Set([...capabilities, ...pageDataSources])],
-        fallbackRoute: '/diex/pages/first-steps',
+        fallbackRoute: '/diex/first-steps',
       },
       dataContracts: inferWorkspacePageDataContracts({
         pageKey: key,
@@ -2744,7 +3140,7 @@ export class WorkspaceArchitectureService {
         description:
           'Use esta página para centralizar decisões, próximos passos e resultados da operação.',
         actionLabel: 'Abrir primeiros passos',
-        actionRoute: '/diex/pages/first-steps',
+        actionRoute: '/diex/first-steps',
       },
       permissions: ['workspace_access'],
       aiGenerated,
@@ -2801,18 +3197,14 @@ export class WorkspaceArchitectureService {
     }
 
     if (!current.editable) {
-      throw new Error('Páginas essenciais não podem ser alteradas.');
+      throw new Error('Esta página está protegida contra edição neste workspace.');
     }
 
     const normalizedDataSources = dataSources?.filter(
       (source) => source.trim().length > 0,
     );
-    const pageDataSources =
-      normalizedDataSources && normalizedDataSources.length > 0
-        ? normalizedDataSources
-        : current.dataSources;
-    const hasUpdatedPageDataSources =
-      normalizedDataSources !== undefined && normalizedDataSources.length > 0;
+    const pageDataSources = normalizedDataSources ?? current.dataSources;
+    const hasUpdatedPageDataSources = normalizedDataSources !== undefined;
     const rebuiltBlocksFromPageSources = hasUpdatedPageDataSources
       ? current.blocks.map((block) => {
           const blockUsesPageSources =
@@ -2838,7 +3230,7 @@ export class WorkspaceArchitectureService {
           };
         })
       : null;
-    const updatedBlocks =
+    const normalizedBlocks =
       blocks !== undefined
         ? this.normalizeCustomPageBlocks({
             pageKey: current.key,
@@ -2854,8 +3246,40 @@ export class WorkspaceArchitectureService {
               blocks: rebuiltBlocksFromPageSources,
               dataSources: pageDataSources,
               metadataObjects: architecture.objects,
-            })
-        : current.blocks;
+          })
+          : current.blocks;
+    const updatedBlocks =
+      normalizedBlocks.length > 0
+        ? normalizedBlocks
+        : this.buildPageBlocks({
+            page: {
+              key: current.key,
+              label: label?.trim() || current.label,
+              description: description?.trim() || current.description,
+              required: false,
+              benefit: 'Centraliza uma decisão operacional específica.',
+              sourceTemplateIds: current.sourceTemplateIds,
+              configuration: {
+                renderer: renderer ?? current.renderer,
+              },
+            },
+            blueprintBlocks: [],
+            renderer: renderer ?? current.renderer,
+            dataSources: pageDataSources,
+            route: current.route,
+            metadataObjects: architecture.objects,
+          });
+    const hasAdaptiveContentUpdate = Boolean(
+      label?.trim() ||
+        description?.trim() ||
+        renderer ||
+        icon?.trim() ||
+        navigationGroup?.trim() ||
+        capabilities ||
+        normalizedDataSources ||
+        primaryAction?.trim() ||
+        blocks !== undefined,
+    );
     const updated = workspacePageCatalogItemSchema.parse({
       ...current,
       ...(label?.trim() ? { label: label.trim() } : {}),
@@ -2876,12 +3300,11 @@ export class WorkspaceArchitectureService {
             ),
           }
         : {}),
-      ...(normalizedDataSources && normalizedDataSources.length > 0
+      ...(normalizedDataSources !== undefined
         ? { dataSources: pageDataSources }
         : {}),
-      ...(primaryAction?.trim()
-        ? { primaryAction: primaryAction.trim() }
-        : {}),
+      ...(primaryAction?.trim() ? { primaryAction: primaryAction.trim() } : {}),
+      copyOrigin: hasAdaptiveContentUpdate ? 'USER' : current.copyOrigin,
       dataContracts: inferWorkspacePageDataContracts({
         pageKey: current.key,
         dataSources: pageDataSources,
@@ -2902,17 +3325,43 @@ export class WorkspaceArchitectureService {
           ]),
         ],
         fallbackRoute:
-          current.capabilityContract?.fallbackRoute ??
-          '/diex/pages/first-steps',
+          current.capabilityContract?.fallbackRoute ===
+          '/diex/pages/first-steps'
+            ? '/diex/first-steps'
+            : current.capabilityContract?.fallbackRoute ??
+              '/diex/first-steps',
       },
       ...(blocks !== undefined || rebuiltBlocksFromPageSources !== null
         ? { blocks: updatedBlocks }
         : {}),
     });
 
+    const nextItems = catalog.items.map((item) =>
+      item.key === key ? updated : item,
+    );
+    const reorderedItems =
+      typeof position === 'number' && position >= 0
+        ? (() => {
+            const itemsWithoutCurrent = nextItems.filter(
+              (item) => item.key !== key,
+            );
+            const targetPosition = Math.min(
+              Math.floor(position),
+              itemsWithoutCurrent.length,
+            );
+
+            itemsWithoutCurrent.splice(targetPosition, 0, updated);
+
+            return itemsWithoutCurrent.map((item, itemPosition) => ({
+              ...item,
+              position: itemPosition,
+            }));
+          })()
+        : nextItems;
+
     return this.savePageCatalog(workspaceId, {
       ...catalog,
-      items: catalog.items.map((item) => (item.key === key ? updated : item)),
+      items: reorderedItems,
       updatedAt: new Date().toISOString(),
     });
   }
@@ -2925,9 +3374,9 @@ export class WorkspaceArchitectureService {
       throw new Error('Página operacional não encontrada.');
     }
 
-    if (current.lifecycle === 'CORE') {
+    if (current.key === 'first-steps') {
       throw new Error(
-        'Páginas essenciais não podem ser excluídas; oculte apenas páginas recomendadas ou personalizadas.',
+        'A página de ativação permanece disponível para recuperar a operação. Você pode ocultá-la do menu, mas não arquivá-la.',
       );
     }
 
@@ -3127,7 +3576,8 @@ export class WorkspaceArchitectureService {
               );
             }
 
-            const current = await this.inspectWorkspaceArchitecture(workspaceId);
+            const current =
+              await this.inspectWorkspaceArchitecture(workspaceId);
             const existing =
               operation.resourceType === 'OBJECT'
                 ? current.objects.find(
@@ -3135,9 +3585,8 @@ export class WorkspaceArchitectureService {
                       nameSingular === operation.resourceKey,
                   )
                 : (() => {
-                    const [objectKey, fieldName] = operation.resourceKey.split(
-                      '.',
-                    );
+                    const [objectKey, fieldName] =
+                      operation.resourceKey.split('.');
                     const object = current.objects.find(
                       ({ nameSingular }) => nameSingular === objectKey,
                     );
@@ -3187,10 +3636,11 @@ export class WorkspaceArchitectureService {
           const pendingNativeResourceTypes = [
             ...new Set(
               manifestApplications
-                .map(({ operationId }) =>
-                  changeSet.operations.find(
-                    (operation) => operation.id === operationId,
-                  )?.resourceType,
+                .map(
+                  ({ operationId }) =>
+                    changeSet.operations.find(
+                      (operation) => operation.id === operationId,
+                    )?.resourceType,
                 )
                 .filter((resourceType): resourceType is string =>
                   Boolean(resourceType),
@@ -3225,10 +3675,9 @@ export class WorkspaceArchitectureService {
               failedOperationIds: [],
             },
           };
-          const publicationStatus =
-            publication.pendingNativeMaterialization
-              ? ('PARTIALLY_APPLIED' as const)
-              : ('ACTIVE' as const);
+          const publicationStatus = publication.pendingNativeMaterialization
+            ? ('PARTIALLY_APPLIED' as const)
+            : ('ACTIVE' as const);
           const artifactPublicationStatus =
             publication.pendingNativeMaterialization
               ? WorkspaceArchitectureArtifactStatus.PARTIALLY_APPLIED
@@ -3257,7 +3706,7 @@ export class WorkspaceArchitectureService {
               [
                 ...((blueprintArtifact.payload as WorkspaceBlueprint)
                   .publishedOperations ?? []),
-                  ...changeSet.operations
+                ...changeSet.operations
                   .filter(({ action }) => action !== 'NO_CHANGE')
                   .map((operation) => {
                     const appliedOperation = applied.find(
@@ -3318,11 +3767,8 @@ export class WorkspaceArchitectureService {
             workspaceId,
             operations: createdNativeOperations,
           });
-          const rollbackCompleted =
-            rollback.failedOperationIds.length === 0;
-          const rollbackStatus = rollbackCompleted
-            ? 'ROLLED_BACK'
-            : 'FAILED';
+          const rollbackCompleted = rollback.failedOperationIds.length === 0;
+          const rollbackStatus = rollbackCompleted ? 'ROLLED_BACK' : 'FAILED';
           const rollbackArtifactStatus = rollbackCompleted
             ? WorkspaceArchitectureArtifactStatus.ROLLED_BACK
             : WorkspaceArchitectureArtifactStatus.FAILED;
@@ -3420,7 +3866,9 @@ export class WorkspaceArchitectureService {
     );
 
     if (!object) {
-      throw new Error(`Objeto ${objectName} não encontrado para publicar o campo.`);
+      throw new Error(
+        `Objeto ${objectName} não encontrado para publicar o campo.`,
+      );
     }
 
     return this.fieldMetadataService.createOneField({
@@ -3494,10 +3942,11 @@ export class WorkspaceArchitectureService {
       .map((o) => `${o.label}: ${o.benefit}`)
       .join('\n- ');
 
-    const explanation = `O Arquiteto de Workspace recomendou uma estrutura baseada no seu perfil operacional:\n\n` +
+    const explanation =
+      `O Arquiteto de Workspace recomendou uma estrutura baseada no seu perfil operacional:\n\n` +
       `**Templates selecionados:**\n- ${templatesSummary}\n\n` +
       `**Módulos e Objetos Principais:**\n- ${objectsSummary}\n\n` +
-      `**Benefício Comercial Esperado:**\nRedução de tempo em cadastros manuais, visibilidade de pipeline e acompanhamento automatizado de saúde dos clientes sem alterar dados existentes.`;
+      `**Benefício Operacional e Econômico Esperado:**\nRedução de tempo em cadastros manuais, visibilidade das prioridades e acompanhamento automatizado da operação sem alterar dados existentes.`;
 
     return {
       version: blueprint.version,
@@ -3589,22 +4038,44 @@ export class WorkspaceArchitectureService {
     const recommendedItems = this.buildPageCatalogItems(
       blueprint,
       architecture.objects,
+      blueprint?.operationProfile.segment?.trim() ||
+        blueprint?.operationProfile.businessModels[0]?.trim() ||
+        'Operação',
     );
     const currentByKey = new Map(
       (current?.items ?? []).map((item) => [item.key, item]),
     );
+    const recommendationsActive =
+      blueprint === null ||
+      ['ACTIVE', 'PARTIALLY_APPLIED'].includes(blueprint.status);
     const mergedItems = recommendedItems.map((item) => {
       const existing = currentByKey.get(item.key);
+      const shouldPreservePublishedRecommendation = Boolean(
+        existing &&
+          existing.lifecycle === 'RECOMMENDED' &&
+          existing.status === 'ACTIVE' &&
+          item.status === 'HIDDEN',
+      );
+      const shouldRefreshProfileCopy = Boolean(
+        existing?.copyOrigin === 'PROFILE' &&
+          !shouldPreservePublishedRecommendation,
+      );
 
       return existing
         ? {
             ...item,
             // A new blueprint may change the recommendation, but it must not
             // erase the workspace's deliberate camaleon adjustments.
-            ...(existing.editable
+            ...(existing.editable &&
+              (existing.copyOrigin !== 'PROFILE' ||
+                shouldPreservePublishedRecommendation)
               ? {
-                  label: existing.label,
-                  description: existing.description,
+                  label: shouldRefreshProfileCopy
+                    ? item.label
+                    : existing.label,
+                  description: shouldRefreshProfileCopy
+                    ? item.description
+                    : existing.description,
                   renderer: existing.renderer,
                   icon: existing.icon,
                   navigationGroup: existing.navigationGroup,
@@ -3620,12 +4091,14 @@ export class WorkspaceArchitectureService {
                           }),
                           actions: buildWorkspacePageActions({
                             pageKey: block.key,
-                            route: item.route,
+                            route: block.actionRoute,
                             nativeRoute: null,
                           }),
                         }))
                       : item.blocks,
-                  primaryAction: existing.primaryAction,
+                  primaryAction: shouldRefreshProfileCopy
+                    ? item.primaryAction
+                    : existing.primaryAction,
                   dataSources: existing.dataSources,
                   dataContracts: inferWorkspacePageDataContracts({
                     pageKey: existing.key,
@@ -3647,11 +4120,17 @@ export class WorkspaceArchitectureService {
                       ]),
                     ],
                     fallbackRoute:
-                      existing.capabilityContract?.fallbackRoute ??
-                      '/diex/pages/first-steps',
+                      existing.capabilityContract?.fallbackRoute ===
+                      '/diex/pages/first-steps'
+                        ? '/diex/first-steps'
+                        : existing.capabilityContract?.fallbackRoute ??
+                          '/diex/first-steps',
                   },
                 }
               : {}),
+            copyOrigin: shouldRefreshProfileCopy
+              ? item.copyOrigin
+              : existing.copyOrigin,
             status:
               existing.status === 'ARCHIVED'
                 ? 'ARCHIVED'
@@ -3667,50 +4146,72 @@ export class WorkspaceArchitectureService {
           }
         : item;
     });
-    const recommendedKeys = new Set(
-      recommendedItems.map(({ key }) => key),
-    );
+    const recommendedKeys = new Set(recommendedItems.map(({ key }) => key));
     const customItems = (current?.items ?? [])
       .filter(({ key }) => !recommendedKeys.has(key))
-      .map((item) => ({
-        ...item,
-        dataContracts: inferWorkspacePageDataContracts({
-          pageKey: item.key,
-          dataSources: item.dataSources,
-          metadataObjects: architecture.objects,
-        }),
-        actions: buildWorkspacePageActions({
-          pageKey: item.key,
-          route: item.route,
-          nativeRoute: item.nativeRoute,
-        }),
-        blocks: item.blocks.map((block) => ({
-          ...block,
+      .map((item) => {
+        const isObsoleteProfileRecommendation =
+          recommendationsActive &&
+          item.lifecycle === 'RECOMMENDED' &&
+          item.copyOrigin === 'PROFILE';
+
+        return {
+          ...item,
+          ...(isObsoleteProfileRecommendation
+            ? {
+                status:
+                  item.status === 'ARCHIVED'
+                    ? ('ARCHIVED' as const)
+                    : ('HIDDEN' as const),
+                showInNavigation: false,
+              }
+            : {}),
           dataContracts: inferWorkspacePageDataContracts({
-            pageKey: block.key,
-            dataSources: block.dataSources,
+            pageKey: item.key,
+            dataSources: item.dataSources,
             metadataObjects: architecture.objects,
           }),
           actions: buildWorkspacePageActions({
-            pageKey: block.key,
+            pageKey: item.key,
             route: item.route,
-            nativeRoute: null,
+            nativeRoute: item.nativeRoute,
           }),
-        })),
-        capabilityContract: {
-          version: WORKSPACE_PAGE_CONTRACT_VERSION,
-          key: item.key,
-          dependencies: [...new Set([...item.capabilities, ...item.dataSources])],
-          fallbackRoute:
-            item.capabilityContract?.fallbackRoute ?? '/diex/pages/first-steps',
-        },
-      }));
+          blocks: item.blocks.map((block) => ({
+            ...block,
+            dataContracts: inferWorkspacePageDataContracts({
+              pageKey: block.key,
+              dataSources: block.dataSources,
+              metadataObjects: architecture.objects,
+            }),
+            actions: buildWorkspacePageActions({
+              pageKey: block.key,
+              route: block.actionRoute,
+              nativeRoute: null,
+            }),
+          })),
+          capabilityContract: {
+            version: WORKSPACE_PAGE_CONTRACT_VERSION,
+            key: item.key,
+            dependencies: [
+              ...new Set([...item.capabilities, ...item.dataSources]),
+            ],
+            fallbackRoute:
+              item.capabilityContract?.fallbackRoute ===
+              '/diex/pages/first-steps'
+                ? '/diex/first-steps'
+                : item.capabilityContract?.fallbackRoute ??
+                  '/diex/first-steps',
+          },
+        };
+      });
     const items = [...mergedItems, ...customItems]
       .sort((left, right) => left.position - right.position)
       .map((item, position) =>
         item.key === 'first-steps'
           ? {
               ...item,
+              route: '/diex/first-steps',
+              nativeRoute: '/diex/first-steps',
               capabilityContract: {
                 version: WORKSPACE_PAGE_CONTRACT_VERSION,
                 key: 'first-steps',
@@ -3721,7 +4222,7 @@ export class WorkspaceArchitectureService {
                   'whatsapp',
                   'pipeline',
                 ],
-                fallbackRoute: '/diex/pages/first-steps',
+                fallbackRoute: '/diex/first-steps',
               },
               dataContracts: inferWorkspacePageDataContracts({
                 pageKey: item.key,
@@ -3730,8 +4231,8 @@ export class WorkspaceArchitectureService {
               }),
               actions: buildWorkspacePageActions({
                 pageKey: item.key,
-                route: item.route,
-                nativeRoute: item.nativeRoute,
+                route: '/diex/first-steps',
+                nativeRoute: '/diex/first-steps',
               }),
               position,
             }
@@ -3743,19 +4244,19 @@ export class WorkspaceArchitectureService {
 
         return Boolean(
           currentItem &&
-            currentItem.route === recommendedItem.route &&
-            currentItem.nativeRoute === recommendedItem.nativeRoute &&
-            currentItem.editable === recommendedItem.editable &&
-            currentItem.capabilityContract?.version ===
-              WORKSPACE_PAGE_CONTRACT_VERSION &&
-            currentItem.dataContracts.length > 0 &&
-            currentItem.actions.length > 0 &&
-            (recommendedItem.blocks.length === 0 ||
-              (currentItem.blocks.length > 0 &&
-                currentItem.blocks.every(
-                  (block) =>
-                    block.dataContracts.length > 0 && block.actions.length > 0,
-                ))),
+          currentItem.route === recommendedItem.route &&
+          currentItem.nativeRoute === recommendedItem.nativeRoute &&
+          currentItem.editable === recommendedItem.editable &&
+          currentItem.capabilityContract?.version ===
+            WORKSPACE_PAGE_CONTRACT_VERSION &&
+          currentItem.dataContracts.length > 0 &&
+          currentItem.actions.length > 0 &&
+          (recommendedItem.blocks.length === 0 ||
+            (currentItem.blocks.length > 0 &&
+              currentItem.blocks.every(
+                (block) =>
+                  block.dataContracts.length > 0 && block.actions.length > 0,
+              ))),
         );
       },
     );
@@ -3767,18 +4268,20 @@ export class WorkspaceArchitectureService {
 
         return Boolean(
           compiledItem &&
-            JSON.stringify(currentItem.dataContracts) ===
-              JSON.stringify(compiledItem.dataContracts) &&
-            JSON.stringify(currentItem.actions) ===
-              JSON.stringify(compiledItem.actions) &&
-            currentItem.blocks.length === compiledItem.blocks.length &&
-            currentItem.blocks.every(
-              (block, index) =>
-                JSON.stringify(block.dataContracts) ===
-                  JSON.stringify(compiledItem.blocks[index]?.dataContracts) &&
-                JSON.stringify(block.actions) ===
-                  JSON.stringify(compiledItem.blocks[index]?.actions),
-            ),
+          currentItem.status === compiledItem.status &&
+          currentItem.showInNavigation === compiledItem.showInNavigation &&
+          JSON.stringify(currentItem.dataContracts) ===
+            JSON.stringify(compiledItem.dataContracts) &&
+          JSON.stringify(currentItem.actions) ===
+            JSON.stringify(compiledItem.actions) &&
+          currentItem.blocks.length === compiledItem.blocks.length &&
+          currentItem.blocks.every(
+            (block, index) =>
+              JSON.stringify(block.dataContracts) ===
+                JSON.stringify(compiledItem.blocks[index]?.dataContracts) &&
+              JSON.stringify(block.actions) ===
+                JSON.stringify(compiledItem.blocks[index]?.actions),
+          ),
         );
       });
     const firstStepsItem = current?.items.find(
@@ -3786,11 +4289,27 @@ export class WorkspaceArchitectureService {
     );
     const firstStepsConfigured = Boolean(
       firstStepsItem &&
-        firstStepsItem.capabilityContract?.version ===
-          WORKSPACE_PAGE_CONTRACT_VERSION &&
-        firstStepsItem.dataContracts.length > 0 &&
-        firstStepsItem.actions.length > 0,
+      firstStepsItem.capabilityContract?.version ===
+        WORKSPACE_PAGE_CONTRACT_VERSION &&
+      firstStepsItem.dataContracts.length > 0 &&
+      firstStepsItem.actions.length > 0,
     );
+    const profileCopyNeedsRefresh = recommendedItems.some((item) => {
+      const currentItem = currentByKey.get(item.key);
+
+      return Boolean(
+        currentItem &&
+          currentItem.copyOrigin === 'PROFILE' &&
+          !(
+            currentItem.lifecycle === 'RECOMMENDED' &&
+            currentItem.status === 'ACTIVE' &&
+            item.status === 'HIDDEN'
+          ) &&
+          (currentItem.label !== item.label ||
+            currentItem.description !== item.description ||
+            currentItem.primaryAction !== item.primaryAction),
+      );
+    });
     const isCurrentCatalogValid =
       current &&
       current.blueprintVersion === (blueprint?.version ?? null) &&
@@ -3799,10 +4318,14 @@ export class WorkspaceArchitectureService {
         ({ key, status }) =>
           currentByKey.has(key) &&
           (currentByKey.get(key)?.status === status ||
+            (currentByKey.get(key)?.lifecycle === 'RECOMMENDED' &&
+              currentByKey.get(key)?.status === 'ACTIVE' &&
+              status === 'HIDDEN') ||
             currentByKey.get(key)?.status === 'ARCHIVED'),
       ) &&
       currentItemsHaveAdaptiveConfiguration &&
-      firstStepsConfigured;
+      firstStepsConfigured &&
+      !profileCopyNeedsRefresh;
 
     if (isCurrentCatalogValid && current) {
       return current;
@@ -3838,6 +4361,7 @@ export class WorkspaceArchitectureService {
   private buildPageCatalogItems(
     blueprint: WorkspaceBlueprint | null,
     metadataObjects: WorkspacePageMetadataObject[] = [],
+    operationLabel = 'Operação',
   ): WorkspacePageCatalogItem[] {
     const blueprintPages: WorkspaceBlueprint['pages'] = blueprint?.pages ?? [
       {
@@ -3900,7 +4424,12 @@ export class WorkspaceArchitectureService {
           route: '/diex/pages/customer-success-center',
           nativeRoute: '/diex/customer-success',
           capabilities: ['customer-success'],
-          dataSources: ['empresas', 'planos de sucesso', 'renovações', 'tarefas'],
+          dataSources: [
+            'empresas',
+            'planos de sucesso',
+            'renovações',
+            'tarefas',
+          ],
           primaryAction: 'Proteger a próxima renovação',
           showInNavigation: false,
         },
@@ -3931,7 +4460,8 @@ export class WorkspaceArchitectureService {
         description:
           'Revisa propostas, aprovações, riscos e recibos de execução da IA.',
         required: false,
-        benefit: 'Aumentar produtividade sem liberar ações comerciais sem controle.',
+        benefit:
+          'Aumentar produtividade sem liberar ações comerciais sem controle.',
         sourceTemplateIds: ['diex.base.universal'],
         configuration: {
           renderer: 'OPERATIONS',
@@ -3951,8 +4481,49 @@ export class WorkspaceArchitectureService {
     const recommendationsActive =
       blueprint === null ||
       ['ACTIVE', 'PARTIALLY_APPLIED'].includes(blueprint.status);
+    const selectedCapabilities = new Set(blueprint?.selectedCapabilities ?? []);
+    const selectedTemplateIds = new Set(
+      blueprint?.selectedTemplates.map(({ id }) => id) ?? [],
+    );
+    const usesCompanyAccounts = [
+      'diex.business.agency',
+      'diex.business.saas',
+      'diex.business.consulting',
+      'diex.business.b2b-sales',
+      'diex.business.franchise',
+      'diex.business.customer-success',
+    ].some((templateId) => selectedTemplateIds.has(templateId));
     const items = blueprintPages.map((page, position) => {
       const configuration = page.configuration;
+      const normalizedOperationLabel = operationLabel.toLowerCase();
+      const adaptiveCoreCopy: Record<
+        string,
+        { label: string; description: string; primaryAction: string }
+      > = {
+        'inbox-commercial': {
+          label: `Inbox da ${operationLabel}`,
+          description: `Concentra entradas, responsáveis e próximas ações da ${normalizedOperationLabel}.`,
+          primaryAction: `Responder e priorizar a próxima entrada da ${normalizedOperationLabel}`,
+        },
+        'commercial-intelligence': {
+          label: `Cockpit da ${operationLabel}`,
+          description: `Prioriza decisões, sinais, resultados e riscos da ${normalizedOperationLabel}.`,
+          primaryAction: `Escolher a ação prioritária da ${normalizedOperationLabel}`,
+        },
+        calendar: {
+          label: `Agenda da ${operationLabel}`,
+          description: `Organiza tarefas, prazos e compromissos da ${normalizedOperationLabel}.`,
+          primaryAction: `Executar a próxima ação da ${normalizedOperationLabel}`,
+        },
+        'first-steps': {
+          label: `Ativação da ${operationLabel}`,
+          description: `Conduz contexto, aprovação, canal e primeiro resultado da ${normalizedOperationLabel}.`,
+          primaryAction: `Concluir a ativação da ${normalizedOperationLabel}`,
+        },
+      };
+      const coreCopy = adaptiveCoreCopy[page.key];
+      const displayLabel = coreCopy?.label ?? page.label;
+      const displayDescription = coreCopy?.description ?? page.description;
       const configuredRenderer = readConfigurationString(
         configuration,
         'renderer',
@@ -3969,23 +4540,76 @@ export class WorkspaceArchitectureService {
             : renderer === 'DASHBOARD'
               ? 'chart'
               : 'briefcase');
-      const dataSources =
-        readConfigurationStrings(configuration, 'dataSources').length > 0
-          ? readConfigurationStrings(configuration, 'dataSources')
-          : ['contatos', 'empresas', 'oportunidades', 'tarefas'];
       const configuredLifecycle = readConfigurationString(
         configuration,
         'lifecycle',
       );
       const isCore =
         DIEX_CORE_PAGE_KEYS.has(page.key) || configuredLifecycle === 'CORE';
-      const status =
-        isCore || recommendationsActive ? 'ACTIVE' : 'HIDDEN';
+      const explicitDataSources = readConfigurationStrings(
+        configuration,
+        'dataSources',
+      );
+      const pageTemplateIds = new Set(page.sourceTemplateIds);
+      const templateObjectSources = [
+        ...new Set(
+          (blueprint?.objects ?? [])
+            .filter(({ sourceTemplateIds }) =>
+              sourceTemplateIds.some((templateId) =>
+                pageTemplateIds.has(templateId),
+              ),
+            )
+            .filter(({ key }) => !UNIVERSAL_OPERATION_OBJECT_NAMES.has(key))
+            .map(({ label }) => label.trim())
+            .filter(Boolean),
+        ),
+      ].slice(0, 4);
+      const configuredDataSources =
+        explicitDataSources.length > 0
+          ? explicitDataSources
+          : templateObjectSources.length > 0
+            ? [...templateObjectSources, 'tarefas']
+            : getAdaptiveDefaultDataSources(
+                metadataObjects,
+                `${page.key} ${page.label} ${page.description} ${page.benefit}`,
+              );
+      const dataSources =
+        isCore && !usesCompanyAccounts
+          ? configuredDataSources.filter(
+              (source) =>
+                !tokenize(source).some((token) =>
+                  [
+                    'empresa',
+                    'empresas',
+                    'company',
+                    'companies',
+                    'conta',
+                    'contas',
+                  ].includes(token),
+                ),
+            )
+          : configuredDataSources;
+      const configuredCapabilities = readConfigurationStrings(
+        configuration,
+        'capabilities',
+      );
+      const capabilities = isCore
+        ? configuredCapabilities.filter(
+            (capability) =>
+              capability === 'onboarding' ||
+              selectedCapabilities.has(capability),
+          )
+        : configuredCapabilities;
+      const status = isCore || recommendationsActive ? 'ACTIVE' : 'HIDDEN';
       const route = toPageRoute(page.key, configuration);
       const nativeRoute = toNativePageRoute(page.key, configuration);
       const configuredShowInNavigation = configuration?.showInNavigation;
       const blocks = this.buildPageBlocks({
-        page,
+        page: {
+          ...page,
+          label: displayLabel,
+          description: displayDescription,
+        },
         blueprintBlocks,
         renderer,
         dataSources,
@@ -4005,8 +4629,8 @@ export class WorkspaceArchitectureService {
 
       return workspacePageCatalogItemSchema.parse({
         key: page.key,
-        label: page.label,
-        description: page.description,
+        label: displayLabel,
+        description: displayDescription,
         route,
         nativeRoute,
         renderer,
@@ -4014,7 +4638,7 @@ export class WorkspaceArchitectureService {
         navigationGroup:
           readConfigurationString(configuration, 'navigationGroup') ??
           'Operação',
-        capabilities: readConfigurationStrings(configuration, 'capabilities'),
+        capabilities,
         blocks,
         dataContracts,
         actions,
@@ -4022,31 +4646,31 @@ export class WorkspaceArchitectureService {
         status,
         sourceTemplateIds: page.sourceTemplateIds,
         primaryAction:
+          coreCopy?.primaryAction ??
           readConfigurationString(configuration, 'primaryAction') ??
-          `Operar ${page.label.toLowerCase()}`,
+          `Operar ${displayLabel.toLowerCase()}`,
         dataSources,
         capabilityContract: {
           version: WORKSPACE_PAGE_CONTRACT_VERSION,
           key: page.key,
           dependencies: [
             ...new Set([
-              ...readConfigurationStrings(configuration, 'capabilities'),
+              ...capabilities,
               ...dataSources,
             ]),
           ],
-          fallbackRoute: '/diex/pages/first-steps',
+          fallbackRoute: '/diex/first-steps',
         },
         emptyState: {
-          title: `${page.label} começa aqui`,
-          description: `${page.description} O próximo passo está indicado para você não operar diante de uma tela vazia.`,
-          actionLabel: 'Continuar ativação comercial',
-          actionRoute: '/diex/pages/first-steps',
+          title: `${displayLabel} começa aqui`,
+          description: `${displayDescription} O próximo passo está indicado para você não operar diante de uma tela vazia.`,
+          actionLabel: 'Continuar ativação da operação',
+          actionRoute: '/diex/first-steps',
         },
         permissions: ['workspace_access'],
         aiGenerated: false,
-        // Core pages keep their mandatory operational role, but their title,
-        // description, blocks and menu placement remain workspace-configurable.
-        // Only destructive removal is protected.
+        // Core pages remain fully workspace-configurable. The activation page
+        // is the only recovery route protected from archival.
         editable: true,
         showInNavigation:
           status === 'ACTIVE' &&
@@ -4063,9 +4687,10 @@ export class WorkspaceArchitectureService {
       items.unshift(
         workspacePageCatalogItemSchema.parse({
           key: 'first-steps',
-          label: 'Primeiros passos',
-          description: 'Conduz contexto, aprovação, canal e primeiro resultado.',
-          route: '/diex/pages/first-steps',
+          label: `Ativação da ${operationLabel}`,
+          description:
+            `Conduz contexto, aprovação, canal e primeiro resultado da ${operationLabel.toLowerCase()}.`,
+          route: '/diex/first-steps',
           nativeRoute: '/diex/first-steps',
           renderer: 'OPERATIONS',
           icon: 'rocket',
@@ -4079,13 +4704,13 @@ export class WorkspaceArchitectureService {
           }),
           actions: buildWorkspacePageActions({
             pageKey: 'first-steps',
-            route: '/diex/pages/first-steps',
+            route: '/diex/first-steps',
             nativeRoute: '/diex/first-steps',
           }),
           lifecycle: 'CORE',
           status: 'ACTIVE',
           sourceTemplateIds: ['diex.base.universal'],
-          primaryAction: 'Chegar ao primeiro resultado comercial',
+          primaryAction: `Chegar ao primeiro resultado da ${operationLabel.toLowerCase()}`,
           dataSources: ['contexto', 'arquitetura', 'whatsapp', 'pipeline'],
           capabilityContract: {
             version: WORKSPACE_PAGE_CONTRACT_VERSION,
@@ -4097,12 +4722,12 @@ export class WorkspaceArchitectureService {
               'whatsapp',
               'pipeline',
             ],
-            fallbackRoute: '/diex/pages/first-steps',
+            fallbackRoute: '/diex/first-steps',
           },
           emptyState: {
             title: 'Sua operação começa aqui',
             description:
-              'Defina o contexto, conecte o canal principal e transforme o primeiro lead em oportunidade.',
+              'Defina o contexto, conecte o canal principal e transforme a primeira entrada em um resultado operacional.',
             actionLabel: 'Continuar onboarding',
             actionRoute: '/diex/first-steps',
           },
@@ -4172,6 +4797,9 @@ export class WorkspaceArchitectureService {
       const safeType = componentContract.supportedBlockTypes.includes(type)
         ? type
         : 'LIST';
+      const actionRoute =
+        readConfigurationString(blockConfiguration, 'actionRoute') ??
+        '/diex/first-steps';
 
       return workspacePageBlockSchema.parse({
         key: block.key,
@@ -4188,15 +4816,13 @@ export class WorkspaceArchitectureService {
         }),
         actions: buildWorkspacePageActions({
           pageKey: block.key,
-          route,
+          route: actionRoute,
           nativeRoute: null,
         }),
         actionLabel:
           readConfigurationString(blockConfiguration, 'actionLabel') ??
           'Abrir primeiros passos',
-        actionRoute:
-          readConfigurationString(blockConfiguration, 'actionRoute') ??
-          '/diex/pages/first-steps',
+        actionRoute,
         sourceTemplateIds: block.sourceTemplateIds,
         configuration: blockConfiguration ?? {},
         position,
@@ -4233,11 +4859,11 @@ export class WorkspaceArchitectureService {
         }),
         actions: buildWorkspacePageActions({
           pageKey: `${page.key}-overview`,
-          route,
+          route: '/diex/first-steps',
           nativeRoute: null,
         }),
         actionLabel: 'Abrir primeiros passos',
-        actionRoute: '/diex/pages/first-steps',
+        actionRoute: '/diex/first-steps',
         sourceTemplateIds: page.sourceTemplateIds,
         configuration: { pageKey: page.key, renderer, route },
         position: 0,
@@ -4248,7 +4874,7 @@ export class WorkspaceArchitectureService {
         type: 'CHECKLIST',
         title: 'Próximas ações',
         description:
-          'Prioriza a ação comercial que reduz risco ou aproxima receita.',
+          'Prioriza a ação da operação que reduz risco ou aproxima resultado.',
         dataSources: [...dataSources, 'tarefas'],
         dataContracts: inferWorkspacePageDataContracts({
           pageKey: `${page.key}-next-actions`,
@@ -4257,11 +4883,11 @@ export class WorkspaceArchitectureService {
         }),
         actions: buildWorkspacePageActions({
           pageKey: `${page.key}-next-actions`,
-          route,
+          route: '/diex/first-steps',
           nativeRoute: null,
         }),
         actionLabel: 'Abrir primeiros passos',
-        actionRoute: '/diex/pages/first-steps',
+        actionRoute: '/diex/first-steps',
         sourceTemplateIds: page.sourceTemplateIds,
         configuration: { pageKey: page.key, renderer, route },
         position: 1,
@@ -4281,11 +4907,11 @@ export class WorkspaceArchitectureService {
         }),
         actions: buildWorkspacePageActions({
           pageKey: `${page.key}-ai-summary`,
-          route,
+          route: '/diex/first-steps',
           nativeRoute: null,
         }),
         actionLabel: 'Abrir primeiros passos',
-        actionRoute: '/diex/pages/first-steps',
+        actionRoute: '/diex/first-steps',
         sourceTemplateIds: page.sourceTemplateIds,
         configuration: { pageKey: page.key, renderer, route },
         position: 2,
@@ -4307,9 +4933,7 @@ export class WorkspaceArchitectureService {
           ? workspacePageCatalogStateSchema.safeParse(currentArtifact.payload)
           : null;
         const current = parsedCurrent?.success ? parsedCurrent.data : null;
-        const currentKeys = new Set(
-          current?.items.map(({ key }) => key) ?? [],
-        );
+        const currentKeys = new Set(current?.items.map(({ key }) => key) ?? []);
         const mergedItems = current
           ? [
               ...current.items.map(
@@ -4428,7 +5052,9 @@ export class WorkspaceArchitectureService {
       profileVersion,
       blueprintVersion: version,
       goal:
-        commercialGoal?.trim() || operationProfile.priorityObjectives[0] || null,
+        commercialGoal?.trim() ||
+        operationProfile.priorityObjectives[0] ||
+        null,
       segment: operationProfile.segment,
       capabilities,
       entities: toItems(components.objects),
@@ -4456,7 +5082,6 @@ export class WorkspaceArchitectureService {
     });
   }
 
-
   private selectTemplateIds(profile: WorkspaceOperationProfile): string[] {
     const corpus = tokenize(JSON.stringify(profile));
     const segmentCorpus = tokenize(
@@ -4476,8 +5101,8 @@ export class WorkspaceArchitectureService {
       }
 
       if (
-        template.conflicts.some(
-          (conflictingTemplateId) => ids.has(conflictingTemplateId),
+        template.conflicts.some((conflictingTemplateId) =>
+          ids.has(conflictingTemplateId),
         ) ||
         [...ids].some((selectedTemplateId) =>
           WORKSPACE_TEMPLATE_BY_ID.get(selectedTemplateId)?.conflicts.includes(
@@ -4507,6 +5132,9 @@ export class WorkspaceArchitectureService {
       const activationMatch = template.activationCriteria.some((criterion) =>
         includesCriterion(corpus, criterion),
       );
+      const excludedBy = (template.exclusionCriteria ?? []).some((criterion) =>
+        includesCriterion(corpus, criterion),
+      );
       const compatibleSegmentMatch = template.compatibleSegments.some(
         (segment) =>
           segment === '*' || includesCriterion(segmentCorpus, segment),
@@ -4521,6 +5149,7 @@ export class WorkspaceArchitectureService {
       // description. Activation criteria still win for capability templates so
       // a broad segment never turns on every optional module.
       if (
+        !excludedBy &&
         prerequisitesMatch &&
         (activationMatch ||
           (template.kind === 'BUSINESS_MODEL' && compatibleSegmentMatch))

@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
+import { CacheLockModule } from 'src/engine/core-modules/cache-lock/cache-lock.module';
 import { DiexORMModule } from 'src/engine/diex-orm/diex-orm.module';
+import { RecordCrudModule } from 'src/engine/core-modules/record-crud/record-crud.module';
 import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { WorkspaceArchitectureModule } from 'src/modules/workspace-architecture/workspace-architecture.module';
@@ -13,7 +15,9 @@ import { AiGovernanceToolWorkspaceService } from 'src/modules/ai-governance/tool
 @Module({
   imports: [
     AuthModule,
+    CacheLockModule,
     DiexORMModule,
+    RecordCrudModule,
     WorkspaceCacheStorageModule,
     WorkspaceArchitectureModule,
     InboxModule,

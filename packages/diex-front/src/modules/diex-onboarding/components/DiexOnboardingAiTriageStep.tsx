@@ -10,12 +10,12 @@ import {
   StyledText,
 } from '@/diex-onboarding/components/DiexOnboardingStepCard';
 
-const WORKSPACE_TRIAGE_PROMPT = `Faça uma entrevista comercial curta para revisar o onboarding deste workspace.
+const WORKSPACE_TRIAGE_PROMPT = `Faça uma entrevista operacional e comercial curta para revisar a ativação deste workspace.
 
 Leia o contexto ativo e faça uma pergunta por vez para confirmar:
-- objetivo comercial e oferta principal;
-- cliente ideal, canais de aquisição e ciclo de vendas;
-- processo comercial e etapas do funil;
+- objetivo prioritário, oferta e resultado esperado;
+- cliente ou público ideal, canais de entrada e ciclo da operação;
+- processo principal, responsáveis e etapas do fluxo;
 - objeções, provas, diferenciais e CTA;
 - tom de voz, regras comerciais e promessas proibidas;
 - responsáveis, metas e SLA de resposta.
@@ -37,6 +37,8 @@ export const DiexOnboardingAiTriageStep = ({
   canRun,
   isRunning,
   triageResult,
+  requiresOpportunity = true,
+  readyLabel = 'CRM pronto para vender',
   onStart,
 }: {
   index?: number;
@@ -48,13 +50,15 @@ export const DiexOnboardingAiTriageStep = ({
     intent?: string;
     suggestedReply?: string;
   } | null;
+  requiresOpportunity?: boolean;
+  readyLabel?: string;
   onStart: () => void;
 }) => {
   const { openAskAiPageWithPreprompt } = useOpenAskAiPageWithPreprompt();
 
-  // The commercial flow is the completion event. The interview remains a
-  // secondary action so it can refine the AI context without hiding revenue
-  // progress behind a chat screen.
+  // The first-value flow is the completion event. The interview remains a
+  // secondary action so it can refine the AI context without hiding progress
+  // behind a chat screen.
   const openInterview = () => {
     openAskAiPageWithPreprompt({
       text: WORKSPACE_TRIAGE_PROMPT,
@@ -67,7 +71,7 @@ export const DiexOnboardingAiTriageStep = ({
     <DiexOnboardingStepCard
       index={index}
       isDone={isDone}
-      title="Executar o primeiro fluxo de receita"
+      title="Executar o primeiro fluxo de resultado"
       badges={
         <DiexOnboardingBadge tone={isDone ? 'green' : 'blue'}>
           {isDone ? 'Fluxo executado' : 'Resultado obrigatório'}
@@ -75,9 +79,10 @@ export const DiexOnboardingAiTriageStep = ({
       }
     >
       <StyledText>
-        A mensagem recebida deve virar contato, oportunidade, responsável,
-        classificação de intenção e follow-up. Só depois disso o CRM pode dizer
-        que está pronto para vender.
+        {requiresOpportunity
+          ? 'A entrada recebida deve virar contato, oportunidade, responsável, classificação de intenção e próxima ação.'
+          : 'A entrada recebida deve virar contato, responsável, classificação de intenção e próxima ação.'}{' '}
+        Só depois disso o sistema pode ser considerado {readyLabel.toLowerCase()}.
       </StyledText>
       {triageResult ? (
         <StyledResult>

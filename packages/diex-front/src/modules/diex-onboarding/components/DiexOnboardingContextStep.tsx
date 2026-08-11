@@ -30,7 +30,7 @@ const CONTEXT_FIELDS: Array<{
   {
     key: 'businessDescription',
     label: 'O que a empresa faz',
-    hint: 'Atividade, mercado e como gera receita.',
+    hint: 'Atividade, mercado e como gera valor ou receita.',
     isRequiredForActivation: true,
   },
   {

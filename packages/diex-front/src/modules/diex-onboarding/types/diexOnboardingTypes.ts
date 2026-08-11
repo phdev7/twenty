@@ -41,6 +41,16 @@ export type DataFlowSummary = {
   messageCount: number;
   peopleCount: number;
   offerCount: number;
+  activeOfferCount: number;
+  draftOfferCount: number;
+  offers: OnboardingOfferSummary[];
+};
+
+export type OnboardingOfferSummary = {
+  id: string;
+  name: string | null;
+  status: string | null;
+  valueProposition: RichTextValue;
 };
 
 export type DiexReadinessItem = {
@@ -68,6 +78,7 @@ export type DiexOnboardingJourney = {
     | 'FIRST_REVENUE_FLOW'
     | 'TEAM_ENABLEMENT'
     | 'COCKPIT_OPERATIONAL'
+    | 'READY'
     | 'SELLING_READY';
   phaseIndex: number;
   completedPhases: string[];
@@ -92,6 +103,38 @@ export type DiexCommercialReadiness = {
   nextAction: string;
   onboardingJourney?: DiexOnboardingJourney;
   goal: string | null;
+  readinessPack?: {
+    version: string;
+    goal: string | null;
+    operationLabel: string;
+    readyLabel: string;
+    selectedTemplateIds: string[];
+    criteria: Array<
+      DiexReadinessItem & {
+        phase: string;
+        source: string;
+        firstValue: boolean;
+        nextAction: string;
+        sourceTemplateIds: string[];
+      }
+    >;
+  };
+  firstValueRun?: {
+    id: string;
+    correlationId: string;
+    goal: string | null;
+    status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+    startedAt: string;
+    completedAt: string | null;
+    steps: Array<{
+      key: string;
+      label: string;
+      ready: boolean;
+      recordId: string | null;
+      source: string;
+      occurredAt: string | null;
+    }>;
+  };
   counts: {
     activeOffers: number;
     activeOwners: number;
@@ -224,6 +267,7 @@ export type DiexPageCatalogItem = {
   capabilities: string[];
   blocks: DiexPageBlock[];
   lifecycle: 'CORE' | 'RECOMMENDED' | 'CUSTOM';
+  copyOrigin?: 'PROFILE' | 'USER' | 'AI';
   status: 'ACTIVE' | 'HIDDEN' | 'ARCHIVED';
   sourceTemplateIds: string[];
   primaryAction: string;
@@ -339,6 +383,11 @@ export type DiexPageDataSource = {
   count: number | null;
   fallback: string;
   error: string | null;
+  dataClassification?:
+    | 'PUBLIC_WORKSPACE'
+    | 'INTERNAL'
+    | 'CONFIDENTIAL'
+    | 'SENSITIVE';
 };
 
 export type DiexPageDataState = {
@@ -351,7 +400,7 @@ export type DiexPageDataState = {
 export type DiexFirstCommercialFlowResult = {
   success: boolean;
   conversationId: string;
-  opportunityId: string;
+  opportunityId: string | null;
   taskId: string;
   assigneeId: string | null;
   companyLinked: boolean;

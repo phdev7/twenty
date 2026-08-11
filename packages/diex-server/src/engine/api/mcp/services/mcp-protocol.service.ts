@@ -217,7 +217,9 @@ export class McpProtocolService {
     };
 
     const preloadedTools = await this.toolRegistry.getToolsByName(
-      COMMON_PRELOAD_TOOLS,
+      COMMON_PRELOAD_TOOLS.filter(
+        (toolName) => !MCP_EXCLUDED_TOOL_NAMES.has(toolName),
+      ),
       toolContext,
     );
 

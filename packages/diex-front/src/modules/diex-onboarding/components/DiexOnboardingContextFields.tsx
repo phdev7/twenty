@@ -17,7 +17,7 @@ const FIELD_DEFINITIONS: Array<{
   {
     key: 'businessDescription',
     label: 'O que a empresa faz *',
-    placeholder: 'Atividade, mercado e como gera receita.',
+    placeholder: 'Atividade, mercado e como gera valor ou receita.',
   },
   {
     key: 'idealCustomerProfile',

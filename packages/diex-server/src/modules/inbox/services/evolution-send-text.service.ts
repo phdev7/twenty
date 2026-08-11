@@ -289,6 +289,51 @@ export class EvolutionSendTextService {
     );
   }
 
+  async reconcileApprovedAiReply({
+    workspaceId,
+    aiActionId,
+  }: {
+    workspaceId: string;
+    aiActionId: string;
+  }): Promise<{
+    status: 'SENT' | 'QUEUED' | 'FAILED' | 'NOT_FOUND';
+    inboxMessageId: string | null;
+    providerMessageKey: string | null;
+  }> {
+    const configuration =
+      await this.evolutionProvisioningService.resolveProvisioning(workspaceId);
+    const providerMessageKey = `${configuration.instanceName}:pending:diex-ai-action:${aiActionId}`;
+    const authContext = buildSystemAuthContext(workspaceId);
+    const message = await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      () =>
+        this.findInboxMessageByProviderKey(
+          workspaceId,
+          providerMessageKey,
+          `diex-ai-action:${aiActionId}`,
+        ),
+      authContext,
+    );
+
+    if (!message) {
+      return {
+        status: 'NOT_FOUND',
+        inboxMessageId: null,
+        providerMessageKey,
+      };
+    }
+
+    return {
+      status:
+        message.deliveryStatus === 'SENT'
+          ? 'SENT'
+          : message.deliveryStatus === 'FAILED'
+            ? 'FAILED'
+            : 'QUEUED',
+      inboxMessageId: message.id,
+      providerMessageKey,
+    };
+  }
+
   private async assertConversationCanSend(
     workspaceId: string,
     conversationId: string,
@@ -496,17 +541,20 @@ export class EvolutionSendTextService {
       });
     } catch {
       await messageRepository.update(inboxMessageId, {
-        deliveryStatus: 'FAILED',
+        // A falha de transporte não prova que o provedor rejeitou a mensagem.
+        // Mantemos o envio em reconciliação para impedir uma repetição que
+        // poderia responder o mesmo lead duas vezes.
+        deliveryStatus: 'QUEUED',
         metadata: {
           provider: 'evolution',
           requestId: confirmation.requestId,
           providerStatus: 0,
-          sendState: 'failed',
+          sendState: 'delivery_unknown',
         },
       });
 
       throw new Error(
-        'O WhatsApp não respondeu pela rota de infraestrutura aprovada.',
+        'O WhatsApp não confirmou o recebimento. O envio ficou aguardando reconciliação e não será repetido automaticamente.',
       );
     }
 

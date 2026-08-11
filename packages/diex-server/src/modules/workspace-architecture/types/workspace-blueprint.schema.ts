@@ -42,6 +42,10 @@ export const workspaceBlueprintSchema = z.object({
       reason: z.string().min(1),
       confidence: z.number().min(0).max(100),
       optional: z.boolean(),
+      matchedCriteria: z.array(z.string().min(1)).default([]),
+      matchedSegments: z.array(z.string().min(1)).default([]),
+      excludedBy: z.array(z.string().min(1)).default([]),
+      requiresConfirmation: z.boolean().default(false),
     }),
   ),
   objects: z.array(workspaceBlueprintComponentSchema),
@@ -78,7 +82,10 @@ export const workspaceBlueprintSchema = z.object({
         resourceType: z.string().min(1),
         resourceKey: z.string().min(1),
         publishedAt: z.iso.datetime(),
-        adapter: z.string().min(1).default('workspace-operation-manifest-adapter@1.0.0'),
+        adapter: z
+          .string()
+          .min(1)
+          .default('workspace-operation-manifest-adapter@1.0.0'),
         materialization: z
           .enum(['DIEX_CATALOG', 'MANIFEST'])
           .default('MANIFEST'),

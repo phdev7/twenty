@@ -9,7 +9,9 @@ import {
   StyledActions,
   StyledText,
 } from '@/diex-onboarding/components/DiexOnboardingStepCard';
+import { type OnboardingOfferSummary } from '@/diex-onboarding/types/diexOnboardingTypes';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
+import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
 import { TextInput } from '@/ui/input/components/TextInput';
 
 const StyledForm = styled.div`
@@ -18,59 +20,185 @@ const StyledForm = styled.div`
   grid-template-columns: minmax(180px, 0.8fr) minmax(220px, 1.2fr);
 `;
 
+const StyledOfferList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledOfferReview = styled.div`
+  background: ${themeCssVariables.background.secondary};
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.sm};
+  display: flex;
+  flex-direction: column;
+  gap: ${themeCssVariables.spacing[2]};
+  padding: ${themeCssVariables.spacing[3]};
+`;
+
+const StyledError = styled.div`
+  color: ${themeCssVariables.font.color.danger};
+  font-size: ${themeCssVariables.font.size.xs};
+`;
+
+const readMarkdown = (offer: OnboardingOfferSummary) =>
+  offer.valueProposition?.markdown?.trim() ?? '';
+
+const DiexOnboardingDraftOffer = ({
+  offer,
+  onApproved,
+}: {
+  offer: OnboardingOfferSummary;
+  onApproved: () => void;
+}) => {
+  const [name, setName] = useState(offer.name ?? '');
+  const [valueProposition, setValueProposition] = useState(
+    readMarkdown(offer),
+  );
+  const [isApproving, setIsApproving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { updateOneRecord } = useUpdateOneRecord();
+
+  const approveOffer = async () => {
+    if (!name.trim() || !valueProposition.trim()) {
+      return;
+    }
+
+    setIsApproving(true);
+    setErrorMessage(null);
+
+    try {
+      await updateOneRecord({
+        objectNameSingular: 'offer',
+        idToUpdate: offer.id,
+        updateOneRecordInput: {
+          name: name.trim(),
+          status: 'ACTIVE',
+          valueProposition: { markdown: valueProposition.trim() },
+        },
+        recordGqlFields: {
+          id: true,
+          name: true,
+          status: true,
+          valueProposition: { markdown: true },
+        },
+      });
+      onApproved();
+    } catch {
+      setErrorMessage('Não foi possível ativar esta oferta.');
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  return (
+    <StyledOfferReview>
+      <StyledForm>
+        <TextInput
+          value={name}
+          placeholder="Nome da oferta"
+          onChange={setName}
+          disabled={isApproving}
+          fullWidth
+        />
+        <TextInput
+          value={valueProposition}
+          placeholder="Resultado entregue ao cliente"
+          onChange={setValueProposition}
+          disabled={isApproving}
+          fullWidth
+        />
+      </StyledForm>
+      {errorMessage ? <StyledError>{errorMessage}</StyledError> : null}
+      <StyledActions>
+        <Button
+          title={isApproving ? 'Ativando...' : 'Aprovar e ativar oferta'}
+          variant="primary"
+          disabled={
+            isApproving || !name.trim() || !valueProposition.trim()
+          }
+          onClick={() => void approveOffer()}
+        />
+      </StyledActions>
+    </StyledOfferReview>
+  );
+};
+
 type DiexOnboardingOfferStepProps = {
-  offerCount: number;
+  offers: OnboardingOfferSummary[];
+  activeOfferCount: number;
   isReady?: boolean;
-  onCreated: () => void;
+  onChanged: () => void;
 };
 
 export const DiexOnboardingOfferStep = ({
-  offerCount,
+  offers,
+  activeOfferCount,
   isReady,
-  onCreated,
+  onChanged,
 }: DiexOnboardingOfferStepProps) => {
   const [name, setName] = useState('');
   const [valueProposition, setValueProposition] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { createOneRecord, loading } = useCreateOneRecord({
     objectNameSingular: 'offer',
     recordGqlFields: { id: true, name: true, status: true },
   });
-  const isDone = isReady ?? offerCount > 0;
+  const isDone = isReady ?? activeOfferCount > 0;
+  const draftOffers = offers.filter(({ status }) => status === 'DRAFT');
 
   const createOffer = async () => {
     if (!name.trim() || !valueProposition.trim()) {
       return;
     }
 
-    await createOneRecord({
-      name: name.trim(),
-      status: 'ACTIVE',
-      valueProposition: { markdown: valueProposition.trim() },
-    });
-    setName('');
-    setValueProposition('');
-    onCreated();
+    setErrorMessage(null);
+
+    try {
+      await createOneRecord({
+        name: name.trim(),
+        status: 'ACTIVE',
+        valueProposition: { markdown: valueProposition.trim() },
+      });
+      setName('');
+      setValueProposition('');
+      onChanged();
+    } catch {
+      setErrorMessage('Não foi possível cadastrar esta oferta.');
+    }
   };
 
   return (
     <DiexOnboardingStepCard
-      index={4}
+      index={3}
       isDone={isDone}
-      title="Cadastrar a oferta que será vendida"
+      title="Revisar o que será vendido"
       badges={
         <DiexOnboardingBadge tone={isDone ? 'green' : 'orange'}>
-          {isDone ? `${offerCount} oferta ativa` : 'Obrigatório'}
+          {isDone ? `${activeOfferCount} oferta(s) ativa(s)` : 'Obrigatório'}
         </DiexOnboardingBadge>
       }
     >
       <StyledText>
-        A IA só pode qualificar e responder com precisão quando sabe o que a
-        empresa vende. Cadastre pelo menos uma oferta ativa.
+        A IA sugeriu ofertas a partir da entrevista. Revise nome e resultado
+        entregue antes de ativar; rascunhos não alimentam respostas nem deixam o
+        CRM pronto para vender.
       </StyledText>
+      {draftOffers.length > 0 ? (
+        <StyledOfferList>
+          {draftOffers.map((offer) => (
+            <DiexOnboardingDraftOffer
+              key={offer.id}
+              offer={offer}
+              onApproved={onChanged}
+            />
+          ))}
+        </StyledOfferList>
+      ) : null}
       {isDone ? (
         <StyledText>
-          {offerCount} oferta(s) ativa(s). Adicione outras abaixo para alimentar
-          a qualificação e as respostas da IA.
+          {activeOfferCount} oferta(s) aprovada(s). Você ainda pode cadastrar
+          outra oferta manualmente.
         </StyledText>
       ) : null}
       <StyledForm>
@@ -89,6 +217,7 @@ export const DiexOnboardingOfferStep = ({
           fullWidth
         />
       </StyledForm>
+      {errorMessage ? <StyledError>{errorMessage}</StyledError> : null}
       <StyledActions>
         <Button
           title={
