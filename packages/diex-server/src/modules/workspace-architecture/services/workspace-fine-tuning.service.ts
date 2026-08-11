@@ -145,10 +145,12 @@ export class WorkspaceFineTuningService {
         artifact.artifactType ===
         WorkspaceArchitectureArtifactType.OPERATION_PROFILE
       ) {
-        const rawContent = JSON.stringify(artifact.payload);
-        const sanitizedContent = this.sanitizeText(rawContent);
-
-        const messages: FineTuningExampleMessage[] = [
+        // Sanitiza o exemplo inteiro, não só a resposta. A mensagem do usuário
+        // carrega `sourceDescription`, que é o texto livre em que a cliente
+        // descreve a própria operação e onde há mais chance de aparecer dado
+        // pessoal do que no payload estruturado. Antes só o `assistant` passava
+        // por aqui, e a descrição ia crua para o dataset.
+        const messages = this.sanitizeMessages([
           {
             role: 'system',
             content:
@@ -160,9 +162,9 @@ export class WorkspaceFineTuningService {
           },
           {
             role: 'assistant',
-            content: sanitizedContent,
+            content: JSON.stringify(artifact.payload),
           },
-        ];
+        ]);
 
         const { tokenCount } = this.estimateTokensAndCost(messages);
 
