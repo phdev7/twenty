@@ -152,7 +152,9 @@ const isWithinOperatingWindow = (
     }
 
     const current = Number(hour) * 60 + Number(minute);
-    const start = getMinutesSinceMidnight(workspacePolicy.operatingWindow.start);
+    const start = getMinutesSinceMidnight(
+      workspacePolicy.operatingWindow.start,
+    );
     const end = getMinutesSinceMidnight(workspacePolicy.operatingWindow.end);
 
     if (start === end) {
@@ -399,147 +401,143 @@ export class AiGovernanceService {
     const authContext = buildSystemAuthContext(input.workspaceId);
     const contextVersion =
       input.contextVersion?.trim() ||
-      (await this.workspaceArchitectureService.getAiOperatingContext(
-        input.workspaceId,
-      )).contextVersion;
+      (
+        await this.workspaceArchitectureService.getAiOperatingContext(
+          input.workspaceId,
+        )
+      ).contextVersion;
 
     return this.cacheLockService.withLock(
       () =>
-        this.globalWorkspaceOrmManager.executeInWorkspaceContext(
-          async () => {
-            const actionRepository =
-              await this.globalWorkspaceOrmManager.getRepository<AiActionWorkspaceEntity>(
-                input.workspaceId,
-                AiActionWorkspaceEntity,
-              );
-            const idempotencyKey = input.idempotencyKey?.trim() || undefined;
+        this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+          const actionRepository =
+            await this.globalWorkspaceOrmManager.getRepository<AiActionWorkspaceEntity>(
+              input.workspaceId,
+              AiActionWorkspaceEntity,
+            );
+          const idempotencyKey = input.idempotencyKey?.trim() || undefined;
 
-            if (idempotencyKey) {
-              const existing = await actionRepository.findOne({
-                where: { idempotencyKey },
-              });
-
-              if (existing) {
-                const sameProposal =
-                  existing.name === name &&
-                  existing.actionType === input.type &&
-                  readMarkdown(existing.rationale) === rationale &&
-                  readMarkdown(existing.proposedAction) === proposedAction &&
-                  existing.contextVersion === contextVersion &&
-                  existing.commercialSignalId ===
-                    (input.commercialSignalId?.trim() || null) &&
-                  JSON.stringify(existing.writeSet ?? []) ===
-                    JSON.stringify(writeSet);
-
-                if (!sameProposal) {
-                  return {
-                    success: false,
-                    status: AiActionStatus.REJECTED,
-                    message:
-                      'A chave de idempotência já pertence a outra proposta. Gere uma nova chave para este escopo.',
-                  };
-                }
-
-                return {
-                  success: true,
-                  aiActionId: existing.id,
-                  status:
-                    (existing.status as AiActionStatus) ??
-                    AiActionStatus.PENDING_APPROVAL,
-                  message:
-                    'A mesma evidência já possui uma ação registrada. Nenhuma duplicata foi criada.',
-                };
-              }
-            }
-
-            const recentProposalCount = await actionRepository.count({
-              where: {
-                createdAt: MoreThan(
-                  new Date(Date.now() - AI_ACTION_PROPOSAL_WINDOW_MS),
-                ),
-              } as never,
+          if (idempotencyKey) {
+            const existing = await actionRepository.findOne({
+              where: { idempotencyKey },
             });
 
-            if (recentProposalCount >= policy.maxProposalsPerHour) {
+            if (existing) {
+              const sameProposal =
+                existing.name === name &&
+                existing.actionType === input.type &&
+                readMarkdown(existing.rationale) === rationale &&
+                readMarkdown(existing.proposedAction) === proposedAction &&
+                existing.contextVersion === contextVersion &&
+                existing.commercialSignalId ===
+                  (input.commercialSignalId?.trim() || null) &&
+                JSON.stringify(existing.writeSet ?? []) ===
+                  JSON.stringify(writeSet);
+
+              if (!sameProposal) {
+                return {
+                  success: false,
+                  status: AiActionStatus.REJECTED,
+                  message:
+                    'A chave de idempotência já pertence a outra proposta. Gere uma nova chave para este escopo.',
+                };
+              }
+
               return {
-                success: false,
-                status: AiActionStatus.PENDING_APPROVAL,
+                success: true,
+                aiActionId: existing.id,
+                status:
+                  (existing.status as AiActionStatus) ??
+                  AiActionStatus.PENDING_APPROVAL,
                 message:
-                  'O limite horário de propostas da IA foi atingido. Aguarde a próxima janela antes de gerar novas ações.',
+                  'A mesma evidência já possui uma ação registrada. Nenhuma duplicata foi criada.',
               };
             }
+          }
 
-            let estimatedCreditsUsed = 0;
+          const recentProposalCount = await actionRepository.count({
+            where: {
+              createdAt: MoreThan(
+                new Date(Date.now() - AI_ACTION_PROPOSAL_WINDOW_MS),
+              ),
+            } as never,
+          });
 
-            if (input.type !== AiActionType.REPLY) {
-              const dailyActions = await actionRepository.find({
-                where: {
-                  createdAt: MoreThan(new Date(Date.now() - DAY_MS)),
-                } as never,
-                select: { estimatedCostCredits: true } as never,
-              });
-
-              estimatedCreditsUsed = dailyActions.reduce(
-                (total, action) =>
-                  total + (action.estimatedCostCredits ?? 0),
-                0,
-              );
-            }
-
-            if (
-              input.type !== AiActionType.REPLY &&
-              estimatedCreditsUsed + policy.estimatedCostCredits >
-                workspacePolicy.limits.maxEstimatedCreditsPerDay
-            ) {
-              return {
-                success: false,
-                status: AiActionStatus.PENDING_APPROVAL,
-                message:
-                  'O limite diário estimado de créditos da IA foi atingido neste workspace. A operação continua disponível, mas uma nova ação exige revisão do administrador.',
-              };
-            }
-
-            const action = actionRepository.create({
-              name,
-              actionType: input.type,
-              status: AiActionStatus.PENDING_APPROVAL,
-              confidence:
-                input.confidence === undefined
-                  ? undefined
-                  : Math.min(100, Math.max(0, input.confidence)),
-              rationale: { markdown: rationale, blocknote: null },
-              proposedAction: { markdown: proposedAction, blocknote: null },
-              requestedAt: new Date(),
-              requiresApproval: policy.requiresApproval,
-              opportunityId: input.opportunityId?.trim() || undefined,
-              commercialSignalId:
-                input.commercialSignalId?.trim() || undefined,
-              successPlanId: input.successPlanId?.trim() || undefined,
-              reviewerId: input.reviewerId?.trim() || undefined,
-              inboxConversationId:
-                input.inboxConversationId?.trim() || undefined,
-              idempotencyKey,
-              contextVersion,
-              riskLevel: policy.riskLevel,
-              writeSet,
-              expiresAt: new Date(Date.now() + policy.expiryMs),
-              policyVersion: policy.version,
-              estimatedCostCredits: policy.estimatedCostCredits,
-            } as never);
-            const saved = (await actionRepository.save(
-              action as unknown as AiActionWorkspaceEntity,
-            )) as unknown as AiActionWorkspaceEntity;
-
+          if (recentProposalCount >= policy.maxProposalsPerHour) {
             return {
-              success: true,
-              aiActionId: saved.id,
+              success: false,
               status: AiActionStatus.PENDING_APPROVAL,
               message:
-                'Ação registrada como aguardando aprovação. Nenhum efeito externo foi executado.',
+                'O limite horário de propostas da IA foi atingido. Aguarde a próxima janela antes de gerar novas ações.',
             };
-          },
-          authContext,
-        ),
+          }
+
+          let estimatedCreditsUsed = 0;
+
+          if (input.type !== AiActionType.REPLY) {
+            const dailyActions = await actionRepository.find({
+              where: {
+                createdAt: MoreThan(new Date(Date.now() - DAY_MS)),
+              } as never,
+              select: { estimatedCostCredits: true } as never,
+            });
+
+            estimatedCreditsUsed = dailyActions.reduce(
+              (total, action) => total + (action.estimatedCostCredits ?? 0),
+              0,
+            );
+          }
+
+          if (
+            input.type !== AiActionType.REPLY &&
+            estimatedCreditsUsed + policy.estimatedCostCredits >
+              workspacePolicy.limits.maxEstimatedCreditsPerDay
+          ) {
+            return {
+              success: false,
+              status: AiActionStatus.PENDING_APPROVAL,
+              message:
+                'O limite diário estimado de créditos da IA foi atingido neste workspace. A operação continua disponível, mas uma nova ação exige revisão do administrador.',
+            };
+          }
+
+          const action = actionRepository.create({
+            name,
+            actionType: input.type,
+            status: AiActionStatus.PENDING_APPROVAL,
+            confidence:
+              input.confidence === undefined
+                ? undefined
+                : Math.min(100, Math.max(0, input.confidence)),
+            rationale: { markdown: rationale, blocknote: null },
+            proposedAction: { markdown: proposedAction, blocknote: null },
+            requestedAt: new Date(),
+            requiresApproval: policy.requiresApproval,
+            opportunityId: input.opportunityId?.trim() || undefined,
+            commercialSignalId: input.commercialSignalId?.trim() || undefined,
+            successPlanId: input.successPlanId?.trim() || undefined,
+            reviewerId: input.reviewerId?.trim() || undefined,
+            inboxConversationId: input.inboxConversationId?.trim() || undefined,
+            idempotencyKey,
+            contextVersion,
+            riskLevel: policy.riskLevel,
+            writeSet,
+            expiresAt: new Date(Date.now() + policy.expiryMs),
+            policyVersion: policy.version,
+            estimatedCostCredits: policy.estimatedCostCredits,
+          } as never);
+          const saved = (await actionRepository.save(
+            action as unknown as AiActionWorkspaceEntity,
+          )) as unknown as AiActionWorkspaceEntity;
+
+          return {
+            success: true,
+            aiActionId: saved.id,
+            status: AiActionStatus.PENDING_APPROVAL,
+            message:
+              'Ação registrada como aguardando aprovação. Nenhum efeito externo foi executado.',
+          };
+        }, authContext),
       `diex:ai-proposals:${input.workspaceId}`,
       { ttl: 15_000, maxRetries: 100 },
     );
@@ -555,10 +553,7 @@ export class AiGovernanceService {
       return 'A ação adaptativa exige o objeto operacional de destino.';
     }
 
-    if (
-      customObject.operation === 'UPDATE' &&
-      !customObject.recordId?.trim()
-    ) {
+    if (customObject.operation === 'UPDATE' && !customObject.recordId?.trim()) {
       return 'Uma ação adaptativa de atualização exige o registro de destino.';
     }
 
@@ -656,8 +651,7 @@ export class AiGovernanceService {
           typeof option.label === 'string' && option.label.trim().length > 0
             ? option.label.trim()
             : option.value.trim(),
-        position:
-          typeof option.position === 'number' ? option.position : index,
+        position: typeof option.position === 'number' ? option.position : index,
       }))
       .sort((left, right) => left.position - right.position);
 
@@ -1073,8 +1067,7 @@ export class AiGovernanceService {
                 },
                 sourceStage: {
                   value: targetOpportunity?.stage,
-                  label:
-                    currentStageOption?.label ?? targetOpportunity?.stage,
+                  label: currentStageOption?.label ?? targetOpportunity?.stage,
                   position: currentStageOption?.position ?? -1,
                 },
                 targetStage: {
@@ -1192,8 +1185,7 @@ export class AiGovernanceService {
             supported: false,
             actionId: action.id,
             blockedReason: 'operating_window_closed',
-            message:
-              `A execução está fora da janela operacional da IA (${workspacePolicy.operatingWindow.start}-${workspacePolicy.operatingWindow.end}, ${workspacePolicy.operatingWindow.timezone}). A ação continua aprovada para a próxima janela.`,
+            message: `A execução está fora da janela operacional da IA (${workspacePolicy.operatingWindow.start}-${workspacePolicy.operatingWindow.end}, ${workspacePolicy.operatingWindow.timezone}). A ação continua aprovada para a próxima janela.`,
           };
         }
 
@@ -1257,10 +1249,9 @@ export class AiGovernanceService {
             blockedReason: isExternalReply
               ? 'external_message_daily_limit'
               : 'execution_rate_limit',
-            message:
-              isExternalReply
-                ? 'O limite diário de mensagens externas foi atingido. A ação continua aprovada e será reavaliada no próximo período.'
-                : 'O limite horário de execuções da IA foi atingido. A ação continua aprovada e será reavaliada na próxima janela.',
+            message: isExternalReply
+              ? 'O limite diário de mensagens externas foi atingido. A ação continua aprovada e será reavaliada no próximo período.'
+              : 'O limite horário de execuções da IA foi atingido. A ação continua aprovada e será reavaliada na próxima janela.',
           };
         }
 
@@ -1282,7 +1273,9 @@ export class AiGovernanceService {
                 workspaceId: input.workspaceId,
                 workspaceMemberId: input.workspaceMemberId ?? '',
                 conversationId:
-                  action.inboxConversationId ?? action.inboxConversation?.id ?? '',
+                  action.inboxConversationId ??
+                  action.inboxConversation?.id ??
+                  '',
                 text: proposedAction,
                 aiActionId: action.id,
               });
@@ -1427,7 +1420,7 @@ export class AiGovernanceService {
           const customOperationLabel = customWriteSet
             ? `Registro de ${customWriteSet.objectName} ${customWriteSet.operation === 'CREATE' ? 'criado' : 'atualizado'}`
             : null;
-          const receipt = `${isExternalReply ? 'Resposta de WhatsApp enviada' : isPipelineUpdate ? 'Pipeline atualizado' : customOperationLabel ?? 'Tarefa criada'} em ${new Date().toISOString()} por aprovação humana. Contexto operacional: ${action.contextVersion ?? 'não informado'}.`;
+          const receipt = `${isExternalReply ? 'Resposta de WhatsApp enviada' : isPipelineUpdate ? 'Pipeline atualizado' : (customOperationLabel ?? 'Tarefa criada')} em ${new Date().toISOString()} por aprovação humana. Contexto operacional: ${action.contextVersion ?? 'não informado'}.`;
           await actionRepository.update(action.id, {
             status: AiActionStatus.EXECUTED,
             executedAt: new Date(),

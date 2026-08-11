@@ -75,20 +75,20 @@ export const AI_ACTION_POLICY_VERSION_FIELD_UNIVERSAL_IDENTIFIER =
 export const AI_ACTION_ESTIMATED_COST_CREDITS_FIELD_UNIVERSAL_IDENTIFIER =
   'd1e05100-0000-4000-8000-000000000016';
 
-export const AI_ACTION_RISK_LEVEL_OPTIONS = Object.values(AiActionRiskLevel).map(
-  (value, position) => ({
-    id: `d1e05130-0000-4000-8000-${String(position + 1).padStart(12, '0')}`,
-    value,
-    label: value === 'BLOCKED' ? 'Bloqueada' : value,
-    position,
-    color:
-      value === 'HIGH' || value === 'BLOCKED'
-        ? ('red' as const)
-        : value === 'MEDIUM'
-          ? ('orange' as const)
-          : ('green' as const),
-  }),
-);
+export const AI_ACTION_RISK_LEVEL_OPTIONS = Object.values(
+  AiActionRiskLevel,
+).map((value, position) => ({
+  id: `d1e05130-0000-4000-8000-${String(position + 1).padStart(12, '0')}`,
+  value,
+  label: value === 'BLOCKED' ? 'Bloqueada' : value,
+  position,
+  color:
+    value === 'HIGH' || value === 'BLOCKED'
+      ? ('red' as const)
+      : value === 'MEDIUM'
+        ? ('orange' as const)
+        : ('green' as const),
+}));
 
 export const AI_ACTION_STATUS_OPTIONS = [
   {
@@ -367,7 +367,8 @@ export const AiActionStandardObjectDefinition = {
       type: FieldMetadataType.RAW_JSON,
       name: 'writeSet',
       label: 'Escopo de escrita',
-      description: 'Registros e operações que a ação está autorizada a alterar.',
+      description:
+        'Registros e operações que a ação está autorizada a alterar.',
       icon: 'IconLockAccess',
       isNullable: true,
     },

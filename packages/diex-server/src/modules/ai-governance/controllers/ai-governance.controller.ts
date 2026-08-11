@@ -16,6 +16,7 @@ import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { AiActionType } from 'src/modules/ai-governance/standard-objects/ai-action.standard-object-definition';
@@ -57,12 +58,14 @@ const readString = (value: unknown): string =>
 
 const readCustomObject = (
   value: unknown,
-): {
-  objectName: string;
-  recordId?: string;
-  operation: 'CREATE' | 'UPDATE';
-  fields: Record<string, unknown>;
-} | undefined => {
+):
+  | {
+      objectName: string;
+      recordId?: string;
+      operation: 'CREATE' | 'UPDATE';
+      fields: Record<string, unknown>;
+    }
+  | undefined => {
   if (value === undefined || value === null) {
     return undefined;
   }
@@ -114,7 +117,12 @@ const readCustomObject = (
 export class AiGovernanceController {
   constructor(private readonly aiGovernanceService: AiGovernanceService) {}
 
+  // Propor não produz efeito externo: a ação nasce aguardando aprovação, e
+  // executar e revisar exigem permissão de workspace logo abaixo. Qualquer
+  // membro autenticado pode propor, e o guard declara essa decisão em vez de
+  // deixá-la implícita na ausência.
   @Post('propose-action')
+  @UseGuards(NoPermissionGuard)
   async propose(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @Body() body: ProposeBody,
@@ -180,7 +188,10 @@ export class AiGovernanceController {
     });
   }
 
+  // Leitura da política: limites, canais e janela de operação, sem segredo.
+  // Escrever exige permissão de workspace no endpoint abaixo.
   @Get('policy')
+  @UseGuards(NoPermissionGuard)
   async getPolicy(@AuthWorkspace() workspace: WorkspaceEntity) {
     return this.aiGovernanceService.getWorkspaceAiPolicy(workspace.id);
   }
