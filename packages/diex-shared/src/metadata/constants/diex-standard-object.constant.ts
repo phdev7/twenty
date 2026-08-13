@@ -304,6 +304,33 @@ export const DIEX_STANDARD_OBJECTS = {
       idempotencyKey: {
         universalIdentifier: 'd1e05100-0000-4000-8000-00000000000d',
       },
+      contextVersion: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-00000000000e',
+      },
+      executionStartedAt: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-00000000000f',
+      },
+      failureReason: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-000000000010',
+      },
+      attemptCount: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-000000000011',
+      },
+      riskLevel: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-000000000012',
+      },
+      writeSet: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-000000000013',
+      },
+      expiresAt: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-000000000014',
+      },
+      policyVersion: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-000000000015',
+      },
+      estimatedCostCredits: {
+        universalIdentifier: 'd1e05100-0000-4000-8000-000000000016',
+      },
     },
     indexes: {
       idempotencyKeyUniqueIndex: {
