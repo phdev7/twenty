@@ -5,7 +5,7 @@ import {
   IconBrandWhatsapp,
   IconCalendar,
   IconChartLine,
-  IconForms,
+  IconFileText,
   IconInbox,
   IconRefresh,
   IconRocket,
@@ -141,7 +141,7 @@ export const DiexNavigationSection = () => {
         catalogLinks.push({
           label: 'Formulários',
           to: DIEX_FORM_BUILDER_ROUTE,
-          Icon: IconForms,
+          Icon: IconFileText,
           group: 'Comercial',
         });
       }
@@ -166,7 +166,7 @@ export const DiexNavigationSection = () => {
       {
         label: 'Formulários',
         to: DIEX_FORM_BUILDER_ROUTE,
-        Icon: IconForms,
+        Icon: IconFileText,
         group: 'Comercial',
       },
       {
