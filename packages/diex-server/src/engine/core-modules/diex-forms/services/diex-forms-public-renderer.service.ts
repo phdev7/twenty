@@ -36,56 +36,43 @@ export class DiexFormsPublicRendererService {
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow, noarchive" />
   <meta name="referrer" content="no-referrer" />
-  <title>Formulário indisponível | Diex Forms</title>
+  <title>Formulário indisponível</title>
   <style nonce="${nonce}">
-    :root { color-scheme: light dark; --page: #FDFCFF; --surface: #fff; --ink: #0E0929; --muted: #625f74; --line: rgba(14,9,41,.1); --accent: #92ACFF; --button: #0E0929; --button-ink: #FDFCFF; }
+    :root { color-scheme: light dark; --background: #f4f4f5; --card: #ffffff; --foreground: #18181b; --muted-foreground: #71717a; --border: #e4e4e7; --secondary: #f4f4f5; --primary: #18181b; --primary-foreground: #fafafa; --ring: rgba(24,24,27,.18); }
     * { box-sizing: border-box; }
     html, body { min-height: 100%; }
-    body { margin: 0; color: var(--ink); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--page); }
-    body::before, body::after { position: fixed; z-index: -1; width: 34rem; height: 34rem; border-radius: 50%; content: ""; filter: blur(12px); opacity: .36; pointer-events: none; }
-    body::before { top: -20rem; right: -12rem; background: radial-gradient(circle, rgba(146,172,255,.7), transparent 68%); }
-    body::after { bottom: -24rem; left: -14rem; background: radial-gradient(circle, rgba(95,125,255,.28), transparent 68%); }
+    body { margin: 0; color: var(--foreground); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--background); }
     .page { min-height: 100dvh; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-    .shell { width: min(100%, 620px); }
-    .brand { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 18px; color: var(--ink); font-size: 14px; font-weight: 750; letter-spacing: -.01em; }
-    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--ink); color: var(--page); font-size: 15px; font-weight: 850; }
-    .card { position: relative; overflow: hidden; padding: clamp(30px, 7vw, 56px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
-    .card::before { position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #92ACFF, #5F7DFF); content: ""; }
-    .status-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
-    .status-icon { width: 62px; height: 62px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(95,125,255,.2); border-radius: 50%; background: rgba(146,172,255,.14); color: #4c67db; }
-    .status-icon svg { width: 29px; height: 29px; }
-    .status-code { color: #a09dad; font-size: 12px; font-weight: 750; letter-spacing: .12em; }
-    .eyebrow { margin: 30px 0 10px; color: #5F7DFF; font-size: 12px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-    h1 { max-width: 470px; margin: 0; font-size: clamp(31px, 7vw, 46px); line-height: 1.04; letter-spacing: -.045em; }
-    .copy { max-width: 490px; margin: 16px 0 0; color: var(--muted); font-size: 16px; line-height: 1.62; }
-    .actions { margin-top: 30px; display: flex; align-items: center; gap: 12px; }
-    .button { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 10px; padding: 0 20px; background: var(--button); color: var(--button-ink); font-weight: 750; text-decoration: none; transition: transform .18s ease, opacity .18s ease; }
-    .button:hover { transform: translateY(-1px); }
-    .button:focus-visible { outline: 3px solid rgba(95,125,255,.42); outline-offset: 3px; }
-    .note { margin: 26px 0 0; padding-top: 18px; border-top: 1px solid var(--line); color: #858190; font-size: 12px; line-height: 1.5; }
-    @media (prefers-color-scheme: dark) { :root { --page: #02000F; --surface: #0E0929; --ink: #FDFCFF; --muted: #d1d4e4; --line: rgba(146,172,255,.18); --button: #92ACFF; --button-ink: #0E0929; } .brand-mark { background: #92ACFF; color: #0E0929; } .status-icon { color: #b9c8ff; } .status-code, .note { color: #a7abc0; } }
-    @media (max-width: 520px) { .page { align-items: start; padding-top: 28px; } .card { padding: 30px 22px; border-radius: 14px; } .eyebrow { margin-top: 26px; } .actions, .button { width: 100%; } }
+    .card { width: min(100%, 560px); padding: 32px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .status-icon { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); color: var(--foreground); }
+    .status-icon svg { width: 19px; height: 19px; }
+    h1 { margin: 24px 0 0; font-size: 24px; font-weight: 600; line-height: 1.25; letter-spacing: -.025em; }
+    .copy { margin: 10px 0 0; color: var(--muted-foreground); font-size: 14px; line-height: 1.55; }
+    .actions { margin-top: 24px; display: flex; }
+    .button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; padding: 0 16px; background: var(--primary); color: var(--primary-foreground); font-size: 14px; font-weight: 500; text-decoration: none; transition: opacity .15s ease; }
+    .button:hover { opacity: .9; }
+    .button:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+    .note { margin: 24px 0 0; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
+    @media (prefers-color-scheme: dark) { :root { --background: #09090b; --card: #18181b; --foreground: #fafafa; --muted-foreground: #a1a1aa; --border: #27272a; --secondary: #27272a; --primary: #fafafa; --primary-foreground: #18181b; --ring: rgba(250,250,250,.2); } }
+    @media (max-width: 520px) { .page { align-items: start; padding-top: 20px; } .card { padding: 24px; } .actions, .button { width: 100%; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
 </head>
 <body>
   <main class="page">
-    <div class="shell">
-      <div class="brand" aria-label="Diex Forms"><span class="brand-mark" aria-hidden="true">D</span><span>Diex Forms</span></div>
-      <section class="card" aria-labelledby="state-title">
-        <div class="status-row">
-          <div class="status-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0Z"/></svg>
-          </div>
-          <span class="status-code">ERRO 404</span>
-        </div>
-        <p class="eyebrow">Link indisponível</p>
-        <h1 id="state-title">Este formulário não está disponível.</h1>
-        <p class="copy">O endereço pode estar incompleto, ter expirado ou o formulário ainda não foi publicado. Confirme o link recebido e tente novamente.</p>
-        <div class="actions"><a class="button" href="${safeMarketingUrl}">Conhecer a Diex <span aria-hidden="true">→</span></a></div>
-        <p class="note">Nenhuma informação foi enviada nesta página.</p>
-      </section>
-    </div>
+    <section class="card" aria-labelledby="state-title">
+      <div class="status-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>
+        </svg>
+      </div>
+      <h1 id="state-title">Formulário indisponível</h1>
+      <p class="copy">Este link pode estar incorreto, expirado ou ainda não ter sido publicado. Confirme o endereço recebido e tente novamente.</p>
+      <div class="actions">
+        <a class="button" href="${safeMarketingUrl}">Voltar ao site</a>
+      </div>
+      <p class="note">Nenhuma informação foi enviada.</p>
+    </section>
   </main>
 </body>
 </html>`;
@@ -99,9 +86,6 @@ export class DiexFormsPublicRendererService {
     workspaceLogoUrl,
     nonce,
   }: RenderPublicFormInput): string {
-    const accentColor = /^#[0-9a-f]{6}$/i.test(snapshot.accentColor)
-      ? snapshot.accentColor
-      : '#6C5CE7';
     const logoUrl = snapshot.logoUrl ?? workspaceLogoUrl ?? null;
     const safeSubmitUrl = this.escapeHtml(submitUrl);
     const clientConfig = this.safeJson({
@@ -114,13 +98,10 @@ export class DiexFormsPublicRendererService {
         this.renderQuestion(field, index, snapshot.fields.length),
       )
       .join('');
-    const logo =
+    const brand =
       snapshot.showLogo && logoUrl
-        ? `<img class="brand-logo" src="${this.escapeHtml(logoUrl)}" alt="${this.escapeHtml(workspaceName ?? snapshot.title)}" referrerpolicy="no-referrer" />`
-        : snapshot.showLogo
-          ? `<div class="brand-mark" aria-hidden="true">D</div>`
-          : '';
-    const brand = logo ? `<div class="brand">${logo}</div>` : '';
+        ? `<div class="brand"><img class="brand-logo" src="${this.escapeHtml(logoUrl)}" alt="${this.escapeHtml(workspaceName ?? snapshot.title)}" referrerpolicy="no-referrer" /></div>`
+        : '';
     const description = snapshot.description
       ? `<p class="intro-copy">${this.escapeHtml(snapshot.description)}</p>`
       : '';
@@ -131,8 +112,8 @@ export class DiexFormsPublicRendererService {
          </label>`
       : '';
     const privacy = snapshot.privacyPolicyUrl
-      ? `<a class="privacy-link" href="${this.escapeHtml(snapshot.privacyPolicyUrl)}" target="_blank" rel="noopener noreferrer">Política de privacidade</a>`
-      : '';
+      ? `<span>Envio seguro</span><a class="privacy-link" href="${this.escapeHtml(snapshot.privacyPolicyUrl)}" target="_blank" rel="noopener noreferrer">Política de privacidade</a>`
+      : '<span>Envio seguro</span>';
 
     return `<!doctype html>
 <html lang="pt-BR">
@@ -143,72 +124,72 @@ export class DiexFormsPublicRendererService {
   <meta name="referrer" content="no-referrer" />
   <title>${this.escapeHtml(snapshot.title)}</title>
   <style nonce="${nonce}">
-    :root { color-scheme: light dark; --accent: ${accentColor}; --ink: #16161b; --muted: #707078; --line: #e8e8ed; --surface: rgba(255,255,255,.94); --field: #fff; --field-line: #dcdce3; --secondary: #ededf1; --secondary-ink: #48484f; --page: #f7f7f9; }
+    :root { color-scheme: light dark; --background: #f4f4f5; --card: #ffffff; --foreground: #18181b; --muted-foreground: #71717a; --border: #e4e4e7; --input: #d4d4d8; --secondary: #f4f4f5; --secondary-foreground: #3f3f46; --primary: #18181b; --primary-foreground: #fafafa; --ring: rgba(24,24,27,.18); --destructive: #b91c1c; --destructive-background: #fef2f2; --success: #166534; }
     * { box-sizing: border-box; }
     html, body { min-height: 100%; }
-    body { margin: 0; color: var(--ink); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 35%), radial-gradient(circle at 90% 85%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 30%), var(--page); }
+    body { margin: 0; color: var(--foreground); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--background); }
     button, input, textarea, select { font: inherit; }
-    .page { min-height: 100dvh; padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: grid; place-items: center; }
-    .shell { width: min(100%, 720px); }
-    .brand { min-height: 48px; margin: 0 0 20px; display: flex; align-items: center; gap: 12px; }
-    .brand-logo { display: block; max-width: 180px; max-height: 52px; object-fit: contain; object-position: left center; }
-    .brand-mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 800; font-size: 20px; box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 26%, transparent); }
-    .card { overflow: hidden; border: 1px solid rgba(21,21,26,.08); border-radius: 24px; background: var(--surface); box-shadow: 0 24px 80px rgba(24,24,34,.10); backdrop-filter: blur(18px); }
-    .progress-track { height: 5px; background: #ececf1; }
-    .progress-value { height: 100%; width: 0; background: var(--accent); transition: width .28s ease; }
-    .content { padding: clamp(24px, 6vw, 52px); }
-    .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: 12px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
-    h1 { margin: 0; font-size: clamp(28px, 6vw, 42px); line-height: 1.08; letter-spacing: -.035em; }
-    .intro-copy { max-width: 580px; margin: 14px 0 0; color: var(--muted); font-size: 16px; line-height: 1.6; }
-    .question-list { margin-top: 34px; }
-    .question { display: none; animation: enter .26s ease both; }
+    .page { min-height: 100dvh; padding: max(32px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: grid; place-items: center; }
+    .shell { width: min(100%, 640px); }
+    .brand { margin: 0 0 16px; display: flex; align-items: center; }
+    .brand-logo { display: block; max-width: 160px; max-height: 44px; object-fit: contain; object-position: left center; }
+    .card { overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .progress-track { height: 3px; background: var(--secondary); }
+    .progress-value { height: 100%; width: 0; background: var(--foreground); transition: width .2s ease; }
+    .content { padding: 32px; }
+    h1 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.25; letter-spacing: -.025em; }
+    .intro-copy { margin: 8px 0 0; color: var(--muted-foreground); font-size: 14px; line-height: 1.55; }
+    .question-list { margin-top: 32px; }
+    .question { display: none; }
     .question.is-visible, .single-page .question { display: block; }
-    .single-page .question + .question { margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--line); }
-    @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-    .question-index { display: inline-flex; margin-bottom: 10px; color: var(--accent); font-size: 13px; font-weight: 700; }
-    .question-label { display: block; margin: 0 0 8px; font-size: clamp(20px, 4.2vw, 28px); font-weight: 720; line-height: 1.25; letter-spacing: -.02em; }
-    .required { color: var(--accent); }
-    .help { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.5; }
-    .control { width: 100%; min-height: 54px; border: 1px solid var(--field-line); border-radius: 14px; outline: none; background: var(--field); color: var(--ink); padding: 14px 16px; transition: border-color .18s, box-shadow .18s; }
-    .control:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent); }
-    textarea.control { min-height: 132px; resize: vertical; line-height: 1.55; }
-    .choices { display: grid; gap: 10px; }
-    .choice { position: relative; display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 13px 15px; border: 1px solid var(--field-line); border-radius: 14px; background: var(--field); cursor: pointer; transition: border-color .18s, background .18s, transform .18s; }
-    .choice:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--field-line)); transform: translateY(-1px); }
-    .choice:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, white); }
-    .choice input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+    .single-page .question + .question { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .question-index { display: inline-flex; margin-bottom: 8px; color: var(--muted-foreground); font-size: 12px; font-weight: 500; }
+    .question-label { display: block; margin: 0 0 7px; font-size: 14px; font-weight: 500; line-height: 1.45; }
+    .required { color: var(--destructive); }
+    .help { margin: -1px 0 10px; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
+    .control { width: 100%; min-height: 40px; border: 1px solid var(--input); border-radius: 6px; outline: none; background: var(--card); color: var(--foreground); padding: 9px 12px; font-size: 14px; transition: border-color .15s ease, box-shadow .15s ease; }
+    .control::placeholder { color: var(--muted-foreground); opacity: .75; }
+    .control:focus { border-color: var(--foreground); box-shadow: 0 0 0 3px var(--ring); }
+    textarea.control { min-height: 112px; resize: vertical; line-height: 1.5; }
+    .choices { display: grid; gap: 8px; }
+    .choice { position: relative; display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 9px 12px; border: 1px solid var(--input); border-radius: 6px; background: var(--card); cursor: pointer; font-size: 14px; transition: border-color .15s ease, background .15s ease; }
+    .choice:hover { border-color: var(--foreground); }
+    .choice:has(input:checked) { border-color: var(--foreground); background: var(--secondary); }
+    .choice:focus-within { box-shadow: 0 0 0 3px var(--ring); }
+    .choice input { width: 16px; height: 16px; margin: 0; accent-color: var(--foreground); }
     .rating { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    .rating .choice { justify-content: center; padding: 13px 4px; }
+    .rating .choice { justify-content: center; padding: 9px 4px; }
     .rating .choice input { position: absolute; opacity: 0; pointer-events: none; }
-    .actions { margin-top: 30px; display: flex; align-items: center; gap: 10px; }
-    .button { min-height: 48px; border: 0; border-radius: 13px; padding: 0 20px; cursor: pointer; font-weight: 720; transition: transform .16s, opacity .16s, box-shadow .16s; }
-    .button:hover { transform: translateY(-1px); }
-    .button:disabled { cursor: wait; opacity: .58; transform: none; }
-    .button-primary { margin-left: auto; background: var(--accent); color: #fff; box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 23%, transparent); }
-    .button-secondary { background: var(--secondary); color: var(--secondary-ink); }
-    .step-count { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-    .consent { display: flex; gap: 10px; margin-top: 24px; color: #5f5f67; font-size: 13px; line-height: 1.5; }
-    .consent input { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 1px; accent-color: var(--accent); }
-    .form-footer { min-height: 28px; padding-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px; color: #92929a; font-size: 12px; }
-    .privacy-link { color: inherit; }
+    .actions { margin-top: 24px; display: flex; align-items: center; gap: 8px; }
+    .button { min-height: 40px; border: 1px solid transparent; border-radius: 6px; padding: 0 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity .15s ease, background .15s ease; }
+    .button:hover { opacity: .9; }
+    .button:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+    .button:disabled { cursor: wait; opacity: .55; }
+    .button-primary { margin-left: auto; background: var(--primary); color: var(--primary-foreground); }
+    .button-secondary { border-color: var(--border); background: var(--card); color: var(--secondary-foreground); }
+    .step-count { color: var(--muted-foreground); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .consent { display: flex; gap: 10px; margin-top: 24px; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
+    .consent input { width: 16px; height: 16px; flex: 0 0 auto; margin-top: 1px; accent-color: var(--foreground); }
+    .form-footer { min-height: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; color: var(--muted-foreground); font-size: 11px; }
+    .privacy-link { color: inherit; text-underline-offset: 3px; }
     .hp { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; }
-    .error { min-height: 22px; margin-top: 14px; color: #b42318; font-size: 13px; line-height: 1.45; }
-    .error:not(:empty) { padding: 12px 14px; border: 1px solid rgba(180,35,24,.18); border-radius: 10px; background: rgba(180,35,24,.07); }
-    .success { display: none; padding: clamp(40px, 8vw, 72px) clamp(24px, 7vw, 58px); text-align: center; outline: none; }
+    .error { min-height: 18px; margin-top: 12px; color: var(--destructive); font-size: 12px; line-height: 1.45; }
+    .error:not(:empty) { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--destructive) 22%, var(--border)); border-radius: 6px; background: var(--destructive-background); }
+    .success { display: none; padding: 48px 32px; text-align: center; outline: none; }
     .success.is-visible { display: block; }
-    .success-icon { width: 66px; height: 66px; margin: 0 auto 22px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); border-radius: 50%; background: color-mix(in srgb, var(--accent) 12%, var(--field)); color: var(--accent); }
-    .success-icon svg { width: 31px; height: 31px; }
-    .success-eyebrow { margin: 0 0 10px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-    .success h2 { margin: 0; font-size: clamp(27px, 5vw, 38px); letter-spacing: -.03em; }
-    .success p { margin: 12px auto 0; max-width: 520px; color: var(--muted); line-height: 1.65; }
-    .success-receipt { max-width: 410px; margin: 28px auto 0; display: flex; align-items: center; gap: 13px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--accent) 5%, var(--field)); text-align: left; }
-    .success-dot { width: 10px; height: 10px; flex: 0 0 auto; border-radius: 50%; background: #2e9d66; box-shadow: 0 0 0 5px rgba(46,157,102,.12); }
+    .success-icon { width: 42px; height: 42px; margin: 0 auto 20px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); color: var(--foreground); }
+    .success-icon svg { width: 20px; height: 20px; }
+    .success-eyebrow { margin: 0 0 8px; color: var(--muted-foreground); font-size: 12px; font-weight: 500; }
+    .success h2 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.3; letter-spacing: -.025em; }
+    .success p { margin: 8px auto 0; max-width: 460px; color: var(--muted-foreground); font-size: 14px; line-height: 1.55; }
+    .success-receipt { max-width: 400px; margin: 24px auto 0; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); text-align: left; }
+    .success-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--success); }
     .success-receipt strong, .success-receipt span { display: block; }
-    .success-receipt strong { font-size: 14px; }
-    .success-receipt span { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.4; }
-    .success-close { padding-top: 20px; font-size: 12px; }
-    @media (prefers-color-scheme: dark) { :root { --ink: #FDFCFF; --muted: #c8cada; --line: rgba(146,172,255,.18); --surface: rgba(14,9,41,.96); --field: #15103A; --field-line: rgba(146,172,255,.22); --secondary: #211b49; --secondary-ink: #E8ECFF; --page: #02000F; } .progress-track { background: #211b49; } .choice:has(input:checked) { background: color-mix(in srgb, var(--accent) 12%, var(--field)); } .consent { color: #c8cada; } .form-footer { color: #a7abc0; } .error { color: #ffb4ad; } .error:not(:empty) { border-color: rgba(255,180,173,.2); background: rgba(180,35,24,.14); } }
-    @media (max-width: 520px) { .page { align-items: start; padding-top: 18px; } .brand { margin-bottom: 14px; } .card { border-radius: 19px; } .content { padding: 26px 20px; } .actions { flex-wrap: wrap; } .step-count { order: 3; width: 100%; text-align: right; } .rating { gap: 6px; } }
+    .success-receipt strong { font-size: 13px; font-weight: 500; }
+    .success-receipt span { margin-top: 2px; color: var(--muted-foreground); font-size: 11px; line-height: 1.4; }
+    .success-close { padding-top: 14px; font-size: 11px !important; }
+    @media (prefers-color-scheme: dark) { :root { --background: #09090b; --card: #18181b; --foreground: #fafafa; --muted-foreground: #a1a1aa; --border: #27272a; --input: #3f3f46; --secondary: #27272a; --secondary-foreground: #e4e4e7; --primary: #fafafa; --primary-foreground: #18181b; --ring: rgba(250,250,250,.2); --destructive: #fca5a5; --destructive-background: #2b1618; --success: #86efac; } }
+    @media (max-width: 520px) { .page { align-items: start; padding-top: 16px; } .content, .success { padding: 24px; } .actions { flex-wrap: wrap; } .step-count { order: 3; width: 100%; text-align: right; } .rating { gap: 6px; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
   </style>
 </head>
@@ -219,7 +200,6 @@ export class DiexFormsPublicRendererService {
       <section class="card" aria-labelledby="form-title">
         <div class="progress-track" aria-hidden="true"><div class="progress-value" id="progress"></div></div>
         <div class="content" id="form-content">
-          <p class="eyebrow">Formulário seguro</p>
           <h1 id="form-title">${this.escapeHtml(snapshot.title)}</h1>
           ${description}
           <form id="lead-form" action="${safeSubmitUrl}" method="post" novalidate>
@@ -236,7 +216,7 @@ export class DiexFormsPublicRendererService {
               <button class="button button-primary" id="submit" type="submit">${this.escapeHtml(snapshot.submitButtonLabel)}</button>
             </div>
           </form>
-          <footer class="form-footer"><span>Protegido por Diex Forms</span>${privacy}</footer>
+          <footer class="form-footer">${privacy}</footer>
         </div>
         <div class="success" id="success" role="status" aria-live="polite" tabindex="-1">
           <div class="success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></div>
