@@ -7,7 +7,7 @@ import { SlowInstanceCommand } from 'src/engine/core-modules/upgrade/interfaces/
 // a coluna existir. O backfill fica fora do comando fast que adiciona a coluna:
 // juntar os dois na mesma transação segura um ACCESS EXCLUSIVE em core.workspace
 // durante toda a escrita e trava as leituras enquanto o deploy roda.
-@RegisteredInstanceCommand('2.26.0', 1786950000000, { type: 'slow' })
+@RegisteredInstanceCommand('2.27.0', 1787050000000, { type: 'slow' })
 export class BackfillDiexOnboardingPrimaryChannelSlowInstanceCommand
   implements SlowInstanceCommand
 {

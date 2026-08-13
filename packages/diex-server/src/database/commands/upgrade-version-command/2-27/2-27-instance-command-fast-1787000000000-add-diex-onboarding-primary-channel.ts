@@ -3,7 +3,7 @@ import { type QueryRunner } from 'typeorm';
 import { RegisteredInstanceCommand } from 'src/engine/core-modules/upgrade/decorators/registered-instance-command.decorator';
 import { type FastInstanceCommand } from 'src/engine/core-modules/upgrade/interfaces/fast-instance-command.interface';
 
-@RegisteredInstanceCommand('2.26.0', 1786900000000)
+@RegisteredInstanceCommand('2.27.0', 1787000000000)
 export class AddDiexOnboardingPrimaryChannelFastInstanceCommand
   implements FastInstanceCommand
 {

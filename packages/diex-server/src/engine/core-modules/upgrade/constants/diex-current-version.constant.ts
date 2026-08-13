@@ -7,4 +7,4 @@
  *                              |___/
  */
 
-export const DIEX_CURRENT_VERSION = '2.26.0' as const;
+export const DIEX_CURRENT_VERSION = '2.27.0' as const;

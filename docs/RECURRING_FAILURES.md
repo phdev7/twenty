@@ -44,15 +44,35 @@ serviço distante vai devolver no futuro.
 Coberto por `diex(rest-api-methods-should-be-guarded)` e
 `diex(graphql-resolvers-should-be-guarded)`.
 
-## 3. Comando de upgrade fora do alcance do cursor (3 incidentes)
+## 3. Comando de upgrade fora do alcance do cursor (4 incidentes)
 
-O cursor é posicional e por nome: ele acha o índice do comando registrado e roda
-tudo que vem **depois**. Um comando novo precisa de timestamp maior que todos os
-da mesma versão, senão nasce atrás do cursor e nunca executa.
+**Timestamp maior não basta.** `getUpgradeSequence` monta a sequência por versão
+e, dentro de cada versão, na ordem fixa: todos os fast, depois todos os slow,
+depois todos os workspace. O timestamp só ordena dentro de cada um desses três
+grupos, nunca entre eles.
+
+O cursor guarda o último comando tentado. Se a versão corrente já foi liberada
+uma vez, o último comando tentado é um workspace command dela, e
+`resolveStartCursor` devolve o início daquele segmento de workspace. Todo o bloco
+de instance commands da versão fica **atrás** do cursor. Um instance command novo
+acrescentado ali nunca é alcançado, e o upgrade ainda reporta sucesso, porque os
+workspace commands rodam normalmente.
+
+Foi exatamente assim que o `onboardingPrimaryChannel` não chegou em produção na
+0.6.49, mesmo com o timestamp mais alto da 2.26.0 e o registro correto.
+
+Regra: **instance command novo em versão que já rodou exige versão nova.**
+`npx tsx scripts/bump-version.ts <versão>` no diex-server move a corrente para
+`DIEX_PREVIOUS_VERSIONS` e cria a próxima. Workspace command acrescentado ao fim
+da versão corrente continua sendo alcançado, porque o cursor para no início do
+segmento, não no fim.
 
 Registrar significa duas coisas: exportar a classe e acrescentá-la ao fim de
 `instance-commands.constant.ts`. O `InstanceCommandProviderModule` espalha essa
 constante, então a lista é a fonte da verdade.
+
+Depois de subir, confirme no banco que o efeito existe. O log de upgrade dizendo
+"N workspace(s) succeeded, 0 failed" não diz nada sobre instance commands.
 
 ## 4. Fast instance command com escrita de dados
 
