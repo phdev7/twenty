@@ -15,6 +15,7 @@ import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object
 import { type FlatObjectPermission } from 'src/engine/metadata-modules/flat-object-permission/types/flat-object-permission.type';
 import { type FlatSearchFieldMetadata } from 'src/engine/metadata-modules/flat-search-field-metadata/types/flat-search-field-metadata.type';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
+import { STANDARD_ROLE } from 'src/engine/workspace-manager/diex-standard-application/constants/standard-role.constant';
 import { computeDiexStandardApplicationAllFlatEntityMaps } from 'src/engine/workspace-manager/diex-standard-application/utils/diex-standard-application-all-flat-entity-maps.constant';
 import { WorkspaceMigrationValidateBuildAndRunService } from 'src/engine/workspace-manager/workspace-migration/services/workspace-migration-validate-build-and-run-service';
 import { WORKSPACE_ARCHITECTURE_ARTIFACT_UNIVERSAL_IDENTIFIER } from 'src/modules/workspace-architecture/standard-objects/workspace-architecture-artifact.standard-object-definition';
@@ -62,12 +63,14 @@ export class SyncWorkspaceArchitectureArtifactCommand extends ProvisionedWorkspa
       flatIndexMaps,
       flatSearchFieldMetadataMaps,
       flatObjectPermissionMaps,
+      flatRoleMaps,
     } = await this.workspaceCacheService.getOrRecompute(workspaceId, [
       'flatObjectMetadataMaps',
       'flatFieldMetadataMaps',
       'flatIndexMaps',
       'flatSearchFieldMetadataMaps',
       'flatObjectPermissionMaps',
+      'flatRoleMaps',
     ]);
 
     const { diexStandardFlatApplication } =
@@ -80,6 +83,19 @@ export class SyncWorkspaceArchitectureArtifactCommand extends ProvisionedWorkspa
         workspaceId,
         diexStandardApplicationId: diexStandardFlatApplication.id,
       });
+    const defaultFunctionRole =
+      flatRoleMaps.byUniversalIdentifier[
+        STANDARD_ROLE.defaultFunction.universalIdentifier
+      ];
+    const canCreateDefaultFunctionObjectPermission =
+      defaultFunctionRole?.applicationUniversalIdentifier ===
+      diexStandardFlatApplication.universalIdentifier;
+
+    if (!canCreateDefaultFunctionObjectPermission) {
+      this.logger.warn(
+        `Skipping WorkspaceArchitectureArtifact default-function permission for workspace ${workspaceId}: role belongs to another application`,
+      );
+    }
 
     const allFlatEntityOperationByMetadataName = {
       objectMetadata: {
@@ -134,15 +150,16 @@ export class SyncWorkspaceArchitectureArtifactCommand extends ProvisionedWorkspa
         flatEntityToUpdate: [],
       },
       objectPermission: {
-        flatEntityToCreate:
-          getStandardFlatEntitiesToCreateOrThrow<FlatObjectPermission>({
-            standardFlatEntityMaps:
-              standardAllFlatEntityMaps.flatObjectPermissionMaps,
-            existingFlatEntityMaps: flatObjectPermissionMaps,
-            universalIdentifiers: getObjectOwnedUniversalIdentifiers(
-              standardAllFlatEntityMaps.flatObjectPermissionMaps,
-            ),
-          }),
+        flatEntityToCreate: canCreateDefaultFunctionObjectPermission
+          ? getStandardFlatEntitiesToCreateOrThrow<FlatObjectPermission>({
+              standardFlatEntityMaps:
+                standardAllFlatEntityMaps.flatObjectPermissionMaps,
+              existingFlatEntityMaps: flatObjectPermissionMaps,
+              universalIdentifiers: getObjectOwnedUniversalIdentifiers(
+                standardAllFlatEntityMaps.flatObjectPermissionMaps,
+              ),
+            })
+          : [],
         flatEntityToDelete: [],
         flatEntityToUpdate: [],
       },
