@@ -5,6 +5,7 @@ import {
   IconBrandWhatsapp,
   IconCalendar,
   IconChartLine,
+  IconForms,
   IconInbox,
   IconRefresh,
   IconRocket,
@@ -32,6 +33,11 @@ type DiexNavigationLink = {
   Icon: IconComponent;
   group: string;
 };
+
+const DIEX_FORM_BUILDER_ROUTE = '/forms/builder';
+
+const isPublicDiexFormRoute = (route: string): boolean =>
+  /^https:\/\/(?:[^/]+\.)?diexforms\.com(?:\/|$)/i.test(route);
 
 const StyledItems = styled.div`
   display: flex;
@@ -112,23 +118,33 @@ export const DiexNavigationSection = () => {
         )
         .sort((left, right) => left.position - right.position)
         .reduce<DiexNavigationLink[]>((items, item: DiexPageCatalogItem) => {
-          if (usedRoutes.has(item.route)) {
+          const route = item.nativeRoute ?? item.route;
+
+          // Links públicos são para compartilhamento com leads. A navegação do
+          // CRM deve levar ao construtor, nunca ao formulário publicado.
+          if (isPublicDiexFormRoute(route) || usedRoutes.has(route)) {
             return items;
           }
 
-          usedRoutes.add(item.route);
+          usedRoutes.add(route);
           items.push({
             label: item.label,
-            to:
-              item.key === 'first-steps'
-                ? (item.nativeRoute ?? '/diex/first-steps')
-                : item.route,
+            to: route,
             Icon: getDiexNavigationIcon(item.icon),
             group: item.navigationGroup,
           });
 
           return items;
         }, []);
+
+      if (!usedRoutes.has(DIEX_FORM_BUILDER_ROUTE)) {
+        catalogLinks.push({
+          label: 'Formulários',
+          to: DIEX_FORM_BUILDER_ROUTE,
+          Icon: IconForms,
+          group: 'Comercial',
+        });
+      }
 
       catalogLinks.push({
         label: 'Páginas e menu',
@@ -146,6 +162,12 @@ export const DiexNavigationSection = () => {
         to: '/diex/first-steps',
         Icon: IconRocket,
         group: 'Ativação',
+      },
+      {
+        label: 'Formulários',
+        to: DIEX_FORM_BUILDER_ROUTE,
+        Icon: IconForms,
+        group: 'Comercial',
       },
       {
         label: 'Páginas e menu',
