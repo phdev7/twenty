@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Blocks a commit whose staged TypeScript fails lint or formatting.
+#
+# This exists because the documented verification command could not see
+# uncommitted work: `nx lint:diff-with-main` compares main...HEAD, prints
+# "No changed files" and exits 0 over code it never read. A whole release of
+# real defects passed review that way. A hook cannot be forgotten the way a
+# command can.
+#
+# Enabled by `git config core.hooksPath .githooks`, which `yarn install` sets
+# through the root `prepare` script.
+#
+# Scope is deliberately narrow: lint and formatting on staged files only, so it
+# stays fast enough not to be worth bypassing. Typecheck and the boot checks are
+# too slow for a hook and belong to the definition of done in CLAUDE.md.
+#
+# Real emergency: `git commit --no-verify`.
+set -eu
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+if ! bash "${REPO_ROOT}/scripts/lint-changed.sh" --staged; then
+  echo ""
+  echo "Commit blocked: staged code fails lint or formatting."
+  echo "  fix automatically:  bash scripts/lint-changed.sh --fix"
+  echo "  then restage:       git add -u"
+  echo ""
+  echo "Not everything is autofixable. For the classes that keep coming back,"
+  echo "the correct pattern is in docs/RECURRING_FAILURES.md."
+  exit 1
+fi

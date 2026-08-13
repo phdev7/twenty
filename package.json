@@ -80,6 +80,7 @@
     "docs:generate-navigation-template": "tsx packages/diex-docs/scripts/generate-navigation-template.ts",
     "docs:generate-paths": "tsx packages/diex-docs/scripts/generate-documentation-paths.ts",
     "docs:prune-orphans": "tsx packages/diex-docs/scripts/prune-orphan-translations.ts",
+    "prepare": "git config core.hooksPath .githooks || true",
     "start": "npx concurrently --kill-others 'npx nx run-many -t start -p diex-server diex-front' 'npx wait-on tcp:3000 && npx nx run diex-server:worker'"
   },
   "workspaces": {

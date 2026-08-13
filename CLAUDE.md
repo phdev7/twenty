@@ -206,6 +206,13 @@ npx nx start diex-server              # both entrypoints: a require cycle can
 npx nx run diex-server:worker         # break one and leave the other clean
 ```
 
+A pre-commit hook in `.githooks/` runs the lint step on staged files and blocks
+the commit when it fails, so that part cannot be skipped by forgetting. It is
+enabled by `core.hooksPath`, which `yarn install` sets via the root `prepare`
+script; run `git config core.hooksPath .githooks` if it is ever unset. The hook
+covers lint and formatting only. Typecheck and the two boot checks are too slow
+for a hook and remain your responsibility.
+
 1. Test changes with relevant test suites (prefer single-file test runs)
 2. Ensure instance commands are generated for entity changes (`database:migrate:generate`)
 3. Check that GraphQL schema changes are backward compatible

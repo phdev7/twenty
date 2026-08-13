@@ -7,29 +7,41 @@
 # untracked files are all covered.
 #
 # Usage:
-#   bash scripts/lint-changed.sh [diex-server|diex-front] [--fix]
+#   bash scripts/lint-changed.sh [diex-server|diex-front] [--fix] [--staged]
+#
+# --staged looks only at what is staged for commit. That is the mode the
+# pre-commit hook uses, so unrelated work in progress cannot block a commit.
 set -eu
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
 FIX=0
+STAGED=0
 PACKAGES="diex-server diex-front"
 
 for arg in "$@"; do
   case "$arg" in
     --fix) FIX=1 ;;
+    --staged) STAGED=1 ;;
     diex-server|diex-front) PACKAGES="$arg" ;;
     *) echo "unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
 
+list_candidate_files() {
+  if [ "$STAGED" -eq 1 ]; then
+    git diff --cached --name-only --diff-filter=d
+  else
+    git status --porcelain --untracked-files=all | awk '{print $NF}'
+  fi
+}
+
 status=0
 
 for package in $PACKAGES; do
   files=$(
-    git status --porcelain --untracked-files=all \
-      | awk '{print $NF}' \
+    list_candidate_files \
       | grep -E "^packages/${package}/src/.*\.(ts|tsx)$" \
       | sed "s|packages/${package}/||" \
       || true
