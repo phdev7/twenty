@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -8,6 +9,7 @@ import {
   HostParam,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Redirect,
@@ -60,9 +62,35 @@ export class DiexFormsDomainController {
       `view:${workspaceSlug.toLowerCase()}:${formSlug.toLowerCase()}`,
       120,
     );
-    const { form, workspace, snapshot } =
-      await this.formsService.getPublicFormBySubdomain(workspaceSlug, formSlug);
     const nonce = randomBytes(18).toString('base64');
+    let publicForm: Awaited<
+      ReturnType<DiexFormsService['getPublicFormBySubdomain']>
+    >;
+
+    try {
+      publicForm = await this.formsService.getPublicFormBySubdomain(
+        workspaceSlug,
+        formSlug,
+      );
+    } catch (error) {
+      if (
+        !(error instanceof NotFoundException) &&
+        !(error instanceof BadRequestException)
+      ) {
+        throw error;
+      }
+
+      const html = this.rendererService.renderUnavailable({
+        marketingUrl: this.formsService.getMarketingUrl(),
+        nonce,
+      });
+
+      this.sendPublicHtml(response, html, nonce, HttpStatus.NOT_FOUND);
+
+      return;
+    }
+
+    const { form, workspace, snapshot } = publicForm;
     const token = this.formsService.createPublicViewToken(
       form.id,
       form.publishedVersion,
@@ -148,9 +176,10 @@ export class DiexFormsDomainController {
     response: Response,
     html: string,
     nonce: string,
+    statusCode: HttpStatus = HttpStatus.OK,
   ): void {
     response
-      .status(HttpStatus.OK)
+      .status(statusCode)
       .set({
         'Cache-Control': 'no-store, max-age=0',
         'Content-Security-Policy': [
