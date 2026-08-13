@@ -69,18 +69,18 @@ export class DiexFormFieldEntity {
   })
   type: FormFieldType;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
   targetFieldName: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
   @Column({ type: 'text', nullable: true })
   placeholder: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })

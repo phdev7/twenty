@@ -83,7 +83,7 @@ export class DiexFormSubmissionEntity {
   })
   status: FormSubmissionStatus;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
@@ -109,46 +109,46 @@ export class DiexFormSubmissionEntity {
   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
   attribution: Record<string, unknown>;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
   @Column({ type: 'timestamptz', nullable: true })
   consentAt: Date | null;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
   @Column({ type: 'timestamptz', nullable: true })
   processedAt: Date | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
   @Column({ type: 'text', nullable: true })
   processingError: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
   mappedRecordId: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => UUIDScalarType, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
   @Column({ type: 'uuid', nullable: true })
   personId: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => UUIDScalarType, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
   @Column({ type: 'uuid', nullable: true })
   companyId: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => UUIDScalarType, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })

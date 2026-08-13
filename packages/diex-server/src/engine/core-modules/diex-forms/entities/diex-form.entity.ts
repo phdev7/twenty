@@ -76,7 +76,7 @@ export class DiexFormEntity {
   @Index('IDX_DIEX_FORM_SLUG')
   slug: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
@@ -141,7 +141,7 @@ export class DiexFormEntity {
   @Column({ type: 'boolean', default: true })
   showLogo: boolean;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
@@ -155,14 +155,14 @@ export class DiexFormEntity {
   @Column({ type: 'varchar', length: 7, default: '#6C5CE7' })
   accentColor: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
   @Column({ type: 'text', nullable: true })
   privacyPolicyUrl: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
@@ -211,7 +211,7 @@ export class DiexFormEntity {
   @Column({ type: 'integer', default: 0 })
   publishedVersion: number;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   @WasIntroducedInUpgrade({
     upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
   })
@@ -231,7 +231,7 @@ export class DiexFormEntity {
   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
   settings: Record<string, unknown>;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   publicUrl?: string;
 
   @Field(() => [DiexFormFieldEntity])
