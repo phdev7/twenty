@@ -56,6 +56,10 @@ x-diex-environment: &diex-environment
   ACCESS_REQUEST_INBOX_ENABLED: ${ACCESS_REQUEST_INBOX_ENABLED:-false}
   ACCESS_REQUEST_INBOX_WORKSPACE_ID: ${ACCESS_REQUEST_INBOX_WORKSPACE_ID:-}
   ACCESS_REQUEST_INBOX_PUBLIC_ORIGIN: ${ACCESS_REQUEST_INBOX_PUBLIC_ORIGIN:-}
+  # Public forms use an isolated registrable domain so CRM authentication
+  # cookies never cross into lead-capture pages.
+  FORMS_BASE_URL: ${FORMS_BASE_URL:-https://diexforms.com}
+  FORMS_MARKETING_URL: ${FORMS_MARKETING_URL:-https://bydiex.com}
   LOG_LEVELS: ${LOG_LEVELS:-error,warn}
 
 x-diex-runtime: &diex-runtime
@@ -97,6 +101,22 @@ services:
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.certresolver=${DIEX_CERT_RESOLVER:-letsencrypt}"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.domains[0].main=${SERVER_HOST}"
       - "traefik.http.routers.${DIEX_PROXY_ROUTER}-https.tls.domains[0].sans=*.${SERVER_HOST}"
+      # Dedicated public-form routers. Keep them separate from the CRM router
+      # so security headers, certificates and future rate limits can evolve
+      # independently without widening the authenticated application domain.
+      - "traefik.http.middlewares.${DIEX_PROXY_ROUTER}-forms-security.headers.customresponseheaders.X-Robots-Tag=noindex,nofollow,noarchive"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-http.entrypoints=http"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-http.middlewares=${DIEX_PROXY_ROUTER}-redirect"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-http.rule=Host(`${FORMS_HOST}`) || Host(`www.${FORMS_HOST}`) || HostRegexp(`^[a-z0-9][a-z0-9-]*\\.${FORMS_HOST_REGEX}$$`)"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-http.service=${DIEX_PROXY_ROUTER}-service"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.entrypoints=https"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.middlewares=${DIEX_PROXY_ROUTER}-forms-security"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.rule=Host(`${FORMS_HOST}`) || Host(`www.${FORMS_HOST}`) || HostRegexp(`^[a-z0-9][a-z0-9-]*\\.${FORMS_HOST_REGEX}$$`)"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.service=${DIEX_PROXY_ROUTER}-service"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.tls=true"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.tls.certresolver=${DIEX_CERT_RESOLVER:-letsencrypt}"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.tls.domains[0].main=${FORMS_HOST}"
+      - "traefik.http.routers.${DIEX_PROXY_ROUTER}-forms-https.tls.domains[0].sans=*.${FORMS_HOST}"
       - "traefik.http.services.${DIEX_PROXY_ROUTER}-service.loadbalancer.server.port=3000"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/healthz"]

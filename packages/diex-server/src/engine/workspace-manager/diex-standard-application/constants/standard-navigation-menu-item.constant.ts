@@ -106,12 +106,12 @@ export const STANDARD_NAVIGATION_MENU_ITEMS = {
   },
   diexFormsMenu: {
     universalIdentifier: 'd1e09000-0000-4000-8000-000000000005',
-    type: NavigationMenuItemType.VIEW,
-    name: 'Formulários & Ingestão',
+    type: NavigationMenuItemType.LINK,
+    name: 'Formulários',
     icon: 'IconForms',
     link: '/forms/builder',
     position: 4,
-    folderUniversalIdentifier: 'd1e09000-0000-4000-8000-000000000001',
+    folderUniversalIdentifier: 'd1e08000-0000-4000-8000-000000000001',
   },
   agencyTrafficDashboard: {
     universalIdentifier: 'd1e09000-0000-4000-8000-000000000002',

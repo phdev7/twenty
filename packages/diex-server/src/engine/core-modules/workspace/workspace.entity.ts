@@ -21,6 +21,7 @@ import {
 import { ADD_WORKSPACE_DISCOVERABILITY_TO_WORKSPACE_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-19/add-workspace-discoverability-to-workspace-upgrade-command-name.constant';
 import { ADD_DIEX_ONBOARDING_PROFILE_TO_WORKSPACE_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-26/add-diex-onboarding-profile-to-workspace-upgrade-command-name.constant';
 import { ADD_DIEX_ONBOARDING_PRIMARY_CHANNEL_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-27/add-diex-onboarding-primary-channel-upgrade-command-name.constant';
+import { ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-27/add-diex-forms-platform-upgrade-command-name.constant';
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
 import { ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
 import { AppTokenEntity } from 'src/engine/core-modules/app-token/app-token.entity';
@@ -338,6 +339,13 @@ export class WorkspaceEntity {
   @Field()
   @Column({ unique: true })
   subdomain: string;
+
+  @Field(() => String, { nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'varchar', length: 63, nullable: true })
+  formsSubdomain: string | null;
 
   @Field(() => String, { nullable: true })
   @Column({ type: 'varchar', unique: true, nullable: true })

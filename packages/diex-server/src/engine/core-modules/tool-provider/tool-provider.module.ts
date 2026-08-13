@@ -10,6 +10,7 @@ import { CommercialIntelligenceToolProvider } from 'src/engine/core-modules/tool
 import { CustomerSuccessToolProvider } from 'src/engine/core-modules/tool-provider/providers/customer-success-tool.provider';
 import { DiexBadgeToolProvider } from 'src/engine/core-modules/tool-provider/providers/diex-badge-tool.provider';
 import { DiexWorkspaceApprovalToolProvider } from 'src/engine/core-modules/tool-provider/providers/diex-workspace-approval-tool.provider';
+import { DiexFormsToolProvider } from 'src/engine/core-modules/tool-provider/providers/diex-forms-tool.provider';
 import { InboxToolProvider } from 'src/engine/core-modules/tool-provider/providers/inbox-tool.provider';
 import { RenewalToolProvider } from 'src/engine/core-modules/tool-provider/providers/renewal-tool.provider';
 import { MeetingsToolProvider } from 'src/engine/core-modules/tool-provider/providers/meetings-tool.provider';
@@ -45,6 +46,7 @@ import { CommercialIntelligenceModule } from 'src/modules/commercial-intelligenc
 import { CustomerSuccessModule } from 'src/modules/customer-success/customer-success.module';
 import { DiexToolsModule } from 'src/modules/diex/tools/diex-tools.module';
 import { InboxModule } from 'src/modules/inbox/inbox.module';
+import { DiexFormsModule } from 'src/engine/core-modules/diex-forms/diex-forms.module';
 import { RenewalModule } from 'src/modules/renewal/renewal.module';
 import { MeetingsModule } from 'src/modules/meetings/meetings.module';
 import { AgendaModule } from 'src/modules/agenda/agenda.module';
@@ -94,6 +96,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     MeetingsModule,
     DiexToolsModule,
     InboxModule,
+    DiexFormsModule,
     TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [
@@ -119,6 +122,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
     InboxToolProvider,
     RenewalToolProvider,
     MeetingsToolProvider,
+    DiexFormsToolProvider,
     {
       // TOOL_PROVIDERS contains only providers implementing ToolProvider
       // (registry tools with descriptors). The native tool binder is a
@@ -146,6 +150,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         diexBadgeProvider: DiexBadgeToolProvider,
         diexWorkspaceApprovalProvider: DiexWorkspaceApprovalToolProvider,
         inboxProvider: InboxToolProvider,
+        diexFormsProvider: DiexFormsToolProvider,
       ) => [
         actionProvider,
         databaseProvider,
@@ -167,6 +172,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         diexBadgeProvider,
         diexWorkspaceApprovalProvider,
         inboxProvider,
+        diexFormsProvider,
       ],
       inject: [
         ActionToolProvider,
@@ -189,6 +195,7 @@ import { ToolRegistryService } from './services/tool-registry.service';
         DiexBadgeToolProvider,
         DiexWorkspaceApprovalToolProvider,
         InboxToolProvider,
+        DiexFormsToolProvider,
       ],
     },
     ToolRegistryService,

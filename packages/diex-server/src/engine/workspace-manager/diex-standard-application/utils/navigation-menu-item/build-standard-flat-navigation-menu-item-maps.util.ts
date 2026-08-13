@@ -60,6 +60,7 @@ const DIEX_NAVIGATION_MENU_ITEM_NAMES = [
   'inbox',
   'onboarding',
   'renewalCommandCenter',
+  'diexFormsMenu',
 ] as const;
 
 const createStandardDiexNavigationMenuItemFlatMetadata = ({
@@ -135,7 +136,7 @@ const createStandardDiexNavigationMenuItemFlatMetadata = ({
         ? (flatPageLayout?.universalIdentifier ?? null)
         : null,
     name: definition.name ?? null,
-    link: null,
+    link: definition.link ?? null,
     icon: definition.icon ?? null,
     color: definition.color ?? null,
     position: definition.position,

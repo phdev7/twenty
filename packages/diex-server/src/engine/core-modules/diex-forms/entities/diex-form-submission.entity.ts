@@ -12,7 +12,9 @@ import {
 } from 'typeorm';
 
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
+import { ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-27/add-diex-forms-platform-upgrade-command-name.constant';
 import { DiexFormEntity } from 'src/engine/core-modules/diex-forms/entities/diex-form.entity';
+import { WasIntroducedInUpgrade } from 'src/engine/core-modules/upgrade/decorators/was-introduced-in-upgrade.decorator';
 
 export enum FormSubmissionSource {
   INTERNAL_FORM = 'INTERNAL_FORM',
@@ -25,7 +27,14 @@ export enum FormSubmissionSource {
   TALLY = 'TALLY',
 }
 
+export enum FormSubmissionStatus {
+  RECEIVED = 'RECEIVED',
+  PROCESSED = 'PROCESSED',
+  FAILED = 'FAILED',
+}
+
 registerEnumType(FormSubmissionSource, { name: 'FormSubmissionSource' });
+registerEnumType(FormSubmissionStatus, { name: 'FormSubmissionStatus' });
 
 @ObjectType('DiexFormSubmission')
 @Entity({ name: 'diexFormSubmission', schema: 'core' })
@@ -51,7 +60,7 @@ export class DiexFormSubmissionEntity {
 
   @Field(() => GraphQLJSON)
   @Column({ type: 'jsonb' })
-  submittedData: Record<string, any>;
+  submittedData: Record<string, unknown>;
 
   @Field(() => FormSubmissionSource)
   @Column({
@@ -62,9 +71,89 @@ export class DiexFormSubmissionEntity {
   })
   source: FormSubmissionSource;
 
+  @Field(() => FormSubmissionStatus)
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({
+    type: 'enum',
+    enumName: 'diex_form_submission_status_enum',
+    enum: FormSubmissionStatus,
+    default: FormSubmissionStatus.RECEIVED,
+  })
+  status: FormSubmissionStatus;
+
+  @Field({ nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  idempotencyKey: string | null;
+
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  ipHash: string | null;
+
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  userAgentHash: string | null;
+
+  @Field(() => GraphQLJSON)
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
+  attribution: Record<string, unknown>;
+
+  @Field({ nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'timestamptz', nullable: true })
+  consentAt: Date | null;
+
+  @Field({ nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'timestamptz', nullable: true })
+  processedAt: Date | null;
+
+  @Field({ nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'text', nullable: true })
+  processingError: string | null;
+
   @Field({ nullable: true })
   @Column({ type: 'text', nullable: true })
-  mappedRecordId?: string;
+  mappedRecordId: string | null;
+
+  @Field({ nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'uuid', nullable: true })
+  personId: string | null;
+
+  @Field({ nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'uuid', nullable: true })
+  companyId: string | null;
+
+  @Field({ nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName: ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME,
+  })
+  @Column({ type: 'uuid', nullable: true })
+  opportunityId: string | null;
 
   @Field()
   @CreateDateColumn({ type: 'timestamptz' })

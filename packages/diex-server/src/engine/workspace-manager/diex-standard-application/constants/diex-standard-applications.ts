@@ -11,7 +11,7 @@ export const DIEX_STANDARD_APPLICATION = {
   universalIdentifier: DIEX_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER,
   name: DIEX_STANDARD_APPLICATION_NAME,
   description: null,
-  version: '1.0.1',
+  version: '1.0.2',
   sourcePath: 'cli-sync',
   sourceType: ApplicationRegistrationSourceType.LOCAL,
 } as const satisfies Pick<

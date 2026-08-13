@@ -226,6 +226,12 @@ const DiexPageCatalogPage = lazy(() =>
   })),
 );
 
+const DiexFormBuilderPage = lazy(() =>
+  import('~/pages/forms/DiexFormBuilderPage').then((module) => ({
+    default: module.DiexFormBuilderPage,
+  })),
+);
+
 const preloadOnboardingPages = () => {
   void WorkspaceActivation.preload();
   void WorkspaceApprovalPending.preload();
@@ -318,6 +324,14 @@ const createWorkspaceAppRouter = (
                 element={
                   <LazyRoute>
                     <DiexAccessRequestsPage />
+                  </LazyRoute>
+                }
+              />
+              <Route
+                path={AppPath.DiexFormBuilder}
+                element={
+                  <LazyRoute>
+                    <DiexFormBuilderPage />
                   </LazyRoute>
                 }
               />
