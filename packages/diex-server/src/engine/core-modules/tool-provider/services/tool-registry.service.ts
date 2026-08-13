@@ -77,20 +77,28 @@ export class ToolRegistryService {
     const schemas = new Map<string, object>();
 
     for (const [category, entries] of byCategory) {
-      const provider = this.providers.find(
+      const providers = this.providers.filter(
         (providerItem) => providerItem.category === category,
       );
 
-      if (!provider) {
+      if (providers.length === 0) {
         continue;
       }
 
       const entryNameSet = new Set(entries.map((entry) => entry.name));
+      const descriptorGroups = await Promise.all(
+        providers.map(async (provider) => {
+          if (!(await provider.isAvailable(context))) {
+            return [];
+          }
 
-      const descriptors = await provider.generateDescriptors(context, {
-        includeSchemas: true,
-        toolNames: entryNameSet,
-      });
+          return provider.generateDescriptors(context, {
+            includeSchemas: true,
+            toolNames: entryNameSet,
+          });
+        }),
+      );
+      const descriptors = descriptorGroups.flat();
 
       for (const descriptor of descriptors) {
         if (

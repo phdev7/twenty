@@ -232,20 +232,42 @@ export class ToolExecutorService {
       throw new Error('Expected static executionRef');
     }
 
-    const provider = this.providers.find(
+    const candidateProviders = this.providers.filter(
       (candidate) => candidate.category === descriptor.category,
     );
 
-    if (!provider) {
+    if (candidateProviders.length === 0) {
       throw new Error(
         `No provider registered for category "${descriptor.category}" (tool: ${descriptor.executionRef.toolId})`,
       );
     }
 
-    // Defense-in-depth: catalog and by-name lookups already filter by
-    // `isAvailable`, but re-verify at dispatch so the gate is enforced in
-    // one place regardless of how the descriptor reached us.
-    if (!(await provider.isAvailable(context))) {
+    const providerCandidates = await Promise.all(
+      candidateProviders.map(async (candidate) => {
+        if (!(await candidate.isAvailable(context))) {
+          return undefined;
+        }
+
+        const candidateDescriptors = await candidate.generateDescriptors(
+          context,
+          {
+            includeSchemas: false,
+            toolNames: new Set([descriptor.executionRef.toolId]),
+          },
+        );
+        const ownsTool = candidateDescriptors.some(
+          (candidateDescriptor) =>
+            candidateDescriptor.executionRef.kind === 'static' &&
+            candidateDescriptor.executionRef.toolId ===
+              descriptor.executionRef.toolId,
+        );
+
+        return ownsTool ? candidate : undefined;
+      }),
+    );
+    const owningProviders = providerCandidates.filter(isDefined);
+
+    if (owningProviders.length === 0) {
       return {
         success: false,
         message: `Tool "${descriptor.name}" is not available`,
@@ -253,7 +275,13 @@ export class ToolExecutorService {
       };
     }
 
-    return provider.executeStaticTool(
+    if (owningProviders.length > 1) {
+      throw new Error(
+        `Multiple providers registered for tool "${descriptor.executionRef.toolId}" in category "${descriptor.category}"`,
+      );
+    }
+
+    return owningProviders[0].executeStaticTool(
       descriptor.executionRef.toolId,
       args,
       context,
