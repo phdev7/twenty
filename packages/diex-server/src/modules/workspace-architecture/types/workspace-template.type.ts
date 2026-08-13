@@ -22,6 +22,7 @@ export type WorkspaceTemplateDefinition = {
   activationCriteria: string[];
   exclusionCriteria?: string[];
   compatibleSegments: string[];
+  requiresCompanyAccount?: boolean;
   prerequisites: string[];
   objects: WorkspaceTemplateComponent[];
   fields: WorkspaceTemplateComponent[];

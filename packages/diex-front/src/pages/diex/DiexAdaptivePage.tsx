@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Button } from 'diex-ui';
 
 import {
@@ -73,9 +73,12 @@ const getRuntimeSourceDetail = (
   source: DiexPageDataSource,
   fallback?: string,
 ): string => {
+  if (source.error) {
+    return source.error;
+  }
+
   if (source.count === 0) {
     return (
-      source.error ??
       source.fallback ??
       fallback ??
       'Nenhum registro encontrado; execute a próxima ação para iniciar.'
@@ -83,6 +86,10 @@ const getRuntimeSourceDetail = (
   }
 
   if (source.count !== null) {
+    if (source.isPartial && source.totalCount !== null) {
+      return `${source.returnedCount} de ${source.totalCount} registros exibidos. Abra o módulo completo para consultar toda a base.`;
+    }
+
     return `${source.count} registro${source.count === 1 ? '' : 's'} ${source.count === 1 ? 'disponível' : 'disponíveis'} na operação.`;
   }
 
@@ -100,7 +107,9 @@ const JOURNEY_PHASE_LABELS: Record<string, string> = {
   SELLING_READY: 'Pronto para vender',
 };
 
-const getSafeInternalRoute = (route: string | null | undefined): string | null =>
+const getSafeInternalRoute = (
+  route: string | null | undefined,
+): string | null =>
   typeof route === 'string' && route.startsWith('/') && !route.startsWith('//')
     ? route
     : null;
@@ -112,7 +121,6 @@ const AdaptivePageBlock = ({
   block: DiexPageBlock;
   pageData: DiexPageDataState | null;
 }) => {
-  const navigate = useNavigate();
   const configuredAction = block.actions?.find(({ route }) =>
     getSafeInternalRoute(route),
   );
@@ -127,7 +135,7 @@ const AdaptivePageBlock = ({
           <Button
             title={configuredAction?.label ?? block.actionLabel}
             variant="secondary"
-            onClick={() => navigate(actionRoute)}
+            to={actionRoute}
           />
         ) : null
       }
@@ -170,13 +178,15 @@ const AdaptivePageBlock = ({
       ];
     }
 
-    return runtimeSource.records.slice(0, 4).map((record, index) => (
-      <CommandCenterRow
-        key={`${contract.key}:${index}`}
-        title={getRecordTitle(record)}
-        detail={`${contract.source} · ${getRuntimeSourceDetail(runtimeSource)}`}
-      />
-    ));
+    return runtimeSource.records
+      .slice(0, 4)
+      .map((record, index) => (
+        <CommandCenterRow
+          key={`${contract.key}:${index}`}
+          title={getRecordTitle(record)}
+          detail={`${contract.source} · ${getRuntimeSourceDetail(runtimeSource)}`}
+        />
+      ));
   });
 
   return renderCard(
@@ -190,9 +200,11 @@ const AdaptivePageBlock = ({
               key={contract.key}
               label={contract.source}
               value={
-                runtimeSource?.count ??
-                runtimeSource?.fallback ??
-                contract.fallback
+                runtimeSource?.error
+                  ? '—'
+                  : (runtimeSource?.count ??
+                    runtimeSource?.fallback ??
+                    contract.fallback)
               }
             />
           );
@@ -205,7 +217,6 @@ const AdaptivePageBlock = ({
 };
 
 const AdaptivePageActions = ({ page }: { page: DiexPageCatalogItem }) => {
-  const navigate = useNavigate();
   const actions = (page.actions ?? [])
     .map((action) => ({
       ...action,
@@ -243,7 +254,7 @@ const AdaptivePageActions = ({ page }: { page: DiexPageCatalogItem }) => {
                 <Button
                   title={action.label}
                   variant="secondary"
-                  onClick={() => navigate(action.route)}
+                  to={action.route}
                 />
               }
             />
@@ -262,18 +273,23 @@ export const DiexAdaptivePage = () => {
   );
   const [pageData, setPageData] = useState<DiexPageDataState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [didCatalogLoadFail, setDidCatalogLoadFail] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     setIsLoading(true);
     setPage(null);
+    setReadiness(null);
     setPageData(null);
+    setDidCatalogLoadFail(false);
 
     void Promise.all([
       getDiexOnboardingRoute<DiexPageCatalogState>(
         '/rest/diex/onboarding/pages',
-      ).catch(() => null),
+      )
+        .then((value) => ({ value, failed: false }))
+        .catch(() => ({ value: null, failed: true })),
       getDiexOnboardingRoute<DiexCommercialReadiness>(
         '/rest/diex/onboarding/readiness',
       ).catch(() => null),
@@ -281,18 +297,18 @@ export const DiexAdaptivePage = () => {
         `/rest/diex/onboarding/pages/${encodeURIComponent(pageKey)}/data`,
       ).catch(() => null),
     ])
-      .then(([catalog, nextReadiness, nextPageData]) => {
+      .then(([catalogResult, nextReadiness, nextPageData]) => {
         if (!cancelled) {
           const nextPage =
-            catalog?.items.find((item) => item.key === pageKey) ?? null;
+            catalogResult.value?.items.find((item) => item.key === pageKey) ??
+            null;
 
           setPage(nextPage);
+          setDidCatalogLoadFail(catalogResult.failed);
           if (nextReadiness) {
             setReadiness(nextReadiness);
           }
-          setPageData(
-            nextPageData?.pageKey === pageKey ? nextPageData : null,
-          );
+          setPageData(nextPageData?.pageKey === pageKey ? nextPageData : null);
         }
       })
       .catch(() => undefined)
@@ -326,16 +342,40 @@ export const DiexAdaptivePage = () => {
   }
 
   if (!page) {
+    const catalogMessage = didCatalogLoadFail
+      ? 'A configuração desta página não pôde ser consultada. Nenhuma estrutura foi removida.'
+      : 'Revise a arquitetura recomendada e crie páginas a partir do contexto real da empresa.';
+
     return (
       <CommandCenterPage
-        title="Página operacional"
-        description="Esta página ainda não está ativa neste workspace."
+        title={
+          didCatalogLoadFail
+            ? 'Configuração temporariamente indisponível'
+            : 'Página operacional'
+        }
+        description={
+          didCatalogLoadFail
+            ? 'Atualize antes de concluir que a página não existe neste workspace.'
+            : 'Esta página ainda não está ativa neste workspace.'
+        }
+        statusText={didCatalogLoadFail ? 'Dados indisponíveis' : undefined}
       >
         <CommandCenterGrid columns={1}>
           <CommandCenterCard title="Próxima ação">
             <CommandCenterStartState
-              title="Configure esta operação"
-              message="Revise a arquitetura recomendada e crie páginas a partir do contexto real da empresa."
+              title={
+                didCatalogLoadFail
+                  ? 'Recarregue a configuração'
+                  : 'Configure esta operação'
+              }
+              message={catalogMessage}
+              actionLabel={
+                didCatalogLoadFail ? 'Tentar novamente' : 'Abrir páginas e menu'
+              }
+              to="/diex/pages"
+              onAction={
+                didCatalogLoadFail ? () => window.location.reload() : undefined
+              }
             />
           </CommandCenterCard>
         </CommandCenterGrid>
@@ -369,24 +409,53 @@ export const DiexAdaptivePage = () => {
     '/diex/first-steps';
   const nativeRoute = getSafeInternalRoute(page.nativeRoute);
   const runtimeObjectSources = (pageData?.sources ?? []).filter(
-    ({ objectName }) => objectName !== null,
+    ({ count, error, freshnessStatus, objectName }) =>
+      objectName !== null &&
+      count !== null &&
+      error === null &&
+      (freshnessStatus === 'LIVE' || freshnessStatus === 'PARTIAL'),
   );
-  const runtimeRecordCount = runtimeObjectSources.reduce(
-    (total, source) => total + (source.count ?? 0),
+  const runtimeCountsByObject = new Map<string, number>();
+
+  for (const source of runtimeObjectSources) {
+    const objectName = source.objectName as string;
+
+    runtimeCountsByObject.set(
+      objectName,
+      Math.max(runtimeCountsByObject.get(objectName) ?? 0, source.count ?? 0),
+    );
+  }
+
+  const runtimeRecordCount = [...runtimeCountsByObject.values()].reduce(
+    (total, count) => total + count,
     0,
   );
+  const dataStatusText = pageData
+    ? `${pageData.hasErrors || pageData.isPartial ? 'Dados parciais' : 'Dados atuais'} · ${new Date(
+        pageData.generatedAt,
+      ).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
+    : 'Dados indisponíveis';
 
   return (
-    <CommandCenterPage title={page.label} description={page.description}>
+    <CommandCenterPage
+      title={page.label}
+      description={page.description}
+      statusText={dataStatusText}
+    >
       <CommandCenterGrid columns={1}>
         <CommandCenterMetrics>
           <CommandCenterMetric
             label="Registros na operação"
-            value={runtimeRecordCount}
+            value={runtimeObjectSources.length > 0 ? runtimeRecordCount : '—'}
           />
           <CommandCenterMetric
             label="Fontes ativas"
-            value={runtimeObjectSources.length}
+            value={
+              runtimeObjectSources.length > 0 ? runtimeCountsByObject.size : '—'
+            }
           />
           <CommandCenterMetric
             label="Próxima decisão"
@@ -422,6 +491,35 @@ export const DiexAdaptivePage = () => {
           </CommandCenterCard>
         )}
         <AdaptivePageActions page={page} />
+        {!pageData || pageData.hasErrors || pageData.isPartial ? (
+          <CommandCenterCard
+            title="Qualidade dos dados"
+            action={
+              <Button
+                title="Atualizar dados"
+                variant="secondary"
+                onClick={() => window.location.reload()}
+              />
+            }
+          >
+            <CommandCenterRow
+              title={
+                !pageData
+                  ? 'As fontes não responderam nesta abertura'
+                  : pageData.hasErrors
+                    ? 'Uma fonte não respondeu'
+                    : 'A página mostra um recorte da base'
+              }
+              detail={
+                !pageData
+                  ? 'A configuração da página foi preservada. Atualize antes de usar seus indicadores para decidir.'
+                  : pageData.hasErrors
+                    ? 'Os blocos disponíveis continuam utilizáveis. Atualize a página ou abra o módulo completo antes de decidir com base em uma fonte ausente.'
+                    : 'Os totais consideram a base atual, mas as listas exibem até 25 registros por fonte para manter a página rápida.'
+              }
+            />
+          </CommandCenterCard>
+        ) : null}
         {nativeRoute ? (
           <CommandCenterCard title="Operação completa">
             <CommandCenterStartState
@@ -434,22 +532,35 @@ export const DiexAdaptivePage = () => {
         ) : null}
         <CommandCenterCard title="Orientação da operação">
           <CommandCenterList>
-            <CommandCenterRow
-              title="Objetivo"
-              detail={page.description}
-            />
+            <CommandCenterRow title="Objetivo" detail={page.description} />
             <CommandCenterRow
               title="Dados usados nesta página"
               detail={
                 page.dataSources.length > 0
                   ? page.dataSources.join(' · ')
-                  : page.dataContracts?.map(({ source }) => source).join(' · ') ||
+                  : page.dataContracts
+                      ?.map(({ source }) => source)
+                      .join(' · ') ||
                     'Dados operacionais e próxima ação prioritária'
               }
             />
             <CommandCenterRow
               title="Próxima ação"
               detail={page.primaryAction}
+            />
+            <CommandCenterRow
+              title="Atualização dos dados"
+              detail={
+                pageData
+                  ? `Consulta feita em ${new Date(
+                      pageData.generatedAt,
+                    ).toLocaleString('pt-BR')}${
+                      pageData.isPartial
+                        ? ' · listas limitadas, totais preservados'
+                        : ''
+                    }.`
+                  : 'A fonte de dados não respondeu nesta abertura.'
+              }
             />
           </CommandCenterList>
         </CommandCenterCard>

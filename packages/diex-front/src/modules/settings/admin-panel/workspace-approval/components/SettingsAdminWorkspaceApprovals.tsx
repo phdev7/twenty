@@ -21,6 +21,7 @@ type PendingWorkspaceApproval = {
   requesterName: string | null;
   memberCount: number;
   whatsapp: string | null;
+  primaryChannel: string | null;
   companyDescription: string | null;
   idealCustomerProfile: string | null;
   toneOfVoice: string | null;
@@ -108,6 +109,22 @@ const StyledOperationalContext = styled.div`
 
 const fieldValue = (value: string | null) => value?.trim() || 'Não informado';
 
+const PRIMARY_CHANNEL_LABELS: Record<string, string> = {
+  WHATSAPP: 'WhatsApp',
+  EMAIL: 'E-mail',
+  IMPORT: 'Importação de base',
+  MANUAL: 'Operação sem integração',
+  LATER: 'Decidir depois',
+};
+
+const COMMERCIAL_GOAL_LABELS: Record<string, string> = {
+  SELL_MORE: 'Vender mais',
+  RESPOND_FASTER: 'Responder leads mais rápido',
+  ORGANIZE_WHATSAPP: 'Organizar o WhatsApp',
+  CONTROL_FOLLOWUPS: 'Controlar follow-ups',
+  CUSTOMER_SUCCESS_RENEWALS: 'Customer Success e renovações',
+};
+
 export const SettingsAdminWorkspaceApprovals = () => {
   const { t } = useLingui();
   const { enqueueErrorSnackBar, enqueueSuccessSnackBar } = useSnackBar();
@@ -115,10 +132,11 @@ export const SettingsAdminWorkspaceApprovals = () => {
     string | null
   >(null);
 
-  const { data, loading, refetch } = useQuery<PendingWorkspaceApprovalsData>(
-    PENDING_WORKSPACE_APPROVALS,
-    { fetchPolicy: 'cache-and-network' },
-  );
+  const { data, loading, error, refetch } =
+    useQuery<PendingWorkspaceApprovalsData>(PENDING_WORKSPACE_APPROVALS, {
+      fetchPolicy: 'network-only',
+      notifyOnNetworkStatusChange: true,
+    });
 
   const [approveWorkspaceCreation] = useMutation(APPROVE_WORKSPACE_CREATION);
 
@@ -161,9 +179,23 @@ export const SettingsAdminWorkspaceApprovals = () => {
         title={t`Pending workspace approvals`}
         description={t`Workspaces created at sign-up that cannot be reached until you approve them. Approving builds the workspace and lets the requester finish onboarding.`}
       />
+      {error ? (
+        <StyledApprovalCard role="alert">
+          <StyledFieldValue>
+            A fila de aprovação não pôde ser atualizada. Nenhum workspace foi
+            removido; atualize antes de aprovar.
+          </StyledFieldValue>
+          <Button
+            title="Tentar novamente"
+            variant="secondary"
+            size="small"
+            onClick={() => void refetch()}
+          />
+        </StyledApprovalCard>
+      ) : null}
       {pendingApprovals.length === 0 ? (
         <StyledEmptyState>
-          <Trans>No workspace is waiting for approval.</Trans>
+          {error ? null : <Trans>No workspace is waiting for approval.</Trans>}
         </StyledEmptyState>
       ) : (
         <StyledApprovalList>
@@ -181,13 +213,18 @@ export const SettingsAdminWorkspaceApprovals = () => {
                 </div>
                 <Button
                   title={
-                    approvingWorkspaceId === approval.workspaceId
-                      ? 'Aprovando...'
-                      : 'Aprovar e liberar'
+                    error
+                      ? 'Atualize a fila antes de aprovar'
+                      : approvingWorkspaceId === approval.workspaceId
+                        ? 'Aprovando...'
+                        : 'Aprovar e liberar'
                   }
                   accent="blue"
                   size="small"
-                  disabled={approvingWorkspaceId === approval.workspaceId}
+                  disabled={
+                    Boolean(error) ||
+                    approvingWorkspaceId === approval.workspaceId
+                  }
                   onClick={() => {
                     void handleApprove(approval);
                   }}
@@ -207,7 +244,16 @@ export const SettingsAdminWorkspaceApprovals = () => {
                   </StyledSecondaryText>
                 </StyledField>
                 <StyledField>
-                  <StyledFieldLabel>WhatsApp</StyledFieldLabel>
+                  <StyledFieldLabel>Canal preferido</StyledFieldLabel>
+                  <StyledFieldValue>
+                    {approval.primaryChannel
+                      ? (PRIMARY_CHANNEL_LABELS[approval.primaryChannel] ??
+                        approval.primaryChannel)
+                      : 'Não informado'}
+                  </StyledFieldValue>
+                </StyledField>
+                <StyledField>
+                  <StyledFieldLabel>Contato WhatsApp opcional</StyledFieldLabel>
                   <StyledFieldValue>
                     {fieldValue(approval.whatsapp)}
                   </StyledFieldValue>
@@ -242,7 +288,10 @@ export const SettingsAdminWorkspaceApprovals = () => {
                 <StyledField>
                   <StyledFieldLabel>Objetivo principal</StyledFieldLabel>
                   <StyledFieldValue>
-                    {fieldValue(approval.primaryGoal)}
+                    {approval.primaryGoal
+                      ? (COMMERCIAL_GOAL_LABELS[approval.primaryGoal] ??
+                        approval.primaryGoal)
+                      : 'Não informado'}
                   </StyledFieldValue>
                 </StyledField>
                 <StyledField>

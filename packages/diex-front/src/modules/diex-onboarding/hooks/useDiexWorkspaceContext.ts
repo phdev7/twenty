@@ -10,6 +10,7 @@ import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { isDefined } from 'diex-shared/utils';
 
 // Rich text resolves to an object, so every one of these must be selected as
 // { markdown } — asking for the scalar returns null and makes a filled record
@@ -43,7 +44,7 @@ export const useDiexWorkspaceContext = () => {
     orderBy: [{ createdAt: 'AscNullsLast' }],
     limit: 1,
     recordGqlFields: workspaceContextGqlFields,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
   });
   const { createOneRecord, loading: isCreatingContext } = useCreateOneRecord({
     objectNameSingular: 'diexWorkspaceContext',
@@ -63,7 +64,7 @@ export const useDiexWorkspaceContext = () => {
       : 'READ_ERROR'
     : isLoading && workspaceContext === null
       ? 'LOADING'
-      : workspaceContext
+      : isDefined(workspaceContext)
         ? 'READY'
         : 'ABSENT';
 

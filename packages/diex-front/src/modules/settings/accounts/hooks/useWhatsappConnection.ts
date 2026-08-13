@@ -15,15 +15,18 @@ export type WhatsappConnection = {
   instanceName: string | null;
   phone: string | null;
   qrCodeDataUri: string | null;
+  validatedAt?: string | null;
   message: string;
 };
 
 // The connection state lives in the provider, not in the CRM, so it is read on
 // demand through the app route rather than cached in a record.
-export const useWhatsappConnection = () => {
+export const useWhatsappConnection = ({
+  autoLoad = true,
+}: { autoLoad?: boolean } = {}) => {
   const { t } = useLingui();
   const [connection, setConnection] = useState<WhatsappConnection | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(autoLoad);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   // This is an imperative lock for one network operation, not rendered state.
   // oxlint-disable-next-line diex/no-state-useref
@@ -31,68 +34,84 @@ export const useWhatsappConnection = () => {
     null,
   );
 
-  const refresh = useCallback((): Promise<WhatsappConnection | null> => {
-    if (inFlightRefreshRef.current) {
-      return inFlightRefreshRef.current;
-    }
+  const requestConnection = useCallback(
+    (method: 'GET' | 'POST'): Promise<WhatsappConnection | null> => {
+      if (inFlightRefreshRef.current) {
+        return inFlightRefreshRef.current;
+      }
 
-    const request = (async (): Promise<WhatsappConnection | null> => {
-      setIsLoading(true);
-      setErrorMessage(null);
+      const request = (async (): Promise<WhatsappConnection | null> => {
+        setIsLoading(true);
+        setErrorMessage(null);
 
-      try {
-        const accessToken =
-          getTokenPair()?.accessOrWorkspaceAgnosticToken?.token;
+        try {
+          const accessToken =
+            getTokenPair()?.accessOrWorkspaceAgnosticToken?.token;
 
-        if (!accessToken) {
-          throw new Error('missing-token');
-        }
+          if (!accessToken) {
+            throw new Error('missing-token');
+          }
 
-        const response = await fetch(
-          `${REACT_APP_SERVER_BASE_URL}${WHATSAPP_CONNECTION_ROUTE}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
+          const response = await fetch(
+            `${REACT_APP_SERVER_BASE_URL}${WHATSAPP_CONNECTION_ROUTE}`,
+            {
+              method,
+              headers: {
+                ...(method === 'POST'
+                  ? { 'Content-Type': 'application/json' }
+                  : {}),
+                Authorization: `Bearer ${accessToken}`,
+              },
+              ...(method === 'POST' ? { body: '{}' } : {}),
             },
-            body: '{}',
-          },
-        );
+          );
 
-        if (!response.ok) {
-          throw new Error(String(response.status));
+          if (!response.ok) {
+            throw new Error(String(response.status));
+          }
+
+          const result = (await response.json()) as WhatsappConnection;
+
+          setConnection(result);
+
+          return result;
+        } catch {
+          setErrorMessage(
+            t`Could not reach the WhatsApp provider. Check the workspace integration settings.`,
+          );
+
+          return null;
+        } finally {
+          setIsLoading(false);
         }
+      })();
 
-        const result = (await response.json()) as WhatsappConnection;
+      inFlightRefreshRef.current = request;
+      void request.finally(() => {
+        if (inFlightRefreshRef.current === request) {
+          inFlightRefreshRef.current = null;
+        }
+      });
 
-        setConnection(result);
+      return request;
+    },
+    [t],
+  );
 
-        return result;
-      } catch {
-        setErrorMessage(
-          t`Could not reach the WhatsApp provider. Check the workspace integration settings.`,
-        );
-
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-
-    inFlightRefreshRef.current = request;
-    void request.finally(() => {
-      if (inFlightRefreshRef.current === request) {
-        inFlightRefreshRef.current = null;
-      }
-    });
-
-    return request;
-  }, [t]);
+  const readStatus = useCallback(
+    (): Promise<WhatsappConnection | null> => requestConnection('GET'),
+    [requestConnection],
+  );
+  const refresh = useCallback(
+    (): Promise<WhatsappConnection | null> => requestConnection('POST'),
+    [requestConnection],
+  );
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    if (autoLoad) {
+      void readStatus();
+    }
+  }, [autoLoad, readStatus]);
 
-  return { connection, isLoading, errorMessage, refresh };
+  return { connection, isLoading, errorMessage, readStatus, refresh };
 };

@@ -130,6 +130,8 @@ import { BackfillWorkspaceInvitationStateSlowInstanceCommand } from './2-25/2-25
 import { CreateDiexAgencyAndFormsFastInstanceCommand } from './2-26/2-26-instance-command-fast-1786000000000-create-diex-agency-and-forms';
 import { AddDiexOnboardingProfileToWorkspaceFastInstanceCommand } from './2-26/2-26-instance-command-fast-1785900000000-add-diex-onboarding-profile-to-workspace';
 import { AddMetaAdsTokenExpirationFastInstanceCommand } from './2-26/2-26-instance-command-fast-1786500000000-add-meta-ads-token-expiration';
+import { AddDiexOnboardingPrimaryChannelFastInstanceCommand } from './2-26/2-26-instance-command-fast-1786900000000-add-diex-onboarding-primary-channel';
+import { BackfillDiexOnboardingPrimaryChannelSlowInstanceCommand } from './2-26/2-26-instance-command-slow-1786950000000-backfill-diex-onboarding-primary-channel';
 
 export const INSTANCE_COMMANDS = [
   AddViewFieldGroupIdIndexOnViewFieldFastInstanceCommand,
@@ -262,4 +264,6 @@ export const INSTANCE_COMMANDS = [
   CreateDiexAgencyAndFormsFastInstanceCommand,
   AddDiexOnboardingProfileToWorkspaceFastInstanceCommand,
   AddMetaAdsTokenExpirationFastInstanceCommand,
+  AddDiexOnboardingPrimaryChannelFastInstanceCommand,
+  BackfillDiexOnboardingPrimaryChannelSlowInstanceCommand,
 ];

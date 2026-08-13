@@ -51,15 +51,24 @@ export const SettingsAccountsWhatsapp = () => {
     useWhatsappConnection();
 
   const isConnected = connection?.state === 'CONNECTED';
-  const tone = isConnected ? 'ok' : connection?.state === 'UNAVAILABLE' ? 'error' : 'pending';
+  const isValidated = isConnected && Boolean(connection?.validatedAt);
+  const tone = isValidated
+    ? 'ok'
+    : connection?.state === 'UNAVAILABLE'
+      ? 'error'
+      : 'pending';
 
-  const statusLabel = isConnected
-    ? t`Connected`
-    : connection?.state === 'AWAITING_SCAN'
-      ? t`Waiting for scan`
-      : connection?.state === 'UNAVAILABLE'
-        ? t`Unavailable`
-        : t`Connecting`;
+  const statusLabel = isValidated
+    ? t`Connected and validated by a real message`
+    : isConnected
+      ? t`Connected; waiting for a real inbound message`
+      : connection?.state === 'AWAITING_SCAN'
+        ? t`Waiting for scan`
+        : connection?.state === 'NOT_PROVISIONED'
+          ? t`Not connected`
+          : connection?.state === 'UNAVAILABLE'
+            ? t`Unavailable`
+            : t`Connecting`;
 
   return (
     <SettingsPageLayout
@@ -86,7 +95,10 @@ export const SettingsAccountsWhatsapp = () => {
             )}
 
             {connection?.qrCodeDataUri && !isConnected ? (
-              <StyledQrCode src={connection.qrCodeDataUri} alt={t`WhatsApp QR code`} />
+              <StyledQrCode
+                src={connection.qrCodeDataUri}
+                alt={t`WhatsApp QR code`}
+              />
             ) : null}
 
             {connection?.message ? (
@@ -94,7 +106,13 @@ export const SettingsAccountsWhatsapp = () => {
             ) : null}
 
             <Button
-              title={isConnected ? t`Check connection` : t`Refresh code`}
+              title={
+                isConnected
+                  ? t`Check connection`
+                  : connection?.state === 'AWAITING_SCAN'
+                    ? t`Refresh code`
+                    : t`Generate QR code`
+              }
               variant="secondary"
               disabled={isLoading}
               onClick={() => void refresh()}

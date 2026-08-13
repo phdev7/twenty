@@ -1,5 +1,6 @@
 import { styled } from '@linaria/react';
 import { IconCheck } from 'diex-ui/icon';
+import { Button } from 'diex-ui/input';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
 import { DiexOnboardingBadge } from '@/diex-onboarding/components/DiexOnboardingBadge';
@@ -36,6 +37,10 @@ const StyledScore = styled.div`
   font-size: ${themeCssVariables.font.size.xs};
 `;
 
+const StyledError = styled(StyledScore)`
+  color: ${themeCssVariables.font.color.danger};
+`;
+
 const StyledJourney = styled.div`
   background: ${themeCssVariables.background.tertiary};
   border-radius: ${themeCssVariables.border.radius.md};
@@ -53,7 +58,7 @@ const StyledJourneyLabel = styled.div`
 const JOURNEY_LABELS: Record<string, string> = {
   DISCOVERY_REVIEW: 'Revisar o entendimento da operação',
   ARCHITECTURE_APPROVAL: 'Aprovar a arquitetura recomendada',
-  CHANNEL_CONNECTION: 'Conectar e validar o canal principal',
+  CHANNEL_CONNECTION: 'Definir e validar a entrada principal',
   FIRST_REVENUE_FLOW: 'Executar o primeiro fluxo de resultado',
   TEAM_ENABLEMENT: 'Configurar a equipe para operar',
   COCKPIT_OPERATIONAL: 'Abrir o cockpit com dados acionáveis',
@@ -114,7 +119,9 @@ const StyledItemMarker = styled.span<{ ready: boolean }>`
       : themeCssVariables.background.tertiary};
   border-radius: ${themeCssVariables.border.radius.pill};
   color: ${({ ready }) =>
-    ready ? themeCssVariables.color.green : themeCssVariables.font.color.tertiary};
+    ready
+      ? themeCssVariables.color.green
+      : themeCssVariables.font.color.tertiary};
   display: flex;
   height: 20px;
   justify-content: center;
@@ -133,14 +140,29 @@ const renderItem = (item: DiexReadinessItem) => (
 type DiexOnboardingReadinessCardProps = {
   readiness: DiexCommercialReadiness | null;
   isLoading: boolean;
+  errorMessage?: string | null;
+  onRetry?: () => void;
 };
 
 export const DiexOnboardingReadinessCard = ({
   readiness,
   isLoading,
+  errorMessage,
+  onRetry,
 }: DiexOnboardingReadinessCardProps) => {
   const readyLabel =
     readiness?.readinessPack?.readyLabel ?? 'CRM pronto para vender';
+  const currentPhase = readiness?.onboardingJourney?.phase;
+  const currentPhaseKeys = new Set(
+    readiness?.readinessPack?.criteria
+      .filter(({ phase }) => phase === currentPhase)
+      .map(({ key }) => key) ?? [],
+  );
+  const visibleItems = readiness
+    ? currentPhase === 'READY' || currentPhaseKeys.size === 0
+      ? readiness.items.filter(({ required }) => required).slice(-4)
+      : readiness.items.filter(({ key }) => currentPhaseKeys.has(key))
+    : [];
 
   return (
     <StyledCard>
@@ -155,11 +177,36 @@ export const DiexOnboardingReadinessCard = ({
       <StyledScore>
         {isLoading && !readiness
           ? 'Calculando evidências da operação...'
-          : `${readiness?.score ?? 0}% concluído · ${readiness?.activation?.completedCount ?? 0}/${readiness?.activation?.totalCount ?? readiness?.items.length ?? 0} provas · Próxima ação: ${readiness?.nextAction ?? 'carregar onboarding'}`}
+          : readiness
+            ? `${readiness.score}% concluído · ${readiness.activation?.completedCount ?? 0}/${readiness.activation?.totalCount ?? readiness.items.length} provas · Próxima ação: ${readiness.nextAction}`
+            : 'A prontidão ainda não foi confirmada.'}
       </StyledScore>
-      <StyledProgress>
-        <StyledProgressValue score={readiness?.score ?? 0} />
-      </StyledProgress>
+      {errorMessage ? <StyledError>{errorMessage}</StyledError> : null}
+      {errorMessage && onRetry ? (
+        <div>
+          <Button
+            title="Tentar novamente"
+            variant="secondary"
+            disabled={isLoading}
+            onClick={onRetry}
+          />
+        </div>
+      ) : null}
+      {readiness?.dataFreshness?.queriedAt ? (
+        <StyledScore>
+          Evidências consultadas às{' '}
+          {new Date(readiness.dataFreshness.queriedAt).toLocaleTimeString(
+            'pt-BR',
+            { hour: '2-digit', minute: '2-digit' },
+          )}
+          .
+        </StyledScore>
+      ) : null}
+      {readiness ? (
+        <StyledProgress>
+          <StyledProgressValue score={readiness.score} />
+        </StyledProgress>
+      ) : null}
       {readiness?.onboardingJourney ? (
         <StyledJourney>
           <StyledJourneyLabel>
@@ -182,7 +229,7 @@ export const DiexOnboardingReadinessCard = ({
           ) : null}
         </StyledJourney>
       ) : null}
-      <StyledItems>{readiness?.items.map(renderItem)}</StyledItems>
+      <StyledItems>{visibleItems.map(renderItem)}</StyledItems>
       {readiness?.tracks?.length ? (
         <StyledTracks>
           {readiness.tracks.map((track) => (

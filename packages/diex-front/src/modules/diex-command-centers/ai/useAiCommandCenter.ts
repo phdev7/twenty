@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { currentUserState } from '@/auth/states/currentUserState';
 import {
@@ -15,6 +15,7 @@ import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomState
 const AI_QUERY = gql`
   query DiexAiCommandCenter($userId: UUID!) {
     aiActions(first: 100, orderBy: [{ requestedAt: DescNullsLast }]) {
+      totalCount
       edges {
         node {
           id
@@ -103,7 +104,10 @@ const AI_QUERY = gql`
   }
 `;
 type QueryData = {
-  aiActions?: { edges?: Array<{ node: AiAction }> };
+  aiActions?: {
+    totalCount?: number;
+    edges?: Array<{ node: AiAction }>;
+  };
   workspaceMembers?: {
     edges?: Array<{
       node: {
@@ -125,6 +129,8 @@ export const useAiCommandCenter = () => {
   const { data, loading, error, refetch } = useQuery<QueryData>(AI_QUERY, {
     variables: { userId: currentUser?.id ?? '' },
     skip: !currentUser?.id,
+    fetchPolicy: 'network-only',
+    notifyOnNetworkStatusChange: true,
   });
   const [busyActionId, setBusyActionId] = useState<string | null>(null);
   const [busyExecution, setBusyExecution] = useState<{
@@ -134,7 +140,15 @@ export const useAiCommandCenter = () => {
   const [executionPreviews, setExecutionPreviews] = useState<
     Record<string, AiActionExecutionResult>
   >({});
-  const actions = data?.aiActions?.edges?.map(({ node }) => node) ?? [];
+  const actions = useMemo(
+    () => data?.aiActions?.edges?.map(({ node }) => node) ?? [],
+    [data],
+  );
+  const actionTotalCount = data?.aiActions?.totalCount ?? actions.length;
+  const dataLoadedAt = useMemo(
+    () => (data ? new Date().toISOString() : null),
+    [data],
+  );
   const currentReviewer = data?.workspaceMembers?.edges?.[0]?.node ?? null;
   const reviewAction = useCallback(
     async (
@@ -142,6 +156,14 @@ export const useAiCommandCenter = () => {
       decision: 'APPROVED' | 'REJECTED',
       note: string,
     ): Promise<boolean> => {
+      if (error) {
+        enqueueErrorSnackBar({
+          message:
+            'Atualize a fila antes de decidir; os dados atuais não foram confirmados.',
+        });
+        return false;
+      }
+
       const action = actions.find((item) => item.id === id);
       if (!action || action.status !== 'PENDING_APPROVAL') {
         enqueueWarningSnackBar({
@@ -191,6 +213,7 @@ export const useAiCommandCenter = () => {
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,
+      error,
       refetch,
     ],
   );
@@ -200,14 +223,19 @@ export const useAiCommandCenter = () => {
       mode: 'PREVIEW' | 'APPLY',
       options?: { confirmationToken?: string; targetStage?: string },
     ): Promise<boolean> => {
+      if (error) {
+        enqueueErrorSnackBar({
+          message:
+            'Atualize a fila antes de executar; os dados atuais não foram confirmados.',
+        });
+        return false;
+      }
+
       const action = actions.find((item) => item.id === id);
       const isReconciliation =
         action?.status === 'EXECUTING' && mode === 'PREVIEW';
 
-      if (
-        !action ||
-        (action.status !== 'APPROVED' && !isReconciliation)
-      ) {
+      if (!action || (action.status !== 'APPROVED' && !isReconciliation)) {
         enqueueWarningSnackBar({
           message:
             'Somente propostas aprovadas ou execuções em reconciliação podem entrar no executor.',
@@ -302,11 +330,15 @@ export const useAiCommandCenter = () => {
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,
+      error,
       refetch,
     ],
   );
   return {
     actions,
+    actionTotalCount,
+    isPartial: actionTotalCount > actions.length,
+    dataLoadedAt,
     currentReviewer,
     isLoading: loading,
     errorMessage: error ? 'Não foi possível carregar o Centro de IA.' : null,

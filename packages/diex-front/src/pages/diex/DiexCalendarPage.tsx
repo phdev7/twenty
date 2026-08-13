@@ -5,7 +5,6 @@ import { useMemo, useState } from 'react';
 
 import {
   CommandCenterCard,
-  CommandCenterEmptyState,
   CommandCenterPage,
   CommandCenterLoadingState,
   CommandCenterMetric,
@@ -13,12 +12,18 @@ import {
   CommandCenterStartState,
 } from '@/diex-command-centers/components/CommandCenterLayout';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
+import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
 import { Button } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
 const CALENDAR_TASKS_QUERY = gql`
-  query DiexCalendarTasks {
-    tasks(first: 500) {
+  query DiexCalendarTasks($rangeStart: DateTime!, $rangeEnd: DateTime!) {
+    tasks(
+      first: 500
+      filter: { dueAt: { gte: $rangeStart, lt: $rangeEnd } }
+      orderBy: [{ dueAt: AscNullsLast }]
+    ) {
+      totalCount
       edges {
         node {
           id
@@ -201,15 +206,38 @@ interface WorkspaceMember {
 }
 
 export const DiexCalendarPage = () => {
-  const { data, loading, error } = useQuery<{
-    tasks: { edges: Array<{ node: Task }> };
-    workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
-  }>(CALENDAR_TASKS_QUERY);
-
-  const { openRecordInSidePanel } = useOpenRecordInSidePanel();
-
+  const pagePresentation = useDiexPagePresentation({
+    pageKey: 'calendar',
+    fallbackLabel: 'Agenda de tarefas',
+    fallbackDescription:
+      'Organize tarefas com data e hora por responsável em uma visão mensal.',
+  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>('ALL');
+  const visibleRange = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const rangeStart = new Date(year, month, 1 - firstDayIndex);
+    const rangeEnd = new Date(rangeStart);
+
+    rangeEnd.setDate(rangeStart.getDate() + 42);
+
+    return {
+      rangeStart: rangeStart.toISOString(),
+      rangeEnd: rangeEnd.toISOString(),
+    };
+  }, [currentDate]);
+  const { data, loading, error, refetch } = useQuery<{
+    tasks: { totalCount?: number; edges: Array<{ node: Task }> };
+    workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
+  }>(CALENDAR_TASKS_QUERY, {
+    variables: visibleRange,
+    fetchPolicy: 'network-only',
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const { openRecordInSidePanel } = useOpenRecordInSidePanel();
 
   const tasks = useMemo(() => {
     return data?.tasks?.edges?.map(({ node }) => node) ?? [];
@@ -218,6 +246,12 @@ export const DiexCalendarPage = () => {
   const workspaceMembers = useMemo(() => {
     return data?.workspaceMembers?.edges?.map(({ node }) => node) ?? [];
   }, [data]);
+  const taskTotalCount = data?.tasks?.totalCount ?? tasks.length;
+  const isPartial = taskTotalCount > tasks.length;
+  const dataLoadedAt = useMemo(
+    () => (data ? new Date().toISOString() : null),
+    [data],
+  );
 
   const filteredTasks = useMemo(() => {
     if (selectedAssigneeId === 'ALL') return tasks;
@@ -301,28 +335,70 @@ export const DiexCalendarPage = () => {
     return { total, completed, pending };
   }, [filteredTasks]);
 
-  if (loading) return <CommandCenterLoadingState />;
-  if (error)
+  if (loading && tasks.length === 0) return <CommandCenterLoadingState />;
+  if (error && tasks.length === 0)
     return (
-      <CommandCenterEmptyState message="Não foi possível carregar a agenda." />
+      <CommandCenterPage
+        title={pagePresentation.label}
+        description={pagePresentation.description}
+        statusText="Dados indisponíveis"
+      >
+        <CommandCenterCard title="Agenda não confirmada">
+          <CommandCenterStartState
+            title="Não foi possível carregar esta janela"
+            message="Nenhuma conclusão foi gerada com dados incompletos. Tente novamente para recuperar tarefas, responsáveis e prazos reais."
+            actionLabel="Tentar novamente"
+            onAction={() => void refetch()}
+          />
+        </CommandCenterCard>
+      </CommandCenterPage>
     );
 
   return (
     <CommandCenterPage
-      title="Agenda de tarefas"
-      description="Organize tarefas com data e hora por responsável em uma visão mensal."
+      title={pagePresentation.label}
+      description={pagePresentation.description}
+      statusText={
+        error
+          ? 'Falha ao atualizar · dados anteriores preservados'
+          : loading
+            ? 'Atualizando dados reais'
+            : dataLoadedAt
+              ? `${isPartial ? 'Recorte atual' : 'Dados atuais'} · ${new Date(
+                  dataLoadedAt,
+                ).toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}`
+              : 'Aguardando dados reais'
+      }
     >
+      {error && tasks.length > 0 ? (
+        <CommandCenterCard title="Qualidade dos dados">
+          <CommandCenterStartState
+            title="A atualização desta janela falhou"
+            message="As tarefas exibidas pertencem à última consulta concluída. Atualize antes de decidir sobre prazos e responsáveis."
+            actionLabel="Tentar novamente"
+            onAction={() => void refetch()}
+          />
+        </CommandCenterCard>
+      ) : null}
       <CommandCenterMetrics>
-        <CommandCenterMetric label="Total de tarefas" value={metrics.total} />
+        <CommandCenterMetric
+          label={isPartial ? 'Tarefas no recorte' : 'Tarefas na janela'}
+          value={metrics.total}
+        />
         <CommandCenterMetric label="Concluídas" value={metrics.completed} />
         <CommandCenterMetric label="Pendentes" value={metrics.pending} />
       </CommandCenterMetrics>
 
       {tasks.length === 0 ? (
-        <CommandCenterCard title="A agenda acompanha o primeiro follow-up">
+        <CommandCenterCard title="A agenda acompanha cada próxima ação">
           <CommandCenterStartState
-            title="Nenhuma tarefa foi criada ainda."
-            message="Conecte o WhatsApp e execute o primeiro fluxo comercial. Cada lead qualificado passa a aparecer aqui com responsável, prazo e próxima ação."
+            title="Nenhuma tarefa com prazo nesta janela."
+            message="Crie ou ajuste uma próxima ação com responsável e prazo. Ela aparecerá automaticamente no período correspondente."
+            actionLabel="Abrir tarefas"
+            to="/objects/tasks"
           />
         </CommandCenterCard>
       ) : null}
@@ -363,8 +439,26 @@ export const DiexCalendarPage = () => {
               variant="tertiary"
               onClick={() => setCurrentDate(new Date())}
             />
+            <Button
+              title="Atualizar"
+              size="small"
+              variant="secondary"
+              disabled={loading}
+              onClick={() => void refetch()}
+            />
           </StyledHeaderNav>
         </StyledFilters>
+
+        {isPartial ? (
+          <CommandCenterCard title="Recorte da agenda">
+            <CommandCenterStartState
+              title={`${tasks.length} de ${taskTotalCount} tarefas carregadas`}
+              message="A visão mensal usa até 500 tarefas da janela de seis semanas exibida. Abra o módulo completo para decisões que dependam de todo o período."
+              actionLabel="Abrir tarefas"
+              to="/objects/tasks"
+            />
+          </CommandCenterCard>
+        ) : null}
 
         <StyledCalendarViewport>
           <StyledCalendarGrid>

@@ -9,6 +9,13 @@ export type WorkspaceReadinessPhase =
   | 'COCKPIT_OPERATIONAL'
   | 'READY';
 
+export type WorkspacePrimaryChannel =
+  | 'WHATSAPP'
+  | 'EMAIL'
+  | 'IMPORT'
+  | 'MANUAL'
+  | 'LATER';
+
 export type WorkspaceReadinessEvidenceSource =
   | 'CONTEXT'
   | 'PROFILE'
@@ -36,6 +43,7 @@ export type WorkspaceReadinessCriterion = {
 export type WorkspaceReadinessPack = {
   version: string;
   goal: string | null;
+  primaryChannel: WorkspacePrimaryChannel | null;
   operationLabel: string;
   readyLabel: string;
   selectedTemplateIds: string[];
@@ -80,7 +88,8 @@ const UNIVERSAL_CRITERIA: Array<
     weight: 1,
     source: 'PROFILE',
     firstValue: false,
-    nextAction: 'Escolha o resultado que a operação precisa priorizar primeiro.',
+    nextAction:
+      'Escolha o resultado que a operação precisa priorizar primeiro.',
   },
   {
     key: 'offer_registered',
@@ -114,13 +123,14 @@ const UNIVERSAL_CRITERIA: Array<
   },
   {
     key: 'channel_connected',
-    label: 'Canal principal conectado e validado',
+    label: 'Forma principal de entrada definida e validada',
     phase: 'CHANNEL_CONNECTION',
     required: true,
     weight: 2,
     source: 'CHANNEL',
     firstValue: false,
-    nextAction: 'Conecte o canal principal e valide-o com uma mensagem real.',
+    nextAction:
+      'Defina a forma principal de entrada e valide-a com dados reais.',
   },
   {
     key: 'first_conversation_received',
@@ -250,9 +260,7 @@ const criterionPhase = (key: string): WorkspaceReadinessCriterion['phase'] => {
   return 'ARCHITECTURE_APPROVAL';
 };
 
-const criterionSource = (
-  key: string,
-): WorkspaceReadinessEvidenceSource => {
+const criterionSource = (key: string): WorkspaceReadinessEvidenceSource => {
   if (
     key.includes('context') ||
     key.includes('ideal_customer') ||
@@ -296,10 +304,13 @@ const isFirstValueCriterion = (key: string): boolean =>
 const normalizeCriteria = (
   templates: WorkspaceTemplateDefinition[],
 ): Array<Omit<WorkspaceReadinessCriterion, 'sourceTemplateIds'>> => {
-  const criteria = new Map<string, Omit<WorkspaceReadinessCriterion, 'sourceTemplateIds'>>();
+  const criteria = new Map<
+    string,
+    Omit<WorkspaceReadinessCriterion, 'sourceTemplateIds'>
+  >();
 
   for (const criterion of UNIVERSAL_CRITERIA) {
-    criteria.set(criterion.key, criterion);
+    criteria.set(criterion.key, { ...criterion });
   }
 
   for (const template of templates) {
@@ -329,6 +340,7 @@ const normalizeCriteria = (
 export const buildWorkspaceReadinessPack = ({
   templates,
   goal,
+  primaryChannel,
   teamCount,
   hasSlaTargets,
   hasApprovalRules,
@@ -336,12 +348,13 @@ export const buildWorkspaceReadinessPack = ({
 }: {
   templates: WorkspaceTemplateDefinition[];
   goal?: string | null;
+  primaryChannel?: string | null;
   teamCount?: number | null;
   hasSlaTargets?: boolean;
   hasApprovalRules?: boolean;
   operationLabel?: string | null;
 }): WorkspaceReadinessPack => {
-  const criteria = normalizeCriteria(templates);
+  let criteria = normalizeCriteria(templates);
   const selectedTemplateIds = templates.map(({ id }) => id);
   const sourceTemplateIds = selectedTemplateIds;
   const addCriterion = (
@@ -387,24 +400,27 @@ export const buildWorkspaceReadinessPack = ({
       weight: 1,
       source: 'TEAM',
       firstValue: false,
-      nextAction: 'Defina quem aprova descontos, respostas e mudanças estruturais.',
+      nextAction:
+        'Defina quem aprova descontos, respostas e mudanças estruturais.',
     });
   }
 
   const normalizedGoal = goal?.trim().toUpperCase() || null;
+  const normalizedPrimaryChannel = [
+    'WHATSAPP',
+    'EMAIL',
+    'IMPORT',
+    'MANUAL',
+    'LATER',
+  ].includes(primaryChannel?.trim().toUpperCase() ?? '')
+    ? (primaryChannel?.trim().toUpperCase() as WorkspacePrimaryChannel)
+    : null;
 
   const hasCommercialPipeline = templates.some(
     ({ pipelines }) => pipelines.length > 0,
   );
-  const requiresCompanyLink = templates.some(({ id }) =>
-    [
-      'diex.business.agency',
-      'diex.business.saas',
-      'diex.business.consulting',
-      'diex.business.b2b-sales',
-      'diex.business.franchise',
-      'diex.business.customer-success',
-    ].includes(id),
+  const requiresCompanyLink = templates.some(
+    ({ requiresCompanyAccount }) => requiresCompanyAccount === true,
   );
 
   if (hasCommercialPipeline) {
@@ -418,6 +434,44 @@ export const buildWorkspaceReadinessPack = ({
       firstValue: false,
       nextAction: 'Aprove e publique as etapas do fluxo recomendado.',
     });
+  }
+
+  const doesNotRequireRealtimeConversation =
+    normalizedPrimaryChannel === 'IMPORT' ||
+    normalizedPrimaryChannel === 'MANUAL';
+
+  if (doesNotRequireRealtimeConversation) {
+    criteria = criteria.filter(
+      ({ key }) =>
+        key !== 'first_conversation_received' &&
+        key !== 'first_ai_triage_completed',
+    );
+  }
+
+  const channelCriterion = criteria.find(
+    ({ key }) => key === 'channel_connected',
+  );
+
+  if (channelCriterion) {
+    if (doesNotRequireRealtimeConversation) {
+      channelCriterion.label = 'Forma principal de entrada configurada';
+      channelCriterion.nextAction =
+        normalizedPrimaryChannel === 'IMPORT'
+          ? 'Importe a base inicial e valide os primeiros registros.'
+          : 'Confirme que a operação seguirá com cadastros manuais.';
+    } else if (normalizedPrimaryChannel === 'EMAIL') {
+      channelCriterion.label = 'E-mail principal conectado e validado';
+      channelCriterion.nextAction =
+        'Conecte o e-mail principal e valide-o com uma mensagem real.';
+    } else if (normalizedPrimaryChannel === 'WHATSAPP') {
+      channelCriterion.label = 'WhatsApp conectado e validado';
+      channelCriterion.nextAction =
+        'Conecte o WhatsApp pelo QR Code e valide-o com uma mensagem real.';
+    } else {
+      channelCriterion.label = 'Forma principal de entrada definida';
+      channelCriterion.nextAction =
+        'Escolha WhatsApp, e-mail, importação ou operação sem integração.';
+    }
   }
 
   if (requiresCompanyLink) {
@@ -461,14 +515,21 @@ export const buildWorkspaceReadinessPack = ({
     });
 
   return {
-    version: '1.0.0',
+    version: '1.1.0',
     goal: normalizedGoal,
+    primaryChannel: normalizedPrimaryChannel,
     operationLabel:
       operationLabel?.trim() ||
       templates.find(({ kind }) => kind === 'BUSINESS_MODEL')?.name ||
       'Operação',
     readyLabel:
-      (normalizedGoal ? READY_LABELS_BY_GOAL[normalizedGoal] : null) ??
+      (normalizedGoal === 'ORGANIZE_WHATSAPP' &&
+      normalizedPrimaryChannel !== null &&
+      normalizedPrimaryChannel !== 'WHATSAPP'
+        ? 'CRM pronto para organizar as entradas'
+        : normalizedGoal
+          ? READY_LABELS_BY_GOAL[normalizedGoal]
+          : null) ??
       (hasCommercialPipeline
         ? 'CRM pronto para vender'
         : 'CRM pronto para operar'),

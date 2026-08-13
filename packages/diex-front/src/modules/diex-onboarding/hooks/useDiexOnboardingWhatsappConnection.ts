@@ -6,17 +6,18 @@ import {
   useWhatsappConnection,
 } from '@/settings/accounts/hooks/useWhatsappConnection';
 
-// Asking the connection route on open is what makes the QR appear without a
-// click; the route is idempotent and provisions the instance if missing. It
-// then keeps re-asking on its own while a scan is pending, since nothing
-// pushes the "connected" transition to the front.
+// Opening a page only reads status. Provisioning starts after an explicit
+// request, then polling keeps the pending scan current because the provider
+// does not push the "connected" transition to the front.
 export const useDiexOnboardingWhatsappConnection = ({
   onConnected,
+  enabled = true,
 }: {
   onConnected: () => void;
+  enabled?: boolean;
 }) => {
-  const { connection, isLoading, errorMessage, refresh } =
-    useWhatsappConnection();
+  const { connection, isLoading, errorMessage, readStatus, refresh } =
+    useWhatsappConnection({ autoLoad: enabled });
   const [isConnecting, setIsConnecting] = useState(false);
   // Keep the polling cycle independent from callback identity changes.
   // oxlint-disable-next-line diex/no-state-useref
@@ -38,8 +39,9 @@ export const useDiexOnboardingWhatsappConnection = ({
 
   useEffect(() => {
     if (
-      connection?.state !== 'AWAITING_SCAN' &&
-      connection?.state !== 'CONNECTING'
+      !enabled ||
+      (connection?.state !== 'AWAITING_SCAN' &&
+        connection?.state !== 'CONNECTING')
     ) {
       return;
     }
@@ -54,7 +56,7 @@ export const useDiexOnboardingWhatsappConnection = ({
     };
 
     const poll = async (): Promise<void> => {
-      const result: WhatsappConnection | null = await refresh();
+      const result: WhatsappConnection | null = await readStatus();
 
       if (isCancelled) {
         return;
@@ -79,7 +81,7 @@ export const useDiexOnboardingWhatsappConnection = ({
         clearTimeout(timeoutId);
       }
     };
-  }, [connection?.state, refresh]);
+  }, [connection?.state, enabled, readStatus]);
 
   return {
     connection,

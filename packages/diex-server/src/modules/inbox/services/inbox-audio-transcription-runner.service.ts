@@ -77,8 +77,10 @@ export class InboxAudioTranscriptionRunnerService {
             continue;
           }
 
-          const outcome =
-            await this.inboxTranscriptionService.transcribeAudio(media);
+          const outcome = await this.inboxTranscriptionService.transcribeAudio({
+            workspaceId,
+            ...media,
+          });
 
           if (outcome.status === 'DONE') {
             transcribed += 1;

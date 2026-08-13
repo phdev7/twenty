@@ -54,6 +54,7 @@ export type NormalizedEvolutionStatus = {
 
 export type ProcessEvolutionWebhookResult = {
   received: number;
+  inboundMessages: number;
   createdMessages: number;
   duplicateMessages: number;
   updatedStatuses: number;
@@ -97,6 +98,7 @@ export type WhatsappConnectionResult = {
   // Data URI for an <img>. Rendered only inside authenticated workspace
   // surfaces: a WhatsApp QR is a live credential.
   qrCodeDataUri: string | null;
+  validatedAt?: string | null;
   message: string;
 };
 

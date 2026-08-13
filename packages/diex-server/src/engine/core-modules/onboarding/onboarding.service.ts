@@ -37,6 +37,7 @@ import { CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/com
 import { InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
 import { InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-message.workspace-entity';
 import { InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
+import { InboxTeamMemberWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team-member.workspace-entity';
 import { normalizePhone } from 'src/modules/inbox/utils/evolution-payload.util';
 import {
   buildPhonesValue,
@@ -58,16 +59,12 @@ import {
   WorkspaceArchitectureService,
 } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
 import { WorkspaceCommercialReadinessService } from 'src/modules/workspace-architecture/services/workspace-commercial-readiness.service';
-import {
-  WorkspaceArchitectureArtifactType,
-} from 'src/modules/workspace-architecture/standard-objects/workspace-architecture-artifact.standard-object-definition';
+import { WorkspaceArchitectureArtifactType } from 'src/modules/workspace-architecture/standard-objects/workspace-architecture-artifact.standard-object-definition';
 import {
   type WorkspacePageRenderer,
   workspacePageCatalogStateSchema,
 } from 'src/modules/workspace-architecture/types/workspace-page-catalog.schema';
-import {
-  type GeneratedWorkspaceContext,
-} from 'src/engine/core-modules/onboarding/types/generated-workspace-context.schema';
+import { type GeneratedWorkspaceContext } from 'src/engine/core-modules/onboarding/types/generated-workspace-context.schema';
 
 export enum OnboardingStepKeys {
   ONBOARDING_CONNECT_ACCOUNT_PENDING = 'ONBOARDING_CONNECT_ACCOUNT_PENDING',
@@ -91,6 +88,14 @@ const COMMERCIAL_GOALS = [
   'ORGANIZE_WHATSAPP',
   'CONTROL_FOLLOWUPS',
   'CUSTOMER_SUCCESS_RENEWALS',
+] as const;
+
+const ONBOARDING_PRIMARY_CHANNELS = [
+  'WHATSAPP',
+  'EMAIL',
+  'IMPORT',
+  'MANUAL',
+  'LATER',
 ] as const;
 
 type CommercialRepositories = {
@@ -131,11 +136,13 @@ export class OnboardingService {
     operationDescription,
     userId,
     userWorkspaceId,
+    workspaceMemberId,
     workspace,
   }: {
     operationDescription: string;
     userId: string;
     userWorkspaceId: string;
+    workspaceMemberId: string;
     workspace: WorkspaceEntity;
   }) {
     const [workspaceOwner] = await this.userWorkspaceRepository.find({
@@ -150,14 +157,22 @@ export class OnboardingService {
       );
     }
 
-    const { generatedContext, operationProfile, modelId: resolvedModelId } =
-      await this.workspaceArchitectureService.generateWorkspaceContext({
-        workspaceId: workspace.id,
-        description: operationDescription,
-        modelId: workspace.fastModel,
-        commercialGoal: workspace.onboardingPrimaryGoal,
-        userWorkspaceId,
-      });
+    await this.ensureInitialOperatingTeam({
+      workspaceId: workspace.id,
+      workspaceMemberId,
+    });
+
+    const {
+      generatedContext,
+      operationProfile,
+      modelId: resolvedModelId,
+    } = await this.workspaceArchitectureService.generateWorkspaceContext({
+      workspaceId: workspace.id,
+      description: operationDescription,
+      modelId: workspace.fastModel,
+      commercialGoal: workspace.onboardingPrimaryGoal,
+      userWorkspaceId,
+    });
 
     await this.persistGeneratedWorkspaceContext({
       workspaceId: workspace.id,
@@ -338,24 +353,25 @@ export class OnboardingService {
   }
 
   async getDiexArchitecture(workspaceId: string) {
-    const [profile, blueprint, changeSet, pageCatalogArtifact] = await Promise.all([
-      this.workspaceArchitectureService.getLatestArtifact(
-        workspaceId,
-        WorkspaceArchitectureArtifactType.OPERATION_PROFILE,
-      ),
-      this.workspaceArchitectureService.getLatestArtifact(
-        workspaceId,
-        WorkspaceArchitectureArtifactType.BLUEPRINT,
-      ),
-      this.workspaceArchitectureService.getLatestArtifact(
-        workspaceId,
-        WorkspaceArchitectureArtifactType.CHANGE_SET,
-      ),
-      this.workspaceArchitectureService.getLatestArtifact(
-        workspaceId,
-        WorkspaceArchitectureArtifactType.SETUP_STATE,
-      ),
-    ]);
+    const [profile, blueprint, changeSet, pageCatalogArtifact] =
+      await Promise.all([
+        this.workspaceArchitectureService.getLatestArtifact(
+          workspaceId,
+          WorkspaceArchitectureArtifactType.OPERATION_PROFILE,
+        ),
+        this.workspaceArchitectureService.getLatestArtifact(
+          workspaceId,
+          WorkspaceArchitectureArtifactType.BLUEPRINT,
+        ),
+        this.workspaceArchitectureService.getLatestArtifact(
+          workspaceId,
+          WorkspaceArchitectureArtifactType.CHANGE_SET,
+        ),
+        this.workspaceArchitectureService.getLatestArtifact(
+          workspaceId,
+          WorkspaceArchitectureArtifactType.SETUP_STATE,
+        ),
+      ]);
     const toPublicArtifact = (artifact: typeof profile) =>
       artifact
         ? {
@@ -400,7 +416,10 @@ export class OnboardingService {
     addSection('Tom de voz', context.toneOfVoice?.markdown);
     addSection('Regras comerciais', context.commercialRules?.markdown);
     addSection('Objeções e respostas', context.objectionPlaybook?.markdown);
-    addSection('Concorrência e diferenciais', context.competitiveLandscape?.markdown);
+    addSection(
+      'Concorrência e diferenciais',
+      context.competitiveLandscape?.markdown,
+    );
     addSection('Promessas proibidas', context.forbiddenClaims?.markdown);
     addSection('Processo atual', workspace.onboardingCurrentProcess);
 
@@ -560,6 +579,18 @@ export class OnboardingService {
       value: false,
     });
 
+    try {
+      await this.workspaceArchitectureService.updatePage({
+        workspaceId,
+        key: 'first-steps',
+        showInNavigation: false,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Commercial onboarding completed, but the activation page could not be hidden for workspace ${workspaceId}: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
+    }
+
     return { success: true, readiness };
   }
 
@@ -573,40 +604,61 @@ export class OnboardingService {
     version?: number;
   }) {
     await this.assertWorkspaceOwner(workspaceId, userId);
-    let changeSet = await this.workspaceArchitectureService.getLatestArtifact(
-      workspaceId,
-      WorkspaceArchitectureArtifactType.CHANGE_SET,
+    const readiness =
+      await this.workspaceCommercialReadinessService.getReadiness(workspaceId);
+    const discoveryBlocker = readiness.items.find(
+      ({ phase, ready, required }) =>
+        phase === 'DISCOVERY_REVIEW' && required && !ready,
     );
 
-    if (!changeSet) {
-      const blueprint = await this.workspaceArchitectureService.getLatestArtifact(
-        workspaceId,
-        WorkspaceArchitectureArtifactType.BLUEPRINT,
-      );
-
-      if (!blueprint) {
-        throw new BadRequestException(
-          'A recomendação da arquitetura ainda não foi gerada.',
-        );
-      }
-
-      await this.workspaceArchitectureService.createChangeSet({
-        workspaceId,
-        blueprint: blueprint.payload as never,
-      });
-      changeSet = await this.workspaceArchitectureService.getLatestArtifact(
-        workspaceId,
-        WorkspaceArchitectureArtifactType.CHANGE_SET,
+    if (discoveryBlocker) {
+      throw new BadRequestException(
+        `Revise a descoberta antes de aprovar a arquitetura: ${discoveryBlocker.label}.`,
       );
     }
 
+    const [changeSet, blueprint] = await Promise.all([
+      this.workspaceArchitectureService.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.CHANGE_SET,
+      ),
+      this.workspaceArchitectureService.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.BLUEPRINT,
+      ),
+    ]);
+
     if (!changeSet) {
-      throw new BadRequestException('Não foi possível preparar a aprovação.');
+      throw new BadRequestException(
+        'O pacote de mudanças ainda não foi preparado. Recalcule a arquitetura antes de aprovar.',
+      );
+    }
+
+    const changeSetBlueprintVersion = (
+      changeSet.payload as { blueprintVersion?: unknown }
+    ).blueprintVersion;
+
+    if (!blueprint || changeSetBlueprintVersion !== blueprint.version) {
+      throw new BadRequestException(
+        'O pacote de mudanças não corresponde à recomendação mais recente. Recalcule antes de aprovar.',
+      );
+    }
+
+    if (typeof version !== 'number' || !Number.isInteger(version)) {
+      throw new BadRequestException(
+        'Informe a versão da arquitetura revisada antes de aprovar.',
+      );
+    }
+
+    if (version !== changeSet.version) {
+      throw new BadRequestException(
+        'Esta versão da arquitetura ficou desatualizada. Recarregue a recomendação mais recente antes de aprovar.',
+      );
     }
 
     return this.workspaceArchitectureService.approveChangeSet({
       workspaceId,
-      version: version ?? changeSet.version,
+      version: changeSet.version,
     });
   }
 
@@ -620,18 +672,46 @@ export class OnboardingService {
     version?: number;
   }) {
     await this.assertWorkspaceOwner(workspaceId, userId);
-    const changeSet = await this.workspaceArchitectureService.getLatestArtifact(
-      workspaceId,
-      WorkspaceArchitectureArtifactType.CHANGE_SET,
-    );
+    const [changeSet, blueprint] = await Promise.all([
+      this.workspaceArchitectureService.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.CHANGE_SET,
+      ),
+      this.workspaceArchitectureService.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.BLUEPRINT,
+      ),
+    ]);
 
     if (!changeSet) {
       throw new BadRequestException('A arquitetura ainda não foi preparada.');
     }
 
+    const changeSetBlueprintVersion = (
+      changeSet.payload as { blueprintVersion?: unknown }
+    ).blueprintVersion;
+
+    if (!blueprint || changeSetBlueprintVersion !== blueprint.version) {
+      throw new BadRequestException(
+        'A arquitetura aprovada não corresponde à recomendação mais recente. Recalcule e aprove novamente.',
+      );
+    }
+
+    if (typeof version !== 'number' || !Number.isInteger(version)) {
+      throw new BadRequestException(
+        'Informe a versão aprovada antes de publicar a arquitetura.',
+      );
+    }
+
+    if (version !== changeSet.version) {
+      throw new BadRequestException(
+        'Esta versão aprovada ficou desatualizada. Recarregue antes de publicar.',
+      );
+    }
+
     return this.workspaceArchitectureService.applyApprovedChangeSet({
       workspaceId,
-      version: version ?? changeSet.version,
+      version: changeSet.version,
     });
   }
 
@@ -656,6 +736,33 @@ export class OnboardingService {
     });
 
     return { saved: true, goal: normalizedGoal };
+  }
+
+  async setPrimaryChannel({
+    workspaceId,
+    userId,
+    primaryChannel,
+  }: {
+    workspaceId: string;
+    userId: string;
+    primaryChannel: string;
+  }) {
+    await this.assertWorkspaceOwner(workspaceId, userId);
+    const normalizedPrimaryChannel = primaryChannel.trim().toUpperCase();
+
+    if (
+      !(ONBOARDING_PRIMARY_CHANNELS as readonly string[]).includes(
+        normalizedPrimaryChannel,
+      )
+    ) {
+      throw new BadRequestException('Forma principal de entrada inválida.');
+    }
+
+    await this.workspaceRepository.update(workspaceId, {
+      onboardingPrimaryChannel: normalizedPrimaryChannel,
+    });
+
+    return { saved: true, primaryChannel: normalizedPrimaryChannel };
   }
 
   async executeFirstCommercialFlow({
@@ -693,24 +800,25 @@ export class OnboardingService {
       ({ key, required }) => key === 'first_opportunity_created' && required,
     );
     const opportunityStageOptions = requiresOpportunity
-      ? (
+      ? ((
           await this.workspaceArchitectureService.inspectWorkspaceArchitecture(
             workspaceId,
           )
         ).objects
           .find(({ nameSingular }) => nameSingular === 'opportunity')
-          ?.fields.find(({ name }) => name === 'stage')?.options ?? []
+          ?.fields.find(({ name }) => name === 'stage')?.options ?? [])
       : [];
-    const initialOpportunityStage = [...opportunityStageOptions]
-      .filter(
-        ({ value }) =>
-          typeof value === 'string' && value.trim().length > 0,
-      )
-      .sort(
-        (left, right) =>
-          (typeof left.position === 'number' ? left.position : 0) -
-          (typeof right.position === 'number' ? right.position : 0),
-      )[0]?.value.trim() ?? null;
+    const initialOpportunityStage =
+      [...opportunityStageOptions]
+        .filter(
+          ({ value }) => typeof value === 'string' && value.trim().length > 0,
+        )
+        .sort(
+          (left, right) =>
+            (typeof left.position === 'number' ? left.position : 0) -
+            (typeof right.position === 'number' ? right.position : 0),
+        )[0]
+        ?.value.trim() ?? null;
 
     if (requiresOpportunity && !initialOpportunityStage) {
       throw new BadRequestException(
@@ -721,8 +829,17 @@ export class OnboardingService {
     return this.cacheLockService.withRenewableLock(
       async () => {
         const repositories = await this.getCommercialRepositories(workspaceId);
+        const evidencedConversation = readiness.evidence.firstConversationId
+          ? await repositories.conversationRepository.findOne({
+              where: { id: readiness.evidence.firstConversationId },
+            })
+          : null;
         const conversation =
-          await this.findFirstInboundCommercialConversation(repositories);
+          evidencedConversation ??
+          (await this.findFirstInboundCommercialConversation(
+            repositories,
+            readiness.evidence.primaryChannel,
+          ));
 
         if (!conversation) {
           throw new BadRequestException(
@@ -895,8 +1012,7 @@ export class OnboardingService {
 
           const inserted = await repositories.opportunityRepository.insert({
             legacyDiexId: opportunityLegacyId,
-            name:
-              conversation.name?.trim() || 'Nova oportunidade da operação',
+            name: conversation.name?.trim() || 'Nova oportunidade da operação',
             stage: initialOpportunityStage,
             position: 0,
             pointOfContactId: personId,
@@ -933,9 +1049,12 @@ export class OnboardingService {
             legacyDiexId: taskLegacyId,
             title: nextActionTitle,
             status: 'TODO',
+            taskCategory: 'COMMERCIAL',
             dueAt,
             assigneeId,
             diexInboxConversationId: conversation.id,
+            createdBy: actor,
+            updatedBy: actor,
             bodyV2: {
               markdown: requiresOpportunity
                 ? 'Próxima ação criada pelo onboarding. Responda, qualifique a intenção e avance a oportunidade no fluxo aprovado.'
@@ -1102,6 +1221,7 @@ export class OnboardingService {
 
   private async findFirstInboundCommercialConversation(
     repositories: CommercialRepositories,
+    preferredChannel?: string | null,
   ) {
     const inboundMessages = await repositories.messageRepository.find({
       where: { direction: 'INBOUND' },
@@ -1112,7 +1232,9 @@ export class OnboardingService {
       ...new Set(
         inboundMessages
           .map(({ inboxConversationId }) => inboxConversationId)
-          .filter((id): id is string => typeof id === 'string' && id.length > 0),
+          .filter(
+            (id): id is string => typeof id === 'string' && id.length > 0,
+          ),
       ),
     ];
 
@@ -1123,21 +1245,34 @@ export class OnboardingService {
     const conversations = await repositories.conversationRepository.find({
       where: { id: In(conversationIds) } as never,
     });
+    const normalizedPreferredChannel = preferredChannel?.trim().toUpperCase();
+    const channelScopedConversations = [
+      'WHATSAPP',
+      'EMAIL',
+      'CALENDAR',
+    ].includes(normalizedPreferredChannel ?? '')
+      ? conversations.filter(
+          ({ channel }) => channel === normalizedPreferredChannel,
+        )
+      : conversations;
     const channelPriority: Record<string, number> = {
-      WHATSAPP: 0,
-      EMAIL: 1,
-      CALENDAR: 2,
-      IMPORT: 3,
+      WHATSAPP: preferredChannel === 'WHATSAPP' ? 0 : 2,
+      EMAIL: preferredChannel === 'EMAIL' ? 0 : 3,
+      CALENDAR: preferredChannel === 'CALENDAR' ? 0 : 4,
+      IMPORT: preferredChannel === 'IMPORT' ? 0 : 5,
     };
-    const orderedConversations = [...conversations].sort((left, right) => {
-      const priorityDifference =
-        (channelPriority[left.channel ?? ''] ?? 10) -
-        (channelPriority[right.channel ?? ''] ?? 10);
+    const orderedConversations = [...channelScopedConversations].sort(
+      (left, right) => {
+        const priorityDifference =
+          (channelPriority[left.channel ?? ''] ?? 10) -
+          (channelPriority[right.channel ?? ''] ?? 10);
 
-      return priorityDifference !== 0
-        ? priorityDifference
-        : Date.parse(String(left.createdAt)) - Date.parse(String(right.createdAt));
-    });
+        return priorityDifference !== 0
+          ? priorityDifference
+          : Date.parse(String(left.createdAt)) -
+              Date.parse(String(right.createdAt));
+      },
+    );
 
     const inboundConversationIds = new Set(
       inboundMessages.map(({ inboxConversationId }) => inboxConversationId),
@@ -1192,22 +1327,66 @@ export class OnboardingService {
       // A field the description never covered stays empty rather than null, so
       // the First Steps card can mark it "vazio" and ask the operator to fill
       // it instead of the whole onboarding failing.
+      const listText = (values: string[]) =>
+        values
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .join('; ');
+      const composeSections = (
+        sections: Array<[label: string, value: string | null | undefined]>,
+      ) =>
+        sections
+          .filter(([, value]) => isNonEmptyString(value))
+          .map(([label, value]) => `${label}: ${value?.trim()}`)
+          .join('\n\n')
+          .slice(0, 4_000);
+      const completeBusinessDescription = composeSections([
+        ['Resumo', generatedContext.businessDescription],
+        ['Segmento', generatedContext.segment],
+        ['Modelos de negócio', listText(generatedContext.businessModels)],
+        ['Receitas', listText(generatedContext.revenueModels)],
+        ['Produtos e ofertas', listText(generatedContext.productsAndServices)],
+        ['Problemas resolvidos', listText(generatedContext.customerProblems)],
+        ['Canais de aquisição', listText(generatedContext.acquisitionChannels)],
+        ['Processo comercial', generatedContext.salesProcess],
+        ['Ciclo comercial', generatedContext.salesCycle],
+        ['Responsáveis', listText(generatedContext.teamAndRoles)],
+        ['Entrega', generatedContext.deliveryProcess],
+        ['Atendimento', generatedContext.customerServiceProcess],
+        ['Customer Success', generatedContext.customerSuccessProcess],
+        ['Renovações', generatedContext.renewalProcess],
+        ['Métricas', listText(generatedContext.relevantMetrics)],
+        ['Integrações', listText(generatedContext.requiredIntegrations)],
+        ['Objetivos', listText(generatedContext.priorityObjectives)],
+      ]);
+      const completeCommercialRules = composeSections([
+        ['Regras comerciais', generatedContext.commercialRules],
+        ['CTA permitido', listText(generatedContext.callsToAction)],
+        ['Responsabilidades', listText(generatedContext.responsibilityRules)],
+        ['SLA', listText(generatedContext.slaTargets)],
+        ['Aprovações', listText(generatedContext.approvalRules)],
+        ['Obrigações e riscos', listText(generatedContext.obligationsAndRisks)],
+      ]);
+      const completeForbiddenClaims = composeSections([
+        ['Promessas proibidas', generatedContext.forbiddenClaims],
+        ['Restrições', listText(generatedContext.restrictions)],
+      ]);
       const richTextFields = {
         businessDescription: {
-          markdown: generatedContext.businessDescription ?? '',
+          markdown: completeBusinessDescription,
         },
         idealCustomerProfile: {
           markdown: generatedContext.idealCustomerProfile ?? '',
         },
         toneOfVoice: { markdown: generatedContext.toneOfVoice ?? '' },
-        commercialRules: { markdown: generatedContext.commercialRules ?? '' },
+        commercialRules: { markdown: completeCommercialRules },
         objectionPlaybook: {
           markdown: generatedContext.objectionPlaybook ?? '',
         },
         competitiveLandscape: {
           markdown: generatedContext.competitiveLandscape ?? '',
         },
-        forbiddenClaims: { markdown: generatedContext.forbiddenClaims ?? '' },
+        forbiddenClaims: { markdown: completeForbiddenClaims },
       };
 
       if (isDefined(existingContext)) {
@@ -1230,6 +1409,80 @@ export class OnboardingService {
         }),
       );
     }, authContext);
+  }
+
+  private async ensureInitialOperatingTeam({
+    workspaceId,
+    workspaceMemberId,
+  }: {
+    workspaceId: string;
+    workspaceMemberId: string;
+  }): Promise<void> {
+    const authContext = buildSystemAuthContext(workspaceId);
+
+    await this.cacheLockService.withRenewableLock(
+      () =>
+        this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+          const [teamRepository, membershipRepository] = await Promise.all([
+            this.globalWorkspaceOrmManager.getRepository<InboxTeamWorkspaceEntity>(
+              workspaceId,
+              InboxTeamWorkspaceEntity,
+              { shouldBypassPermissionChecks: true },
+            ),
+            this.globalWorkspaceOrmManager.getRepository<InboxTeamMemberWorkspaceEntity>(
+              workspaceId,
+              InboxTeamMemberWorkspaceEntity,
+              { shouldBypassPermissionChecks: true },
+            ),
+          ]);
+          let team = await teamRepository.findOne({
+            where: { status: 'ACTIVE', isDefault: true },
+          });
+
+          if (!team) {
+            team = await teamRepository.findOne({
+              where: { key: 'operacao-principal' },
+            });
+          }
+
+          if (!team) {
+            team = await teamRepository.save(
+              teamRepository.create({
+                name: 'Operação principal',
+                key: 'operacao-principal',
+                description:
+                  'Fila inicial editável para distribuir entradas e controlar o SLA.',
+                status: 'ACTIVE',
+                routingStrategy: 'MANUAL',
+                defaultResponseSlaMinutes: 60,
+                isDefault: true,
+              }),
+            );
+          }
+
+          const existingMembership = await membershipRepository.findOne({
+            where: {
+              inboxTeamId: team.id,
+              workspaceMemberId,
+            },
+          });
+
+          if (!existingMembership) {
+            await membershipRepository.save(
+              membershipRepository.create({
+                name: `Líder inicial - ${workspaceMemberId.slice(0, 8)}`,
+                memberRole: 'LEAD',
+                isActive: true,
+                joinedAt: new Date().toISOString(),
+                inboxTeamId: team.id,
+                workspaceMemberId,
+              }),
+            );
+          }
+        }, authContext),
+      `diex:onboarding-initial-team:${workspaceId}`,
+      { ttl: 15_000, renewalIntervalMs: 4_000, maxRetries: 20 },
+    );
   }
 
   private async seedGeneratedOffers({

@@ -1,9 +1,9 @@
 import { styled } from '@linaria/react';
 import { type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { IconArrowRight, IconRocket } from 'diex-ui/icon';
 import { Button, Card, CardContent, CardHeader, Loader, Tag } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
+import { isDefined } from 'diex-shared/utils';
 
 const StyledPage = styled.main`
   box-sizing: border-box;
@@ -156,10 +156,12 @@ const StyledRowDetail = styled.p`
 export const CommandCenterPage = ({
   title,
   description,
+  statusText,
   children,
 }: {
   title: string;
   description: string;
+  statusText?: string;
   children: ReactNode;
 }) => (
   <StyledPage>
@@ -168,7 +170,7 @@ export const CommandCenterPage = ({
         <StyledTitle>{title}</StyledTitle>
         <StyledDescription>{description}</StyledDescription>
       </div>
-      <Tag color="green" text="Operação ativa" />
+      {statusText ? <Tag color="blue" text={statusText} /> : null}
     </StyledHeader>
     {children}
   </StyledPage>
@@ -216,7 +218,7 @@ export const CommandCenterCard = ({
     </CardHeader>
     <CardContent>
       {children}
-      {action ? <StyledCardAction>{action}</StyledCardAction> : null}
+      {isDefined(action) ? <StyledCardAction>{action}</StyledCardAction> : null}
     </CardContent>
   </Card>
 );
@@ -230,17 +232,11 @@ export const CommandCenterEmptyState = ({
   actionLabel?: string;
   to?: string;
 }) => {
-  const navigate = useNavigate();
-
   return (
     <StyledEmptyState>
       <span>{message}</span>
       <div>
-        <Button
-          title={actionLabel}
-          variant="secondary"
-          onClick={() => navigate(to)}
-        />
+        <Button title={actionLabel} variant="secondary" to={to} />
       </div>
     </StyledEmptyState>
   );
@@ -251,14 +247,14 @@ export const CommandCenterStartState = ({
   message,
   actionLabel = 'Abrir primeiros passos',
   to = '/diex/first-steps',
+  onAction,
 }: {
   title: string;
   message: string;
   actionLabel?: string;
   to?: string;
+  onAction?: () => void;
 }) => {
-  const navigate = useNavigate();
-
   return (
     <StyledStartState>
       <IconRocket size={24} />
@@ -269,7 +265,8 @@ export const CommandCenterStartState = ({
           title={actionLabel}
           Icon={IconArrowRight}
           variant="primary"
-          onClick={() => navigate(to)}
+          onClick={onAction}
+          to={isDefined(onAction) ? undefined : to}
         />
       </div>
     </StyledStartState>

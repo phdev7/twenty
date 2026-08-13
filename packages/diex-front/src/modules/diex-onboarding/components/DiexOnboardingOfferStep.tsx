@@ -46,21 +46,21 @@ const readMarkdown = (offer: OnboardingOfferSummary) =>
 
 const DiexOnboardingDraftOffer = ({
   offer,
+  disabled,
   onApproved,
 }: {
   offer: OnboardingOfferSummary;
+  disabled: boolean;
   onApproved: () => void;
 }) => {
   const [name, setName] = useState(offer.name ?? '');
-  const [valueProposition, setValueProposition] = useState(
-    readMarkdown(offer),
-  );
+  const [valueProposition, setValueProposition] = useState(readMarkdown(offer));
   const [isApproving, setIsApproving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { updateOneRecord } = useUpdateOneRecord();
 
   const approveOffer = async () => {
-    if (!name.trim() || !valueProposition.trim()) {
+    if (disabled || !name.trim() || !valueProposition.trim()) {
       return;
     }
 
@@ -98,14 +98,14 @@ const DiexOnboardingDraftOffer = ({
           value={name}
           placeholder="Nome da oferta"
           onChange={setName}
-          disabled={isApproving}
+          disabled={disabled || isApproving}
           fullWidth
         />
         <TextInput
           value={valueProposition}
           placeholder="Resultado entregue ao cliente"
           onChange={setValueProposition}
-          disabled={isApproving}
+          disabled={disabled || isApproving}
           fullWidth
         />
       </StyledForm>
@@ -115,7 +115,7 @@ const DiexOnboardingDraftOffer = ({
           title={isApproving ? 'Ativando...' : 'Aprovar e ativar oferta'}
           variant="primary"
           disabled={
-            isApproving || !name.trim() || !valueProposition.trim()
+            disabled || isApproving || !name.trim() || !valueProposition.trim()
           }
           onClick={() => void approveOffer()}
         />
@@ -128,6 +128,8 @@ type DiexOnboardingOfferStepProps = {
   offers: OnboardingOfferSummary[];
   activeOfferCount: number;
   isReady?: boolean;
+  isReadConfirmed?: boolean;
+  readError?: string | null;
   onChanged: () => void;
 };
 
@@ -135,6 +137,8 @@ export const DiexOnboardingOfferStep = ({
   offers,
   activeOfferCount,
   isReady,
+  isReadConfirmed = true,
+  readError,
   onChanged,
 }: DiexOnboardingOfferStepProps) => {
   const [name, setName] = useState('');
@@ -184,12 +188,19 @@ export const DiexOnboardingOfferStep = ({
         entregue antes de ativar; rascunhos não alimentam respostas nem deixam o
         CRM pronto para vender.
       </StyledText>
+      {!isReadConfirmed ? (
+        <StyledError>
+          {readError ??
+            'As ofertas não puderam ser confirmadas. Atualize antes de criar outra para evitar duplicação.'}
+        </StyledError>
+      ) : null}
       {draftOffers.length > 0 ? (
         <StyledOfferList>
           {draftOffers.map((offer) => (
             <DiexOnboardingDraftOffer
               key={offer.id}
               offer={offer}
+              disabled={!isReadConfirmed}
               onApproved={onChanged}
             />
           ))}
@@ -206,14 +217,14 @@ export const DiexOnboardingOfferStep = ({
           value={name}
           placeholder="Nome da oferta"
           onChange={setName}
-          disabled={loading}
+          disabled={loading || !isReadConfirmed}
           fullWidth
         />
         <TextInput
           value={valueProposition}
           placeholder="Promessa e resultado entregue"
           onChange={setValueProposition}
-          disabled={loading}
+          disabled={loading || !isReadConfirmed}
           fullWidth
         />
       </StyledForm>
@@ -228,9 +239,22 @@ export const DiexOnboardingOfferStep = ({
                 : 'Salvar oferta ativa'
           }
           variant={isDone ? 'secondary' : 'primary'}
-          disabled={loading || !name.trim() || !valueProposition.trim()}
+          disabled={
+            loading ||
+            !isReadConfirmed ||
+            !name.trim() ||
+            !valueProposition.trim()
+          }
           onClick={() => void createOffer()}
         />
+        {!isReadConfirmed ? (
+          <Button
+            title="Tentar novamente"
+            variant="secondary"
+            disabled={loading}
+            onClick={onChanged}
+          />
+        ) : null}
       </StyledActions>
     </DiexOnboardingStepCard>
   );

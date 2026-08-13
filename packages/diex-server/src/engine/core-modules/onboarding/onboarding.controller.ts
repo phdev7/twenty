@@ -50,11 +50,13 @@ export class OnboardingController {
     @AuthUser() user: AuthContextUser,
     @AuthWorkspace() workspace: WorkspaceEntity,
     @AuthUserWorkspaceId() userWorkspaceId: string,
+    @AuthWorkspaceMemberId() workspaceMemberId: string,
   ) {
     return this.onboardingService.completeDiexOnboarding({
       operationDescription: body.operationDescription,
       userId: user.id,
       userWorkspaceId,
+      workspaceMemberId,
       workspace,
     });
   }
@@ -273,6 +275,26 @@ export class OnboardingController {
       userId: user.id,
       goal: typeof body?.goal === 'string' ? body.goal : '',
     });
+  }
+
+  @Post('primary-channel')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
+  async setPrimaryChannel(
+    @Body() body: { primaryChannel?: unknown },
+    @AuthUser() user: AuthContextUser,
+    @AuthWorkspace() workspace: WorkspaceEntity,
+  ) {
+    return this.onboardingService.setPrimaryChannel({
+      workspaceId: workspace.id,
+      userId: user.id,
+      primaryChannel:
+        typeof body?.primaryChannel === 'string' ? body.primaryChannel : '',
+    });
+  }
+
+  @Get('primary-channel')
+  async getPrimaryChannel(@AuthWorkspace() workspace: WorkspaceEntity) {
+    return { primaryChannel: workspace.onboardingPrimaryChannel ?? null };
   }
 
   @Post('first-commercial-flow')

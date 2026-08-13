@@ -27,7 +27,7 @@ export const useInboxMessagesQuery = (
     orderBy: [{ sentAt: 'DescNullsLast' }],
     limit: messageLimit,
     recordGqlFields: inboxMessageGqlFields,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
     skip: selectedConversationId === null,
   });
 

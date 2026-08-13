@@ -93,6 +93,7 @@ const defineTemplate = (
     Partial<WorkspaceTemplateDefinition>,
 ): WorkspaceTemplateDefinition => ({
   version: '1.0.0',
+  requiresCompanyAccount: false,
   prerequisites: [],
   objects: [],
   fields: [],
@@ -239,7 +240,7 @@ const baseUniversal = defineTemplate({
       'Concentra o trabalho de atendimento.',
       {
         renderer: 'INBOX',
-        icon: 'whatsapp',
+        icon: 'inbox',
         navigationGroup: 'Receita',
         route: '/diex/pages/inbox-commercial',
         nativeRoute: '/inbox',
@@ -367,6 +368,7 @@ const baseUniversal = defineTemplate({
 const businessTemplates = [
   defineTemplate({
     id: 'diex.business.agency',
+    requiresCompanyAccount: true,
     name: 'Agência',
     kind: 'BUSINESS_MODEL',
     description: 'Aquisição, propostas, projetos e recorrência para agências.',
@@ -411,6 +413,7 @@ const businessTemplates = [
   }),
   defineTemplate({
     id: 'diex.business.saas',
+    requiresCompanyAccount: true,
     name: 'SaaS',
     kind: 'BUSINESS_MODEL',
     description:
@@ -500,6 +503,7 @@ const businessTemplates = [
   }),
   defineTemplate({
     id: 'diex.business.consulting',
+    requiresCompanyAccount: true,
     name: 'Consultoria',
     kind: 'BUSINESS_MODEL',
     description: 'Diagnóstico, proposta, projeto, horas e resultados.',
@@ -535,6 +539,7 @@ const businessTemplates = [
   }),
   defineTemplate({
     id: 'diex.business.recurring-services',
+    requiresCompanyAccount: true,
     name: 'Serviços recorrentes',
     kind: 'BUSINESS_MODEL',
     description: 'Contratos, execução recorrente, SLA, cobrança e renovação.',
@@ -568,6 +573,7 @@ const businessTemplates = [
   }),
   defineTemplate({
     id: 'diex.business.b2b-sales',
+    requiresCompanyAccount: true,
     name: 'Vendas B2B',
     kind: 'BUSINESS_MODEL',
     description: 'Prospecção, qualificação, múltiplos decisores e forecast.',
@@ -609,6 +615,7 @@ const businessTemplates = [
   }),
   defineTemplate({
     id: 'diex.business.franchise',
+    requiresCompanyAccount: true,
     name: 'Franquia',
     kind: 'BUSINESS_MODEL',
     description: 'Expansão, unidades, implantação e acompanhamento de padrão.',
@@ -637,6 +644,7 @@ const businessTemplates = [
   }),
   defineTemplate({
     id: 'diex.business.customer-success',
+    requiresCompanyAccount: true,
     name: 'Customer Success',
     kind: 'BUSINESS_MODEL',
     description: 'Onboarding, adoção, valor, risco, expansão e renovação.',

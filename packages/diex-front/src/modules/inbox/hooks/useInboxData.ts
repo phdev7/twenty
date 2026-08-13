@@ -16,12 +16,16 @@ export const useInboxData = () => {
   const {
     conversations,
     conversationTotalCount,
+    workspaceConversationTotalCount,
+    isLoadingWorkspaceConversationCount,
+    workspaceConversationCountError,
     hasMoreConversations,
     loadMoreConversations,
     isLoadingConversations,
     conversationsError,
     isSearching,
     refetchConversations,
+    refetchWorkspaceConversationCount,
     query,
     setQuery,
     filter,
@@ -126,6 +130,7 @@ export const useInboxData = () => {
 
       await Promise.all([
         refetchConversations(),
+        refetchWorkspaceConversationCount(),
         ...(selectedConversationId
           ? [refetchMessages(), refetchMentions(), refetchConversationEvents()]
           : []),
@@ -134,6 +139,7 @@ export const useInboxData = () => {
     [
       pullProviderMessages,
       refetchConversations,
+      refetchWorkspaceConversationCount,
       refetchConversationEvents,
       refetchMessages,
       refetchMentions,
@@ -303,6 +309,9 @@ export const useInboxData = () => {
     setAttentionFilter,
     hasMoreConversations,
     conversationTotalCount,
+    workspaceConversationTotalCount,
+    isLoadingWorkspaceConversationCount,
+    workspaceConversationCountError,
     loadMoreConversations,
     hasOlderMessages,
     loadOlderMessages,

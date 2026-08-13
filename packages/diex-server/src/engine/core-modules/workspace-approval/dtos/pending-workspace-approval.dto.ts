@@ -29,6 +29,9 @@ export class PendingWorkspaceApprovalDTO {
   whatsapp: string | null;
 
   @Field(() => String, { nullable: true })
+  primaryChannel: string | null;
+
+  @Field(() => String, { nullable: true })
   companyDescription: string | null;
 
   @Field(() => String, { nullable: true })

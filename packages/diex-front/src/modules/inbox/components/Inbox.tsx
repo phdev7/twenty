@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { styled } from '@linaria/react';
+import { useNavigate } from 'react-router-dom';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
 import { InboxConversationList } from '@/inbox/components/InboxConversationList';
@@ -8,6 +9,8 @@ import { InboxCrmContext } from '@/inbox/components/InboxCrmContext';
 import { useInboxData } from '@/inbox/hooks/useInboxData';
 import { getRecordName } from '@/inbox/utils/getRecordName';
 import { useDiexOnboardingWhatsappConnection } from '@/diex-onboarding/hooks/useDiexOnboardingWhatsappConnection';
+import { useDiexPrimaryChannel } from '@/diex-onboarding/hooks/useDiexPrimaryChannel';
+import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
 
 const StyledGrid = styled.div`
   background: ${themeCssVariables.background.primary};
@@ -34,7 +37,20 @@ const normalizeSearchTerm = (value: string): string =>
     .trim();
 
 export const Inbox = () => {
+  const navigate = useNavigate();
+  const pagePresentation = useDiexPagePresentation({
+    pageKey: 'inbox-commercial',
+    fallbackLabel: 'Inbox',
+    fallbackDescription: 'Entradas, responsáveis e próximas ações da operação.',
+  });
   const [labelFilterId, setLabelFilterId] = useState('ALL');
+  const {
+    primaryChannel,
+    isLoading: isLoadingPrimaryChannel,
+    isSaving: isSavingPrimaryChannel,
+    errorMessage: primaryChannelError,
+    setPrimaryChannel,
+  } = useDiexPrimaryChannel();
   const {
     conversations,
     savedReplies,
@@ -59,6 +75,9 @@ export const Inbox = () => {
     setAttentionFilter,
     hasMoreConversations,
     conversationTotalCount,
+    workspaceConversationTotalCount,
+    isLoadingWorkspaceConversationCount,
+    workspaceConversationCountError,
     loadMoreConversations,
     hasOlderMessages,
     loadOlderMessages,
@@ -118,9 +137,15 @@ export const Inbox = () => {
     requestConnection: requestWhatsappConnection,
   } = useDiexOnboardingWhatsappConnection({
     onConnected: handleWhatsappConnected,
+    enabled: primaryChannel === 'WHATSAPP',
   });
   const isWorkspaceStartState =
-    conversationTotalCount === 0 &&
+    !isLoadingPrimaryChannel &&
+    !isLoadingWorkspaceConversationCount &&
+    !conversationsError &&
+    !primaryChannelError &&
+    !workspaceConversationCountError &&
+    workspaceConversationTotalCount === 0 &&
     query.trim().length === 0 &&
     filter === 'ACTIVE' &&
     labelFilterId === 'ALL' &&
@@ -187,6 +212,7 @@ export const Inbox = () => {
   return (
     <StyledGrid>
       <InboxConversationList
+        title={pagePresentation.label}
         conversations={visibleConversations}
         selectedConversationId={selectedConversationId}
         query={query}
@@ -201,7 +227,14 @@ export const Inbox = () => {
         pendingMentionCounts={pendingMentionCounts}
         isLoading={isLoadingConversations || isSearching}
         isEmailSyncing={busyAction === 'email-sync'}
-        errorMessage={conversationsError?.message ?? null}
+        isCountConfirmed={
+          !conversationsError && !workspaceConversationCountError
+        }
+        errorMessage={
+          conversationsError?.message ??
+          workspaceConversationCountError?.message ??
+          primaryChannelError
+        }
         onQueryChange={setQuery}
         onFilterChange={setFilter}
         onLabelFilterChange={setLabelFilterId}
@@ -215,10 +248,17 @@ export const Inbox = () => {
         totalCount={conversationTotalCount}
         isWorkspaceStartState={isWorkspaceStartState}
         whatsappConnection={whatsappConnection}
+        primaryChannel={primaryChannel}
+        isSavingPrimaryChannel={
+          isLoadingPrimaryChannel || isSavingPrimaryChannel
+        }
         isWhatsappConnecting={
           isLoadingWhatsappConnection || isConnectingWhatsapp
         }
         whatsappErrorMessage={whatsappErrorMessage}
+        onSelectPrimaryChannel={(channel) => void setPrimaryChannel(channel)}
+        onOpenEmail={() => navigate('/settings/accounts/emails')}
+        onOpenRecords={() => navigate('/objects/people')}
         onRequestWhatsappConnection={() => void requestWhatsappConnection()}
         onLoadMore={loadMoreConversations}
       />
@@ -249,6 +289,7 @@ export const Inbox = () => {
       />
       <InboxCrmContext
         conversation={selectedConversation}
+        primaryChannel={primaryChannel}
         labels={labels}
         workspaceMembers={workspaceMembers}
         teams={teams}
@@ -262,7 +303,7 @@ export const Inbox = () => {
         onCreateTask={createConversationTask}
         onCompleteTask={(taskId) => void completeConversationTask(taskId)}
         onSnooze={(snoozedUntil) => void snoozeConversation(snoozedUntil)}
-        onConfigureEvolution={() => void configureEvolution()}
+        onConfigureWhatsapp={() => void configureEvolution()}
       />
     </StyledGrid>
   );

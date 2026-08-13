@@ -555,6 +555,7 @@ export class AuthResolver {
         onboardingProfile: input
           ? {
               whatsapp: input.whatsapp,
+              primaryChannel: input.primaryChannel,
               companyDescription: input.companyDescription,
               idealCustomerProfile: input.idealCustomerProfile,
               toneOfVoice: input.toneOfVoice,

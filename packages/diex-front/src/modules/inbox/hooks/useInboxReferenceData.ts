@@ -16,8 +16,9 @@ import {
 import { type InboxMacro } from '@/inbox/types/inboxMacroTypes';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
 
-// Reference data an operator picks from while working a conversation: it
-// changes rarely, so it loads once per session rather than per conversation.
+// Reference data is queried from the workspace when the inbox opens so a role,
+// team or macro changed by another operator is never silently reused from an
+// older Apollo cache entry.
 export const useInboxReferenceData = () => {
   const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
 
@@ -29,6 +30,7 @@ export const useInboxReferenceData = () => {
     orderBy: [{ usageCount: 'DescNullsLast' }, { name: 'AscNullsLast' }],
     limit: 100,
     recordGqlFields: inboxSavedReplyGqlFields,
+    fetchPolicy: 'network-only',
   });
 
   const { records: macros } = useFindManyRecords<
@@ -39,6 +41,7 @@ export const useInboxReferenceData = () => {
     orderBy: [{ usageCount: 'DescNullsLast' }, { name: 'AscNullsLast' }],
     limit: 100,
     recordGqlFields: inboxMacroGqlFields,
+    fetchPolicy: 'network-only',
   });
 
   const { records: labels } = useFindManyRecords<
@@ -49,6 +52,7 @@ export const useInboxReferenceData = () => {
     orderBy: [{ usageCount: 'DescNullsLast' }, { name: 'AscNullsLast' }],
     limit: 100,
     recordGqlFields: inboxLabelGqlFields,
+    fetchPolicy: 'network-only',
   });
 
   const { records: workspaceMembers } = useFindManyRecords<
@@ -57,6 +61,7 @@ export const useInboxReferenceData = () => {
     objectNameSingular: 'workspaceMember',
     limit: 100,
     recordGqlFields: inboxWorkspaceMemberGqlFields,
+    fetchPolicy: 'network-only',
   });
 
   const { records: teams } = useFindManyRecords<
@@ -67,6 +72,7 @@ export const useInboxReferenceData = () => {
     orderBy: [{ name: 'AscNullsLast' }],
     limit: 100,
     recordGqlFields: inboxTeamGqlFields,
+    fetchPolicy: 'network-only',
   });
 
   return {

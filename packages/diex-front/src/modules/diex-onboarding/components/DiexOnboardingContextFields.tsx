@@ -16,8 +16,9 @@ const FIELD_DEFINITIONS: Array<{
 }> = [
   {
     key: 'businessDescription',
-    label: 'O que a empresa faz *',
-    placeholder: 'Atividade, mercado e como gera valor ou receita.',
+    label: 'Operação, ofertas e processo *',
+    placeholder:
+      'Atividade, produtos, canais, processo comercial, equipe, metas e métricas.',
   },
   {
     key: 'idealCustomerProfile',
@@ -41,8 +42,8 @@ const FIELD_DEFINITIONS: Array<{
   },
   {
     key: 'competitiveLandscape',
-    label: 'Concorrência',
-    placeholder: 'Concorrentes e o posicionamento da empresa.',
+    label: 'Provas e diferenciais',
+    placeholder: 'Cases, provas, diferenciais e concorrentes reais.',
   },
   {
     key: 'forbiddenClaims',

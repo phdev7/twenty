@@ -164,7 +164,7 @@ const JOURNEY_PHASE_LABELS: Record<
 > = {
   DISCOVERY_REVIEW: 'Revisar o entendimento da operação',
   ARCHITECTURE_APPROVAL: 'Aprovar a arquitetura recomendada',
-  CHANNEL_CONNECTION: 'Conectar e validar o canal principal',
+  CHANNEL_CONNECTION: 'Definir e validar a entrada principal',
   FIRST_REVENUE_FLOW: 'Executar o primeiro fluxo de resultado',
   TEAM_ENABLEMENT: 'Configurar a equipe para operar',
   COCKPIT_OPERATIONAL: 'Abrir o cockpit com dados acionáveis',
@@ -216,16 +216,21 @@ const JOURNEY_NEXT_ACTIONS: Record<string, string> = {
   context_active: 'Ative o contexto operacional revisado da empresa.',
   goal_defined: 'Escolha o objetivo prioritário da operação.',
   offer_registered: 'Cadastre pelo menos um produto, serviço ou oferta ativa.',
-  ideal_customer_defined: 'Defina o público ou cliente ideal para orientar a IA.',
+  ideal_customer_defined:
+    'Defina o público ou cliente ideal para orientar a IA.',
   pipeline_approved: 'Aprove e publique o fluxo operacional recomendado.',
   owners_defined: 'Defina pelo menos um responsável operacional.',
-  channel_connected: 'Conecte o canal principal e valide-o com uma entrada real.',
+  channel_connected:
+    'Defina a forma principal de entrada e valide-a com dados reais.',
   first_conversation_received: 'Receba a primeira entrada no canal conectado.',
-  first_contact_identified: 'Identifique ou crie o contato da primeira conversa.',
+  first_contact_identified:
+    'Identifique ou crie o contato da primeira conversa.',
   first_company_linked: 'Vincule o contato à conta ou empresa correta.',
-  first_opportunity_created: 'Crie a primeira oportunidade a partir da conversa.',
+  first_opportunity_created:
+    'Crie a primeira oportunidade a partir da conversa.',
   first_follow_up_created: 'Crie o follow-up para não perder a oportunidade.',
-  first_ai_triage_completed: 'Conclua a triagem da IA e revise a resposta sugerida.',
+  first_ai_triage_completed:
+    'Conclua a triagem da IA e revise a resposta sugerida.',
   cockpit_operational: 'Abra o cockpit e confirme a próxima ação prioritária.',
 };
 
@@ -257,19 +262,18 @@ export const deriveWorkspaceOnboardingJourney = ({
     ]),
   ) as Record<WorkspaceReadinessPhase, string[]>;
   const criteriaByKey = new Map(
-    (configuredRequirements ?? []).map((criterion) => [criterion.key, criterion]),
+    (configuredRequirements ?? []).map((criterion) => [
+      criterion.key,
+      criterion,
+    ]),
   );
   const firstIncompletePhase = JOURNEY_PHASES.find((phase) =>
-    requirementsByPhase[phase].some(
-      (key) => readyByKey.get(key) !== true,
-    ),
+    requirementsByPhase[phase].some((key) => readyByKey.get(key) !== true),
   );
   const phase = firstIncompletePhase ?? 'READY';
   const phaseIndex = JOURNEY_PHASES.indexOf(phase);
   const completedPhases = JOURNEY_PHASES.filter((candidate) =>
-    requirementsByPhase[candidate].every(
-      (key) => readyByKey.get(key) === true,
-    ),
+    requirementsByPhase[candidate].every((key) => readyByKey.get(key) === true),
   );
   const blockers = requirementsByPhase[phase].filter(
     (key) => readyByKey.get(key) !== true,

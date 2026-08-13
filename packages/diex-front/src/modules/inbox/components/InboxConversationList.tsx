@@ -4,6 +4,7 @@ import { IconButton } from 'diex-ui/input';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
 import { DiexOnboardingWhatsappStep } from '@/diex-onboarding/components/DiexOnboardingWhatsappStep';
+import { type DiexPrimaryChannel } from '@/diex-onboarding/types/diexOnboardingTypes';
 import { InboxConversationListFilters } from '@/inbox/components/InboxConversationListFilters';
 import { InboxConversationListItem } from '@/inbox/components/InboxConversationListItem';
 import {
@@ -108,6 +109,7 @@ const StyledLoadMoreButton = styled.button`
 `;
 
 type InboxConversationListProps = {
+  title?: string;
   conversations: InboxConversation[];
   selectedConversationId: string | null;
   query: string;
@@ -122,6 +124,7 @@ type InboxConversationListProps = {
   pendingMentionCounts: Record<string, number>;
   isLoading: boolean;
   isEmailSyncing: boolean;
+  isCountConfirmed: boolean;
   errorMessage: string | null;
   onQueryChange: (query: string) => void;
   onFilterChange: (filter: InboxConversationFilter) => void;
@@ -136,20 +139,31 @@ type InboxConversationListProps = {
   totalCount: number;
   isWorkspaceStartState: boolean;
   whatsappConnection: WhatsappConnection | null;
+  primaryChannel: DiexPrimaryChannel | null;
+  isSavingPrimaryChannel: boolean;
   isWhatsappConnecting: boolean;
   whatsappErrorMessage: string | null;
+  onSelectPrimaryChannel: (primaryChannel: DiexPrimaryChannel) => void;
+  onOpenEmail: () => void;
+  onOpenRecords: () => void;
   onRequestWhatsappConnection: () => void;
   onLoadMore: () => void;
 };
 
 export const InboxConversationList = ({
+  title = 'Inbox',
   conversations,
   hasMore,
   totalCount,
   isWorkspaceStartState,
   whatsappConnection,
+  primaryChannel,
+  isSavingPrimaryChannel,
   isWhatsappConnecting,
   whatsappErrorMessage,
+  onSelectPrimaryChannel,
+  onOpenEmail,
+  onOpenRecords,
   onRequestWhatsappConnection,
   onLoadMore,
   selectedConversationId,
@@ -165,6 +179,7 @@ export const InboxConversationList = ({
   pendingMentionCounts,
   isLoading,
   isEmailSyncing,
+  isCountConfirmed,
   errorMessage,
   onQueryChange,
   onFilterChange,
@@ -180,10 +195,13 @@ export const InboxConversationList = ({
     <StyledHeader>
       <StyledTitleRow>
         <div>
-          <StyledTitle>Inbox</StyledTitle>
+          <StyledTitle>{title}</StyledTitle>
           <StyledSubtitle>
-            {totalCount} conversa{totalCount === 1 ? '' : 's'} no filtro
-            {hasMore ? ` · ${conversations.length} carregadas` : ''}
+            {isCountConfirmed
+              ? `${totalCount} conversa${totalCount === 1 ? '' : 's'} no filtro${
+                  hasMore ? ` · ${conversations.length} carregadas` : ''
+                }`
+              : 'Contagem não confirmada'}
           </StyledSubtitle>
         </div>
         <StyledHeaderActions>
@@ -233,14 +251,24 @@ export const InboxConversationList = ({
           <StyledSkeleton />
           <StyledSkeleton />
         </>
+      ) : errorMessage && conversations.length === 0 ? (
+        <StyledEmptyState>
+          Os dados da Inbox não puderam ser confirmados. Atualize antes de
+          concluir que não existem conversas.
+        </StyledEmptyState>
       ) : conversations.length === 0 ? (
         isWorkspaceStartState ? (
           <DiexOnboardingWhatsappStep
             index={1}
             connection={whatsappConnection}
+            primaryChannel={primaryChannel}
+            isSavingPreference={isSavingPrimaryChannel}
             isConnecting={isWhatsappConnecting}
-            isDone={whatsappConnection?.state === 'CONNECTED'}
+            isDone={primaryChannel === 'MANUAL' || primaryChannel === 'IMPORT'}
             errorMessage={whatsappErrorMessage}
+            onSelectChannel={onSelectPrimaryChannel}
+            onOpenEmail={onOpenEmail}
+            onOpenRecords={onOpenRecords}
             onRequestConnection={onRequestWhatsappConnection}
           />
         ) : (

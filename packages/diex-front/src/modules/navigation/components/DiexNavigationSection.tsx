@@ -5,6 +5,7 @@ import {
   IconBrandWhatsapp,
   IconCalendar,
   IconChartLine,
+  IconInbox,
   IconRefresh,
   IconRocket,
   IconSettings,
@@ -39,6 +40,8 @@ const StyledItems = styled.div`
 
 const getDiexNavigationIcon = (icon: string): IconComponent => {
   switch (icon) {
+    case 'inbox':
+      return IconInbox;
     case 'whatsapp':
       return IconBrandWhatsapp;
     case 'calendar':
@@ -61,8 +64,9 @@ const getDiexNavigationIcon = (icon: string): IconComponent => {
 export const DiexNavigationSection = () => {
   const location = useLocation();
   const [readiness, setReadiness] = useState<ReadinessResponse | null>(null);
-  const [pageCatalog, setPageCatalog] =
-    useState<DiexPageCatalogState | null>(null);
+  const [pageCatalog, setPageCatalog] = useState<DiexPageCatalogState | null>(
+    null,
+  );
 
   const loadNavigation = useCallback(async () => {
     const [nextReadiness, nextPageCatalog] = await Promise.all([
@@ -104,8 +108,7 @@ export const DiexNavigationSection = () => {
           (item) =>
             (item.showInNavigation ||
               (item.key === 'first-steps' && !readiness?.ready)) &&
-            item.status === 'ACTIVE' &&
-            (item.key !== 'first-steps' || !readiness?.ready),
+            item.status === 'ACTIVE',
         )
         .sort((left, right) => left.position - right.position)
         .reduce<DiexNavigationLink[]>((items, item: DiexPageCatalogItem) => {
@@ -118,7 +121,7 @@ export const DiexNavigationSection = () => {
             label: item.label,
             to:
               item.key === 'first-steps'
-                ? item.nativeRoute ?? '/diex/first-steps'
+                ? (item.nativeRoute ?? '/diex/first-steps')
                 : item.route,
             Icon: getDiexNavigationIcon(item.icon),
             group: item.navigationGroup,

@@ -12,6 +12,8 @@ export const rewriteSdkClientImportsToBlobUrls = (
   > = {
     'diex-client-sdk/core': sdkModuleBlobUrls.core,
     'diex-client-sdk/metadata': sdkModuleBlobUrls.metadata,
+    'twenty-client-sdk/core': sdkModuleBlobUrls.core,
+    'twenty-client-sdk/metadata': sdkModuleBlobUrls.metadata,
   };
 
   let rewrittenSource = source;

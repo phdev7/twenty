@@ -14,11 +14,13 @@ import {
   CommandCenterMetric,
   CommandCenterMetrics,
   CommandCenterPage,
+  CommandCenterRow,
   CommandCenterStartState,
 } from '@/diex-command-centers/components/CommandCenterLayout';
 import { RenewalWorkbench } from '@/diex-command-centers/renewal/RenewalWorkbench';
 import { type RenewalDraft } from '@/diex-command-centers/renewal/types';
 import { useRenewalCommandCenter } from '@/diex-command-centers/renewal/useRenewalCommandCenter';
+import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
 import {
   STAGES,
   createDraft,
@@ -31,6 +33,7 @@ import {
 } from '@/diex-command-centers/renewal/utils';
 import { Button, ProgressBar, Tag } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
+import { isDefined } from 'diex-shared/utils';
 
 const StyledBoard = styled.div`
   display: grid;
@@ -63,10 +66,20 @@ const StyledRenewalButton = styled.button<{ selected: boolean }>`
 `;
 
 export const RenewalCommandCenterPage = () => {
+  const pagePresentation = useDiexPagePresentation({
+    pageKey: 'renewal-operations',
+    fallbackLabel: 'Renovações',
+    fallbackDescription:
+      'Forecast, risco, evidência de valor, negociação, responsável, próxima ação e histórico conectados ao plano de sucesso.',
+  });
   const {
     renewals,
     successPlans,
     workspaceMembers,
+    renewalTotalCount,
+    successPlanTotalCount,
+    isPartial,
+    dataLoadedAt,
     isLoading,
     errorMessage,
     load,
@@ -82,7 +95,11 @@ export const RenewalCommandCenterPage = () => {
   const [draft, setDraft] = useState<RenewalDraft | null>(null);
   const [draftSyncKey, setDraftSyncKey] = useState(0);
   const [isBusy, setIsBusy] = useState(false);
+  // Marcações de sincronismo do rascunho: são lidas para decidir se o draft
+  // pode ser sobrescrito, e não devem disparar render.
+  // oxlint-disable-next-line diex/no-state-useref
   const isDraftDirtyRef = useRef(false);
+  // oxlint-disable-next-line diex/no-state-useref
   const lastSyncedRenewalIdRef = useRef<string | null>(null);
   const selectedRenewal =
     renewals.find(({ id }) => id === selectedRenewalId) ?? renewals[0] ?? null;
@@ -91,7 +108,9 @@ export const RenewalCommandCenterPage = () => {
     const changedSelection = lastSyncedRenewalIdRef.current !== selectedId;
 
     if (changedSelection || !isDraftDirtyRef.current) {
-      setDraft(selectedRenewal ? createDraft(selectedRenewal) : null);
+      setDraft(
+        isDefined(selectedRenewal) ? createDraft(selectedRenewal) : null,
+      );
       isDraftDirtyRef.current = false;
       lastSyncedRenewalIdRef.current = selectedId;
     }
@@ -110,34 +129,40 @@ export const RenewalCommandCenterPage = () => {
     const active = renewals.filter(({ stage }) =>
       ['PLANNING', 'VALUE_PROOF', 'NEGOTIATION', 'COMMITMENT'].includes(stage),
     );
-    const currency =
-      active.find(({ renewalValue }) => renewalValue?.currencyCode)
-        ?.renewalValue?.currencyCode ?? 'BRL';
-    const sameCurrency = active.filter(
-      ({ renewalValue }) =>
-        (renewalValue?.currencyCode ?? currency) === currency,
+    const valuesByCurrency = Object.values(
+      active.reduce<
+        Record<
+          string,
+          {
+            currencyCode: string;
+            activeValue: number;
+            weightedForecast: number;
+            riskValue: number;
+          }
+        >
+      >((totals, item) => {
+        const currencyCode = item.renewalValue?.currencyCode?.trim() || 'BRL';
+        const amount = getAmountMicros(item.renewalValue);
+        const current = totals[currencyCode] ?? {
+          currencyCode,
+          activeValue: 0,
+          weightedForecast: 0,
+          riskValue: 0,
+        };
+
+        current.activeValue += amount;
+        current.weightedForecast +=
+          (amount * Math.max(0, Math.min(100, item.probability ?? 0))) / 100;
+        current.riskValue +=
+          item.risk === 'HIGH' || item.risk === 'CRITICAL' ? amount : 0;
+        totals[currencyCode] = current;
+
+        return totals;
+      }, {}),
     );
-    const activeValue = sameCurrency.reduce(
-      (total, item) => total + getAmountMicros(item.renewalValue),
-      0,
-    );
-    const weightedForecast = sameCurrency.reduce(
-      (total, item) =>
-        total +
-        (getAmountMicros(item.renewalValue) *
-          Math.max(0, Math.min(100, item.probability ?? 0))) /
-          100,
-      0,
-    );
-    const riskValue = sameCurrency
-      .filter(({ risk }) => risk === 'HIGH' || risk === 'CRITICAL')
-      .reduce((total, item) => total + getAmountMicros(item.renewalValue), 0);
     return {
       active,
-      currency,
-      activeValue,
-      weightedForecast,
-      riskValue,
+      valuesByCurrency,
       dueIn30Days: active.filter((item) => {
         const days = daysUntil(item.targetDate);
         return days !== null && days >= 0 && days <= 30;
@@ -148,6 +173,12 @@ export const RenewalCommandCenterPage = () => {
       ),
     };
   }, [renewals]);
+  const formatMetricValues = (
+    key: 'activeValue' | 'weightedForecast' | 'riskValue',
+  ) =>
+    metrics.valuesByCurrency
+      .map((value) => formatMoney(value[key], value.currencyCode, true))
+      .join(' + ') || formatMoney(0, 'BRL', true);
   const availablePlans = successPlans.filter(
     (plan) =>
       !renewals.some(
@@ -159,6 +190,20 @@ export const RenewalCommandCenterPage = () => {
       ),
   );
   const hasRenewalData = renewals.length > 0 || successPlans.length > 0;
+  const dataStatus = errorMessage
+    ? hasRenewalData
+      ? 'Falha ao atualizar · dados anteriores preservados'
+      : 'Dados indisponíveis'
+    : isLoading
+      ? 'Atualizando dados reais'
+      : dataLoadedAt
+        ? `${isPartial ? 'Recorte atual' : 'Dados atuais'} · ${new Date(
+            dataLoadedAt,
+          ).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}`
+        : 'Aguardando dados reais';
   const openRenewal = async () => {
     setIsBusy(true);
     const id = await createRenewal(selectedSuccessPlanId);
@@ -169,7 +214,7 @@ export const RenewalCommandCenterPage = () => {
     }
   };
   const save = async (nextDraft: RenewalDraft) => {
-    if (!selectedRenewal) return false;
+    if (!isDefined(selectedRenewal)) return false;
     setIsBusy(true);
     const result = await updateRenewal(selectedRenewal.id, nextDraft);
     setIsBusy(false);
@@ -180,14 +225,14 @@ export const RenewalCommandCenterPage = () => {
     return result;
   };
   const touch = async () => {
-    if (!selectedRenewal) return false;
+    if (!isDefined(selectedRenewal)) return false;
     setIsBusy(true);
     const result = await recordTouch(selectedRenewal.id);
     setIsBusy(false);
     return result;
   };
   const propose = async () => {
-    if (!selectedRenewal) return false;
+    if (!isDefined(selectedRenewal)) return false;
     setIsBusy(true);
     const result = await proposeAiIntervention(selectedRenewal.id);
     setIsBusy(false);
@@ -196,13 +241,14 @@ export const RenewalCommandCenterPage = () => {
 
   return (
     <CommandCenterPage
-      title="Renovações"
-      description="Forecast, risco, evidência de valor, negociação, responsável, próxima ação e histórico conectados ao plano de sucesso."
+      title={pagePresentation.label}
+      description={pagePresentation.description}
+      statusText={dataStatus}
     >
       {isLoading && renewals.length === 0 ? (
         <CommandCenterLoadingState />
       ) : null}
-      {errorMessage ? (
+      {errorMessage && !hasRenewalData ? (
         <CommandCenterCard title="Centro de Renovações">
           <CommandCenterEmptyState message={errorMessage} />
           <Button
@@ -210,6 +256,22 @@ export const RenewalCommandCenterPage = () => {
             size="small"
             variant="secondary"
             onClick={() => void load()}
+          />
+        </CommandCenterCard>
+      ) : null}
+      {errorMessage && hasRenewalData ? (
+        <CommandCenterCard title="Qualidade dos dados">
+          <CommandCenterRow
+            title="A atualização das renovações falhou"
+            detail="Os casos abaixo pertencem à última consulta concluída. Atualize antes de alterar forecast, risco ou negociação."
+            action={
+              <Button
+                title="Tentar novamente"
+                size="small"
+                variant="secondary"
+                onClick={() => void load()}
+              />
+            }
           />
         </CommandCenterCard>
       ) : null}
@@ -221,9 +283,14 @@ export const RenewalCommandCenterPage = () => {
           />
         </CommandCenterCard>
       ) : null}
-      {!errorMessage && hasRenewalData ? (
+      {hasRenewalData ? (
         <>
           <CommandCenterCard title="Conduza cada renovação até receita confirmada.">
+            <p>
+              {renewals.length} de {renewalTotalCount} renovações e{' '}
+              {successPlans.length} de {successPlanTotalCount} planos
+              carregados.
+            </p>
             <label>
               {' '}
               Abrir caso a partir do CS{' '}
@@ -246,26 +313,22 @@ export const RenewalCommandCenterPage = () => {
               title="Abrir"
               size="small"
               isLoading={isBusy}
-              disabled={!selectedSuccessPlanId}
+              disabled={!selectedSuccessPlanId || Boolean(errorMessage)}
               onClick={() => void openRenewal()}
             />
           </CommandCenterCard>
           <CommandCenterMetrics>
             <CommandCenterMetric
-              label="Receita em renovação"
-              value={formatMoney(metrics.activeValue, metrics.currency, true)}
+              label={isPartial ? 'Receita no recorte' : 'Receita em renovação'}
+              value={formatMetricValues('activeValue')}
             />
             <CommandCenterMetric
               label="Forecast ponderado"
-              value={formatMoney(
-                metrics.weightedForecast,
-                metrics.currency,
-                true,
-              )}
+              value={formatMetricValues('weightedForecast')}
             />
             <CommandCenterMetric
               label="Receita sob risco"
-              value={formatMoney(metrics.riskValue, metrics.currency, true)}
+              value={formatMetricValues('riskValue')}
             />
             <CommandCenterMetric
               label="Vencem em 30 dias"
@@ -289,16 +352,28 @@ export const RenewalCommandCenterPage = () => {
                 const items = renewals.filter(
                   ({ stage: value }) => value === stage.value,
                 );
-                const value = items.reduce(
-                  (total, item) => total + getAmountMicros(item.renewalValue),
-                  0,
+                const stageValues = Object.entries(
+                  items.reduce<Record<string, number>>((totals, item) => {
+                    const currencyCode =
+                      item.renewalValue?.currencyCode?.trim() || 'BRL';
+
+                    totals[currencyCode] =
+                      (totals[currencyCode] ?? 0) +
+                      getAmountMicros(item.renewalValue);
+
+                    return totals;
+                  }, {}),
                 );
                 return (
                   <StyledColumn key={stage.value}>
                     <Tag color={stage.tone} text={stage.label} />
                     <p>
                       {items.length} ·{' '}
-                      {formatMoney(value, metrics.currency, true)}
+                      {stageValues
+                        .map(([currencyCode, amount]) =>
+                          formatMoney(amount, currencyCode, true),
+                        )
+                        .join(' + ') || formatMoney(0, 'BRL', true)}
                     </p>
                     {items.length === 0 ? (
                       <CommandCenterEmptyState message="Nenhum caso nesta etapa." />
@@ -319,8 +394,7 @@ export const RenewalCommandCenterPage = () => {
                               <Tag color={risk.tone} text={risk.label} />{' '}
                               {formatMoney(
                                 getAmountMicros(item.renewalValue),
-                                item.renewalValue?.currencyCode ??
-                                  metrics.currency,
+                                item.renewalValue?.currencyCode ?? 'BRL',
                                 true,
                               )}
                             </p>
@@ -346,16 +420,18 @@ export const RenewalCommandCenterPage = () => {
               })}
             </StyledBoard>
           </CommandCenterCard>
-          <RenewalWorkbench
-            renewal={selectedRenewal}
-            draft={draft}
-            setDraft={updateDraft}
-            workspaceMembers={workspaceMembers}
-            isBusy={isBusy}
-            onSave={save}
-            onRecordTouch={touch}
-            onProposeAiIntervention={propose}
-          />
+          {!errorMessage ? (
+            <RenewalWorkbench
+              renewal={selectedRenewal}
+              draft={draft}
+              setDraft={updateDraft}
+              workspaceMembers={workspaceMembers}
+              isBusy={isBusy}
+              onSave={save}
+              onRecordTouch={touch}
+              onProposeAiIntervention={propose}
+            />
+          ) : null}
           <CommandCenterCard title="Regra de governança">
             <CommandCenterEmptyState message="A IA apenas cria uma proposta auditável. Aprovação e execução continuam humanas no Centro de IA." />
           </CommandCenterCard>

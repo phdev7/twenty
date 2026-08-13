@@ -65,11 +65,33 @@ const getComponentLabels = (
   }
 
   return value
-    .map((item) =>
-      item && typeof item === 'object' && 'label' in item
-        ? (item as { label?: unknown }).label
-        : null,
-    )
+    .map((item) => {
+      if (typeof item === 'string') {
+        return item;
+      }
+
+      return item && typeof item === 'object' && 'label' in item
+        ? (() => {
+            const component = item as {
+              label?: unknown;
+              configuration?: { stages?: unknown };
+            };
+            const label = component.label;
+            const stages = component.configuration?.stages;
+
+            if (typeof label !== 'string') {
+              return null;
+            }
+
+            return key === 'pipelines' && Array.isArray(stages)
+              ? `${label}: ${stages
+                  .filter((stage): stage is string => typeof stage === 'string')
+                  .slice(0, 10)
+                  .join(' → ')}`
+              : label;
+          })()
+        : null;
+    })
     .filter((label): label is string => typeof label === 'string')
     .slice(0, 8);
 };
@@ -81,7 +103,9 @@ const getStringList = (
   const value = artifact?.payload[key];
 
   return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === 'string').slice(0, 6)
+    ? value
+        .filter((item): item is string => typeof item === 'string')
+        .slice(0, 6)
     : [];
 };
 
@@ -101,31 +125,54 @@ const getProfileValue = (
   return typeof field === 'string' ? field : '';
 };
 
+const getProfileStringList = (
+  artifact: DiexArchitectureArtifact | null,
+  key: string,
+): string[] => {
+  const value =
+    artifact?.payload.operationProfile ?? (artifact?.payload as unknown);
+
+  if (!value || typeof value !== 'object') {
+    return [];
+  }
+
+  const field = (value as Record<string, unknown>)[key];
+
+  return Array.isArray(field)
+    ? field
+        .filter((item): item is string => typeof item === 'string')
+        .slice(0, 8)
+    : [];
+};
+
 type DiexOnboardingArchitectureStepProps = {
   architecture: DiexArchitectureState | null;
   isLoading: boolean;
+  isReadConfirmed: boolean;
   isUpdating: boolean;
   canRegenerate: boolean;
   onApprove: () => void;
   onApply: () => void;
   onRegenerate: () => void;
+  onEditContext: () => void;
 };
 
 export const DiexOnboardingArchitectureStep = ({
   architecture,
   isLoading,
+  isReadConfirmed,
   isUpdating,
   canRegenerate,
   onApprove,
   onApply,
   onRegenerate,
+  onEditContext,
 }: DiexOnboardingArchitectureStepProps) => {
   const changeSetStatus = architecture?.changeSet?.status ?? null;
   const isApproved = changeSetStatus === 'APPROVED';
   const isPublished =
     changeSetStatus === 'ACTIVE' || changeSetStatus === 'PARTIALLY_APPLIED';
-  const changeSetPublication =
-    architecture?.changeSet?.payload?.publication;
+  const changeSetPublication = architecture?.changeSet?.payload?.publication;
   const pendingNativeResourceTypes =
     changeSetPublication && typeof changeSetPublication === 'object'
       ? (changeSetPublication as { pendingNativeResourceTypes?: unknown })
@@ -141,8 +188,19 @@ export const DiexOnboardingArchitectureStep = ({
     architecture?.profile ?? null,
     'salesCycle',
   );
-  const operationManifest =
-    architecture?.blueprint?.payload.operationManifest;
+  const productsAndServices = getProfileStringList(
+    architecture?.profile ?? null,
+    'productsAndServices',
+  );
+  const hypotheses = getProfileStringList(
+    architecture?.profile ?? null,
+    'hypotheses',
+  );
+  const unconfirmedInformation = getProfileStringList(
+    architecture?.profile ?? null,
+    'unconfirmedInformation',
+  );
+  const operationManifest = architecture?.blueprint?.payload.operationManifest;
   const manifestVersion =
     operationManifest && typeof operationManifest === 'object'
       ? (operationManifest as { version?: unknown }).version
@@ -158,9 +216,7 @@ export const DiexOnboardingArchitectureStep = ({
       isDone={isPublished}
       title="Revisar e aprovar a arquitetura recomendada"
       badges={
-        <DiexOnboardingBadge
-          tone={isPublished ? 'green' : 'orange'}
-        >
+        <DiexOnboardingBadge tone={isPublished ? 'green' : 'orange'}>
           {isPublished
             ? changeSetStatus === 'PARTIALLY_APPLIED'
               ? 'Publicada parcialmente'
@@ -180,9 +236,22 @@ export const DiexOnboardingArchitectureStep = ({
       ) : (
         <>
           <StyledText>
-            Entendemos que sua operação entrega{' '}
-            <strong>{segment || 'um serviço ou resultado'}</strong> para{' '}
-            <strong>{idealCustomer || 'um cliente ideal ainda não definido'}</strong>
+            Entendemos que sua empresa atua em{' '}
+            <strong>{segment || 'uma operação ainda a confirmar'}</strong> e{' '}
+            {productsAndServices.length > 0 ? (
+              <>
+                oferece{' '}
+                <strong>
+                  {productsAndServices.slice(0, 3).join(' · ')}
+                </strong>{' '}
+              </>
+            ) : (
+              <>ainda precisa confirmar a oferta principal </>
+            )}
+            para{' '}
+            <strong>
+              {idealCustomer || 'um cliente ideal ainda não definido'}
+            </strong>
             {salesCycle ? `, com ciclo de ${salesCycle}.` : '.'} A publicação só
             acontece depois da aprovação explícita.
           </StyledText>
@@ -193,7 +262,9 @@ export const DiexOnboardingArchitectureStep = ({
               ['Pipeline', 'pipelines'],
               ['Páginas', 'pages'],
               ['Dashboards', 'dashboards'],
+              ['Métricas', 'metrics'],
               ['Automações', 'automations'],
+              ['Responsáveis', 'roles'],
               ['Permissões', 'permissions'],
               ['Integrações', 'integrations'],
             ].map(([label, key]) => (
@@ -207,7 +278,9 @@ export const DiexOnboardingArchitectureStep = ({
           </StyledSummary>
           <StyledList>
             <span>Perfil: {architecture?.profile?.status ?? 'pendente'}</span>
-            <span>Blueprint: {architecture?.blueprint?.status ?? 'pendente'}</span>
+            <span>
+              Blueprint: {architecture?.blueprint?.status ?? 'pendente'}
+            </span>
             <span>Change set: {changeSetStatus ?? 'pendente'}</span>
             <span>
               Manifesto operacional:{' '}
@@ -235,9 +308,7 @@ export const DiexOnboardingArchitectureStep = ({
                     ? (item as { label?: unknown }).label
                     : null,
                 )
-                .filter(
-                  (label): label is string => typeof label === 'string',
-                )
+                .filter((label): label is string => typeof label === 'string')
                 .slice(0, 8)
                 .join(' · ')}
             </StyledText>
@@ -249,7 +320,11 @@ export const DiexOnboardingArchitectureStep = ({
               ['Pipeline recomendado', 'pipelines'],
               ['Páginas', 'pages'],
               ['Dashboards', 'dashboards'],
+              ['Métricas', 'metrics'],
               ['Automações', 'automations'],
+              ['Papéis e responsáveis', 'roles'],
+              ['Permissões', 'permissions'],
+              ['Integrações', 'integrations'],
             ].map(([label, key]) => {
               const labels = getComponentLabels(
                 architecture?.blueprint ?? null,
@@ -267,15 +342,44 @@ export const DiexOnboardingArchitectureStep = ({
               ) : null;
             })}
           </StyledList>
-          {getStringList(architecture?.blueprint ?? null, 'alerts').length > 0 ? (
+          {getStringList(architecture?.blueprint ?? null, 'alerts').length >
+          0 ? (
             <StyledText>
               <strong>Confirmar antes de publicar:</strong>{' '}
-              {getStringList(architecture?.blueprint ?? null, 'alerts').join(' · ')}
+              {getStringList(architecture?.blueprint ?? null, 'alerts').join(
+                ' · ',
+              )}
+            </StyledText>
+          ) : null}
+          {unconfirmedInformation.length > 0 ? (
+            <StyledText>
+              <strong>Informações ainda não confirmadas:</strong>{' '}
+              {unconfirmedInformation.join(' · ')}
+            </StyledText>
+          ) : null}
+          {hypotheses.length > 0 ? (
+            <StyledText>
+              <strong>Hipóteses usadas na recomendação:</strong>{' '}
+              {hypotheses.join(' · ')}
             </StyledText>
           ) : null}
         </>
       )}
+      {!isReadConfirmed ? (
+        <StyledText role="alert">
+          A arquitetura exibida não foi confirmada nesta leitura. Aprovação,
+          recálculo e publicação estão bloqueados até atualizar os dados.
+        </StyledText>
+      ) : null}
       <StyledActions>
+        {hasRecommendation && !isPublished ? (
+          <Button
+            title="Corrigir entendimento"
+            variant="secondary"
+            disabled={isUpdating || !isReadConfirmed}
+            onClick={onEditContext}
+          />
+        ) : null}
         {hasRecommendation && canRegenerate ? (
           <Button
             title={
@@ -284,7 +388,7 @@ export const DiexOnboardingArchitectureStep = ({
                 : 'Recalcular com contexto revisado'
             }
             variant="secondary"
-            disabled={isUpdating}
+            disabled={isUpdating || !isReadConfirmed}
             onClick={onRegenerate}
           />
         ) : null}
@@ -292,7 +396,7 @@ export const DiexOnboardingArchitectureStep = ({
           <Button
             title={isUpdating ? 'Aprovando...' : 'Aprovar arquitetura'}
             variant="primary"
-            disabled={isUpdating}
+            disabled={isUpdating || !isReadConfirmed}
             onClick={onApprove}
           />
         ) : null}
@@ -300,7 +404,7 @@ export const DiexOnboardingArchitectureStep = ({
           <Button
             title={isUpdating ? 'Publicando...' : 'Publicar estrutura aprovada'}
             variant="primary"
-            disabled={isUpdating}
+            disabled={isUpdating || !isReadConfirmed}
             onClick={onApply}
           />
         ) : null}

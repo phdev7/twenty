@@ -206,7 +206,9 @@ export const InboxConversationThread = ({
             size={themeCssVariables.icon.size.xl}
             stroke={themeCssVariables.icon.stroke.sm}
           />
-          Selecione uma conversa para abrir o histórico. O primeiro lead aparecerá aqui assim que o WhatsApp conectado receber uma mensagem.
+          Selecione uma conversa para abrir o histórico. Novos contatos podem
+          entrar por WhatsApp, e-mail, importação ou cadastro manual, conforme a
+          configuração da operação.
         </StyledEmptyState>
       </StyledMain>
     );

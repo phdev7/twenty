@@ -3,7 +3,6 @@ import { AppPath } from 'diex-shared/types';
 
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { DiexOnboarding } from '@/diex-onboarding/components/DiexOnboarding';
-import { DiexOnboardingWhatsappPrompt } from '@/diex-onboarding/components/DiexOnboardingWhatsappPrompt';
 import { buildDescriptionFromSignupAnswers } from '@/diex-onboarding/utils/buildDescriptionFromSignupAnswers';
 import { completeDiexOnboarding } from '@/diex-onboarding/utils/completeDiexOnboarding';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
@@ -42,7 +41,6 @@ export const DiexOnboardingPage = () => {
     <DiexOnboarding
       isSubmitting={isSubmitting}
       initialDescription={initialDescription}
-      supplementaryContent={<DiexOnboardingWhatsappPrompt />}
       onSubmit={(operationDescription) =>
         void submitOperation(operationDescription)
       }

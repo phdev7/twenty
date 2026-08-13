@@ -39,11 +39,22 @@ npx nx storybook:test diex-front
 ```
 
 ### Code Quality
+
+**Lint uncommitted work with `scripts/lint-changed.sh`, never with `lint:diff-with-main`.**
+`lint:diff-with-main` compares `main...HEAD`, so it cannot see changes that are
+still in the working tree. On uncommitted work it prints "No changed files" and
+exits 0, reporting success over code it never read. Use it only to re-check
+work that is already committed.
+
 ```bash
-# Linting (diff with main - fastest, always prefer this)
+# Lint what you actually changed (working tree included)
+bash scripts/lint-changed.sh              # both packages
+bash scripts/lint-changed.sh diex-server  # one package
+bash scripts/lint-changed.sh --fix        # apply autofixes
+
+# Linting already-committed work only
 npx nx lint:diff-with-main diex-front
 npx nx lint:diff-with-main diex-server
-npx nx lint:diff-with-main diex-front --configuration=fix  # Auto-fix
 
 # Linting (full project - slower, use only when needed)
 npx nx lint diex-front
@@ -180,11 +191,25 @@ Use existing helpers from `diex-shared` instead of manual type guards:
 IMPORTANT: Use Context7 for code generation, setup or configuration steps, or library/API documentation. Automatically use the Context7 MCP tools to resolve library IDs and get library docs without waiting for explicit requests.
 
 ### Before Making Changes
-1. Always run linting (`lint:diff-with-main`) and type checking after code changes
-2. Test changes with relevant test suites (prefer single-file test runs)
-3. Ensure instance commands are generated for entity changes (`database:migrate:generate`)
-4. Check that GraphQL schema changes are backward compatible
-5. Run `graphql:generate` after any GraphQL schema changes
+Read `docs/RECURRING_FAILURES.md` first. It lists the nine failure classes that
+have actually broken this codebase, with the correct pattern for each. Most of
+them take down the whole process at boot, not just the code you touched.
+
+### Definition of done
+Work is not finished until all of this passes. Run it before reporting success:
+
+```bash
+bash scripts/lint-changed.sh          # sees uncommitted work; diff-with-main does not
+npx nx typecheck diex-server
+npx nx typecheck diex-front
+npx nx start diex-server              # both entrypoints: a require cycle can
+npx nx run diex-server:worker         # break one and leave the other clean
+```
+
+1. Test changes with relevant test suites (prefer single-file test runs)
+2. Ensure instance commands are generated for entity changes (`database:migrate:generate`)
+3. Check that GraphQL schema changes are backward compatible
+4. Run `graphql:generate` after any GraphQL schema changes
 
 ### Code Style Notes
 - Use **Linaria** for styling with zero-runtime CSS-in-JS (styled-components pattern)

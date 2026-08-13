@@ -100,6 +100,7 @@ export class WorkspaceApprovalService {
           : null,
         memberCount: members.length,
         whatsapp: workspace.onboardingWhatsapp,
+        primaryChannel: workspace.onboardingPrimaryChannel,
         companyDescription: workspace.onboardingCompanyDescription,
         idealCustomerProfile: workspace.onboardingIdealCustomerProfile,
         toneOfVoice: workspace.onboardingToneOfVoice,

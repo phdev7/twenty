@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
+import { useEffect, useState } from 'react';
 
 import {
   CommandCenterCard,
@@ -14,13 +15,16 @@ import {
   CommandCenterStartState,
 } from '@/diex-command-centers/components/CommandCenterLayout';
 import { getRecordName } from '@/diex-command-centers/customer-success/utils';
+import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { Button, Tag } from 'diex-ui';
+import { isDefined } from 'diex-shared/utils';
 
 const COMMERCIAL_INTELLIGENCE_QUERY = gql`
   query DiexCommercialIntelligence {
     commercialSignals(first: 100, orderBy: [{ capturedAt: DescNullsLast }]) {
+      totalCount
       edges {
         node {
           id
@@ -32,6 +36,7 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
           confidence
           capturedAt
           validUntil
+          updatedAt
           recommendedAction {
             markdown
           }
@@ -54,6 +59,7 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
       }
     }
     opportunities(first: 100, orderBy: [{ commercialScore: DescNullsLast }]) {
+      totalCount
       edges {
         node {
           id
@@ -63,6 +69,7 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
           dealRisk
           nextCommercialAction
           nextCommercialActionAt
+          updatedAt
           amount {
             amountMicros
             currencyCode
@@ -102,6 +109,8 @@ type Signal = {
   strength?: string | null;
   confidence?: number | null;
   capturedAt?: string | null;
+  validUntil?: string | null;
+  updatedAt?: string | null;
   recommendedAction?: { markdown?: string | null } | null;
   opportunity?: NamedRecord | null;
   company?: NamedRecord | null;
@@ -113,6 +122,7 @@ type Opportunity = NamedRecord & {
   dealRisk?: string | null;
   nextCommercialAction?: string | null;
   nextCommercialActionAt?: string | null;
+  updatedAt?: string | null;
   amount?: {
     amountMicros?: number | null;
     currencyCode?: string | null;
@@ -120,8 +130,14 @@ type Opportunity = NamedRecord & {
   company?: NamedRecord | null;
 };
 type QueryData = {
-  commercialSignals?: { edges?: Array<{ node: Signal }> };
-  opportunities?: { edges?: Array<{ node: Opportunity }> };
+  commercialSignals?: {
+    totalCount?: number;
+    edges?: Array<{ node: Signal }>;
+  };
+  opportunities?: {
+    totalCount?: number;
+    edges?: Array<{ node: Opportunity }>;
+  };
 };
 
 const strength = (value?: string | null) => {
@@ -177,8 +193,19 @@ const relativeDate = (date?: string | null) => {
 };
 
 export const CommercialIntelligencePage = () => {
+  const pagePresentation = useDiexPagePresentation({
+    pageKey: 'commercial-intelligence',
+    fallbackLabel: 'Inteligência Comercial',
+    fallbackDescription:
+      'Sinais dos canais, CRM, IA e relacionamento priorizados pelo impacto real no resultado.',
+  });
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const { data, loading, error, refetch } = useQuery<QueryData>(
     COMMERCIAL_INTELLIGENCE_QUERY,
+    {
+      fetchPolicy: 'network-only',
+      notifyOnNetworkStatusChange: true,
+    },
   );
   const [updateSignal, { loading: isUpdating }] = useMutation(
     UPDATE_COMMERCIAL_SIGNAL,
@@ -188,30 +215,49 @@ export const CommercialIntelligencePage = () => {
   const signals = data?.commercialSignals?.edges?.map(({ node }) => node) ?? [];
   const opportunities =
     data?.opportunities?.edges?.map(({ node }) => node) ?? [];
+  const signalTotalCount =
+    data?.commercialSignals?.totalCount ?? signals.length;
+  const opportunityTotalCount =
+    data?.opportunities?.totalCount ?? opportunities.length;
+  const isSampled =
+    signalTotalCount > signals.length ||
+    opportunityTotalCount > opportunities.length;
+  const now = Date.now();
   const activeSignals = signals.filter(
-    ({ status }) => status === 'NEW' || status === 'IN_REVIEW',
+    ({ status, validUntil }) =>
+      (status === 'NEW' || status === 'IN_REVIEW') &&
+      (!validUntil || new Date(validUntil).getTime() >= now),
   );
+  const expiredActiveSignals = signals.filter(
+    ({ status, validUntil }) =>
+      (status === 'NEW' || status === 'IN_REVIEW') &&
+      Boolean(validUntil) &&
+      new Date(validUntil ?? 0).getTime() < now,
+  ).length;
   const buyingSignals = activeSignals.filter(
     ({ signalType }) => signalType === 'INTENT' || signalType === 'EXPANSION',
   );
   const riskSignals = activeSignals.filter(({ signalType }) =>
     ['RISK', 'CHURN_RISK', 'OBJECTION'].includes(signalType),
   );
-  const overdueActions = opportunities.filter(
+  const pipelineOpportunities = opportunities.filter(
+    ({ stage }) => !['CUSTOMER', 'LOST'].includes(stage ?? ''),
+  );
+  const overdueActions = pipelineOpportunities.filter(
     ({ nextCommercialActionAt }) =>
-      nextCommercialActionAt &&
-      new Date(nextCommercialActionAt).getTime() < Date.now(),
+      isDefined(nextCommercialActionAt) &&
+      new Date(nextCommercialActionAt).getTime() < now,
   );
   const prioritized = [...activeSignals]
     .sort((left, right) => priority(right) - priority(left))
     .slice(0, 8);
-  const ranked = [...opportunities]
+  const ranked = [...pipelineOpportunities]
     .sort(
       (left, right) =>
         (right.commercialScore ?? 0) - (left.commercialScore ?? 0),
     )
     .slice(0, 6);
-  const nextActions = opportunities
+  const nextActions = pipelineOpportunities
     .filter(({ nextCommercialAction }) => Boolean(nextCommercialAction))
     .sort(
       (left, right) =>
@@ -219,15 +265,45 @@ export const CommercialIntelligencePage = () => {
         new Date(right.nextCommercialActionAt ?? '2999-12-31').getTime(),
     )
     .slice(0, 6);
-  const pipelineMicros = opportunities.reduce(
-    (total, item) =>
-      item.amount?.currencyCode === 'BRL'
-        ? total + (item.amount.amountMicros ?? 0)
-        : total,
-    0,
-  );
+  const pipelineByCurrency = Object.entries(
+    pipelineOpportunities.reduce<Record<string, number>>((totals, item) => {
+      const currencyCode = item.amount?.currencyCode?.trim() || 'BRL';
+
+      totals[currencyCode] =
+        (totals[currencyCode] ?? 0) + (item.amount?.amountMicros ?? 0);
+
+      return totals;
+    }, {}),
+  ).filter(([, amountMicros]) => amountMicros > 0);
   const hasCommercialData = signals.length > 0 || opportunities.length > 0;
+
+  useEffect(() => {
+    if (data) {
+      setLastRefreshedAt(new Date());
+    }
+  }, [data]);
+
+  const dataStatus = error
+    ? hasCommercialData
+      ? 'Falha ao atualizar · dados anteriores preservados'
+      : 'Dados indisponíveis'
+    : loading
+      ? 'Atualizando dados reais'
+      : lastRefreshedAt
+        ? `Atualizado às ${lastRefreshedAt.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}`
+        : 'Aguardando dados reais';
   const transition = async (id: string, status: 'IN_REVIEW' | 'ACTIONED') => {
+    if (error) {
+      enqueueErrorSnackBar({
+        message:
+          'Atualize o radar antes de mudar um sinal; os dados atuais não foram confirmados.',
+      });
+      return;
+    }
+
     try {
       await updateSignal({ variables: { id, data: { status } } });
       await refetch();
@@ -246,8 +322,9 @@ export const CommercialIntelligencePage = () => {
 
   return (
     <CommandCenterPage
-      title="Inteligência Comercial"
-      description="Sinais do CRM, WhatsApp, IA e Customer Success priorizados pelo impacto real na receita."
+      title={pagePresentation.label}
+      description={pagePresentation.description}
+      statusText={dataStatus}
     >
       {loading && signals.length === 0 && opportunities.length === 0 ? (
         <CommandCenterLoadingState />
@@ -263,20 +340,36 @@ export const CommercialIntelligencePage = () => {
           />
         </CommandCenterCard>
       ) : null}
-      {!loading && !error && !hasCommercialData ? (
-        <CommandCenterCard title="Seu cockpit comercial está pronto">
-          <CommandCenterStartState
-            title="O próximo ganho vem do primeiro lead conectado."
-            message="Conecte o WhatsApp, revise a arquitetura da operação e transforme a primeira conversa em oportunidade e follow-up. Este painel será alimentado por dados reais, sem métricas vazias."
+      {error && hasCommercialData ? (
+        <CommandCenterCard title="Qualidade dos dados">
+          <CommandCenterRow
+            title="A atualização do cockpit falhou"
+            detail="Os números abaixo pertencem à última consulta concluída. Atualize antes de tomar uma decisão comercial."
+            action={
+              <Button
+                title="Tentar novamente"
+                size="small"
+                variant="secondary"
+                onClick={() => void refetch()}
+              />
+            }
           />
         </CommandCenterCard>
       ) : null}
-      {!error && hasCommercialData ? (
+      {!loading && !error && !hasCommercialData ? (
+        <CommandCenterCard title="Seu cockpit comercial está pronto">
+          <CommandCenterStartState
+            title="O próximo ganho vem do primeiro lead registrado."
+            message="Escolha WhatsApp, e-mail, importação ou cadastro manual; revise a arquitetura e transforme o primeiro contato em oportunidade e follow-up. Este painel será alimentado somente por dados reais."
+          />
+        </CommandCenterCard>
+      ) : null}
+      {hasCommercialData ? (
         <>
           <CommandCenterCard title="Evidência comercial antes de opinião.">
             <CommandCenterRow
-              title={`${activeSignals.length} sinais ativos`}
-              detail="A equipe começa pelo que exige ação agora."
+              title={`${activeSignals.length} sinais ativos no recorte`}
+              detail={`${signalTotalCount} sinais e ${opportunityTotalCount} oportunidades na base${isSampled ? '; métricas abaixo calculadas sobre os 100 registros mais prioritários de cada fonte' : ''}.${expiredActiveSignals > 0 ? ` ${expiredActiveSignals} sinais vencidos foram retirados da fila.` : ''}`}
               action={
                 <Button
                   title="Atualizar radar"
@@ -290,7 +383,7 @@ export const CommercialIntelligencePage = () => {
           </CommandCenterCard>
           <CommandCenterMetrics>
             <CommandCenterMetric
-              label="Sinais em operação"
+              label="Sinais ativos no recorte"
               value={activeSignals.length}
             />
             <CommandCenterMetric
@@ -351,7 +444,7 @@ export const CommercialIntelligencePage = () => {
                                 }
                                 size="small"
                                 variant="secondary"
-                                disabled={isUpdating}
+                                disabled={isUpdating || Boolean(error)}
                                 onClick={() =>
                                   void transition(signal.id, nextStatus)
                                 }
@@ -400,12 +493,13 @@ export const CommercialIntelligencePage = () => {
                   })}
                 </CommandCenterList>
               )}
-              {pipelineMicros > 0 ? (
+              {pipelineByCurrency.map(([currencyCode, amountMicros]) => (
                 <Tag
+                  key={currencyCode}
                   color="green"
-                  text={`Pipeline BRL mapeado: ${formatCurrency({ amountMicros: pipelineMicros, currencyCode: 'BRL' })}`}
+                  text={`Pipeline ${currencyCode} no recorte: ${formatCurrency({ amountMicros, currencyCode })}`}
                 />
-              ) : null}
+              ))}
             </CommandCenterCard>
           </CommandCenterGrid>
           <CommandCenterCard title="Próximas ações comerciais">

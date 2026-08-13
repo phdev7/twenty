@@ -56,6 +56,10 @@ export class WorkspaceArchitectureToolProvider implements ToolProvider {
   }
 
   private buildToolSet(context: ToolProviderContext): ToolSet {
-    return this.tools.generateTools(context.workspaceId);
+    return this.tools.generateTools(context.workspaceId, {
+      // Agents and MCP clients may recommend and preview, but structural
+      // approval/publication remains exclusive to the authenticated admin UI.
+      allowStructuralPublication: false,
+    });
   }
 }

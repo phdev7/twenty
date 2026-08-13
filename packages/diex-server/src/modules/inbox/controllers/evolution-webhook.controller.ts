@@ -4,6 +4,7 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
 import { EVOLUTION_WEBHOOK_SECRET_HEADER } from 'src/modules/inbox/constants/inbox-evolution.constants';
 import { EvolutionIngestionService } from 'src/modules/inbox/services/evolution-ingestion.service';
+import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
 import { EvolutionProvisioningService } from 'src/modules/inbox/services/evolution-provisioning.service';
 import { extractEvolutionInstanceName } from 'src/modules/inbox/utils/evolution-payload.util';
 
@@ -50,9 +52,12 @@ const readWebhookSecret = (
 @Controller('rest/inbox/evolution')
 @UseGuards(PublicEndpointGuard, NoPermissionGuard)
 export class EvolutionWebhookController {
+  private readonly logger = new Logger(EvolutionWebhookController.name);
+
   constructor(
     private readonly evolutionProvisioningService: EvolutionProvisioningService,
     private readonly evolutionIngestionService: EvolutionIngestionService,
+    private readonly workspaceArchitectureService: WorkspaceArchitectureService,
   ) {}
 
   @Post('webhook')
@@ -78,10 +83,27 @@ export class EvolutionWebhookController {
       throw new Error('Evolution webhook routing was rejected.');
     }
 
-    await this.evolutionIngestionService.processWebhookPayload({
+    const result = await this.evolutionIngestionService.processWebhookPayload({
       workspaceId,
       payload: body,
     });
+
+    if (result.inboundMessages > 0) {
+      try {
+        await this.workspaceArchitectureService.recordWhatsappChannelHealth({
+          workspaceId,
+          state: 'CONNECTED',
+          instanceName,
+          message: 'Canal validado por mensagem real recebida no webhook.',
+          validatedByRealMessage: true,
+        });
+      } catch (error) {
+        this.logger.error(
+          `WhatsApp validation could not be recorded for workspace ${workspaceId}: ${error instanceof Error ? error.message : 'unknown error'}`,
+        );
+        throw error;
+      }
+    }
 
     return { received: true };
   }

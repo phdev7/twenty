@@ -204,6 +204,9 @@ export class EvolutionIngestionService {
 
         return {
           received: messages.length + statuses.length,
+          inboundMessages: messages.filter(
+            ({ direction }) => direction === 'INBOUND',
+          ).length,
           createdMessages,
           duplicateMessages,
           updatedStatuses,

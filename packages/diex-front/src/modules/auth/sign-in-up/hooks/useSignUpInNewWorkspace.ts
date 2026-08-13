@@ -35,6 +35,7 @@ export const useSignUpInNewWorkspace = () => {
     subdomain,
     logo,
     whatsapp,
+    primaryChannel,
     companyDescription,
     idealCustomerProfile,
     toneOfVoice,
@@ -45,7 +46,8 @@ export const useSignUpInNewWorkspace = () => {
     displayName?: string;
     subdomain?: string;
     logo?: File;
-    whatsapp: string;
+    whatsapp?: string;
+    primaryChannel: string;
     companyDescription: string;
     idealCustomerProfile: string;
     toneOfVoice: string;
@@ -60,6 +62,7 @@ export const useSignUpInNewWorkspace = () => {
             displayName,
             subdomain,
             whatsapp,
+            primaryChannel,
             companyDescription,
             idealCustomerProfile,
             toneOfVoice,

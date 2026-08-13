@@ -53,6 +53,7 @@ export const generatedWorkspaceContextSchema = z.object({
   commercialRules: generatedText,
   objectionPlaybook: generatedText,
   competitiveLandscape: generatedText,
+  callsToAction: generatedTextList,
   forbiddenClaims: generatedText,
 });
 
@@ -107,6 +108,15 @@ export const normalizeGeneratedWorkspaceContext = (
     cleanText(generated.commercialRules) === null
       ? []
       : [cleanText(generated.commercialRules) as string],
+  objectionsAndResponses:
+    cleanText(generated.objectionPlaybook) === null
+      ? []
+      : [cleanText(generated.objectionPlaybook) as string],
+  proofsAndDifferentiators:
+    cleanText(generated.competitiveLandscape) === null
+      ? []
+      : [cleanText(generated.competitiveLandscape) as string],
+  callsToAction: cleanList(generated.callsToAction),
   obligationsAndRisks: cleanList(generated.obligationsAndRisks),
   toneOfVoice: cleanText(generated.toneOfVoice),
   priorityObjectives: cleanList(generated.priorityObjectives),

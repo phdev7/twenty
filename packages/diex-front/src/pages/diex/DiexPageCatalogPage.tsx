@@ -19,25 +19,42 @@ const StyledBody = styled.main`
 
 export const DiexPageCatalogPage = () => {
   const {
+    readiness,
     architecture,
     isLoadingCommercialData,
     isUpdatingArchitecture,
+    commercialError,
+    isReadinessReadConfirmed,
+    isPageCatalogReadConfirmed,
+    load,
     createPage,
     archivePage,
     restorePage,
     togglePageNavigation,
     updatePage,
   } = useDiexOnboarding();
+  const operationLabel =
+    (isReadinessReadConfirmed
+      ? readiness?.readinessPack?.operationLabel?.toLowerCase()
+      : null) ?? 'operação';
 
   return (
     <PageCardLayout
-      header={<PageHeader title="Páginas e menu" Icon={IconSettings} />}
+      header={
+        <PageHeader
+          title={`Estrutura e menu da ${operationLabel}`}
+          Icon={IconSettings}
+        />
+      }
     >
       <StyledBody>
         <DiexOnboardingPageCatalogStep
           catalog={architecture?.pageCatalog ?? null}
           isLoading={isLoadingCommercialData}
+          isReadConfirmed={isPageCatalogReadConfirmed}
           isUpdating={isUpdatingArchitecture}
+          errorMessage={commercialError}
+          onRefresh={() => void load()}
           onCreate={createPage}
           onArchive={(key) => void archivePage(key)}
           onRestore={(key) => void restorePage(key)}

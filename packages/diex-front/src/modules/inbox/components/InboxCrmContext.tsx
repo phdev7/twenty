@@ -6,6 +6,7 @@ import { themeCssVariables } from 'diex-ui/theme-constants';
 import { InboxCrmLabelsAndRelationships } from '@/inbox/components/InboxCrmLabelsAndRelationships';
 import { InboxCrmOperations } from '@/inbox/components/InboxCrmOperations';
 import { InboxCrmTasks } from '@/inbox/components/InboxCrmTasks';
+import { type DiexPrimaryChannel } from '@/diex-onboarding/types/diexOnboardingTypes';
 import {
   type InboxConversation,
   type InboxLabel,
@@ -81,6 +82,7 @@ const StyledContextScroll = styled.div`
 
 type InboxCrmContextProps = {
   conversation: InboxConversation | null;
+  primaryChannel: DiexPrimaryChannel | null;
   labels: InboxLabel[];
   workspaceMembers: InboxWorkspaceMember[];
   teams: InboxTeam[];
@@ -92,11 +94,12 @@ type InboxCrmContextProps = {
   onCreateTask: (draft: InboxTaskDraft) => Promise<boolean>;
   onCompleteTask: (taskId: string) => void;
   onSnooze: (snoozedUntil: string) => void;
-  onConfigureEvolution: () => void;
+  onConfigureWhatsapp: () => void;
 };
 
 export const InboxCrmContext = ({
   conversation,
+  primaryChannel,
   labels,
   workspaceMembers,
   teams,
@@ -108,9 +111,11 @@ export const InboxCrmContext = ({
   onCreateTask,
   onCompleteTask,
   onSnooze,
-  onConfigureEvolution,
+  onConfigureWhatsapp,
 }: InboxCrmContextProps) => {
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
+  const canConfigureWhatsapp =
+    primaryChannel === 'WHATSAPP' || conversation?.channel === 'WHATSAPP';
 
   if (conversation === null) {
     return (
@@ -121,13 +126,15 @@ export const InboxCrmContext = ({
               <StyledTitle>Contexto comercial</StyledTitle>
               <StyledSubtitle>Canal e dados do CRM</StyledSubtitle>
             </div>
-            <IconButton
-              variant="secondary"
-              Icon={IconPlug}
-              ariaLabel="Configurar canal Evolution"
-              disabled={busyAction !== null}
-              onClick={onConfigureEvolution}
-            />
+            {canConfigureWhatsapp ? (
+              <IconButton
+                variant="secondary"
+                Icon={IconPlug}
+                ariaLabel="Configurar WhatsApp"
+                disabled={busyAction !== null}
+                onClick={onConfigureWhatsapp}
+              />
+            ) : null}
           </StyledTitleRow>
         </StyledHeader>
         <StyledEmptyState>
@@ -135,7 +142,10 @@ export const InboxCrmContext = ({
             size={themeCssVariables.icon.size.xl}
             stroke={themeCssVariables.icon.stroke.sm}
           />
-          Selecione uma conversa para operar o contexto comercial. Depois da primeira mensagem, o CRM identifica contato, empresa, oportunidade, responsável e próxima ação.
+          Selecione uma conversa para operar o contexto comercial. Entradas por
+          mensageria vinculam contato, empresa, oportunidade, responsável e
+          próxima ação; operações manuais continuam disponíveis nos módulos do
+          CRM.
         </StyledEmptyState>
       </StyledAside>
     );
@@ -157,13 +167,15 @@ export const InboxCrmContext = ({
             <StyledSubtitle>Dados do CRM ligados à conversa</StyledSubtitle>
           </div>
           <StyledHeaderActions>
-            <IconButton
-              variant="secondary"
-              Icon={IconPlug}
-              ariaLabel="Configurar canal Evolution"
-              disabled={busyAction !== null}
-              onClick={onConfigureEvolution}
-            />
+            {canConfigureWhatsapp ? (
+              <IconButton
+                variant="secondary"
+                Icon={IconPlug}
+                ariaLabel="Configurar WhatsApp"
+                disabled={busyAction !== null}
+                onClick={onConfigureWhatsapp}
+              />
+            ) : null}
             <IconButton
               variant="secondary"
               Icon={IconInbox}

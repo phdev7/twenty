@@ -149,6 +149,50 @@ const StyledActions = styled.div`
   width: 100%;
 `;
 
+const StyledChoiceGrid = styled.div`
+  display: grid;
+  gap: ${themeCssVariables.spacing[2]};
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  width: 100%;
+`;
+
+const StyledOptionalHint = styled.p`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
+  line-height: 1.4;
+  margin: 0;
+`;
+
+const OPERATION_STEPS = [
+  'goal',
+  'description',
+  'customer',
+  'process',
+  'size',
+  'voice',
+  'channel',
+] as const;
+
+type WorkspaceCreationStep = 'workspace' | (typeof OPERATION_STEPS)[number];
+
+const COMMERCIAL_GOALS = [
+  { key: 'SELL_MORE', label: 'Vender mais' },
+  { key: 'RESPOND_FASTER', label: 'Responder leads mais rápido' },
+  { key: 'ORGANIZE_WHATSAPP', label: 'Organizar o WhatsApp' },
+  { key: 'CONTROL_FOLLOWUPS', label: 'Controlar follow-ups' },
+  {
+    key: 'CUSTOMER_SUCCESS_RENEWALS',
+    label: 'Melhorar Customer Success e renovações',
+  },
+] as const;
+
+const PRIMARY_CHANNELS = [
+  { key: 'WHATSAPP', label: 'WhatsApp' },
+  { key: 'EMAIL', label: 'E-mail' },
+  { key: 'IMPORT', label: 'Importar uma base' },
+  { key: 'MANUAL', label: 'Operar sem integração' },
+] as const;
+
 export const SignInUpWorkspaceCreationForm = () => {
   const { t } = useLingui();
   const { createWorkspace } = useSignUpInNewWorkspace();
@@ -164,10 +208,9 @@ export const SignInUpWorkspaceCreationForm = () => {
     undefined,
   );
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
-  const [formStep, setFormStep] = useState<'workspace' | 'operation'>(
-    'workspace',
-  );
+  const [formStep, setFormStep] = useState<WorkspaceCreationStep>('workspace');
   const [whatsapp, setWhatsapp] = useState('');
+  const [primaryChannel, setPrimaryChannel] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
   const [idealCustomerProfile, setIdealCustomerProfile] = useState('');
   const [toneOfVoice, setToneOfVoice] = useState('');
@@ -194,16 +237,29 @@ export const SignInUpWorkspaceCreationForm = () => {
     isCreatingWorkspace ||
     (isMultiWorkspaceEnabled && !isAvailable);
   const whatsappDigits = whatsapp.replace(/\D/g, '');
-  const isOperationStepDisabled =
-    whatsappDigits.length < 10 ||
-    whatsappDigits.length > 15 ||
-    companyDescription.trim().length < 10 ||
-    idealCustomerProfile.trim().length < 5 ||
-    toneOfVoice.trim().length < 3 ||
-    primaryGoal.trim().length < 5 ||
-    companySize.trim() === '' ||
-    currentProcess.trim().length < 5 ||
-    isCreatingWorkspace;
+  const isWhatsappValid =
+    primaryChannel !== 'WHATSAPP' ||
+    whatsappDigits.length === 0 ||
+    (whatsappDigits.length >= 10 && whatsappDigits.length <= 15);
+  const isCurrentStepDisabled =
+    isCreatingWorkspace ||
+    (formStep === 'workspace'
+      ? isWorkspaceStepDisabled
+      : formStep === 'goal'
+        ? primaryGoal === ''
+        : formStep === 'description'
+          ? companyDescription.trim().length < 10
+          : formStep === 'customer'
+            ? idealCustomerProfile.trim().length < 5
+            : formStep === 'process'
+              ? currentProcess.trim().length < 5
+              : formStep === 'size'
+                ? companySize.trim() === ''
+                : formStep === 'voice'
+                  ? toneOfVoice.trim().length < 3
+                  : primaryChannel === '' || !isWhatsappValid);
+  const allSteps = ['workspace', ...OPERATION_STEPS] as const;
+  const currentStepIndex = allSteps.indexOf(formStep);
 
   const openFilePicker = () => {
     hiddenFileInputRef.current?.click();
@@ -233,7 +289,17 @@ export const SignInUpWorkspaceCreationForm = () => {
   }, [logoPreviewUrl]);
 
   const handleSubmit = async () => {
-    if (isWorkspaceStepDisabled || isOperationStepDisabled) {
+    if (
+      isWorkspaceStepDisabled ||
+      primaryChannel === '' ||
+      !isWhatsappValid ||
+      companyDescription.trim().length < 10 ||
+      idealCustomerProfile.trim().length < 5 ||
+      toneOfVoice.trim().length < 3 ||
+      primaryGoal === '' ||
+      companySize.trim() === '' ||
+      currentProcess.trim().length < 5
+    ) {
       return;
     }
 
@@ -243,7 +309,11 @@ export const SignInUpWorkspaceCreationForm = () => {
       displayName: workspaceName.trim(),
       ...(isMultiWorkspaceEnabled ? { subdomain } : {}),
       logo,
-      whatsapp: whatsapp.trim(),
+      whatsapp:
+        primaryChannel === 'WHATSAPP'
+          ? whatsapp.trim() || undefined
+          : undefined,
+      primaryChannel,
       companyDescription: companyDescription.trim(),
       idealCustomerProfile: idealCustomerProfile.trim(),
       toneOfVoice: toneOfVoice.trim(),
@@ -257,17 +327,40 @@ export const SignInUpWorkspaceCreationForm = () => {
     }
   };
 
+  const goToNextStep = () => {
+    if (isCurrentStepDisabled) {
+      return;
+    }
+
+    if (formStep === 'channel') {
+      void handleSubmit();
+      return;
+    }
+
+    const nextStep = allSteps[currentStepIndex + 1];
+
+    if (isDefined(nextStep)) {
+      setFormStep(nextStep);
+    }
+  };
+
+  const goToPreviousStep = () => {
+    if (currentStepIndex > 0 && !isCreatingWorkspace) {
+      const previousStep = allSteps[currentStepIndex - 1];
+
+      if (isDefined(previousStep)) {
+        setFormStep(previousStep);
+      }
+    }
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.nativeEvent.isComposing || event.keyCode === 229) {
       return;
     }
     if (event.key === Key.Enter) {
       event.preventDefault();
-      if (formStep === 'workspace' && !isWorkspaceStepDisabled) {
-        setFormStep('operation');
-      } else if (formStep === 'operation') {
-        void handleSubmit();
-      }
+      goToNextStep();
     }
   };
 
@@ -280,25 +373,41 @@ export const SignInUpWorkspaceCreationForm = () => {
           ? t`Couldn't check availability. Please try again.`
           : undefined;
 
+  const stepTitle: Record<WorkspaceCreationStep, string> = {
+    workspace: 'Crie seu workspace',
+    goal: 'Qual resultado vem primeiro?',
+    description: 'O que sua empresa vende?',
+    customer: 'Quem é o cliente ideal?',
+    process: 'Como a operação funciona hoje?',
+    size: 'Quem participa da operação?',
+    voice: 'Como a empresa deve se comunicar?',
+    channel: 'Como os clientes entram?',
+  };
+
+  const stepSubtitle: Record<WorkspaceCreationStep, string> = {
+    workspace: 'Defina a identidade e o endereço do seu CRM.',
+    goal: 'O Diex priorizará a configuração pelo resultado com maior impacto.',
+    description:
+      'Informe produto, serviço, segmento e como a empresa gera receita.',
+    customer: 'Descreva segmento, perfil, problema e momento de compra.',
+    process: 'Conte as etapas, ferramentas atuais e o principal gargalo.',
+    size: 'Informe o tamanho da equipe e quantas pessoas atendem ou vendem.',
+    voice: 'Defina o tom que a IA deve respeitar nas sugestões.',
+    channel:
+      'WhatsApp é opcional. O CRM também pode operar por e-mail, importação ou cadastro manual.',
+  };
+
   return (
     <StyledContentContainer>
       <StyledHeading>
         <OnboardingStepAnimatedItem index={0}>
           <StyledStepIndicator>
-            Etapa {formStep === 'workspace' ? '1' : '2'} de 2
+            Etapa {currentStepIndex + 1} de {allSteps.length}
           </StyledStepIndicator>
-          <StyledTitle>
-            {formStep === 'workspace'
-              ? 'Crie seu workspace'
-              : 'Conte como sua empresa opera'}
-          </StyledTitle>
+          <StyledTitle>{stepTitle[formStep]}</StyledTitle>
         </OnboardingStepAnimatedItem>
         <OnboardingStepAnimatedItem index={1}>
-          <StyledSubtitle>
-            {formStep === 'workspace'
-              ? 'Defina a identidade e o endereço do seu CRM.'
-              : 'Essas respostas vão para a aprovação e já configuram o contexto inicial da IA.'}
-          </StyledSubtitle>
+          <StyledSubtitle>{stepSubtitle[formStep]}</StyledSubtitle>
         </OnboardingStepAnimatedItem>
       </StyledHeading>
       {formStep === 'workspace' ? (
@@ -407,8 +516,8 @@ export const SignInUpWorkspaceCreationForm = () => {
           <OnboardingStepAnimatedItem index={isMultiWorkspaceEnabled ? 5 : 4}>
             <MainButton
               title="Continuar"
-              onClick={() => setFormStep('operation')}
-              disabled={isWorkspaceStepDisabled}
+              onClick={goToNextStep}
+              disabled={isCurrentStepDisabled}
               fullWidth
             />
           </OnboardingStepAnimatedItem>
@@ -416,93 +525,143 @@ export const SignInUpWorkspaceCreationForm = () => {
       ) : (
         <>
           <StyledFormSection>
-            <OnboardingStepAnimatedItem index={2}>
-              <TextInput
-                autoFocus
-                label="WhatsApp do responsável"
-                value={whatsapp}
-                placeholder="+55 31 99999-9999"
-                onChange={setWhatsapp}
-                onKeyDown={handleKeyDown}
-                fullWidth
-              />
-            </OnboardingStepAnimatedItem>
-            <OnboardingStepAnimatedItem index={3}>
-              <TextArea
-                textAreaId="workspace-company-description"
-                label="O que a empresa faz"
-                value={companyDescription}
-                placeholder="Explique o serviço, produto, mercado e como a empresa gera receita."
-                minRows={3}
-                maxRows={6}
-                onChange={setCompanyDescription}
-              />
-            </OnboardingStepAnimatedItem>
-            <OnboardingStepAnimatedItem index={4}>
-              <TextArea
-                textAreaId="workspace-ideal-customer"
-                label="Quem é o cliente ideal"
-                value={idealCustomerProfile}
-                placeholder="Segmento, porte, problema e momento de compra."
-                minRows={2}
-                maxRows={5}
-                onChange={setIdealCustomerProfile}
-              />
-            </OnboardingStepAnimatedItem>
-            <OnboardingStepAnimatedItem index={5}>
-              <TextArea
-                textAreaId="workspace-primary-goal"
-                label="Principal objetivo com o CRM"
-                value={primaryGoal}
-                placeholder="Ex.: organizar vendas, reduzir perda de leads e acompanhar pós-venda."
-                minRows={2}
-                maxRows={5}
-                onChange={setPrimaryGoal}
-              />
-            </OnboardingStepAnimatedItem>
-            <OnboardingStepAnimatedItem index={6}>
-              <TextInput
-                label="Tamanho da operação"
-                value={companySize}
-                placeholder="Ex.: 8 pessoas, sendo 3 em vendas"
-                onChange={setCompanySize}
-                onKeyDown={handleKeyDown}
-                fullWidth
-              />
-            </OnboardingStepAnimatedItem>
-            <OnboardingStepAnimatedItem index={7}>
-              <TextArea
-                textAreaId="workspace-current-process"
-                label="Como vocês trabalham hoje"
-                value={currentProcess}
-                placeholder="Ferramentas atuais, etapas comerciais e principais gargalos."
-                minRows={2}
-                maxRows={5}
-                onChange={setCurrentProcess}
-              />
-            </OnboardingStepAnimatedItem>
-            <OnboardingStepAnimatedItem index={8}>
-              <TextInput
-                label="Tom de voz da empresa"
-                value={toneOfVoice}
-                placeholder="Ex.: consultivo, direto, técnico e humano"
-                onChange={setToneOfVoice}
-                onKeyDown={handleKeyDown}
-                fullWidth
-              />
-            </OnboardingStepAnimatedItem>
+            {formStep === 'goal' ? (
+              <OnboardingStepAnimatedItem key={formStep} index={2}>
+                <StyledChoiceGrid>
+                  {COMMERCIAL_GOALS.map((goal) => (
+                    <Button
+                      key={goal.key}
+                      title={goal.label}
+                      variant={
+                        primaryGoal === goal.key ? 'primary' : 'secondary'
+                      }
+                      onClick={() => setPrimaryGoal(goal.key)}
+                    />
+                  ))}
+                </StyledChoiceGrid>
+              </OnboardingStepAnimatedItem>
+            ) : null}
+            {formStep === 'description' ? (
+              <OnboardingStepAnimatedItem key={formStep} index={2}>
+                <TextArea
+                  textAreaId="workspace-company-description"
+                  label="Empresa, segmento e ofertas"
+                  value={companyDescription}
+                  placeholder="Explique o serviço, produto, mercado e como a empresa gera receita."
+                  minRows={3}
+                  maxRows={6}
+                  onChange={setCompanyDescription}
+                />
+              </OnboardingStepAnimatedItem>
+            ) : null}
+            {formStep === 'customer' ? (
+              <OnboardingStepAnimatedItem key={formStep} index={2}>
+                <TextArea
+                  textAreaId="workspace-ideal-customer"
+                  label="Quem é o cliente ideal"
+                  value={idealCustomerProfile}
+                  placeholder="Segmento, porte, problema e momento de compra."
+                  minRows={2}
+                  maxRows={5}
+                  onChange={setIdealCustomerProfile}
+                />
+              </OnboardingStepAnimatedItem>
+            ) : null}
+            {formStep === 'process' ? (
+              <OnboardingStepAnimatedItem key={formStep} index={2}>
+                <TextArea
+                  textAreaId="workspace-current-process"
+                  label="Processo atual e gargalos"
+                  value={currentProcess}
+                  placeholder="Ferramentas, etapas comerciais, responsáveis e pontos onde a receita se perde."
+                  minRows={3}
+                  maxRows={6}
+                  onChange={setCurrentProcess}
+                />
+              </OnboardingStepAnimatedItem>
+            ) : null}
+            {formStep === 'size' ? (
+              <OnboardingStepAnimatedItem key={formStep} index={2}>
+                <TextInput
+                  autoFocus
+                  label="Tamanho da operação"
+                  value={companySize}
+                  placeholder="Ex.: 8 pessoas, sendo 3 em vendas"
+                  onChange={setCompanySize}
+                  onKeyDown={handleKeyDown}
+                  fullWidth
+                />
+              </OnboardingStepAnimatedItem>
+            ) : null}
+            {formStep === 'voice' ? (
+              <OnboardingStepAnimatedItem key={formStep} index={2}>
+                <TextInput
+                  autoFocus
+                  label="Tom de voz da empresa"
+                  value={toneOfVoice}
+                  placeholder="Ex.: consultivo, direto, técnico e humano"
+                  onChange={setToneOfVoice}
+                  onKeyDown={handleKeyDown}
+                  fullWidth
+                />
+              </OnboardingStepAnimatedItem>
+            ) : null}
+            {formStep === 'channel' ? (
+              <OnboardingStepAnimatedItem key={formStep} index={2}>
+                <StyledFormSection>
+                  <StyledChoiceGrid>
+                    {PRIMARY_CHANNELS.map((channel) => (
+                      <Button
+                        key={channel.key}
+                        title={channel.label}
+                        variant={
+                          primaryChannel === channel.key
+                            ? 'primary'
+                            : 'secondary'
+                        }
+                        onClick={() => setPrimaryChannel(channel.key)}
+                      />
+                    ))}
+                  </StyledChoiceGrid>
+                  <OnboardingAnimatedReveal
+                    isVisible={primaryChannel === 'WHATSAPP'}
+                  >
+                    <TextInput
+                      autoFocus
+                      label="Número de contato (opcional)"
+                      value={whatsapp}
+                      placeholder="+55 31 99999-9999"
+                      onChange={setWhatsapp}
+                      onKeyDown={handleKeyDown}
+                      error={
+                        whatsapp.length > 0 && !isWhatsappValid
+                          ? 'Informe um número válido ou deixe em branco.'
+                          : undefined
+                      }
+                      fullWidth
+                    />
+                  </OnboardingAnimatedReveal>
+                  <StyledOptionalHint>
+                    Nenhuma conexão será criada antes da aprovação. Depois, você
+                    decide se gera o QR Code ou continua sem WhatsApp.
+                  </StyledOptionalHint>
+                </StyledFormSection>
+              </OnboardingStepAnimatedItem>
+            ) : null}
           </StyledFormSection>
-          <OnboardingStepAnimatedItem index={9}>
+          <OnboardingStepAnimatedItem index={3}>
             <StyledActions>
               <Button
                 title="Voltar"
                 variant="secondary"
-                onClick={() => setFormStep('workspace')}
+                onClick={goToPreviousStep}
               />
               <MainButton
-                title="Enviar para aprovação"
-                onClick={() => void handleSubmit()}
-                disabled={isOperationStepDisabled}
+                title={
+                  formStep === 'channel' ? 'Enviar para aprovação' : 'Continuar'
+                }
+                onClick={goToNextStep}
+                disabled={isCurrentStepDisabled}
                 fullWidth
               />
             </StyledActions>

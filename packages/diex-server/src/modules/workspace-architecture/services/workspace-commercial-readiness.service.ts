@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { isNonEmptyString } from '@sniptt/guards';
-import { In, type Repository } from 'typeorm';
+import { In, IsNull, Not, type Repository } from 'typeorm';
 
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { GlobalWorkspaceOrmManager } from 'src/engine/diex-orm/global-workspace-datasource/global-workspace-orm.manager';
@@ -15,13 +15,12 @@ import { InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/
 import { InboxTeamWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-team.workspace-entity';
 import { OfferWorkspaceEntity } from 'src/modules/commercial-intelligence/standard-objects/offer.workspace-entity';
 import { OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
+import { PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
 import { TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
+import { TaskTargetWorkspaceEntity } from 'src/modules/task/standard-objects/task-target.workspace-entity';
 import { DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
 import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
-import {
-  type WorkspaceReadinessCriterion,
-  type WorkspaceReadinessPack,
-} from 'src/modules/workspace-architecture/types/workspace-readiness-pack';
+import { type WorkspaceReadinessCriterion } from 'src/modules/workspace-architecture/types/workspace-readiness-pack';
 
 type CommercialRepositories = {
   aiActionRepository: WorkspaceRepository<AiActionWorkspaceEntity>;
@@ -29,7 +28,9 @@ type CommercialRepositories = {
   messageRepository: WorkspaceRepository<InboxMessageWorkspaceEntity>;
   offerRepository: WorkspaceRepository<OfferWorkspaceEntity>;
   opportunityRepository: WorkspaceRepository<OpportunityWorkspaceEntity>;
+  personRepository: WorkspaceRepository<PersonWorkspaceEntity>;
   taskRepository: WorkspaceRepository<TaskWorkspaceEntity>;
+  taskTargetRepository: WorkspaceRepository<TaskTargetWorkspaceEntity>;
   teamRepository: WorkspaceRepository<InboxTeamWorkspaceEntity>;
 };
 
@@ -38,6 +39,11 @@ type CommercialCockpitAggregates = {
   opportunities: number;
   followUps: number;
   pipelineValueMicros: number;
+  pipelineCurrencyCode: string;
+  pipelineValues: Array<{
+    amountMicros: number;
+    currencyCode: string;
+  }>;
   unassignedOpportunities: number;
   overdueFollowUps: number;
   unansweredLeads: number;
@@ -75,14 +81,52 @@ export class WorkspaceCommercialReadinessService {
       this.workspaceArchitectureService.getOnboardingEvidence(workspaceId),
       this.workspaceArchitectureService.getWorkspaceReadinessPack(workspaceId),
     ]);
-    const firstConversation =
-      await this.findFirstInboundCommercialConversation(repositories);
-    const firstFollowUpTask = firstConversation
-      ? await repositories.taskRepository.findOne({
-          where: { diexInboxConversationId: firstConversation.id },
-          order: { createdAt: 'ASC' },
+    const primaryChannel = workspace?.onboardingPrimaryChannel
+      ?.trim()
+      .toUpperCase();
+    const usesRecordBasedEntry =
+      primaryChannel === 'MANUAL' || primaryChannel === 'IMPORT';
+    const requiresOpportunity = readinessPack.criteria.some(
+      ({ key, required }) => key === 'first_opportunity_created' && required,
+    );
+    const requiresCompanyLink = readinessPack.criteria.some(
+      ({ key, required }) => key === 'first_company_linked' && required,
+    );
+    const firstConversation = usesRecordBasedEntry
+      ? null
+      : await this.findFirstInboundCommercialConversation(
+          repositories,
+          primaryChannel,
+        );
+    const recordBasedFlow = usesRecordBasedEntry
+      ? await this.findFirstRecordBasedFlow(repositories, {
+          requiresOpportunity,
+          requiresCompanyLink,
         })
       : null;
+    const firstPerson = recordBasedFlow?.person ?? null;
+    const firstOpportunity = recordBasedFlow?.opportunity ?? null;
+    const firstFollowUpTask = usesRecordBasedEntry
+      ? (recordBasedFlow?.followUpTask ?? null)
+      : firstConversation
+        ? await repositories.taskRepository.findOne({
+            where: {
+              diexInboxConversationId: firstConversation.id,
+              assigneeId: Not(IsNull()),
+              dueAt: Not(IsNull()),
+            },
+            order: { createdAt: 'ASC' },
+          })
+        : null;
+    const firstContactId = usesRecordBasedEntry
+      ? (firstPerson?.id ?? null)
+      : (firstConversation?.personId ?? null);
+    const firstCompanyId = usesRecordBasedEntry
+      ? (firstOpportunity?.companyId ?? firstPerson?.companyId ?? null)
+      : (firstConversation?.companyId ?? null);
+    const firstOpportunityId = usesRecordBasedEntry
+      ? (firstOpportunity?.id ?? null)
+      : (firstConversation?.opportunityId ?? null);
     const firstAiAction = firstConversation
       ? await repositories.aiActionRepository.findOne({
           where: {
@@ -100,9 +144,9 @@ export class WorkspaceCommercialReadinessService {
       : null;
     const hasValidAiTriage = Boolean(
       firstAiAction &&
-        isNonEmptyString(firstAiAction.rationale?.markdown) &&
-        isNonEmptyString(firstAiAction.proposedAction?.markdown) &&
-        firstAiAction.confidence !== null,
+      isNonEmptyString(firstAiAction.rationale?.markdown) &&
+      isNonEmptyString(firstAiAction.proposedAction?.markdown) &&
+      firstAiAction.confidence !== null,
     );
     const cockpitAggregates =
       await this.getCommercialCockpitAggregates(repositories);
@@ -138,11 +182,25 @@ export class WorkspaceCommercialReadinessService {
           };
         }
       | undefined;
-    const activeMembershipCount = (defaultTeam?.memberships ?? []).filter(
-      (membership) =>
-        membership.isActive === true &&
-        typeof membership.workspaceMemberId === 'string',
-    ).length;
+    const activeTeamMemberIds = (defaultTeam?.memberships ?? [])
+      .filter((membership) => membership.isActive === true)
+      .map(({ workspaceMemberId }) => workspaceMemberId)
+      .filter(
+        (workspaceMemberId): workspaceMemberId is string =>
+          typeof workspaceMemberId === 'string' && workspaceMemberId.length > 0,
+      );
+    const activeOwnerIds = new Set(
+      [
+        ...activeTeamMemberIds,
+        firstConversation?.assigneeId,
+        firstOpportunity?.ownerId,
+        firstFollowUpTask?.assigneeId,
+      ].filter(
+        (workspaceMemberId): workspaceMemberId is string =>
+          typeof workspaceMemberId === 'string' && workspaceMemberId.length > 0,
+      ),
+    );
+    const activeOwnerCount = activeOwnerIds.size;
     const adaptiveReview =
       await this.workspaceArchitectureService.getAdaptiveDrift(workspaceId);
     const cockpitPages = pageCatalog.items.filter(
@@ -240,36 +298,58 @@ export class WorkspaceCommercialReadinessService {
       if (key === 'offer_registered') return activeOfferCount > 0;
       if (key === 'architecture_approved') return architectureApproved;
       if (key === 'pipeline_approved') return pipelineApproved;
-      if (key === 'owners_defined') return activeMembershipCount > 0;
+      if (key === 'owners_defined') return activeOwnerCount > 0;
       if (key === 'channel_connected') {
-        return currentOnboardingEvidence?.channel.state === 'CONNECTED';
+        if (usesRecordBasedEntry) return true;
+        if (primaryChannel === 'WHATSAPP') {
+          return (
+            currentOnboardingEvidence?.channel.state === 'CONNECTED' &&
+            Boolean(currentOnboardingEvidence.channel.validatedAt) &&
+            firstConversation?.channel === 'WHATSAPP'
+          );
+        }
+        if (primaryChannel === 'EMAIL') {
+          return firstConversation?.channel === 'EMAIL';
+        }
+
+        return false;
       }
       if (key === 'first_conversation_received') {
         return firstConversation !== null;
       }
       if (key === 'first_contact_identified') {
-        return Boolean(firstConversation?.personId);
+        return Boolean(firstContactId);
       }
       if (key === 'first_company_linked') {
-        return Boolean(firstConversation?.companyId);
+        return Boolean(firstCompanyId);
       }
       if (key === 'first_opportunity_created') {
-        return Boolean(firstConversation?.opportunityId);
+        return Boolean(firstOpportunityId);
       }
       if (key === 'first_follow_up_created') {
-        return Boolean(firstFollowUpTask?.id && firstFollowUpTask.assigneeId);
+        return Boolean(
+          firstFollowUpTask?.id &&
+          firstFollowUpTask.assigneeId &&
+          firstFollowUpTask.dueAt,
+        );
       }
       if (key === 'first_ai_triage_completed') return hasValidAiTriage;
       if (key === 'cockpit_operational') return cockpitOperational;
       if (key === 'routing_rule_published') {
         return (
-          activeMembershipCount > 1 &&
-          /(distribu|rotea|fila|carteira|round robin)/.test(profileSignals)
+          new Set(activeTeamMemberIds).size > 1 &&
+          defaultTeam?.routingStrategy === 'BALANCED'
         );
       }
-      if (key === 'sla_defined') return readTextList('slaTargets').length > 0;
+      if (key === 'sla_defined') {
+        return (
+          defaultTeam?.status === 'ACTIVE' &&
+          typeof defaultTeam.defaultResponseSlaMinutes === 'number' &&
+          defaultTeam.defaultResponseSlaMinutes > 0
+        );
+      }
       if (key === 'approval_matrix_defined') {
-        return readTextList('approvalRules').length > 0;
+        return architectureApproved && readTextList('approvalRules').length > 0;
       }
       if (key === 'required_fields_validated') return architectureApproved;
       if (key === 'scheduling_configured') {
@@ -373,19 +453,27 @@ export class WorkspaceCommercialReadinessService {
       ideal_customer_defined: context?.id ?? null,
       architecture_approved: changeSet?.id ?? null,
       pipeline_approved: changeSet?.id ?? null,
-      owners_defined: defaultTeam?.id ?? null,
-      channel_connected:
-        currentOnboardingEvidence?.channel.instanceName ?? null,
+      owners_defined:
+        activeOwnerCount > 0
+          ? (defaultTeam?.id ?? [...activeOwnerIds][0] ?? null)
+          : null,
+      channel_connected: usesRecordBasedEntry
+        ? `entry:${primaryChannel?.toLowerCase()}`
+        : (currentOnboardingEvidence?.channel.instanceName ??
+          firstConversation?.id ??
+          null),
       first_conversation_received: firstConversation?.id ?? null,
-      first_contact_identified: firstConversation?.personId ?? null,
-      first_company_linked: firstConversation?.companyId ?? null,
-      first_opportunity_created: firstConversation?.opportunityId ?? null,
+      first_contact_identified: firstContactId,
+      first_company_linked: firstCompanyId,
+      first_opportunity_created: firstOpportunityId,
       first_follow_up_created:
-        firstFollowUpTask?.id && firstFollowUpTask.assigneeId
+        firstFollowUpTask?.id &&
+        firstFollowUpTask.assigneeId &&
+        firstFollowUpTask.dueAt
           ? firstFollowUpTask.id
           : null,
       first_ai_triage_completed: hasValidAiTriage
-        ? firstAiAction?.id ?? null
+        ? (firstAiAction?.id ?? null)
         : null,
       cockpit_operational: cockpitOperational
         ? `setup-state:${pageCatalog.version}`
@@ -404,9 +492,9 @@ export class WorkspaceCommercialReadinessService {
       recordId: evidenceRecordIds[criterion.key] ?? null,
       source: criterion.source,
       occurredAt: criterion.ready
-        ? currentOnboardingEvidence?.milestones.find(
+        ? (currentOnboardingEvidence?.milestones.find(
             ({ key }) => key === criterion.key,
-          )?.firstSeenAt ?? new Date().toISOString()
+          )?.firstSeenAt ?? new Date().toISOString())
         : null,
     }));
     const firstValueRunReady = firstValueRunSteps.every(({ ready }) => ready);
@@ -416,7 +504,8 @@ export class WorkspaceCommercialReadinessService {
       id: `diex-first-value:${workspaceId}`,
       correlationId:
         firstConversation?.id ??
-        firstConversation?.opportunityId ??
+        firstOpportunityId ??
+        firstContactId ??
         `workspace:${workspaceId}`,
       goal,
       status: firstValueRunReady
@@ -425,15 +514,13 @@ export class WorkspaceCommercialReadinessService {
           ? ('IN_PROGRESS' as const)
           : ('NOT_STARTED' as const),
       startedAt:
-        previousFirstValueRun &&
-        previousFirstValueRun.status !== 'NOT_STARTED'
+        previousFirstValueRun && previousFirstValueRun.status !== 'NOT_STARTED'
           ? previousFirstValueRun.startedAt
           : firstValueRunStarted
             ? new Date().toISOString()
             : new Date(0).toISOString(),
       completedAt: firstValueRunReady
-        ? previousFirstValueRun?.completedAt ??
-          new Date().toISOString()
+        ? (previousFirstValueRun?.completedAt ?? new Date().toISOString())
         : null,
       steps: firstValueRunSteps,
     };
@@ -460,14 +547,15 @@ export class WorkspaceCommercialReadinessService {
       readinessPack,
       counts: {
         activeOffers: activeOfferCount,
-        activeOwners: activeMembershipCount,
+        activeOwners: activeOwnerCount,
         conversations: cockpitAggregates.conversations,
         opportunities: cockpitAggregates.opportunities,
         followUps: cockpitAggregates.followUps,
       },
       dashboard: {
         pipelineValueMicros: cockpitAggregates.pipelineValueMicros,
-        pipelineCurrencyCode: 'BRL',
+        pipelineCurrencyCode: cockpitAggregates.pipelineCurrencyCode,
+        pipelineValues: cockpitAggregates.pipelineValues,
         unassignedOpportunities: cockpitAggregates.unassignedOpportunities,
         overdueFollowUps: cockpitAggregates.overdueFollowUps,
         unansweredLeads: cockpitAggregates.unansweredLeads,
@@ -477,21 +565,31 @@ export class WorkspaceCommercialReadinessService {
       },
       evidence: {
         firstConversationId: firstConversation?.id ?? null,
-        firstCompanyLinked: Boolean(firstConversation?.companyId),
-        firstOpportunityId: firstConversation?.opportunityId ?? null,
+        firstCompanyLinked: Boolean(firstCompanyId),
+        firstOpportunityId,
         firstFollowUpCreated: Boolean(
-          firstFollowUpTask?.id && firstFollowUpTask.assigneeId,
+          firstFollowUpTask?.id &&
+          firstFollowUpTask.assigneeId &&
+          firstFollowUpTask.dueAt,
         ),
         firstAiTriageCompleted: hasValidAiTriage,
         whatsappValidatedByMessage: firstConversation?.channel === 'WHATSAPP',
-        primaryChannel: firstConversation?.channel ?? null,
+        primaryChannel: primaryChannel ?? firstConversation?.channel ?? null,
         channelValidation: {
-          status: firstConversation
-            ? 'VALIDATED_BY_REAL_INBOUND_MESSAGE'
-            : 'AWAITING_REAL_INBOUND_MESSAGE',
-          source: firstConversation
-            ? 'inbox_conversation_and_message'
-            : 'whatsapp_connection_and_webhook',
+          status: usesRecordBasedEntry
+            ? 'CONFIGURED_WITHOUT_CONNECTION'
+            : firstConversation
+              ? 'VALIDATED_BY_REAL_INBOUND_MESSAGE'
+              : primaryChannel
+                ? 'AWAITING_REAL_INBOUND_MESSAGE'
+                : 'AWAITING_CHANNEL_SELECTION',
+          source: usesRecordBasedEntry
+            ? 'workspace_onboarding_profile'
+            : firstConversation
+              ? 'inbox_conversation_and_message'
+              : primaryChannel === 'WHATSAPP'
+                ? 'whatsapp_connection_and_webhook'
+                : 'workspace_onboarding_profile',
         },
         channelHealth: onboardingEvidence.channel,
       },
@@ -512,82 +610,121 @@ export class WorkspaceCommercialReadinessService {
         operationManifestVersion: blueprintManifest?.version ?? null,
         publication: changeSetPayload?.publication ?? null,
       },
+      dataFreshness: {
+        status: 'LIVE',
+        queriedAt: new Date().toISOString(),
+        source: 'workspace_database',
+      },
     };
   }
 
   private async getCommercialCockpitAggregates(
     repositories: CommercialRepositories,
   ): Promise<CommercialCockpitAggregates> {
-    const [opportunityAggregate, conversationAggregate, taskAggregate] =
-      await Promise.all([
-        repositories.opportunityRepository
-          .createQueryBuilder('opportunity')
-          .select('COUNT(opportunity.id)', 'opportunities')
-          .addSelect(
-            `COALESCE(SUM(CASE WHEN opportunity.amount->>'currencyCode' = 'BRL' THEN COALESCE(NULLIF(opportunity.amount->>'amountMicros', '')::numeric, 0) ELSE 0 END), 0)`,
-            'pipelineValueMicros',
-          )
-          .addSelect(
-            'COUNT(CASE WHEN opportunity.ownerId IS NULL THEN 1 END)',
-            'unassignedOpportunities',
-          )
-          .addSelect(
-            `COUNT(CASE WHEN opportunity.dealRisk IN ('HIGH', 'CRITICAL', 'AT_RISK') THEN 1 END)`,
-            'commercialRisks',
-          )
-          .where('opportunity.deletedAt IS NULL')
-          .getRawOne<{
-            opportunities?: string;
-            pipelineValueMicros?: string;
-            unassignedOpportunities?: string;
-            commercialRisks?: string;
-          }>(),
-        repositories.conversationRepository
-          .createQueryBuilder('conversation')
-          .select('COUNT(conversation.id)', 'conversations')
-          .addSelect(
-            `COUNT(CASE WHEN conversation.lastMessageDirection = 'INBOUND' AND conversation.firstRespondedAt IS NULL THEN 1 END)`,
-            'unansweredLeads',
-          )
-          .addSelect(
-            `AVG(CASE WHEN conversation.firstRespondedAt IS NOT NULL THEN EXTRACT(EPOCH FROM (conversation.firstRespondedAt - conversation.createdAt)) / 60 END)`,
-            'averageResponseMinutes',
-          )
-          .where('conversation.deletedAt IS NULL')
-          .getRawOne<{
-            conversations?: string;
-            unansweredLeads?: string;
-            averageResponseMinutes?: string | null;
-          }>(),
-        repositories.taskRepository
-          .createQueryBuilder('task')
-          .select('COUNT(task.id)', 'followUps')
-          .addSelect(
-            `COUNT(CASE WHEN task.dueAt IS NOT NULL AND COALESCE(task.status, '') NOT IN ('DONE', 'COMPLETED', 'CANCELLED') AND task.dueAt < NOW() THEN 1 END)`,
-            'overdueFollowUps',
-          )
-          .addSelect(
-            `COUNT(CASE WHEN task.dueAt IS NOT NULL AND COALESCE(task.status, '') NOT IN ('DONE', 'COMPLETED', 'CANCELLED') THEN 1 END)`,
-            'nextActions',
-          )
-          .where('task.deletedAt IS NULL')
-          .getRawOne<{
-            followUps?: string;
-            overdueFollowUps?: string;
-            nextActions?: string;
-          }>(),
-      ]);
+    const [
+      opportunityAggregate,
+      pipelineCurrencyAggregates,
+      conversationAggregate,
+      taskAggregate,
+    ] = await Promise.all([
+      repositories.opportunityRepository
+        .createQueryBuilder('opportunity')
+        .select('COUNT(opportunity.id)', 'opportunities')
+        .addSelect(
+          `COUNT(CASE WHEN COALESCE(opportunity.stage, '') NOT IN ('CUSTOMER', 'LOST') AND opportunity.ownerId IS NULL THEN 1 END)`,
+          'unassignedOpportunities',
+        )
+        .addSelect(
+          `COUNT(CASE WHEN COALESCE(opportunity.stage, '') NOT IN ('CUSTOMER', 'LOST') AND opportunity.dealRisk IN ('HIGH', 'CRITICAL', 'AT_RISK') THEN 1 END)`,
+          'commercialRisks',
+        )
+        .where('opportunity.deletedAt IS NULL')
+        .getRawOne<{
+          opportunities?: string;
+          unassignedOpportunities?: string;
+          commercialRisks?: string;
+        }>(),
+      repositories.opportunityRepository
+        .createQueryBuilder('opportunity')
+        .select(
+          `COALESCE(NULLIF(opportunity.amount->>'currencyCode', ''), 'BRL')`,
+          'currencyCode',
+        )
+        .addSelect(
+          `COALESCE(SUM(COALESCE(NULLIF(opportunity.amount->>'amountMicros', '')::numeric, 0)), 0)`,
+          'pipelineValueMicros',
+        )
+        .addSelect('COUNT(opportunity.id)', 'opportunityCount')
+        .where('opportunity.deletedAt IS NULL')
+        .andWhere("COALESCE(opportunity.stage, '') NOT IN ('CUSTOMER', 'LOST')")
+        .groupBy(
+          `COALESCE(NULLIF(opportunity.amount->>'currencyCode', ''), 'BRL')`,
+        )
+        .orderBy('COUNT(opportunity.id)', 'DESC')
+        .addOrderBy(
+          `COALESCE(NULLIF(opportunity.amount->>'currencyCode', ''), 'BRL')`,
+          'ASC',
+        )
+        .getRawMany<{
+          currencyCode?: string;
+          pipelineValueMicros?: string;
+          opportunityCount?: string;
+        }>(),
+      repositories.conversationRepository
+        .createQueryBuilder('conversation')
+        .select('COUNT(conversation.id)', 'conversations')
+        .addSelect(
+          `COUNT(CASE WHEN conversation.lastMessageDirection = 'INBOUND' AND conversation.firstRespondedAt IS NULL THEN 1 END)`,
+          'unansweredLeads',
+        )
+        .addSelect(
+          `AVG(CASE WHEN conversation.firstRespondedAt IS NOT NULL THEN EXTRACT(EPOCH FROM (conversation.firstRespondedAt - conversation.createdAt)) / 60 END)`,
+          'averageResponseMinutes',
+        )
+        .where('conversation.deletedAt IS NULL')
+        .getRawOne<{
+          conversations?: string;
+          unansweredLeads?: string;
+          averageResponseMinutes?: string | null;
+        }>(),
+      repositories.taskRepository
+        .createQueryBuilder('task')
+        .select('COUNT(task.id)', 'followUps')
+        .addSelect(
+          `COUNT(CASE WHEN task.dueAt IS NOT NULL AND COALESCE(task.status, '') NOT IN ('DONE', 'COMPLETED', 'CANCELLED') AND task.dueAt < NOW() THEN 1 END)`,
+          'overdueFollowUps',
+        )
+        .addSelect(
+          `COUNT(CASE WHEN task.dueAt IS NOT NULL AND COALESCE(task.status, '') NOT IN ('DONE', 'COMPLETED', 'CANCELLED') THEN 1 END)`,
+          'nextActions',
+        )
+        .where('task.deletedAt IS NULL')
+        .getRawOne<{
+          followUps?: string;
+          overdueFollowUps?: string;
+          nextActions?: string;
+        }>(),
+    ]);
     const toNumber = (value: string | undefined | null): number => {
       const parsed = Number(value ?? 0);
 
       return Number.isFinite(parsed) ? parsed : 0;
     };
 
+    const primaryPipelineCurrency = pipelineCurrencyAggregates[0];
+
     return {
       conversations: toNumber(conversationAggregate?.conversations),
       opportunities: toNumber(opportunityAggregate?.opportunities),
       followUps: toNumber(taskAggregate?.followUps),
-      pipelineValueMicros: toNumber(opportunityAggregate?.pipelineValueMicros),
+      pipelineValueMicros: toNumber(
+        primaryPipelineCurrency?.pipelineValueMicros,
+      ),
+      pipelineCurrencyCode: primaryPipelineCurrency?.currencyCode ?? 'BRL',
+      pipelineValues: pipelineCurrencyAggregates.map((aggregate) => ({
+        amountMicros: toNumber(aggregate.pipelineValueMicros),
+        currencyCode: aggregate.currencyCode ?? 'BRL',
+      })),
       unassignedOpportunities: toNumber(
         opportunityAggregate?.unassignedOpportunities,
       ),
@@ -611,7 +748,9 @@ export class WorkspaceCommercialReadinessService {
       messageRepository,
       offerRepository,
       opportunityRepository,
+      personRepository,
       taskRepository,
+      taskTargetRepository,
       teamRepository,
     ] = await Promise.all([
       this.globalWorkspaceOrmManager.getRepository<AiActionWorkspaceEntity>(
@@ -639,9 +778,19 @@ export class WorkspaceCommercialReadinessService {
         OpportunityWorkspaceEntity,
         { shouldBypassPermissionChecks: true },
       ),
+      this.globalWorkspaceOrmManager.getRepository<PersonWorkspaceEntity>(
+        workspaceId,
+        PersonWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
+      ),
       this.globalWorkspaceOrmManager.getRepository<TaskWorkspaceEntity>(
         workspaceId,
         TaskWorkspaceEntity,
+        { shouldBypassPermissionChecks: true },
+      ),
+      this.globalWorkspaceOrmManager.getRepository<TaskTargetWorkspaceEntity>(
+        workspaceId,
+        TaskTargetWorkspaceEntity,
         { shouldBypassPermissionChecks: true },
       ),
       this.globalWorkspaceOrmManager.getRepository<InboxTeamWorkspaceEntity>(
@@ -657,8 +806,149 @@ export class WorkspaceCommercialReadinessService {
       messageRepository,
       offerRepository,
       opportunityRepository,
+      personRepository,
       taskRepository,
+      taskTargetRepository,
       teamRepository,
+    };
+  }
+
+  private async findFirstRecordBasedFlow(
+    repositories: CommercialRepositories,
+    {
+      requiresOpportunity,
+      requiresCompanyLink,
+    }: { requiresOpportunity: boolean; requiresCompanyLink: boolean },
+  ) {
+    const opportunities = requiresOpportunity
+      ? await repositories.opportunityRepository.find({
+          where: { pointOfContactId: Not(IsNull()) },
+          order: { createdAt: 'ASC' },
+          take: 2_000,
+        })
+      : [];
+    const opportunityPersonIds = opportunities
+      .map(({ pointOfContactId }) => pointOfContactId)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0);
+    const people =
+      opportunityPersonIds.length > 0
+        ? await repositories.personRepository.find({
+            where: { id: In([...new Set(opportunityPersonIds)]) },
+          })
+        : await repositories.personRepository.find({
+            order: { createdAt: 'ASC' },
+            take: 2_000,
+          });
+    const peopleById = new Map(people.map((person) => [person.id, person]));
+    const opportunityIds = opportunities.map(({ id }) => id);
+    const personIds = people.map(({ id }) => id);
+    const taskTargetWhere = [
+      ...(opportunityIds.length > 0
+        ? [{ targetOpportunityId: In(opportunityIds) }]
+        : []),
+      ...(personIds.length > 0 ? [{ targetPersonId: In(personIds) }] : []),
+    ];
+    const taskTargets =
+      taskTargetWhere.length > 0
+        ? await repositories.taskTargetRepository.find({
+            where: taskTargetWhere,
+            take: 4_000,
+          })
+        : [];
+    const taskIds = [
+      ...new Set(taskTargets.map(({ taskId }) => taskId)),
+    ].filter((id): id is string => typeof id === 'string' && id.length > 0);
+    const assignedTasks =
+      taskIds.length > 0
+        ? await repositories.taskRepository.find({
+            where: {
+              id: In(taskIds),
+              assigneeId: Not(IsNull()),
+              dueAt: Not(IsNull()),
+            },
+            order: { createdAt: 'ASC' },
+          })
+        : [];
+    const findFollowUp = ({
+      personId,
+      opportunityId,
+    }: {
+      personId: string;
+      opportunityId?: string;
+    }) => {
+      const linkedTaskIds = taskTargets
+        .filter(
+          (target) =>
+            target.targetPersonId === personId ||
+            (opportunityId && target.targetOpportunityId === opportunityId),
+        )
+        .map(({ taskId }) => taskId);
+
+      return (
+        assignedTasks.find((task) => linkedTaskIds.includes(task.id)) ?? null
+      );
+    };
+
+    if (requiresOpportunity && opportunities.length > 0) {
+      const candidates = opportunities
+        .map((opportunity) => {
+          const person = opportunity.pointOfContactId
+            ? (peopleById.get(opportunity.pointOfContactId) ?? null)
+            : null;
+          const followUpTask = person
+            ? findFollowUp({
+                personId: person.id,
+                opportunityId: opportunity.id,
+              })
+            : null;
+
+          return { person, opportunity, followUpTask };
+        })
+        .filter(
+          (
+            candidate,
+          ): candidate is {
+            person: PersonWorkspaceEntity;
+            opportunity: OpportunityWorkspaceEntity;
+            followUpTask: TaskWorkspaceEntity | null;
+          } => candidate.person !== null,
+        );
+      const completeCandidate = candidates.find(
+        ({ person, opportunity, followUpTask }) =>
+          followUpTask !== null &&
+          (!requiresCompanyLink ||
+            Boolean(opportunity.companyId ?? person.companyId)),
+      );
+
+      return (
+        completeCandidate ??
+        candidates[0] ?? {
+          person: null,
+          opportunity: null,
+          followUpTask: null,
+        }
+      );
+    }
+
+    const orderedPeople = [...people].sort(
+      (left, right) =>
+        Date.parse(String(left.createdAt)) -
+        Date.parse(String(right.createdAt)),
+    );
+    const completePerson = orderedPeople.find((person) => {
+      const followUpTask = findFollowUp({ personId: person.id });
+
+      return (
+        followUpTask !== null &&
+        (!requiresCompanyLink || Boolean(person.companyId))
+      );
+    });
+    const person = completePerson ?? orderedPeople[0] ?? null;
+
+    return {
+      person,
+      opportunity: null,
+      followUpTask: person ? findFollowUp({ personId: person.id }) : null,
     };
   }
 
@@ -675,6 +965,7 @@ export class WorkspaceCommercialReadinessService {
 
   private async findFirstInboundCommercialConversation(
     repositories: CommercialRepositories,
+    preferredChannel?: string | null,
   ) {
     const inboundMessages = await repositories.messageRepository.find({
       where: { direction: 'INBOUND' },
@@ -685,7 +976,9 @@ export class WorkspaceCommercialReadinessService {
       ...new Set(
         inboundMessages
           .map(({ inboxConversationId }) => inboxConversationId)
-          .filter((id): id is string => typeof id === 'string' && id.length > 0),
+          .filter(
+            (id): id is string => typeof id === 'string' && id.length > 0,
+          ),
       ),
     ];
 
@@ -696,22 +989,34 @@ export class WorkspaceCommercialReadinessService {
     const conversations = await repositories.conversationRepository.find({
       where: { id: In(conversationIds) } as never,
     });
+    const normalizedPreferredChannel = preferredChannel?.trim().toUpperCase();
+    const channelScopedConversations = [
+      'WHATSAPP',
+      'EMAIL',
+      'CALENDAR',
+    ].includes(normalizedPreferredChannel ?? '')
+      ? conversations.filter(
+          ({ channel }) => channel === normalizedPreferredChannel,
+        )
+      : conversations;
     const channelPriority: Record<string, number> = {
-      WHATSAPP: 0,
-      EMAIL: 1,
-      CALENDAR: 2,
-      IMPORT: 3,
+      WHATSAPP: preferredChannel === 'WHATSAPP' ? 0 : 2,
+      EMAIL: preferredChannel === 'EMAIL' ? 0 : 3,
+      CALENDAR: preferredChannel === 'CALENDAR' ? 0 : 4,
+      IMPORT: preferredChannel === 'IMPORT' ? 0 : 5,
     };
-    const orderedConversations = [...conversations].sort((left, right) => {
-      const priorityDifference =
-        (channelPriority[left.channel ?? ''] ?? 10) -
-        (channelPriority[right.channel ?? ''] ?? 10);
+    const orderedConversations = [...channelScopedConversations].sort(
+      (left, right) => {
+        const priorityDifference =
+          (channelPriority[left.channel ?? ''] ?? 10) -
+          (channelPriority[right.channel ?? ''] ?? 10);
 
-      return priorityDifference !== 0
-        ? priorityDifference
-        : Date.parse(String(left.createdAt)) -
-            Date.parse(String(right.createdAt));
-    });
+        return priorityDifference !== 0
+          ? priorityDifference
+          : Date.parse(String(left.createdAt)) -
+              Date.parse(String(right.createdAt));
+      },
+    );
 
     const firstInboundConversationIds = new Set(
       inboundMessages.map(({ inboxConversationId }) => inboxConversationId),

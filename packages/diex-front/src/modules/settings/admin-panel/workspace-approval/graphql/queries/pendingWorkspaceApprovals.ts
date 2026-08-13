@@ -11,6 +11,7 @@ export const PENDING_WORKSPACE_APPROVALS = gql`
       requesterName
       memberCount
       whatsapp
+      primaryChannel
       companyDescription
       idealCustomerProfile
       toneOfVoice

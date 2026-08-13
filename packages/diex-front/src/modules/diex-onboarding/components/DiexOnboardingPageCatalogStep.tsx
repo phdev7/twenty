@@ -26,10 +26,10 @@ const StyledRow = styled.div`
   align-items: center;
   border-bottom: 1px solid ${themeCssVariables.border.color.light};
   display: flex;
+  flex-wrap: wrap;
   gap: ${themeCssVariables.spacing[3]};
   justify-content: space-between;
   padding: ${themeCssVariables.spacing[2]} 0;
-  flex-wrap: wrap;
 `;
 
 const StyledRowText = styled.div`
@@ -123,7 +123,9 @@ const StyledBlockRow = styled.div`
   align-items: center;
   display: grid;
   gap: ${themeCssVariables.spacing[2]};
-  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.8fr) minmax(0, 1.4fr) auto;
+  grid-template-columns:
+    minmax(0, 1.4fr) minmax(120px, 0.8fr) minmax(0, 1.4fr)
+    auto;
 
   @media (max-width: 720px) {
     grid-template-columns: 1fr;
@@ -142,7 +144,10 @@ const PAGE_RENDERERS: DiexPageRenderer[] = [
 type DiexOnboardingPageCatalogStepProps = {
   catalog: DiexPageCatalogState | null;
   isLoading: boolean;
+  isReadConfirmed?: boolean;
   isUpdating: boolean;
+  errorMessage?: string | null;
+  onRefresh?: () => void;
   onCreate: (label: string, description: string) => Promise<boolean>;
   onArchive: (key: string) => void;
   onRestore: (key: string) => void;
@@ -153,7 +158,10 @@ type DiexOnboardingPageCatalogStepProps = {
 export const DiexOnboardingPageCatalogStep = ({
   catalog,
   isLoading,
+  isReadConfirmed = true,
   isUpdating,
+  errorMessage,
+  onRefresh,
   onCreate,
   onArchive,
   onRestore,
@@ -162,10 +170,9 @@ export const DiexOnboardingPageCatalogStep = ({
 }: DiexOnboardingPageCatalogStepProps) => {
   const [label, setLabel] = useState('');
   const [description, setDescription] = useState('');
-  const [editDraft, setEditDraft] = useState<DiexPageUpdateInput | null>(
-    null,
-  );
+  const [editDraft, setEditDraft] = useState<DiexPageUpdateInput | null>(null);
   const pages = catalog?.items ?? [];
+  const isMutationBlocked = isUpdating || !isReadConfirmed;
 
   const startEditing = (page: DiexPageCatalogItem) => {
     setEditDraft({
@@ -182,10 +189,7 @@ export const DiexOnboardingPageCatalogStep = ({
     });
   };
 
-  const updateDraftBlock = (
-    index: number,
-    update: Partial<DiexPageBlock>,
-  ) => {
+  const updateDraftBlock = (index: number, update: Partial<DiexPageBlock>) => {
     setEditDraft((current) =>
       current
         ? {
@@ -247,8 +251,34 @@ export const DiexOnboardingPageCatalogStep = ({
         renomear, reorganizar, ocultar, arquivar ou criar páginas sem apagar os
         dados. A configuração técnica fica disponível apenas quando necessária.
       </StyledText>
+      {errorMessage ? (
+        <>
+          <StyledText role="alert">{errorMessage}</StyledText>
+          {onRefresh ? (
+            <StyledActions>
+              <Button
+                title="Tentar carregar novamente"
+                variant="secondary"
+                disabled={isLoading}
+                onClick={onRefresh}
+              />
+            </StyledActions>
+          ) : null}
+        </>
+      ) : null}
+      {!isReadConfirmed ? (
+        <StyledText role="alert">
+          O catálogo exibido não foi confirmado nesta leitura. Alterações de
+          páginas e menu estão bloqueadas até atualizar os dados.
+        </StyledText>
+      ) : null}
       {isLoading && pages.length === 0 ? (
         <StyledText>Preparando catálogo operacional...</StyledText>
+      ) : pages.length === 0 ? (
+        <StyledText>
+          O catálogo ainda não possui páginas. Crie abaixo a primeira página
+          orientada à decisão da operação.
+        </StyledText>
       ) : (
         <StyledList>
           {pages.map((page) => (
@@ -264,11 +294,11 @@ export const DiexOnboardingPageCatalogStep = ({
                     ? 'núcleo adaptável'
                     : page.status === 'HIDDEN'
                       ? 'aguardando publicação da arquitetura'
-                    : page.status === 'ARCHIVED'
-                      ? 'arquivada'
-                      : page.lifecycle === 'CUSTOM'
-                        ? 'personalizada'
-                        : 'recomendada'}
+                      : page.status === 'ARCHIVED'
+                        ? 'arquivada'
+                        : page.lifecycle === 'CUSTOM'
+                          ? 'personalizada'
+                          : 'recomendada'}
                 </StyledStatus>
               </StyledRowText>
               <StyledActions>
@@ -276,7 +306,7 @@ export const DiexOnboardingPageCatalogStep = ({
                   <Button
                     title="Restaurar"
                     variant="secondary"
-                    disabled={isUpdating}
+                    disabled={isMutationBlocked}
                     onClick={() => onRestore(page.key)}
                   />
                 ) : page.status === 'HIDDEN' ? null : page.editable ? (
@@ -284,7 +314,7 @@ export const DiexOnboardingPageCatalogStep = ({
                     <Button
                       title="Mover para cima"
                       variant="secondary"
-                      disabled={isUpdating || page.position === 0}
+                      disabled={isMutationBlocked || page.position === 0}
                       onClick={() =>
                         void onUpdate({
                           key: page.key,
@@ -296,7 +326,7 @@ export const DiexOnboardingPageCatalogStep = ({
                       title="Mover para baixo"
                       variant="secondary"
                       disabled={
-                        isUpdating || page.position >= pages.length - 1
+                        isMutationBlocked || page.position >= pages.length - 1
                       }
                       onClick={() =>
                         void onUpdate({
@@ -309,23 +339,25 @@ export const DiexOnboardingPageCatalogStep = ({
                       }
                     />
                     <Button
-                      title={page.showInNavigation ? 'Ocultar menu' : 'Mostrar menu'}
+                      title={
+                        page.showInNavigation ? 'Ocultar menu' : 'Mostrar menu'
+                      }
                       variant="secondary"
-                      disabled={isUpdating}
+                      disabled={isMutationBlocked}
                       onClick={() => onToggleNavigation(page)}
                     />
                     {page.key === 'first-steps' ? null : (
                       <Button
                         title="Arquivar"
                         variant="secondary"
-                        disabled={isUpdating}
+                        disabled={isMutationBlocked}
                         onClick={() => onArchive(page.key)}
                       />
                     )}
                     <Button
                       title="Editar página"
                       variant="secondary"
-                      disabled={isUpdating}
+                      disabled={isMutationBlocked}
                       onClick={() => startEditing(page)}
                     />
                   </>
@@ -398,7 +430,7 @@ export const DiexOnboardingPageCatalogStep = ({
                       />
                       <StyledInput
                         aria-label="Ícone da página"
-                        placeholder="Ícone: chart, whatsapp, calendar..."
+                        placeholder="Ícone: chart, inbox, calendar..."
                         value={editDraft.icon ?? ''}
                         onChange={(event) =>
                           setEditDraft((current) =>
@@ -519,7 +551,7 @@ export const DiexOnboardingPageCatalogStep = ({
                             title="Remover bloco"
                             variant="secondary"
                             disabled={
-                              isUpdating ||
+                              isMutationBlocked ||
                               (editDraft.blocks?.length ?? 0) <= 1
                             }
                             onClick={() => removeDraftBlock(index)}
@@ -531,7 +563,7 @@ export const DiexOnboardingPageCatalogStep = ({
                           title="Adicionar bloco"
                           variant="secondary"
                           disabled={
-                            isUpdating ||
+                            isMutationBlocked ||
                             (editDraft.blocks?.length ?? 0) >= 12
                           }
                           onClick={addDraftBlock}
@@ -544,7 +576,7 @@ export const DiexOnboardingPageCatalogStep = ({
                       title="Salvar adaptação"
                       variant="primary"
                       disabled={
-                        isUpdating ||
+                        isMutationBlocked ||
                         (editDraft.label ?? '').trim().length < 2 ||
                         (editDraft.description ?? '').trim().length < 1
                       }
@@ -559,7 +591,7 @@ export const DiexOnboardingPageCatalogStep = ({
                     <Button
                       title="Cancelar"
                       variant="secondary"
-                      disabled={isUpdating}
+                      disabled={isMutationBlocked}
                       onClick={() => setEditDraft(null)}
                     />
                   </StyledActions>
@@ -587,7 +619,7 @@ export const DiexOnboardingPageCatalogStep = ({
         <Button
           title="Criar página personalizada"
           variant="primary"
-          disabled={isUpdating || label.trim().length < 2}
+          disabled={isMutationBlocked || label.trim().length < 2}
           onClick={() =>
             void onCreate(label, description).then((created) => {
               if (created) {

@@ -16,9 +16,11 @@ import {
 import { type AiAction } from '@/diex-command-centers/ai/types';
 import { useAiCommandCenter } from '@/diex-command-centers/ai/useAiCommandCenter';
 import { getRecordName } from '@/diex-command-centers/customer-success/utils';
+import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { Button, Tag } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
+import { isDefined } from 'diex-shared/utils';
 
 const StyledText = styled.p`
   color: ${themeCssVariables.font.color.secondary};
@@ -54,11 +56,11 @@ const statusColor = (
       ? 'blue'
       : status === 'EXECUTING'
         ? 'orange'
-      : status === 'EXECUTED'
-        ? 'green'
-        : ['REJECTED', 'FAILED'].includes(status)
-          ? 'red'
-          : 'gray';
+        : status === 'EXECUTED'
+          ? 'green'
+          : ['REJECTED', 'FAILED'].includes(status)
+            ? 'red'
+            : 'gray';
 const statusLabel = (status: string) =>
   ({
     DRAFT: 'Rascunho',
@@ -103,8 +105,17 @@ const linkedRecords = (action: AiAction) =>
   ] as const;
 
 export const AiCommandCenterPage = () => {
+  const pagePresentation = useDiexPagePresentation({
+    pageKey: 'ai-governance-operations',
+    fallbackLabel: 'Centro de IA',
+    fallbackDescription:
+      'Propostas rastreáveis, decisão humana e recibo antes de qualquer efeito externo.',
+  });
   const {
     actions,
+    actionTotalCount,
+    isPartial,
+    dataLoadedAt,
     currentReviewer,
     isLoading,
     errorMessage,
@@ -173,7 +184,7 @@ export const AiCommandCenterPage = () => {
     actions.find(({ id }) => id === selectedActionId) ??
     visibleActions[0] ??
     null;
-  const execution = selectedAction
+  const execution = isDefined(selectedAction)
     ? executionPreviews[selectedAction.id]
     : null;
   const preview = execution?.mode === 'PREVIEW' ? execution : null;
@@ -181,7 +192,7 @@ export const AiCommandCenterPage = () => {
     preview?.supported && preview.executionKind === 'PIPELINE_UPDATE'
       ? preview
       : null;
-  const targetStage = selectedAction
+  const targetStage = isDefined(selectedAction)
     ? (pipelineTargets[selectedAction.id] ?? '')
     : '';
   useEffect(() => {
@@ -191,14 +202,29 @@ export const AiCommandCenterPage = () => {
   useEffect(() => {
     setReviewNote('');
   }, [selectedAction?.id]);
+  const dataStatus = errorMessage
+    ? actions.length > 0
+      ? 'Falha ao atualizar · dados anteriores preservados'
+      : 'Dados indisponíveis'
+    : isLoading
+      ? 'Atualizando dados reais'
+      : dataLoadedAt
+        ? `${isPartial ? 'Recorte atual' : 'Dados atuais'} · ${new Date(
+            dataLoadedAt,
+          ).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}`
+        : 'Aguardando dados reais';
 
   return (
     <CommandCenterPage
-      title="Centro de IA"
-      description="Propostas rastreáveis, decisão humana e recibo antes de qualquer efeito externo."
+      title={pagePresentation.label}
+      description={pagePresentation.description}
+      statusText={dataStatus}
     >
       {isLoading && actions.length === 0 ? <CommandCenterLoadingState /> : null}
-      {errorMessage ? (
+      {errorMessage && actions.length === 0 ? (
         <CommandCenterCard title="Centro de IA">
           <CommandCenterEmptyState message={errorMessage} />
           <Button
@@ -209,15 +235,31 @@ export const AiCommandCenterPage = () => {
           />
         </CommandCenterCard>
       ) : null}
+      {errorMessage && actions.length > 0 ? (
+        <CommandCenterCard title="Qualidade dos dados">
+          <CommandCenterRow
+            title="A atualização mais recente falhou"
+            detail="As propostas abaixo são da última consulta concluída. Atualize antes de aprovar ou executar uma ação sensível."
+            action={
+              <Button
+                title="Tentar novamente"
+                size="small"
+                variant="secondary"
+                onClick={() => void load()}
+              />
+            }
+          />
+        </CommandCenterCard>
+      ) : null}
       {!isLoading && !errorMessage && actions.length === 0 ? (
         <CommandCenterCard title="A inteligência entra depois da primeira evidência">
           <CommandCenterStartState
             title="A fila de decisões ainda está vazia."
-            message="A IA só propõe ações quando existir conversa, oportunidade, risco ou follow-up para analisar. Conecte o canal e execute o primeiro fluxo comercial para criar evidência real."
+            message="A IA só propõe ações quando existir conversa, oportunidade, risco ou follow-up para analisar. Registre a primeira entrada real pelo canal escolhido para criar evidência."
           />
         </CommandCenterCard>
       ) : null}
-      {!errorMessage && actions.length > 0 ? (
+      {actions.length > 0 ? (
         <>
           <CommandCenterCard title="Governança ativa">
             <CommandCenterRow
@@ -226,7 +268,7 @@ export const AiCommandCenterPage = () => {
                   ? `Revisor: ${getRecordName(currentReviewer)}`
                   : 'Revisor não identificado'
               }
-              detail="Aprovação não executa automaticamente; o executor exige uma segunda confirmação."
+              detail={`Aprovação não executa automaticamente; o executor exige uma segunda confirmação. ${actions.length} de ${actionTotalCount} propostas carregadas.`}
               action={
                 <Button
                   title="Atualizar"
@@ -305,7 +347,7 @@ export const AiCommandCenterPage = () => {
             <CommandCenterCard
               title={selectedAction?.name ?? 'Revisão da proposta'}
             >
-              {!selectedAction ? (
+              {!isDefined(selectedAction) ? (
                 <CommandCenterEmptyState message="Selecione uma proposta da fila para abrir a revisão." />
               ) : (
                 <>
@@ -390,7 +432,7 @@ export const AiCommandCenterPage = () => {
                         aria-label="Nota da decisão"
                         placeholder="Justificativa, ajuste ou condição para a decisão..."
                         value={reviewNote}
-                        disabled={!currentReviewer}
+                        disabled={!currentReviewer || Boolean(errorMessage)}
                         onChange={(event) => setReviewNote(event.target.value)}
                       />
                       <StyledButtons>
@@ -400,6 +442,7 @@ export const AiCommandCenterPage = () => {
                           variant="tertiary"
                           disabled={
                             !currentReviewer ||
+                            Boolean(errorMessage) ||
                             busyActionId === selectedAction.id
                           }
                           onClick={() =>
@@ -415,6 +458,7 @@ export const AiCommandCenterPage = () => {
                           size="small"
                           disabled={
                             !currentReviewer ||
+                            Boolean(errorMessage) ||
                             busyActionId === selectedAction.id
                           }
                           onClick={() =>
@@ -431,8 +475,8 @@ export const AiCommandCenterPage = () => {
                   {selectedAction.status === 'APPROVED' ? (
                     <>
                       <StyledText>
-                        Toda execução exige aprovação humana, registro de escopo,
-                        confirmação e recibo.
+                        Toda execução exige aprovação humana, registro de
+                        escopo, confirmação e recibo.
                       </StyledText>
                       {preview?.supported === false ? (
                         <StyledText>
@@ -458,6 +502,7 @@ export const AiCommandCenterPage = () => {
                         <>
                           <StyledSelect
                             value={targetStage}
+                            disabled={Boolean(errorMessage)}
                             onChange={(event) =>
                               setPipelineTargets((current) => ({
                                 ...current,
@@ -492,6 +537,7 @@ export const AiCommandCenterPage = () => {
                           size="small"
                           variant="secondary"
                           disabled={
+                            Boolean(errorMessage) ||
                             busyExecution?.actionId === selectedAction.id ||
                             (selectedAction.actionType === 'PIPELINE_UPDATE' &&
                               pipelinePreview !== null &&
@@ -514,6 +560,7 @@ export const AiCommandCenterPage = () => {
                             title="Confirmar e criar tarefa"
                             size="small"
                             disabled={
+                              Boolean(errorMessage) ||
                               busyExecution?.actionId === selectedAction.id
                             }
                             onClick={() =>
@@ -528,6 +575,7 @@ export const AiCommandCenterPage = () => {
                             title="Confirmar e enviar WhatsApp"
                             size="small"
                             disabled={
+                              Boolean(errorMessage) ||
                               busyExecution?.actionId === selectedAction.id
                             }
                             onClick={() =>
@@ -544,6 +592,7 @@ export const AiCommandCenterPage = () => {
                             title="Confirmar mudança de etapa"
                             size="small"
                             disabled={
+                              Boolean(errorMessage) ||
                               busyExecution?.actionId === selectedAction.id
                             }
                             onClick={() =>
@@ -560,9 +609,9 @@ export const AiCommandCenterPage = () => {
                   {selectedAction.status === 'EXECUTING' ? (
                     <>
                       <StyledText>
-                        A execução já foi assumida. A reconciliação apenas busca o
-                        recibo existente; ela não inicia outro envio nem repete a
-                        alteração.
+                        A execução já foi assumida. A reconciliação apenas busca
+                        o recibo existente; ela não inicia outro envio nem
+                        repete a alteração.
                       </StyledText>
                       {preview?.supported === false ? (
                         <StyledText>{preview.message}</StyledText>
@@ -573,13 +622,11 @@ export const AiCommandCenterPage = () => {
                           size="small"
                           variant="secondary"
                           disabled={
+                            Boolean(errorMessage) ||
                             busyExecution?.actionId === selectedAction.id
                           }
                           onClick={() =>
-                            void executeAction(
-                              selectedAction.id,
-                              'PREVIEW',
-                            )
+                            void executeAction(selectedAction.id, 'PREVIEW')
                           }
                         />
                       </StyledButtons>

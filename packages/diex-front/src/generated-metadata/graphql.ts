@@ -4571,6 +4571,7 @@ export type PendingWorkspaceApproval = {
   displayName?: Maybe<Scalars['String']['output']>;
   idealCustomerProfile?: Maybe<Scalars['String']['output']>;
   memberCount: Scalars['Float']['output'];
+  primaryChannel?: Maybe<Scalars['String']['output']>;
   primaryGoal?: Maybe<Scalars['String']['output']>;
   requesterEmail?: Maybe<Scalars['String']['output']>;
   requesterName?: Maybe<Scalars['String']['output']>;
@@ -5660,10 +5661,11 @@ export type SignUpInNewWorkspaceInput = {
   currentProcess: Scalars['String']['input'];
   displayName?: InputMaybe<Scalars['String']['input']>;
   idealCustomerProfile: Scalars['String']['input'];
+  primaryChannel?: InputMaybe<Scalars['String']['input']>;
   primaryGoal: Scalars['String']['input'];
   subdomain?: InputMaybe<Scalars['String']['input']>;
   toneOfVoice: Scalars['String']['input'];
-  whatsapp: Scalars['String']['input'];
+  whatsapp?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Skill = {

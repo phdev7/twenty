@@ -16,6 +16,7 @@ import {
 import { CustomerSuccessHandoff } from '@/diex-command-centers/customer-success/CustomerSuccessHandoff';
 import { CustomerSuccessPlanOperation } from '@/diex-command-centers/customer-success/CustomerSuccessPlanOperation';
 import { useCustomerSuccessCommandCenter } from '@/diex-command-centers/customer-success/useCustomerSuccessCommandCenter';
+import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
 import {
   LIFECYCLE_STAGES,
   daysUntil,
@@ -83,11 +84,21 @@ const filters = [
 ] as const;
 
 export const CustomerSuccessCommandCenterPage = () => {
+  const pagePresentation = useDiexPagePresentation({
+    pageKey: 'customer-success-center',
+    fallbackLabel: 'Customer Success',
+    fallbackDescription:
+      'Saúde, adoção, valor entregue, marcos, risco e expansão ligados aos dados reais do CRM.',
+  });
   const {
     plans,
     handoffOpportunities,
     workspaceMembers,
     currentWorkspaceMemberId,
+    planTotalCount,
+    handoffTotalCount,
+    isPartial,
+    dataLoadedAt,
     isLoading,
     errorMessage,
     load,
@@ -95,22 +106,32 @@ export const CustomerSuccessCommandCenterPage = () => {
   const [filter, setFilter] = useState('ALL');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const metrics = useMemo(() => {
-    const currencyCounts = plans.reduce<Record<string, number>>(
-      (counts, plan) => {
-        const currency = plan.recurringRevenue?.currencyCode?.trim();
-        if (currency) counts[currency] = (counts[currency] ?? 0) + 1;
-        return counts;
-      },
-      {},
-    );
-    const primaryCurrency =
-      Object.entries(currencyCounts).sort(
-        ([, left], [, right]) => right - left,
-      )[0]?.[0] ?? 'BRL';
-    const plansInCurrency = plans.filter(
-      (plan) =>
-        (plan.recurringRevenue?.currencyCode?.trim() || primaryCurrency) ===
-        primaryCurrency,
+    const revenueByCurrency = Object.values(
+      plans.reduce<
+        Record<
+          string,
+          {
+            currencyCode: string;
+            totalRevenue: number;
+            riskRevenue: number;
+          }
+        >
+      >((totals, plan) => {
+        const currencyCode =
+          plan.recurringRevenue?.currencyCode?.trim() || 'BRL';
+        const current = totals[currencyCode] ?? {
+          currencyCode,
+          totalRevenue: 0,
+          riskRevenue: 0,
+        };
+        const amount = moneyAmount(plan.recurringRevenue);
+
+        current.totalRevenue += amount;
+        current.riskRevenue += isRiskPlan(plan) ? amount : 0;
+        totals[currencyCode] = current;
+
+        return totals;
+      }, {}),
     );
     const renewalsIn90Days = plans.filter((plan) => {
       const days = daysUntil(plan.renewalDate);
@@ -120,14 +141,7 @@ export const CustomerSuccessCommandCenterPage = () => {
       (plan) => (daysUntil(plan.nextReviewAt) ?? 0) < 0,
     );
     return {
-      primaryCurrency,
-      totalRevenue: plansInCurrency.reduce(
-        (total, plan) => total + moneyAmount(plan.recurringRevenue),
-        0,
-      ),
-      riskRevenue: plansInCurrency
-        .filter(isRiskPlan)
-        .reduce((total, plan) => total + moneyAmount(plan.recurringRevenue), 0),
+      revenueByCurrency,
       renewalsIn90Days,
       overdueReviews,
       healthy: plans.filter(({ health }) => health === 'HEALTHY').length,
@@ -182,14 +196,29 @@ export const CustomerSuccessCommandCenterPage = () => {
     .slice(0, 6);
   const hasCustomerSuccessData =
     plans.length > 0 || handoffOpportunities.length > 0;
+  const dataStatus = errorMessage
+    ? hasCustomerSuccessData
+      ? 'Falha ao atualizar · dados anteriores preservados'
+      : 'Dados indisponíveis'
+    : isLoading
+      ? 'Atualizando dados reais'
+      : dataLoadedAt
+        ? `${isPartial ? 'Recorte atual' : 'Dados atuais'} · ${new Date(
+            dataLoadedAt,
+          ).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}`
+        : 'Aguardando dados reais';
 
   return (
     <CommandCenterPage
-      title="Customer Success"
-      description="Saúde, adoção, valor entregue, marcos, risco e expansão ligados aos dados reais do CRM."
+      title={pagePresentation.label}
+      description={pagePresentation.description}
+      statusText={dataStatus}
     >
       {isLoading && plans.length === 0 ? <CommandCenterLoadingState /> : null}
-      {errorMessage ? (
+      {errorMessage && !hasCustomerSuccessData ? (
         <CommandCenterCard title="Customer Success">
           <CommandCenterEmptyState message={errorMessage} />
           <Button
@@ -200,20 +229,36 @@ export const CustomerSuccessCommandCenterPage = () => {
           />
         </CommandCenterCard>
       ) : null}
+      {errorMessage && hasCustomerSuccessData ? (
+        <CommandCenterCard title="Qualidade dos dados">
+          <CommandCenterRow
+            title="A atualização da carteira falhou"
+            detail="Os dados abaixo pertencem à última consulta concluída. Atualize antes de decidir sobre risco, expansão ou renovação."
+            action={
+              <Button
+                title="Tentar novamente"
+                size="small"
+                variant="secondary"
+                onClick={() => void load()}
+              />
+            }
+          />
+        </CommandCenterCard>
+      ) : null}
       {!isLoading && !errorMessage && !hasCustomerSuccessData ? (
         <CommandCenterCard title="Customer Success começa com uma carteira ativa">
           <CommandCenterStartState
             title="Ainda não há clientes para proteger ou expandir."
-            message="Conecte o canal comercial e crie a primeira oportunidade. Depois do fechamento, o sistema trará a conta para esta operação com plano, responsável, risco e próxima revisão."
+            message="Defina a forma de entrada e crie a primeira oportunidade. Depois do fechamento, o sistema trará a conta para esta operação com plano, responsável, risco e próxima revisão."
           />
         </CommandCenterCard>
       ) : null}
-      {!errorMessage && hasCustomerSuccessData ? (
+      {hasCustomerSuccessData ? (
         <>
           <CommandCenterCard title="Proteja receita antes que a renovação vire urgência.">
             <CommandCenterRow
-              title={`${plans.length} plano${plans.length === 1 ? '' : 's'} ativo${plans.length === 1 ? '' : 's'}`}
-              detail="Distribuição da saúde da carteira"
+              title={`${plans.length} de ${planTotalCount} plano${planTotalCount === 1 ? '' : 's'} carregado${plans.length === 1 ? '' : 's'}`}
+              detail={`Distribuição da saúde da carteira no recorte atual · ${handoffTotalCount} oportunidade${handoffTotalCount === 1 ? '' : 's'} fechada${handoffTotalCount === 1 ? '' : 's'} na base`}
               action={
                 <Button
                   title="Atualizar carteira"
@@ -230,30 +275,36 @@ export const CustomerSuccessCommandCenterPage = () => {
               <Tag color="red" text={`${metrics.critical} críticos`} />
             </StyledFilters>
           </CommandCenterCard>
-          <CommandCenterGrid>
-            <CustomerSuccessHandoff
-              opportunities={handoffOpportunities}
-              workspaceMembers={workspaceMembers}
-              currentWorkspaceMemberId={currentWorkspaceMemberId}
-              onCompleted={load}
-            />
-          </CommandCenterGrid>
+          {!errorMessage ? (
+            <CommandCenterGrid>
+              <CustomerSuccessHandoff
+                opportunities={handoffOpportunities}
+                workspaceMembers={workspaceMembers}
+                currentWorkspaceMemberId={currentWorkspaceMemberId}
+                onCompleted={load}
+              />
+            </CommandCenterGrid>
+          ) : null}
           <CommandCenterMetrics>
             <CommandCenterMetric
-              label="Receita acompanhada"
-              value={formatMoney(
-                metrics.totalRevenue,
-                metrics.primaryCurrency,
-                true,
-              )}
+              label={isPartial ? 'Receita no recorte' : 'Receita acompanhada'}
+              value={
+                metrics.revenueByCurrency
+                  .map(({ totalRevenue, currencyCode }) =>
+                    formatMoney(totalRevenue, currencyCode, true),
+                  )
+                  .join(' + ') || formatMoney(0, 'BRL', true)
+              }
             />
             <CommandCenterMetric
               label="Receita sob risco"
-              value={formatMoney(
-                metrics.riskRevenue,
-                metrics.primaryCurrency,
-                true,
-              )}
+              value={
+                metrics.revenueByCurrency
+                  .map(({ riskRevenue, currencyCode }) =>
+                    formatMoney(riskRevenue, currencyCode, true),
+                  )
+                  .join(' + ') || formatMoney(0, 'BRL', true)
+              }
             />
             <CommandCenterMetric
               label="Renovações em 90 dias"
@@ -339,10 +390,12 @@ export const CustomerSuccessCommandCenterPage = () => {
                 </CommandCenterList>
               )}
             </CommandCenterCard>
-            <CustomerSuccessPlanOperation
-              plan={selectedPlan}
-              onCompleted={load}
-            />
+            {!errorMessage ? (
+              <CustomerSuccessPlanOperation
+                plan={selectedPlan}
+                onCompleted={load}
+              />
+            ) : null}
           </CommandCenterGrid>
           <CommandCenterCard title="Horizonte de renovação">
             {renewalHorizon.length === 0 ? (

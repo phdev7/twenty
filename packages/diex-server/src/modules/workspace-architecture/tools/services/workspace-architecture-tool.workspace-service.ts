@@ -53,7 +53,10 @@ export class WorkspaceArchitectureToolWorkspaceService {
     private readonly workspaceCommercialReadinessService: WorkspaceCommercialReadinessService,
   ) {}
 
-  generateTools(workspaceId: string): ToolSet {
+  generateTools(
+    workspaceId: string,
+    { allowStructuralPublication = false } = {},
+  ): ToolSet {
     return {
       inspect_workspace_architecture: {
         description:
@@ -244,26 +247,30 @@ export class WorkspaceArchitectureToolWorkspaceService {
           };
         },
       },
-      approve_workspace_change_set: {
-        description:
-          'Registra aprovação explícita de um change set validado. Exige permissão de modelo de dados e ainda não aplica a estrutura.',
-        inputSchema: versionInputSchema,
-        execute: async ({ version }: { version: number }) =>
-          this.workspaceArchitectureService.approveChangeSet({
-            workspaceId,
-            version,
-          }),
-      },
-      apply_workspace_change_set: {
-        description:
-          'Aplica somente um change set explicitamente aprovado, com lock distribuído, idempotência, publicação nativa de objetos e campos, ativação declarativa dos demais recursos e auditoria. Quando um recurso ainda não possui adaptador nativo, retorna PARTIALLY_APPLIED e mantém o backlog explícito. Se a publicação nativa falhar, tenta compensar somente os objetos e campos criados nesta execução. Operações destrutivas são bloqueadas.',
-        inputSchema: versionInputSchema,
-        execute: async ({ version }: { version: number }) =>
-          this.workspaceArchitectureService.applyApprovedChangeSet({
-            workspaceId,
-            version,
-          }),
-      },
+      ...(allowStructuralPublication
+        ? {
+            approve_workspace_change_set: {
+              description:
+                'Registra a aprovação explícita do administrador para o change set validado mais recente. Não aplica a estrutura.',
+              inputSchema: versionInputSchema,
+              execute: async ({ version }: { version: number }) =>
+                this.workspaceArchitectureService.approveChangeSet({
+                  workspaceId,
+                  version,
+                }),
+            },
+            apply_workspace_change_set: {
+              description:
+                'Publica somente o change set mais recente já aprovado pelo administrador, com lock distribuído, idempotência, compensação e bloqueio de operações destrutivas.',
+              inputSchema: versionInputSchema,
+              execute: async ({ version }: { version: number }) =>
+                this.workspaceArchitectureService.applyApprovedChangeSet({
+                  workspaceId,
+                  version,
+                }),
+            },
+          }
+        : {}),
       get_workspace_setup_readiness: {
         description:
           'Calcula o mesmo readiness adaptativo usado pelo onboarding e pelo cockpit: contexto, oferta, fluxo, responsáveis, canal, primeira entrada, primeiro registro, próxima ação e leitura da IA.',

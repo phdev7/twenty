@@ -28,7 +28,7 @@ export const useInboxConversationActivity = ({
       orderBy: [{ occurredAt: 'AscNullsLast' }],
       limit: 50,
       recordGqlFields: inboxConversationEventGqlFields,
-      fetchPolicy: 'cache-and-network',
+      fetchPolicy: 'network-only',
       skip: selectedConversationId === null,
     });
 

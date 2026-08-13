@@ -16,6 +16,7 @@ import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomState
 const RENEWAL_QUERY = gql`
   query DiexRenewalCommandCenter {
     customerRenewals(first: 200, orderBy: [{ targetDate: AscNullsLast }]) {
+      totalCount
       edges {
         node {
           id
@@ -82,6 +83,7 @@ const RENEWAL_QUERY = gql`
       }
     }
     successPlans(first: 200, orderBy: [{ renewalDate: AscNullsLast }]) {
+      totalCount
       edges {
         node {
           id
@@ -160,8 +162,14 @@ type RenewalNode = Omit<CustomerRenewal, 'renewalEvents'> & {
   renewalEvents?: { edges?: Array<{ node: RenewalEvent }> } | null;
 };
 type QueryData = {
-  customerRenewals?: { edges?: Array<{ node: RenewalNode }> };
-  successPlans?: { edges?: Array<{ node: RenewalSuccessPlan }> };
+  customerRenewals?: {
+    totalCount?: number;
+    edges?: Array<{ node: RenewalNode }>;
+  };
+  successPlans?: {
+    totalCount?: number;
+    edges?: Array<{ node: RenewalSuccessPlan }>;
+  };
   workspaceMembers?: { edges?: Array<{ node: RenewalWorkspaceMember }> };
 };
 
@@ -200,7 +208,10 @@ export const useRenewalCommandCenter = () => {
     enqueueSuccessSnackBar,
     enqueueWarningSnackBar,
   } = useSnackBar();
-  const { data, loading, error, refetch } = useQuery<QueryData>(RENEWAL_QUERY);
+  const { data, loading, error, refetch } = useQuery<QueryData>(RENEWAL_QUERY, {
+    fetchPolicy: 'network-only',
+    notifyOnNetworkStatusChange: true,
+  });
   const renewals = useMemo(
     () =>
       data?.customerRenewals?.edges?.map(({ node }) => ({
@@ -227,6 +238,14 @@ export const useRenewalCommandCenter = () => {
   const currentWorkspaceMemberId =
     workspaceMembers.find(({ userId }) => userId === currentUser?.id)?.id ??
     null;
+  const renewalTotalCount =
+    data?.customerRenewals?.totalCount ?? renewals.length;
+  const successPlanTotalCount =
+    data?.successPlans?.totalCount ?? successPlans.length;
+  const dataLoadedAt = useMemo(
+    () => (data ? new Date().toISOString() : null),
+    [data],
+  );
   const recordEvent = useCallback(
     async (customerRenewalId: string, eventType: string, summary: string) => {
       try {
@@ -254,6 +273,14 @@ export const useRenewalCommandCenter = () => {
   );
   const createRenewal = useCallback(
     async (successPlanId: string): Promise<string | null> => {
+      if (error) {
+        enqueueErrorSnackBar({
+          message:
+            'Atualize as renovações antes de criar um caso; os dados atuais não foram confirmados.',
+        });
+        return null;
+      }
+
       const plan = successPlans.find(({ id }) => id === successPlanId);
       if (!plan) {
         enqueueWarningSnackBar({
@@ -333,6 +360,7 @@ export const useRenewalCommandCenter = () => {
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,
+      error,
       recordEvent,
       refetch,
       renewals,
@@ -341,6 +369,14 @@ export const useRenewalCommandCenter = () => {
   );
   const updateRenewal = useCallback(
     async (id: string, draft: RenewalDraft): Promise<boolean> => {
+      if (error) {
+        enqueueErrorSnackBar({
+          message:
+            'Atualize as renovações antes de salvar; os dados atuais não foram confirmados.',
+        });
+        return false;
+      }
+
       const renewal = renewals.find((item) => item.id === id);
       if (!renewal) return false;
       const isClosed = ['RENEWED', 'CHURNED'].includes(draft.stage);
@@ -428,6 +464,7 @@ export const useRenewalCommandCenter = () => {
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,
+      error,
       recordEvent,
       refetch,
       renewals,
@@ -435,6 +472,14 @@ export const useRenewalCommandCenter = () => {
   );
   const recordTouch = useCallback(
     async (id: string) => {
+      if (error) {
+        enqueueErrorSnackBar({
+          message:
+            'Atualize as renovações antes de registrar contato; os dados atuais não foram confirmados.',
+        });
+        return false;
+      }
+
       try {
         await client.mutate({
           mutation: UPDATE_RENEWAL,
@@ -461,12 +506,21 @@ export const useRenewalCommandCenter = () => {
       client,
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
+      error,
       recordEvent,
       refetch,
     ],
   );
   const proposeAiIntervention = useCallback(
     async (id: string) => {
+      if (error) {
+        enqueueErrorSnackBar({
+          message:
+            'Atualize as renovações antes de propor uma ação; os dados atuais não foram confirmados.',
+        });
+        return false;
+      }
+
       const renewal = renewals.find((item) => item.id === id);
       if (!renewal?.successPlan?.id) {
         enqueueWarningSnackBar({
@@ -539,6 +593,7 @@ export const useRenewalCommandCenter = () => {
       enqueueErrorSnackBar,
       enqueueSuccessSnackBar,
       enqueueWarningSnackBar,
+      error,
       recordEvent,
       refetch,
       renewals,
@@ -548,6 +603,12 @@ export const useRenewalCommandCenter = () => {
     renewals,
     successPlans,
     workspaceMembers,
+    renewalTotalCount,
+    successPlanTotalCount,
+    isPartial:
+      renewalTotalCount > renewals.length ||
+      successPlanTotalCount > successPlans.length,
+    dataLoadedAt,
     isLoading: loading,
     errorMessage: error
       ? 'Não foi possível carregar o Centro de Renovações.'

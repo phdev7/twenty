@@ -7,6 +7,7 @@ export const fromWorkspaceEntityToFlat = (
   id: entity.id,
   displayName: entity.displayName,
   onboardingWhatsapp: entity.onboardingWhatsapp,
+  onboardingPrimaryChannel: entity.onboardingPrimaryChannel,
   onboardingCompanyDescription: entity.onboardingCompanyDescription,
   onboardingIdealCustomerProfile: entity.onboardingIdealCustomerProfile,
   onboardingToneOfVoice: entity.onboardingToneOfVoice,

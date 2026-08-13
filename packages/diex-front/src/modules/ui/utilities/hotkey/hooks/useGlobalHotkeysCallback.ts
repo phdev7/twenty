@@ -12,15 +12,30 @@ import {
 import { logDebug } from '~/utils/logDebug';
 
 const isTextEntryTarget = (target: EventTarget | null): boolean => {
-  if (!(target instanceof HTMLElement)) {
+  if (!(target instanceof Element)) {
     return false;
   }
 
   return (
-    target.isContentEditable ||
+    (target instanceof HTMLElement && target.isContentEditable) ||
     target.closest(
       'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="searchbox"]',
     ) !== null
+  );
+};
+
+const isTextEntryEvent = (keyboardEvent: KeyboardEvent): boolean => {
+  if (keyboardEvent.isComposing) {
+    return true;
+  }
+
+  const eventPath = keyboardEvent.composedPath?.() ?? [];
+
+  return (
+    isTextEntryTarget(keyboardEvent.target) ||
+    eventPath.some(isTextEntryTarget) ||
+    (typeof document !== 'undefined' &&
+      isTextEntryTarget(document.activeElement))
   );
 };
 
@@ -51,7 +66,7 @@ export const useGlobalHotkeysCallback = (
 
       if (
         !containsModifier &&
-        isTextEntryTarget(keyboardEvent.target) &&
+        isTextEntryEvent(keyboardEvent) &&
         !isNonTextWritingKey(keyboardEvent.key)
       ) {
         store.set(pendingHotkeyState.atom, null);

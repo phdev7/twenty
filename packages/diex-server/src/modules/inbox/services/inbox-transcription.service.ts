@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DiexConfigService } from 'src/engine/core-modules/diex-config/diex-config.service';
+import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
 
 // Whisper is reached directly because there is no other transcription service
 // to reuse. The key is a server variable, so no workspace admin handles it.
@@ -50,7 +51,10 @@ const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
 
 @Injectable()
 export class InboxTranscriptionService {
-  constructor(private readonly diexConfigService: DiexConfigService) {}
+  constructor(
+    private readonly diexConfigService: DiexConfigService,
+    private readonly aiBillingService: AiBillingService,
+  ) {}
 
   // The dedicated variable wins so transcription can be pointed at its own key
   // or budget, but a workspace that already gave the CRM an OpenAI key should
@@ -70,12 +74,15 @@ export class InboxTranscriptionService {
   // A missing key is not a failure to retry: it is a capability the operator
   // has not turned on.
   async transcribeAudio({
+    workspaceId,
     base64,
     mimeType,
   }: {
+    workspaceId: string;
     base64: string;
     mimeType: string;
   }): Promise<TranscriptionOutcome> {
+    await this.aiBillingService.assertWorkspaceCanUseAi(workspaceId);
     const apiKey = this.readOpenAiApiKey();
 
     if (!apiKey) {

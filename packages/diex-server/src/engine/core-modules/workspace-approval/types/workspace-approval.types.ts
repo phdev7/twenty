@@ -7,6 +7,7 @@ export type PendingWorkspaceApproval = {
   requesterName: string | null;
   memberCount: number;
   whatsapp: string | null;
+  primaryChannel: string | null;
   companyDescription: string | null;
   idealCustomerProfile: string | null;
   toneOfVoice: string | null;

@@ -3,10 +3,8 @@ import { useCallback } from 'react';
 import { DiexOnboardingWhatsappStep } from '@/diex-onboarding/components/DiexOnboardingWhatsappStep';
 import { useDiexOnboardingWhatsappConnection } from '@/diex-onboarding/hooks/useDiexOnboardingWhatsappConnection';
 
-// The QR is intentionally mounted on the first Diex screen. A new workspace
-// must start receiving commercial conversations before the owner reaches the
-// longer architecture review, and the connection hook provisions the instance
-// idempotently on mount.
+// This legacy prompt only reads connection status on mount. Provisioning and
+// QR generation still require an explicit click.
 export const DiexOnboardingWhatsappPrompt = () => {
   const onConnected = useCallback(() => undefined, []);
   const {
@@ -22,7 +20,10 @@ export const DiexOnboardingWhatsappPrompt = () => {
       index={1}
       connection={connection}
       isConnecting={isLoadingConnection || isConnecting}
-      isDone={connection?.state === 'CONNECTED'}
+      isDone={
+        connection?.state === 'CONNECTED' && Boolean(connection.validatedAt)
+      }
+      primaryChannel="WHATSAPP"
       errorMessage={errorMessage}
       onRequestConnection={() => void requestConnection()}
     />

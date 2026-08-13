@@ -22,7 +22,7 @@ export const useInboxMentionsQuery = ({
     orderBy: [{ mentionedAt: 'DescNullsLast' }],
     limit: 200,
     recordGqlFields: inboxMentionGqlFields,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
     skip: selectedConversationId === null,
   });
 
@@ -39,7 +39,7 @@ export const useInboxMentionsQuery = ({
     orderBy: [{ mentionedAt: 'DescNullsLast' }],
     limit: 500,
     recordGqlFields: inboxMentionGqlFields,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
     skip: currentWorkspaceMemberId === null,
   });
 

@@ -29,8 +29,8 @@ const CONTEXT_FIELDS: Array<{
 }> = [
   {
     key: 'businessDescription',
-    label: 'O que a empresa faz',
-    hint: 'Atividade, mercado e como gera valor ou receita.',
+    label: 'Operação, ofertas e processo',
+    hint: 'Atividade, produtos, canais, processo, equipe, metas e métricas.',
     isRequiredForActivation: true,
   },
   {
@@ -59,8 +59,8 @@ const CONTEXT_FIELDS: Array<{
   },
   {
     key: 'competitiveLandscape',
-    label: 'Concorrência',
-    hint: 'Concorrentes e o posicionamento de vocês.',
+    label: 'Provas e diferenciais',
+    hint: 'Cases, provas, diferenciais e concorrentes reais.',
     isRequiredForActivation: false,
   },
   {
@@ -142,6 +142,9 @@ type DiexOnboardingContextStepProps = {
   onSaveContext: (draft: WorkspaceContextDraft) => void;
   onActivateContext: () => void;
   onRetry: () => void;
+  onBack?: () => void;
+  onRegenerate?: () => void;
+  isRegenerating?: boolean;
 };
 
 export const DiexOnboardingContextStep = ({
@@ -158,6 +161,9 @@ export const DiexOnboardingContextStep = ({
   onSaveContext,
   onActivateContext,
   onRetry,
+  onBack,
+  onRegenerate,
+  isRegenerating = false,
 }: DiexOnboardingContextStepProps) => {
   const contextFields: ContextField[] = useMemo(
     () =>
@@ -239,6 +245,26 @@ export const DiexOnboardingContextStep = ({
             onSave={onSaveContext}
           />
           <StyledActions>
+            {onRegenerate ? (
+              <Button
+                variant="primary"
+                title={
+                  isRegenerating ? 'Recalculando...' : 'Recalcular recomendação'
+                }
+                disabled={
+                  isSavingContext || isActivatingContext || isRegenerating
+                }
+                onClick={onRegenerate}
+              />
+            ) : null}
+            {onBack ? (
+              <Button
+                variant="secondary"
+                title="Voltar à recomendação"
+                disabled={isSavingContext || isActivatingContext}
+                onClick={onBack}
+              />
+            ) : null}
             {isContextDone ? null : (
               <Button
                 variant="primary"

@@ -1,4 +1,7 @@
 import { currentUserState } from '@/auth/states/currentUserState';
+import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
+import { type DiexPageCatalogState } from '@/diex-onboarding/types/diexOnboardingTypes';
+import { getDiexOnboardingRoute } from '@/diex-onboarding/utils/diexOnboardingApi';
 import { metadataStoreState } from '@/metadata-store/states/metadataStoreState';
 import { metadataStoreStatusFamilySelector } from '@/metadata-store/states/metadataStoreStatusFamilySelector';
 import { useNavigationMenuItemSectionItems } from '@/navigation-menu-item/display/hooks/useNavigationMenuItemSectionItems';
@@ -13,12 +16,19 @@ import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAto
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { viewsSelector } from '@/views/states/selectors/viewsSelector';
 import isEmpty from 'lodash.isempty';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppPath, SettingsPath } from 'diex-shared/types';
 import { getAppPath, getSettingsPath, isDefined } from 'diex-shared/utils';
+import { OnboardingStatus } from '~/generated-metadata/graphql';
+
+const DIEX_PAGE_CATALOG_PATH = '/diex/pages';
 
 export const useDefaultHomePagePath = () => {
   const currentUser = useAtomStateValue(currentUserState);
+  const currentWorkspace = useAtomStateValue(currentWorkspaceState);
+  const [adaptiveHomePath, setAdaptiveHomePath] = useState<
+    string | null | undefined
+  >(undefined);
   const { objectPermissionsByObjectMetadataId } = useObjectPermissions();
   const metadataStore = useAtomFamilyStateValue(
     metadataStoreState,
@@ -36,6 +46,69 @@ export const useDefaultHomePagePath = () => {
   const objectMetadataItems = useAtomStateValue(objectMetadataItemsSelector);
   const views = useAtomStateValue(viewsSelector);
   const navigationMenuItemsInDisplayOrder = useNavigationMenuItemSectionItems();
+
+  useEffect(() => {
+    if (currentUser?.onboardingStatus !== OnboardingStatus.COMPLETED) {
+      setAdaptiveHomePath(null);
+      return;
+    }
+
+    if (!areObjectMetadataItemsLoaded || !areNavigationMenuItemsLoaded) {
+      setAdaptiveHomePath(undefined);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadAdaptiveHome = async () => {
+      try {
+        const catalog = await getDiexOnboardingRoute<DiexPageCatalogState>(
+          '/rest/diex/onboarding/pages',
+        );
+        const activePages = catalog.items
+          .filter(
+            ({ key, showInNavigation, status, route }) =>
+              key !== 'first-steps' &&
+              showInNavigation &&
+              status === 'ACTIVE' &&
+              route.startsWith('/') &&
+              !route.startsWith('//'),
+          )
+          .sort((left, right) => left.position - right.position);
+        const homePage =
+          activePages.find(({ renderer }) => renderer === 'DASHBOARD') ??
+          activePages[0];
+
+        if (!cancelled) {
+          setAdaptiveHomePath(homePage?.route ?? DIEX_PAGE_CATALOG_PATH);
+        }
+      } catch {
+        if (!cancelled) {
+          setAdaptiveHomePath(DIEX_PAGE_CATALOG_PATH);
+        }
+      }
+    };
+    const handleCatalogUpdate = () => {
+      void loadAdaptiveHome();
+    };
+
+    setAdaptiveHomePath(undefined);
+    void loadAdaptiveHome();
+    window.addEventListener('diex-onboarding-updated', handleCatalogUpdate);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(
+        'diex-onboarding-updated',
+        handleCatalogUpdate,
+      );
+    };
+  }, [
+    areNavigationMenuItemsLoaded,
+    areObjectMetadataItemsLoaded,
+    currentUser?.onboardingStatus,
+    currentWorkspace?.id,
+  ]);
 
   const readableNonSystemObjectMetadataItems = useMemo(
     () =>
@@ -97,6 +170,12 @@ export const useDefaultHomePagePath = () => {
       return AppPath.Index;
     }
 
+    if (currentUser.onboardingStatus === OnboardingStatus.COMPLETED) {
+      return adaptiveHomePath === undefined
+        ? AppPath.Index
+        : (adaptiveHomePath ?? DIEX_PAGE_CATALOG_PATH);
+    }
+
     if (isEmpty(readableNonSystemObjectMetadataItems)) {
       return getSettingsPath(SettingsPath.ProfilePage);
     }
@@ -118,6 +197,7 @@ export const useDefaultHomePagePath = () => {
     );
   }, [
     currentUser,
+    adaptiveHomePath,
     readableNonSystemObjectMetadataItems,
     areObjectMetadataItemsLoaded,
     areNavigationMenuItemsLoaded,

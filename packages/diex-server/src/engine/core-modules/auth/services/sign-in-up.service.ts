@@ -558,7 +558,8 @@ export class SignInUpService {
       subdomain?: string;
       workspaceId?: string;
       onboardingProfile?: {
-        whatsapp: string;
+        whatsapp?: string;
+        primaryChannel?: string;
         companyDescription: string;
         idealCustomerProfile: string;
         toneOfVoice: string;
@@ -612,12 +613,18 @@ export class SignInUpService {
     const workspaceId = options?.workspaceId ?? v4();
     const workspaceCustomApplicationId = v4();
     const onboardingProfile = options?.onboardingProfile;
-    const whatsappDigits = onboardingProfile?.whatsapp.replace(/\D/g, '') ?? '';
+    const normalizedPrimaryChannel =
+      onboardingProfile?.primaryChannel?.trim().toUpperCase() ??
+      (onboardingProfile?.whatsapp?.trim() ? 'WHATSAPP' : null);
+    const whatsappDigits =
+      normalizedPrimaryChannel === 'WHATSAPP'
+        ? (onboardingProfile?.whatsapp?.replace(/\D/g, '') ?? '')
+        : '';
     const normalizedWhatsapp =
       whatsappDigits.length > 0
         ? `+${
             whatsappDigits.length <= 11 &&
-            !onboardingProfile?.whatsapp.trim().startsWith('+')
+            !onboardingProfile?.whatsapp?.trim().startsWith('+')
               ? `55${whatsappDigits}`
               : whatsappDigits
           }`
@@ -640,6 +647,7 @@ export class SignInUpService {
             inviteHash: v4(),
             activationStatus: WorkspaceActivationStatus.PENDING_CREATION,
             onboardingWhatsapp: normalizedWhatsapp,
+            onboardingPrimaryChannel: normalizedPrimaryChannel,
             onboardingCompanyDescription:
               onboardingProfile?.companyDescription.trim() ?? null,
             onboardingIdealCustomerProfile:

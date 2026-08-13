@@ -47,7 +47,7 @@ export const useDiexAccessRequests = () => {
     orderBy: [{ requestedAt: 'DescNullsLast' }],
     limit: 100,
     recordGqlFields: accessRequestGqlFields,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
   });
   const [busyRequestId, setBusyRequestId] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<

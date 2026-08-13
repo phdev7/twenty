@@ -80,7 +80,18 @@ export const useInboxConversationsQuery = () => {
     orderBy: [{ lastMessageAt: 'DescNullsLast' }],
     limit: searchTerm.length > 0 ? INBOX_SEARCH_PAGE_SIZE : conversationLimit,
     recordGqlFields: inboxConversationGqlFields,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
+  });
+  const {
+    totalCount: workspaceConversationTotalCount,
+    loading: isLoadingWorkspaceConversationCount,
+    error: workspaceConversationCountError,
+    refetch: refetchWorkspaceConversationCount,
+  } = useFindManyRecords({
+    objectNameSingular: 'inboxConversation',
+    limit: 1,
+    recordGqlFields: { id: true },
+    fetchPolicy: 'network-only',
   });
 
   // The provider does not always signal a snooze deadline passing, so a
@@ -225,12 +236,16 @@ export const useInboxConversationsQuery = () => {
   return {
     conversations,
     conversationTotalCount: totalCount ?? 0,
+    workspaceConversationTotalCount: workspaceConversationTotalCount ?? 0,
+    isLoadingWorkspaceConversationCount,
+    workspaceConversationCountError,
     hasMoreConversations,
     loadMoreConversations,
     isLoadingConversations,
     isSearching: query.trim() !== debouncedQuery.trim(),
     conversationsError: error,
     refetchConversations: refetch,
+    refetchWorkspaceConversationCount,
     query,
     setQuery,
     filter,

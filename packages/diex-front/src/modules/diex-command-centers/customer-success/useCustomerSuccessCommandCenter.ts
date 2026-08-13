@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
+import { useMemo } from 'react';
 
 import { currentUserState } from '@/auth/states/currentUserState';
 import {
@@ -14,6 +15,7 @@ import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomState
 const CUSTOMER_SUCCESS_COMMAND_CENTER_QUERY = gql`
   query DiexCustomerSuccessCommandCenter {
     successPlans(first: 100, orderBy: [{ renewalDate: AscNullsLast }]) {
+      totalCount
       edges {
         node {
           id
@@ -104,6 +106,7 @@ const CUSTOMER_SUCCESS_COMMAND_CENTER_QUERY = gql`
       filter: { stage: { eq: CUSTOMER } }
       orderBy: [{ updatedAt: DescNullsLast }]
     ) {
+      totalCount
       edges {
         node {
           id
@@ -165,8 +168,12 @@ type SuccessPlanNode = Omit<CustomerSuccessPlan, 'milestones' | 'aiActions'> & {
   aiActions?: { edges?: Array<{ node: CustomerSuccessAiAction }> } | null;
 };
 type QueryData = {
-  successPlans?: { edges?: Array<{ node: SuccessPlanNode }> };
+  successPlans?: {
+    totalCount?: number;
+    edges?: Array<{ node: SuccessPlanNode }>;
+  };
   opportunities?: {
+    totalCount?: number;
     edges?: Array<{ node: CustomerSuccessHandoffOpportunity }>;
   };
   workspaceMembers?: {
@@ -178,6 +185,10 @@ export const useCustomerSuccessCommandCenter = () => {
   const currentUser = useAtomStateValue(currentUserState);
   const { data, loading, error, refetch } = useQuery<QueryData>(
     CUSTOMER_SUCCESS_COMMAND_CENTER_QUERY,
+    {
+      fetchPolicy: 'network-only',
+      notifyOnNetworkStatusChange: true,
+    },
   );
   const plans =
     data?.successPlans?.edges?.map(({ node }) => ({
@@ -200,12 +211,25 @@ export const useCustomerSuccessCommandCenter = () => {
   const currentWorkspaceMemberId =
     workspaceMembers.find(({ userId }) => userId === currentUser?.id)?.id ??
     null;
+  const planTotalCount = data?.successPlans?.totalCount ?? plans.length;
+  const handoffTotalCount =
+    data?.opportunities?.totalCount ?? handoffOpportunities.length;
+  const dataLoadedAt = useMemo(
+    () => (data ? new Date().toISOString() : null),
+    [data],
+  );
 
   return {
     plans,
     handoffOpportunities,
     workspaceMembers,
     currentWorkspaceMemberId,
+    planTotalCount,
+    handoffTotalCount,
+    isPartial:
+      planTotalCount > plans.length ||
+      handoffTotalCount > (data?.opportunities?.edges?.length ?? 0),
+    dataLoadedAt,
     isLoading: loading,
     errorMessage: error ? 'Não foi possível carregar Customer Success.' : null,
     load: refetch,

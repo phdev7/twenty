@@ -5,6 +5,7 @@ import { createHash, createHmac } from 'node:crypto';
 
 import { DataSource, type QueryRunner } from 'typeorm';
 
+import { CacheLockService } from 'src/engine/core-modules/cache-lock/cache-lock.service';
 import { KeyValuePairType } from 'src/engine/core-modules/key-value-pair/key-value-pair.entity';
 import { KeyValuePairService } from 'src/engine/core-modules/key-value-pair/key-value-pair.service';
 import { NodeEnvironment } from 'src/engine/core-modules/diex-config/interfaces/node-environment.interface';
@@ -36,6 +37,7 @@ export class EvolutionProvisioningService {
   private readonly logger = new Logger(EvolutionProvisioningService.name);
 
   constructor(
+    private readonly cacheLockService: CacheLockService,
     private readonly diexConfigService: DiexConfigService,
     private readonly keyValuePairService: KeyValuePairService,
     private readonly evolutionHttpService: EvolutionHttpService,
@@ -319,6 +321,38 @@ export class EvolutionProvisioningService {
     return instanceWorkspaceId === workspaceId ? workspaceId : null;
   }
 
+  private async hasActiveWebhookRegistration({
+    workspaceId,
+    configuration,
+  }: {
+    workspaceId: string;
+    configuration: WhatsappProvisioning;
+  }): Promise<boolean> {
+    const secretClaimKey = buildEvolutionSecretClaimKey(
+      hashSecret(configuration.webhookSecret),
+    );
+    const instanceClaimKey = buildEvolutionInstanceClaimKey(
+      configuration.instanceName,
+    );
+    const [activeSecretClaim, activeInstanceClaim, secretOwner, instanceOwner] =
+      await Promise.all([
+        this.readWorkspaceClaim(workspaceId, EVOLUTION_ACTIVE_SECRET_CLAIM_KEY),
+        this.readWorkspaceClaim(
+          workspaceId,
+          EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
+        ),
+        this.readClaim(secretClaimKey),
+        this.readClaim(instanceClaimKey),
+      ]);
+
+    return (
+      activeSecretClaim === secretClaimKey &&
+      activeInstanceClaim === instanceClaimKey &&
+      secretOwner === workspaceId &&
+      instanceOwner === workspaceId
+    );
+  }
+
   // Claiming and webhook configuration always travel together: a webhook the
   // route cannot map back to a workspace is silently dropped, and a claim with
   // no webhook behind it never receives anything. Both are idempotent so any
@@ -338,90 +372,159 @@ export class EvolutionProvisioningService {
       configuration.instanceName,
     );
 
-    // The reservation covers every tenant registration. It is deliberately
-    // coarse because the old active claim keys are only known after reading the
-    // workspace row; the transaction keeps the read, claim and owner-checked
-    // cleanup atomic across application instances.
-    return this.withClaimReservation(async (queryRunner) => {
-      const [previousSecretOwner, previousInstanceOwner] = await Promise.all([
-        this.readClaim(secretClaimKey, queryRunner),
-        this.readClaim(instanceClaimKey, queryRunner),
-      ]);
+    // A distributed lock serializes this workspace while the short database
+    // transactions reserve/finalize claims. The provider call deliberately
+    // happens outside PostgreSQL, so a slow Evolution response cannot hold an
+    // advisory transaction lock or exhaust the database pool.
+    return this.cacheLockService.withRenewableLock(async (lock) => {
+      const reservation = await this.withClaimReservation(
+        async (queryRunner) => {
+          const [previousSecretOwner, previousInstanceOwner] =
+            await Promise.all([
+              this.readClaim(secretClaimKey, queryRunner),
+              this.readClaim(instanceClaimKey, queryRunner),
+            ]);
 
-      if (previousSecretOwner && previousSecretOwner !== workspaceId) {
-        throw new Error(
-          'Este segredo de webhook da Evolution já pertence a outra workspace.',
-        );
+          if (previousSecretOwner && previousSecretOwner !== workspaceId) {
+            throw new Error(
+              'Este segredo de webhook da Evolution já pertence a outra workspace.',
+            );
+          }
+
+          if (previousInstanceOwner && previousInstanceOwner !== workspaceId) {
+            throw new Error(
+              'Esta instância da Evolution já pertence a outra workspace.',
+            );
+          }
+
+          const [previousActiveSecretClaim, previousActiveInstanceClaim] =
+            await Promise.all([
+              this.readWorkspaceClaim(
+                workspaceId,
+                EVOLUTION_ACTIVE_SECRET_CLAIM_KEY,
+                queryRunner,
+              ),
+              this.readWorkspaceClaim(
+                workspaceId,
+                EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
+                queryRunner,
+              ),
+            ]);
+
+          await this.writeClaim(secretClaimKey, workspaceId, queryRunner);
+          await this.writeClaim(instanceClaimKey, workspaceId, queryRunner);
+
+          return {
+            previousSecretOwner,
+            previousInstanceOwner,
+            previousActiveSecretClaim,
+            previousActiveInstanceClaim,
+          };
+        },
+      );
+
+      await lock.assertOwnership();
+
+      const cleanupNewClaims = async (): Promise<void> => {
+        try {
+          await this.withClaimReservation(async (queryRunner) => {
+            if (
+              !reservation.previousSecretOwner &&
+              reservation.previousActiveSecretClaim !== secretClaimKey
+            ) {
+              await this.deleteClaimIfOwned(
+                secretClaimKey,
+                workspaceId,
+                queryRunner,
+              );
+            }
+
+            if (
+              !reservation.previousInstanceOwner &&
+              reservation.previousActiveInstanceClaim !== instanceClaimKey
+            ) {
+              await this.deleteClaimIfOwned(
+                instanceClaimKey,
+                workspaceId,
+                queryRunner,
+              );
+            }
+          });
+        } catch (cleanupError) {
+          this.logger.warn(
+            `Evolution claim cleanup failed for workspace ${workspaceId}: ${cleanupError instanceof Error ? cleanupError.message : 'unknown error'}`,
+          );
+        }
+      };
+      let response: Response;
+
+      try {
+        response = await this.postWebhookConfiguration({
+          ...configuration,
+          webhookUrl,
+        });
+      } catch (error) {
+        await cleanupNewClaims();
+        throw error;
       }
-
-      if (previousInstanceOwner && previousInstanceOwner !== workspaceId) {
-        throw new Error(
-          'Esta instância da Evolution já pertence a outra workspace.',
-        );
-      }
-
-      const [previousActiveSecretClaim, previousActiveInstanceClaim] =
-        await Promise.all([
-          this.readWorkspaceClaim(
-            workspaceId,
-            EVOLUTION_ACTIVE_SECRET_CLAIM_KEY,
-            queryRunner,
-          ),
-          this.readWorkspaceClaim(
-            workspaceId,
-            EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
-            queryRunner,
-          ),
-        ]);
-
-      await this.writeClaim(secretClaimKey, workspaceId, queryRunner);
-      await this.writeClaim(instanceClaimKey, workspaceId, queryRunner);
-
-      const response = await this.postWebhookConfiguration({
-        ...configuration,
-        webhookUrl,
-      });
 
       if (!response.ok) {
+        await cleanupNewClaims();
+
         throw new Error(
           `A Evolution recusou a configuração do webhook (${response.status}).`,
         );
       }
 
-      await this.writeWorkspaceClaim(
-        workspaceId,
-        EVOLUTION_ACTIVE_SECRET_CLAIM_KEY,
-        secretClaimKey,
-        queryRunner,
-      );
-      await this.writeWorkspaceClaim(
-        workspaceId,
-        EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
-        instanceClaimKey,
-        queryRunner,
-      );
+      await lock.assertOwnership();
 
-      if (
-        previousActiveSecretClaim &&
-        previousActiveSecretClaim !== secretClaimKey
-      ) {
-        await this.deleteClaimIfOwned(
-          previousActiveSecretClaim,
+      await this.withClaimReservation(async (queryRunner) => {
+        const [secretOwner, instanceOwner] = await Promise.all([
+          this.readClaim(secretClaimKey, queryRunner),
+          this.readClaim(instanceClaimKey, queryRunner),
+        ]);
+
+        if (secretOwner !== workspaceId || instanceOwner !== workspaceId) {
+          throw new Error(
+            'A reserva da integração WhatsApp foi perdida antes da ativação.',
+          );
+        }
+
+        await this.writeWorkspaceClaim(
           workspaceId,
+          EVOLUTION_ACTIVE_SECRET_CLAIM_KEY,
+          secretClaimKey,
           queryRunner,
         );
-      }
-
-      if (
-        previousActiveInstanceClaim &&
-        previousActiveInstanceClaim !== instanceClaimKey
-      ) {
-        await this.deleteClaimIfOwned(
-          previousActiveInstanceClaim,
+        await this.writeWorkspaceClaim(
           workspaceId,
+          EVOLUTION_ACTIVE_INSTANCE_CLAIM_KEY,
+          instanceClaimKey,
           queryRunner,
         );
-      }
+
+        if (
+          reservation.previousActiveSecretClaim &&
+          reservation.previousActiveSecretClaim !== secretClaimKey
+        ) {
+          await this.deleteClaimIfOwned(
+            reservation.previousActiveSecretClaim,
+            workspaceId,
+            queryRunner,
+          );
+        }
+
+        if (
+          reservation.previousActiveInstanceClaim &&
+          reservation.previousActiveInstanceClaim !== instanceClaimKey
+        ) {
+          await this.deleteClaimIfOwned(
+            reservation.previousActiveInstanceClaim,
+            workspaceId,
+            queryRunner,
+          );
+        }
+      });
 
       return {
         configured: true,
@@ -430,7 +533,7 @@ export class EvolutionProvisioningService {
         providerStatus: response.status,
         events: EVOLUTION_EVENTS,
       };
-    });
+    }, `diex:evolution:webhook-registration:${workspaceId}`);
   }
 
   private async postWebhookConfiguration({
@@ -507,6 +610,97 @@ export class EvolutionProvisioningService {
   // One Evolution instance per workspace, provisioned on demand from the
   // settings page. The workspace admin never handles the provider API key: they
   // scan a QR and the inbox starts receiving.
+  async inspectConnection(
+    workspaceId: string,
+  ): Promise<WhatsappConnectionResult> {
+    let configuration: WhatsappProvisioning;
+
+    try {
+      configuration = await this.resolveProvisioning(workspaceId);
+    } catch (error) {
+      return {
+        state: 'UNAVAILABLE',
+        instanceName: null,
+        phone: null,
+        qrCodeDataUri: null,
+        message:
+          error instanceof Error
+            ? error.message
+            : 'A integração WhatsApp não está disponível.',
+      };
+    }
+
+    const { baseUrl, instanceName, apiKey } = configuration;
+    const stateResponse = await this.evolutionHttpService.request({
+      baseUrl,
+      path: `/instance/connectionState/${encodeURIComponent(instanceName)}`,
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        apikey: apiKey,
+      },
+    });
+
+    if (stateResponse.status === 404) {
+      return {
+        state: 'NOT_PROVISIONED',
+        instanceName,
+        phone: null,
+        qrCodeDataUri: null,
+        message:
+          'WhatsApp não configurado. Gere o QR Code somente se este for o canal escolhido.',
+      };
+    }
+
+    if (!stateResponse.ok) {
+      return {
+        state: 'UNAVAILABLE',
+        instanceName,
+        phone: null,
+        qrCodeDataUri: null,
+        message: `Não foi possível consultar a Evolution (HTTP ${stateResponse.status}).`,
+      };
+    }
+
+    const payload = await this.readJson(stateResponse);
+
+    if (this.readConnectionState(payload) === 'open') {
+      const hasActiveWebhook = await this.hasActiveWebhookRegistration({
+        workspaceId,
+        configuration,
+      });
+
+      if (!hasActiveWebhook) {
+        return {
+          state: 'UNAVAILABLE',
+          instanceName,
+          phone: null,
+          qrCodeDataUri: null,
+          message:
+            'WhatsApp conectado, mas a entrega de mensagens ainda não foi validada. Clique para configurar o webhook.',
+        };
+      }
+
+      return {
+        state: 'CONNECTED',
+        instanceName,
+        phone: null,
+        qrCodeDataUri: null,
+        message:
+          'WhatsApp conectado. Valide o canal recebendo uma mensagem real.',
+      };
+    }
+
+    return {
+      state: 'NOT_PROVISIONED',
+      instanceName,
+      phone: null,
+      qrCodeDataUri: null,
+      message:
+        'WhatsApp desconectado. Gere um novo QR Code somente se quiser usar este canal.',
+    };
+  }
+
   async resolveConnection(
     workspaceId: string,
   ): Promise<WhatsappConnectionResult> {
@@ -553,7 +747,7 @@ export class EvolutionProvisioningService {
         const registrationError = await ensureWebhookRegistration();
 
         return {
-          state: 'CONNECTED',
+          state: registrationError ? 'UNAVAILABLE' : 'CONNECTED',
           instanceName,
           phone: null,
           qrCodeDataUri: null,
@@ -668,10 +862,7 @@ export class EvolutionProvisioningService {
 
       // Evolution can return a raw pairing code beside the image payload. Do
       // not expose that short code as if it were a renderable QR image.
-      if (
-        candidate.length < 100 ||
-        !/^[A-Za-z0-9+/=_-]+$/.test(candidate)
-      ) {
+      if (candidate.length < 100 || !/^[A-Za-z0-9+/=_-]+$/.test(candidate)) {
         return null;
       }
 

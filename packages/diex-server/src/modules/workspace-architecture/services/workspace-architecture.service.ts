@@ -161,6 +161,12 @@ export type WorkspacePageDataSource = {
   dataClassification: WorkspacePageDataContract['dataClassification'];
   records: unknown[];
   count: number | null;
+  returnedCount: number;
+  totalCount: number | null;
+  isPartial: boolean;
+  queriedAt: string;
+  sourceUpdatedAt: string | null;
+  freshnessStatus: 'LIVE' | 'PARTIAL' | 'UNAVAILABLE' | 'NOT_APPLICABLE';
   fallback: string;
   error: string | null;
 };
@@ -169,6 +175,8 @@ export type WorkspacePageDataResponse = {
   pageKey: string;
   contractVersion: string;
   generatedAt: string;
+  isPartial: boolean;
+  hasErrors: boolean;
   sources: WorkspacePageDataSource[];
 };
 
@@ -260,6 +268,11 @@ const toPageSlug = (value: string): string =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 48) || 'pagina-operacional';
+
+const adaptOptionalChannelDataSources = (dataSources: string[]): string[] =>
+  dataSources.map((source) =>
+    normalize(source) === 'whatsapp' ? 'canal principal' : source,
+  );
 
 const toPageRoute = (
   key: string,
@@ -377,9 +390,7 @@ const getAdaptiveDefaultDataSources = (
   const customSources = [
     ...new Set(
       semanticMatches
-        .map(
-          ({ object }) => object.labelSingular || object.nameSingular,
-        )
+        .map(({ object }) => object.labelSingular || object.nameSingular)
         .filter((value) => value.trim().length > 0),
     ),
   ].slice(0, 4);
@@ -483,6 +494,20 @@ export class WorkspaceArchitectureService {
       );
     }
 
+    const primaryChannel = workspace?.onboardingPrimaryChannel
+      ?.trim()
+      .toUpperCase();
+    const primaryChannelLabel =
+      primaryChannel === 'WHATSAPP'
+        ? 'WhatsApp'
+        : primaryChannel === 'EMAIL'
+          ? 'E-mail'
+          : primaryChannel === 'IMPORT'
+            ? 'Importação de contatos e oportunidades'
+            : primaryChannel === 'MANUAL'
+              ? 'Cadastro manual sem integração obrigatória'
+              : 'a definir';
+
     const registeredModel =
       await this.aiModelRegistryService.resolveModelForAgent({
         modelId: resolvedModelId,
@@ -505,6 +530,7 @@ export class WorkspaceArchitectureService {
         ].join(' '),
         prompt: [
           `Objetivo prioritário selecionado: ${commercialGoal?.trim() || 'a definir'}`,
+          `Forma principal de entrada escolhida: ${primaryChannelLabel}`,
           'Descrição da operação fornecida pelo cliente:',
           normalizedDescription,
           'Antes de estruturar, identifique mentalmente as lacunas que mudariam a configuração. Não faça perguntas no lugar do JSON; registre as perguntas objetivas em unconfirmedInformation.',
@@ -518,12 +544,36 @@ export class WorkspaceArchitectureService {
         throw new Error('A IA não retornou o contexto operacional.');
       }
 
+      const operationProfile = normalizeGeneratedWorkspaceContext(
+        result.output,
+        normalizedDescription,
+      );
+
+      if (primaryChannel === 'WHATSAPP' || primaryChannel === 'EMAIL') {
+        operationProfile.acquisitionChannels = [
+          ...new Set([
+            ...operationProfile.acquisitionChannels,
+            primaryChannelLabel,
+          ]),
+        ];
+        operationProfile.requiredIntegrations = [
+          ...new Set([
+            ...operationProfile.requiredIntegrations,
+            primaryChannelLabel,
+          ]),
+        ];
+      } else if (primaryChannel === 'IMPORT') {
+        operationProfile.operationalCapabilities = [
+          ...new Set([
+            ...operationProfile.operationalCapabilities,
+            primaryChannelLabel,
+          ]),
+        ];
+      }
+
       return {
         generatedContext: result.output,
-        operationProfile: normalizeGeneratedWorkspaceContext(
-          result.output,
-          normalizedDescription,
-        ),
+        operationProfile,
         modelId: registeredModel.modelId,
       };
     } finally {
@@ -601,7 +651,7 @@ export class WorkspaceArchitectureService {
       sourceDescription,
       payload: validatedProfile,
       modelId,
-      promptVersion: 'workspace-operation-profile@1.0.0',
+      promptVersion: 'workspace-operation-profile@1.1.0',
     });
 
     const blueprint = await this.recommendBlueprint({
@@ -653,8 +703,8 @@ export class WorkspaceArchitectureService {
         (segment) =>
           segment === '*' || includesCriterion(selectionSegmentCorpus, segment),
       );
-      const excludedBy = (template.exclusionCriteria ?? []).filter((criterion) =>
-        includesCriterion(selectionCorpus, criterion),
+      const excludedBy = (template.exclusionCriteria ?? []).filter(
+        (criterion) => includesCriterion(selectionCorpus, criterion),
       );
       const isDependency = template.dependencies.some((dependency) =>
         selectedTemplateIds.includes(dependency),
@@ -680,8 +730,7 @@ export class WorkspaceArchitectureService {
         excludedBy,
         confidence,
         requiresConfirmation:
-          template.id === 'diex.business.healthcare-clinic' ||
-          confidence < 60,
+          template.id === 'diex.business.healthcare-clinic' || confidence < 60,
       };
     };
     const compose = (
@@ -700,11 +749,27 @@ export class WorkspaceArchitectureService {
         | 'integrations'
       >,
     ) => this.composeComponents(selectedTemplates, key);
+    const recommendedPipelineStages = (
+      operationProfile.customerJourneyStages.length > 0
+        ? operationProfile.customerJourneyStages
+        : ['Entrada', 'Qualificação', 'Proposta', 'Negociação', 'Resultado']
+    ).slice(0, 10);
+    const pipelines = compose('pipelines').map((pipeline) => ({
+      ...pipeline,
+      configuration: {
+        ...(pipeline.configuration ?? {}),
+        stages:
+          Array.isArray(pipeline.configuration?.stages) &&
+          pipeline.configuration.stages.length > 0
+            ? pipeline.configuration.stages
+            : recommendedPipelineStages,
+      },
+    }));
     const components = {
       objects: compose('objects'),
       fields: compose('fields'),
       relations: compose('relations'),
-      pipelines: compose('pipelines'),
+      pipelines,
       pages: compose('pages'),
       blocks: compose('blocks'),
       views: compose('views'),
@@ -788,6 +853,9 @@ export class WorkspaceArchitectureService {
         businessModels: operationProfile.businessModels,
         operationalCapabilities: operationProfile.operationalCapabilities,
         customerJourneyStages: operationProfile.customerJourneyStages,
+        objectionsAndResponses: operationProfile.objectionsAndResponses,
+        proofsAndDifferentiators: operationProfile.proofsAndDifferentiators,
+        callsToAction: operationProfile.callsToAction,
         responsibilityRules: operationProfile.responsibilityRules,
         slaTargets: operationProfile.slaTargets,
         approvalRules: operationProfile.approvalRules,
@@ -849,7 +917,7 @@ export class WorkspaceArchitectureService {
           templateVersion,
         ]),
       ),
-      promptVersion: 'workspace-blueprint@1.0.0',
+      promptVersion: 'workspace-blueprint@1.1.0',
     });
 
     return blueprint;
@@ -1888,7 +1956,9 @@ export class WorkspaceArchitectureService {
       : ['diex.base.universal'];
     const templates = selectedTemplateIds
       .map((id) => WORKSPACE_TEMPLATE_BY_ID.get(id))
-      .filter((template): template is WorkspaceTemplateDefinition => Boolean(template));
+      .filter((template): template is WorkspaceTemplateDefinition =>
+        Boolean(template),
+      );
 
     if (templates.length === 0) {
       const baseTemplate = WORKSPACE_TEMPLATE_BY_ID.get('diex.base.universal');
@@ -1901,6 +1971,7 @@ export class WorkspaceArchitectureService {
     return buildWorkspaceReadinessPack({
       templates,
       goal: workspace?.onboardingPrimaryGoal,
+      primaryChannel: workspace?.onboardingPrimaryChannel,
       teamCount: profile?.success ? profile.data.teamCount : null,
       hasSlaTargets:
         profile?.success === true && profile.data.slaTargets.length > 0,
@@ -1908,7 +1979,7 @@ export class WorkspaceArchitectureService {
         profile?.success === true && profile.data.approvalRules.length > 0,
       operationLabel:
         profile?.success === true
-          ? profile.data.segment ?? profile.data.businessModels[0] ?? null
+          ? (profile.data.segment ?? profile.data.businessModels[0] ?? null)
           : null,
     });
   }
@@ -1918,6 +1989,7 @@ export class WorkspaceArchitectureService {
     state,
     instanceName,
     message,
+    validatedByRealMessage = false,
   }: {
     workspaceId: string;
     state:
@@ -1928,6 +2000,7 @@ export class WorkspaceArchitectureService {
       | 'UNAVAILABLE';
     instanceName: string | null;
     message: string;
+    validatedByRealMessage?: boolean;
   }): Promise<WorkspaceOnboardingEvidence> {
     const readinessPack = await this.getWorkspaceReadinessPack(workspaceId);
 
@@ -1953,10 +2026,18 @@ export class WorkspaceArchitectureService {
           : 0;
         const heartbeatDue =
           !lastCheckedAt || lastCheckedAt + 60_000 <= Date.now();
+        const shouldClearValidation =
+          state === 'NOT_PROVISIONED' ||
+          state === 'AWAITING_SCAN' ||
+          state === 'CONNECTING' ||
+          (Boolean(previousChannel?.instanceName) &&
+            previousChannel?.instanceName !== instanceName);
         const changed =
           !previousChannel ||
           previousChannel.state !== state ||
           previousChannel.instanceName !== instanceName ||
+          (validatedByRealMessage && !previousChannel.validatedAt) ||
+          (shouldClearValidation && previousChannel.validatedAt !== null) ||
           previousChannel.lastError !==
             (state === 'UNAVAILABLE' ? message : null);
 
@@ -1970,15 +2051,19 @@ export class WorkspaceArchitectureService {
           instanceName,
           lastCheckedAt: now,
           validatedAt:
-            state === 'CONNECTED'
-              ? (previousChannel?.validatedAt ?? now)
-              : (previousChannel?.validatedAt ?? null),
+            validatedByRealMessage && state === 'CONNECTED'
+              ? previousChannel?.instanceName === instanceName
+                ? (previousChannel?.validatedAt ?? now)
+                : now
+              : shouldClearValidation
+                ? null
+                : (previousChannel?.validatedAt ?? null),
           lastError: state === 'UNAVAILABLE' ? message : null,
         };
         const event = {
           id: v4(),
           key: 'channel_health',
-          ready: state === 'CONNECTED',
+          ready: state === 'CONNECTED' && nextChannel.validatedAt !== null,
           recordId: instanceName,
           source: 'evolution-connection',
           occurredAt: now,
@@ -2206,7 +2291,8 @@ export class WorkspaceArchitectureService {
 
         const journeyChanged =
           JSON.stringify(current?.journey ?? null) !== JSON.stringify(journey);
-        const nextFirstValueRun = firstValueRun ?? current?.firstValueRun ?? null;
+        const nextFirstValueRun =
+          firstValueRun ?? current?.firstValueRun ?? null;
         const firstValueRunChanged =
           JSON.stringify(current?.firstValueRun ?? null) !==
           JSON.stringify(nextFirstValueRun);
@@ -2599,6 +2685,8 @@ export class WorkspaceArchitectureService {
     }
     const sources = await Promise.all(
       contracts.map(async (contract): Promise<WorkspacePageDataSource> => {
+        const queriedAt = new Date().toISOString();
+
         if (!contract.objectName) {
           return {
             contractKey: contract.key,
@@ -2608,6 +2696,12 @@ export class WorkspaceArchitectureService {
             dataClassification: contract.dataClassification,
             records: [],
             count: null,
+            returnedCount: 0,
+            totalCount: null,
+            isPartial: false,
+            queriedAt,
+            sourceUpdatedAt: null,
+            freshnessStatus: 'NOT_APPLICABLE',
             fallback: contract.fallback,
             error: null,
           };
@@ -2628,7 +2722,13 @@ export class WorkspaceArchitectureService {
             objectName: contract.objectName,
             dataClassification: contract.dataClassification,
             records: [],
-            count: 0,
+            count: null,
+            returnedCount: 0,
+            totalCount: null,
+            isPartial: false,
+            queriedAt,
+            sourceUpdatedAt: null,
+            freshnessStatus: 'UNAVAILABLE',
             fallback: contract.fallback,
             error: 'O objeto configurado não está disponível neste workspace.',
           };
@@ -2637,6 +2737,13 @@ export class WorkspaceArchitectureService {
         const selectableFields = contract.fieldNames.filter((fieldName) =>
           object.fields.some(({ name }) => name === fieldName),
         );
+        const hasUpdatedAt = object.fields.some(
+          ({ name }) => name === 'updatedAt',
+        );
+
+        if (hasUpdatedAt && !selectableFields.includes('updatedAt')) {
+          selectableFields.push('updatedAt');
+        }
 
         if (selectableFields.length === 0) {
           return {
@@ -2646,7 +2753,13 @@ export class WorkspaceArchitectureService {
             objectName: object.nameSingular,
             dataClassification: contract.dataClassification,
             records: [],
-            count: 0,
+            count: null,
+            returnedCount: 0,
+            totalCount: null,
+            isPartial: false,
+            queriedAt,
+            sourceUpdatedAt: null,
+            freshnessStatus: 'UNAVAILABLE',
             fallback: contract.fallback,
             error:
               'O objeto ainda não possui campos publicáveis para esta página.',
@@ -2661,6 +2774,27 @@ export class WorkspaceArchitectureService {
             shouldBuildEffectiveSelectFields: true,
             authContext,
           });
+          const records = result.success ? (result.result?.records ?? []) : [];
+          const count = result.success ? (result.result?.count ?? 0) : null;
+          const sourceUpdatedAt = records.reduce<string | null>(
+            (latest, record) => {
+              if (!record || typeof record !== 'object') {
+                return latest;
+              }
+
+              const updatedAt = (record as Record<string, unknown>).updatedAt;
+
+              if (typeof updatedAt !== 'string') {
+                return latest;
+              }
+
+              return !latest || Date.parse(updatedAt) > Date.parse(latest)
+                ? updatedAt
+                : latest;
+            },
+            null,
+          );
+          const isPartial = count !== null && count > records.length;
 
           return {
             contractKey: contract.key,
@@ -2668,8 +2802,18 @@ export class WorkspaceArchitectureService {
             kind: contract.kind,
             objectName: object.nameSingular,
             dataClassification: contract.dataClassification,
-            records: result.success ? (result.result?.records ?? []) : [],
-            count: result.success ? (result.result?.count ?? 0) : 0,
+            records,
+            count,
+            returnedCount: records.length,
+            totalCount: count,
+            isPartial,
+            queriedAt,
+            sourceUpdatedAt,
+            freshnessStatus: result.success
+              ? isPartial
+                ? 'PARTIAL'
+                : 'LIVE'
+              : 'UNAVAILABLE',
             fallback: contract.fallback,
             error: result.success
               ? null
@@ -2683,7 +2827,13 @@ export class WorkspaceArchitectureService {
             objectName: object.nameSingular,
             dataClassification: contract.dataClassification,
             records: [],
-            count: 0,
+            count: null,
+            returnedCount: 0,
+            totalCount: null,
+            isPartial: false,
+            queriedAt,
+            sourceUpdatedAt: null,
+            freshnessStatus: 'UNAVAILABLE',
             fallback: contract.fallback,
             error:
               error instanceof Error
@@ -2694,10 +2844,14 @@ export class WorkspaceArchitectureService {
       }),
     );
 
+    const generatedAt = new Date().toISOString();
+
     return {
       pageKey,
       contractVersion: WORKSPACE_PAGE_CONTRACT_VERSION,
-      generatedAt: new Date().toISOString(),
+      generatedAt,
+      isPartial: sources.some(({ isPartial }) => isPartial),
+      hasErrors: sources.some(({ error }) => error !== null),
       sources,
     };
   }
@@ -2710,21 +2864,21 @@ export class WorkspaceArchitectureService {
       changeSetArtifact,
       architecture,
     ] = await Promise.all([
-        this.getLatestArtifact(
-          workspaceId,
-          WorkspaceArchitectureArtifactType.BLUEPRINT,
-        ),
-        this.getLatestArtifact(
-          workspaceId,
-          WorkspaceArchitectureArtifactType.OPERATION_PROFILE,
-        ),
-        this.getPageCatalog(workspaceId),
-        this.getLatestArtifact(
-          workspaceId,
-          WorkspaceArchitectureArtifactType.CHANGE_SET,
-        ),
-        this.inspectWorkspaceArchitecture(workspaceId),
-      ]);
+      this.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.BLUEPRINT,
+      ),
+      this.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.OPERATION_PROFILE,
+      ),
+      this.getPageCatalog(workspaceId),
+      this.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.CHANGE_SET,
+      ),
+      this.inspectWorkspaceArchitecture(workspaceId),
+    ]);
     const blueprint = blueprintArtifact
       ? workspaceBlueprintSchema.safeParse(blueprintArtifact.payload)
       : null;
@@ -2829,7 +2983,7 @@ export class WorkspaceArchitectureService {
         const fieldName =
           typeof configuration.name === 'string'
             ? configuration.name
-            : component.key.split('.').pop() ?? component.key;
+            : (component.key.split('.').pop() ?? component.key);
         const object = objectName
           ? architecture.objects.find((candidate) =>
               [
@@ -2914,7 +3068,8 @@ export class WorkspaceArchitectureService {
             key: `contract-object:${page.key}:${contract.key}`,
             severity: contract.required ? 'BLOCKED' : 'WARNING',
             message: `O contrato ${contract.key} aponta para um objeto que não está publicado.`,
-            action: 'Remapear o contrato para um objeto existente ou publicar o objeto aprovado.',
+            action:
+              'Remapear o contrato para um objeto existente ou publicar o objeto aprovado.',
           });
           continue;
         }
@@ -2928,7 +3083,8 @@ export class WorkspaceArchitectureService {
             key: `contract-fields:${page.key}:${contract.key}`,
             severity: contract.required ? 'BLOCKED' : 'WARNING',
             message: `O contrato ${contract.key} perdeu campos: ${missingFields.join(', ')}.`,
-            action: 'Remapear os campos ou gerar uma nova versão do contrato da página.',
+            action:
+              'Remapear os campos ou gerar uma nova versão do contrato da página.',
           });
         }
       }
@@ -2994,8 +3150,11 @@ export class WorkspaceArchitectureService {
       const blockType = PAGE_BLOCK_TYPES.has(block.type ?? '')
         ? block.type
         : 'LIST';
-      const blockDataSources =
-        block.dataSources?.filter((source) => source.trim().length > 0) ?? [];
+      const blockDataSources = block.dataSources
+        ? [...new Set(block.dataSources.map((source) => source.trim()))].filter(
+            Boolean,
+          )
+        : [];
       const resolvedDataSources =
         blockDataSources.length > 0 ? blockDataSources : dataSources;
 
@@ -3067,9 +3226,12 @@ export class WorkspaceArchitectureService {
     const normalizedDescription =
       description?.trim() ||
       `Página operacional para acompanhar ${label.trim().toLowerCase()}.`;
-    const normalizedDataSources = (dataSources ?? []).filter(
-      (source) => source.trim().length > 0,
-    );
+    const normalizedCapabilities = [
+      ...new Set(capabilities.map((capability) => capability.trim())),
+    ].filter(Boolean);
+    const normalizedDataSources = [
+      ...new Set((dataSources ?? []).map((source) => source.trim())),
+    ].filter(Boolean);
     const adaptiveDefaultDataSources = getAdaptiveDefaultDataSources(
       architecture.objects,
       `${label} ${normalizedDescription}`,
@@ -3091,9 +3253,9 @@ export class WorkspaceArchitectureService {
       description: normalizedDescription,
       route: toPageRoute(key),
       renderer,
-      icon,
-      navigationGroup,
-      capabilities,
+      icon: icon.trim() || 'chart',
+      navigationGroup: navigationGroup.trim() || 'Operação personalizada',
+      capabilities: normalizedCapabilities,
       blocks:
         customBlocks.length > 0
           ? customBlocks
@@ -3122,7 +3284,9 @@ export class WorkspaceArchitectureService {
       capabilityContract: {
         version: WORKSPACE_PAGE_CONTRACT_VERSION,
         key,
-        dependencies: [...new Set([...capabilities, ...pageDataSources])],
+        dependencies: [
+          ...new Set([...normalizedCapabilities, ...pageDataSources]),
+        ],
         fallbackRoute: '/diex/first-steps',
       },
       dataContracts: inferWorkspacePageDataContracts({
@@ -3197,12 +3361,19 @@ export class WorkspaceArchitectureService {
     }
 
     if (!current.editable) {
-      throw new Error('Esta página está protegida contra edição neste workspace.');
+      throw new Error(
+        'Esta página está protegida contra edição neste workspace.',
+      );
     }
 
-    const normalizedDataSources = dataSources?.filter(
-      (source) => source.trim().length > 0,
-    );
+    const normalizedCapabilities = capabilities
+      ? [
+          ...new Set(capabilities.map((capability) => capability.trim())),
+        ].filter(Boolean)
+      : undefined;
+    const normalizedDataSources = dataSources
+      ? [...new Set(dataSources.map((source) => source.trim()))].filter(Boolean)
+      : undefined;
     const pageDataSources = normalizedDataSources ?? current.dataSources;
     const hasUpdatedPageDataSources = normalizedDataSources !== undefined;
     const rebuiltBlocksFromPageSources = hasUpdatedPageDataSources
@@ -3246,7 +3417,7 @@ export class WorkspaceArchitectureService {
               blocks: rebuiltBlocksFromPageSources,
               dataSources: pageDataSources,
               metadataObjects: architecture.objects,
-          })
+            })
           : current.blocks;
     const updatedBlocks =
       normalizedBlocks.length > 0
@@ -3271,14 +3442,14 @@ export class WorkspaceArchitectureService {
           });
     const hasAdaptiveContentUpdate = Boolean(
       label?.trim() ||
-        description?.trim() ||
-        renderer ||
-        icon?.trim() ||
-        navigationGroup?.trim() ||
-        capabilities ||
-        normalizedDataSources ||
-        primaryAction?.trim() ||
-        blocks !== undefined,
+      description?.trim() ||
+      renderer ||
+      icon?.trim() ||
+      navigationGroup?.trim() ||
+      normalizedCapabilities ||
+      normalizedDataSources ||
+      primaryAction?.trim() ||
+      blocks !== undefined,
     );
     const updated = workspacePageCatalogItemSchema.parse({
       ...current,
@@ -3293,11 +3464,9 @@ export class WorkspaceArchitectureService {
       ...(navigationGroup?.trim()
         ? { navigationGroup: navigationGroup.trim() }
         : {}),
-      ...(capabilities
+      ...(normalizedCapabilities
         ? {
-            capabilities: capabilities.filter(
-              (capability) => capability.trim().length > 0,
-            ),
+            capabilities: normalizedCapabilities,
           }
         : {}),
       ...(normalizedDataSources !== undefined
@@ -3320,7 +3489,7 @@ export class WorkspaceArchitectureService {
         key: current.key,
         dependencies: [
           ...new Set([
-            ...(capabilities ?? current.capabilities),
+            ...(normalizedCapabilities ?? current.capabilities),
             ...pageDataSources,
           ]),
         ],
@@ -3328,8 +3497,8 @@ export class WorkspaceArchitectureService {
           current.capabilityContract?.fallbackRoute ===
           '/diex/pages/first-steps'
             ? '/diex/first-steps'
-            : current.capabilityContract?.fallbackRoute ??
-              '/diex/first-steps',
+            : (current.capabilityContract?.fallbackRoute ??
+              '/diex/first-steps'),
       },
       ...(blocks !== undefined || rebuiltBlocksFromPageSources !== null
         ? { blocks: updatedBlocks }
@@ -3447,17 +3616,89 @@ export class WorkspaceArchitectureService {
     workspaceId: string;
     version: number;
   }) {
-    const artifact = await this.getArtifactByVersion(
-      workspaceId,
-      WorkspaceArchitectureArtifactType.CHANGE_SET,
-      version,
-    );
+    const [artifact, latestChangeSetArtifact, latestBlueprintArtifact] =
+      await Promise.all([
+        this.getArtifactByVersion(
+          workspaceId,
+          WorkspaceArchitectureArtifactType.CHANGE_SET,
+          version,
+        ),
+        this.getLatestArtifact(
+          workspaceId,
+          WorkspaceArchitectureArtifactType.CHANGE_SET,
+        ),
+        this.getLatestArtifact(
+          workspaceId,
+          WorkspaceArchitectureArtifactType.BLUEPRINT,
+        ),
+      ]);
     const changeSet = workspaceChangeSetSchema.parse(artifact.payload);
+
+    if (
+      !latestChangeSetArtifact ||
+      latestChangeSetArtifact.id !== artifact.id
+    ) {
+      throw new Error(
+        'Somente o pacote de mudanças mais recente pode ser aprovado.',
+      );
+    }
+
+    if (
+      !latestBlueprintArtifact ||
+      changeSet.blueprintVersion !== latestBlueprintArtifact.version
+    ) {
+      throw new Error(
+        'O pacote de mudanças não corresponde ao blueprint mais recente.',
+      );
+    }
+
     const validation = await this.validateChangeSet(changeSet);
 
     if (!validation.valid) {
       throw new Error(
         `Workspace change set cannot be approved: ${validation.errors.join('; ')}`,
+      );
+    }
+
+    if (
+      artifact.status === WorkspaceArchitectureArtifactStatus.ACTIVE ||
+      artifact.status ===
+        WorkspaceArchitectureArtifactStatus.PARTIALLY_APPLIED ||
+      changeSet.status === 'ACTIVE' ||
+      changeSet.status === 'PARTIALLY_APPLIED'
+    ) {
+      return {
+        approved: true,
+        idempotentReplay: true,
+        alreadyPublished: true,
+        version,
+        changeSetId: changeSet.id,
+        approvedAt: artifact.approvedAt,
+        nextAction: null,
+      };
+    }
+
+    if (
+      artifact.status === WorkspaceArchitectureArtifactStatus.APPROVED &&
+      changeSet.status === 'APPROVED'
+    ) {
+      return {
+        approved: true,
+        idempotentReplay: true,
+        version,
+        changeSetId: changeSet.id,
+        approvedAt: artifact.approvedAt,
+        nextAction: 'publish_approved_architecture_in_admin_ui',
+      };
+    }
+
+    if (
+      artifact.status !==
+        WorkspaceArchitectureArtifactStatus.AWAITING_APPROVAL ||
+      changeSet.status !== 'AWAITING_APPROVAL'
+    ) {
+      throw new Error(
+        'O pacote de mudanças não está em estado válido para aprovação.',
       );
     }
 
@@ -3479,7 +3720,7 @@ export class WorkspaceArchitectureService {
       version,
       changeSetId: approvedChangeSet.id,
       approvedAt,
-      nextAction: 'apply_workspace_change_set',
+      nextAction: 'publish_approved_architecture_in_admin_ui',
     };
   }
 
@@ -3516,7 +3757,40 @@ export class WorkspaceArchitectureService {
           };
         }
 
-        if (changeSet.status !== 'APPROVED') {
+        const [latestChangeSetArtifact, latestBlueprintArtifact] =
+          await Promise.all([
+            this.getLatestArtifact(
+              workspaceId,
+              WorkspaceArchitectureArtifactType.CHANGE_SET,
+            ),
+            this.getLatestArtifact(
+              workspaceId,
+              WorkspaceArchitectureArtifactType.BLUEPRINT,
+            ),
+          ]);
+
+        if (
+          !latestChangeSetArtifact ||
+          latestChangeSetArtifact.id !== artifact.id
+        ) {
+          throw new Error(
+            'Somente o pacote de mudanças aprovado mais recente pode ser publicado.',
+          );
+        }
+
+        if (
+          !latestBlueprintArtifact ||
+          changeSet.blueprintVersion !== latestBlueprintArtifact.version
+        ) {
+          throw new Error(
+            'O pacote aprovado não corresponde ao blueprint mais recente.',
+          );
+        }
+
+        if (
+          artifact.status !== WorkspaceArchitectureArtifactStatus.APPROVED ||
+          changeSet.status !== 'APPROVED'
+        ) {
           throw new Error(
             'Workspace change set requires explicit approval before application.',
           );
@@ -4052,13 +4326,13 @@ export class WorkspaceArchitectureService {
       const existing = currentByKey.get(item.key);
       const shouldPreservePublishedRecommendation = Boolean(
         existing &&
-          existing.lifecycle === 'RECOMMENDED' &&
-          existing.status === 'ACTIVE' &&
-          item.status === 'HIDDEN',
+        existing.lifecycle === 'RECOMMENDED' &&
+        existing.status === 'ACTIVE' &&
+        item.status === 'HIDDEN',
       );
       const shouldRefreshProfileCopy = Boolean(
         existing?.copyOrigin === 'PROFILE' &&
-          !shouldPreservePublishedRecommendation,
+        !shouldPreservePublishedRecommendation,
       );
 
       return existing
@@ -4067,12 +4341,10 @@ export class WorkspaceArchitectureService {
             // A new blueprint may change the recommendation, but it must not
             // erase the workspace's deliberate camaleon adjustments.
             ...(existing.editable &&
-              (existing.copyOrigin !== 'PROFILE' ||
-                shouldPreservePublishedRecommendation)
+            (existing.copyOrigin !== 'PROFILE' ||
+              shouldPreservePublishedRecommendation)
               ? {
-                  label: shouldRefreshProfileCopy
-                    ? item.label
-                    : existing.label,
+                  label: shouldRefreshProfileCopy ? item.label : existing.label,
                   description: shouldRefreshProfileCopy
                     ? item.description
                     : existing.description,
@@ -4123,8 +4395,8 @@ export class WorkspaceArchitectureService {
                       existing.capabilityContract?.fallbackRoute ===
                       '/diex/pages/first-steps'
                         ? '/diex/first-steps'
-                        : existing.capabilityContract?.fallbackRoute ??
-                          '/diex/first-steps',
+                        : (existing.capabilityContract?.fallbackRoute ??
+                          '/diex/first-steps'),
                   },
                 }
               : {}),
@@ -4199,8 +4471,8 @@ export class WorkspaceArchitectureService {
               item.capabilityContract?.fallbackRoute ===
               '/diex/pages/first-steps'
                 ? '/diex/first-steps'
-                : item.capabilityContract?.fallbackRoute ??
-                  '/diex/first-steps',
+                : (item.capabilityContract?.fallbackRoute ??
+                  '/diex/first-steps'),
           },
         };
       });
@@ -4219,16 +4491,17 @@ export class WorkspaceArchitectureService {
                   'onboarding',
                   'contexto',
                   'arquitetura',
-                  'whatsapp',
+                  'canal principal',
                   'pipeline',
                 ],
                 fallbackRoute: '/diex/first-steps',
               },
               dataContracts: inferWorkspacePageDataContracts({
                 pageKey: item.key,
-                dataSources: item.dataSources,
+                dataSources: adaptOptionalChannelDataSources(item.dataSources),
                 metadataObjects: architecture.objects,
               }),
+              dataSources: adaptOptionalChannelDataSources(item.dataSources),
               actions: buildWorkspacePageActions({
                 pageKey: item.key,
                 route: '/diex/first-steps',
@@ -4299,15 +4572,15 @@ export class WorkspaceArchitectureService {
 
       return Boolean(
         currentItem &&
-          currentItem.copyOrigin === 'PROFILE' &&
-          !(
-            currentItem.lifecycle === 'RECOMMENDED' &&
-            currentItem.status === 'ACTIVE' &&
-            item.status === 'HIDDEN'
-          ) &&
-          (currentItem.label !== item.label ||
-            currentItem.description !== item.description ||
-            currentItem.primaryAction !== item.primaryAction),
+        currentItem.copyOrigin === 'PROFILE' &&
+        !(
+          currentItem.lifecycle === 'RECOMMENDED' &&
+          currentItem.status === 'ACTIVE' &&
+          item.status === 'HIDDEN'
+        ) &&
+        (currentItem.label !== item.label ||
+          currentItem.description !== item.description ||
+          currentItem.primaryAction !== item.primaryAction),
       );
     });
     const isCurrentCatalogValid =
@@ -4373,7 +4646,7 @@ export class WorkspaceArchitectureService {
         sourceTemplateIds: ['diex.base.universal'],
         configuration: {
           renderer: 'INBOX',
-          icon: 'whatsapp',
+          icon: 'inbox',
           navigationGroup: 'Receita',
           route: '/diex/pages/inbox-commercial',
           nativeRoute: '/inbox',
@@ -4485,14 +4758,11 @@ export class WorkspaceArchitectureService {
     const selectedTemplateIds = new Set(
       blueprint?.selectedTemplates.map(({ id }) => id) ?? [],
     );
-    const usesCompanyAccounts = [
-      'diex.business.agency',
-      'diex.business.saas',
-      'diex.business.consulting',
-      'diex.business.b2b-sales',
-      'diex.business.franchise',
-      'diex.business.customer-success',
-    ].some((templateId) => selectedTemplateIds.has(templateId));
+    const usesCompanyAccounts = [...selectedTemplateIds].some(
+      (templateId) =>
+        WORKSPACE_TEMPLATE_BY_ID.get(templateId)?.requiresCompanyAccount ===
+        true,
+    );
     const items = blueprintPages.map((page, position) => {
       const configuration = page.configuration;
       const normalizedOperationLabel = operationLabel.toLowerCase();
@@ -4534,7 +4804,7 @@ export class WorkspaceArchitectureService {
       const icon =
         readConfigurationString(configuration, 'icon') ??
         (renderer === 'INBOX'
-          ? 'whatsapp'
+          ? 'inbox'
           : renderer === 'CALENDAR'
             ? 'calendar'
             : renderer === 'DASHBOARD'
@@ -4653,12 +4923,7 @@ export class WorkspaceArchitectureService {
         capabilityContract: {
           version: WORKSPACE_PAGE_CONTRACT_VERSION,
           key: page.key,
-          dependencies: [
-            ...new Set([
-              ...capabilities,
-              ...dataSources,
-            ]),
-          ],
+          dependencies: [...new Set([...capabilities, ...dataSources])],
           fallbackRoute: '/diex/first-steps',
         },
         emptyState: {
@@ -4688,8 +4953,7 @@ export class WorkspaceArchitectureService {
         workspacePageCatalogItemSchema.parse({
           key: 'first-steps',
           label: `Ativação da ${operationLabel}`,
-          description:
-            `Conduz contexto, aprovação, canal e primeiro resultado da ${operationLabel.toLowerCase()}.`,
+          description: `Conduz contexto, aprovação, canal e primeiro resultado da ${operationLabel.toLowerCase()}.`,
           route: '/diex/first-steps',
           nativeRoute: '/diex/first-steps',
           renderer: 'OPERATIONS',
@@ -4699,7 +4963,12 @@ export class WorkspaceArchitectureService {
           blocks: [],
           dataContracts: inferWorkspacePageDataContracts({
             pageKey: 'first-steps',
-            dataSources: ['contexto', 'arquitetura', 'whatsapp', 'pipeline'],
+            dataSources: [
+              'contexto',
+              'arquitetura',
+              'canal principal',
+              'pipeline',
+            ],
             metadataObjects,
           }),
           actions: buildWorkspacePageActions({
@@ -4711,7 +4980,12 @@ export class WorkspaceArchitectureService {
           status: 'ACTIVE',
           sourceTemplateIds: ['diex.base.universal'],
           primaryAction: `Chegar ao primeiro resultado da ${operationLabel.toLowerCase()}`,
-          dataSources: ['contexto', 'arquitetura', 'whatsapp', 'pipeline'],
+          dataSources: [
+            'contexto',
+            'arquitetura',
+            'canal principal',
+            'pipeline',
+          ],
           capabilityContract: {
             version: WORKSPACE_PAGE_CONTRACT_VERSION,
             key: 'first-steps',
@@ -4719,7 +4993,7 @@ export class WorkspaceArchitectureService {
               'onboarding',
               'contexto',
               'arquitetura',
-              'whatsapp',
+              'canal principal',
               'pipeline',
             ],
             fallbackRoute: '/diex/first-steps',
@@ -4727,14 +5001,14 @@ export class WorkspaceArchitectureService {
           emptyState: {
             title: 'Sua operação começa aqui',
             description:
-              'Defina o contexto, conecte o canal principal e transforme a primeira entrada em um resultado operacional.',
+              'Defina o contexto, escolha a forma de entrada e transforme o primeiro registro real em resultado operacional.',
             actionLabel: 'Continuar onboarding',
             actionRoute: '/diex/first-steps',
           },
           permissions: ['workspace_access'],
           aiGenerated: false,
           editable: true,
-          showInNavigation: false,
+          showInNavigation: true,
           position: 0,
           createdAt: now,
         }),

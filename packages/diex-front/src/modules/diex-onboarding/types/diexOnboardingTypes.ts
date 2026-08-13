@@ -40,10 +40,22 @@ export type DataFlowSummary = {
   conversationCount: number;
   messageCount: number;
   peopleCount: number;
+  opportunityCount: number;
+  taskCount: number;
   offerCount: number;
   activeOfferCount: number;
   draftOfferCount: number;
   offers: OnboardingOfferSummary[];
+  isLoading: boolean;
+  unconfirmedSources: Array<
+    | 'conversations'
+    | 'messages'
+    | 'people'
+    | 'opportunities'
+    | 'tasks'
+    | 'offers'
+  >;
+  errorMessage: string | null;
 };
 
 export type OnboardingOfferSummary = {
@@ -106,6 +118,7 @@ export type DiexCommercialReadiness = {
   readinessPack?: {
     version: string;
     goal: string | null;
+    primaryChannel: string | null;
     operationLabel: string;
     readyLabel: string;
     selectedTemplateIds: string[];
@@ -145,6 +158,10 @@ export type DiexCommercialReadiness = {
   dashboard: {
     pipelineValueMicros: number;
     pipelineCurrencyCode: string;
+    pipelineValues?: Array<{
+      amountMicros: number;
+      currencyCode: string;
+    }>;
     unassignedOpportunities: number;
     overdueFollowUps: number;
     unansweredLeads: number;
@@ -229,7 +246,19 @@ export type DiexCommercialReadiness = {
       materializedAdapters: string[];
     } | null;
   };
+  dataFreshness?: {
+    status: 'LIVE' | 'PARTIAL' | 'UNAVAILABLE';
+    queriedAt: string;
+    source: string;
+  };
 };
+
+export type DiexPrimaryChannel =
+  | 'WHATSAPP'
+  | 'EMAIL'
+  | 'IMPORT'
+  | 'MANUAL'
+  | 'LATER';
 
 export type DiexArchitectureArtifact = {
   id: string;
@@ -381,6 +410,12 @@ export type DiexPageDataSource = {
   objectName: string | null;
   records: Array<Record<string, unknown>>;
   count: number | null;
+  returnedCount: number;
+  totalCount: number | null;
+  isPartial: boolean;
+  queriedAt: string;
+  sourceUpdatedAt: string | null;
+  freshnessStatus: 'LIVE' | 'PARTIAL' | 'UNAVAILABLE' | 'NOT_APPLICABLE';
   fallback: string;
   error: string | null;
   dataClassification?:
@@ -394,6 +429,8 @@ export type DiexPageDataState = {
   pageKey: string;
   contractVersion: string;
   generatedAt: string;
+  isPartial: boolean;
+  hasErrors: boolean;
   sources: DiexPageDataSource[];
 };
 
