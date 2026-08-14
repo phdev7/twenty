@@ -1216,7 +1216,12 @@ export class OnboardingService {
         { shouldBypassPermissionChecks: true },
       );
 
-    return repository.findOne({ order: { createdAt: 'ASC' } });
+    const contexts = await repository.find({
+      order: { createdAt: 'ASC' },
+      take: 1,
+    });
+
+    return contexts[0] ?? null;
   }
 
   private async findFirstInboundCommercialConversation(
