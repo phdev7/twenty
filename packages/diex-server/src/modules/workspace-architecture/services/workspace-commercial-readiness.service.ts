@@ -63,6 +63,13 @@ export class WorkspaceCommercialReadinessService {
   ) {}
 
   async getReadiness(workspaceId: string) {
+    return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      () => this.getReadinessInContext(workspaceId),
+      buildSystemAuthContext(workspaceId),
+    );
+  }
+
+  private async getReadinessInContext(workspaceId: string) {
     const repositories = await this.getCommercialRepositories(workspaceId);
     const [
       context,
