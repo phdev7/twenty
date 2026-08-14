@@ -1661,12 +1661,9 @@ export class WorkspaceArchitectureService {
           ({ nameSingular, namePlural }) =>
             nameSingular === objectKey || namePlural === `${objectKey}s`,
         );
-        const existingField = object
-          ? current.fields.find(
-              ({ objectMetadataId, name }) =>
-                objectMetadataId === object.id && name === fieldName,
-            )
-          : undefined;
+        const existingField = object?.fields.find(
+          ({ name }) => name === fieldName,
+        );
 
         return {
           id: v4(),
@@ -3865,9 +3862,8 @@ export class WorkspaceArchitectureService {
                       ({ nameSingular }) => nameSingular === objectKey,
                     );
 
-                    return current.fields.find(
-                      ({ objectMetadataId, name }) =>
-                        objectMetadataId === object?.id && name === fieldName,
+                    return object?.fields.find(
+                      ({ name }) => name === fieldName,
                     );
                   })();
 
