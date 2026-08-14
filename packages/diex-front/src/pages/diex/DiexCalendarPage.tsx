@@ -25,16 +25,15 @@ const CALENDAR_TASKS_QUERY = gql`
           title
           dueAt
           status
-          assignee {
-            id
-            name {
-              firstName
-              lastName
-            }
-          }
+          assigneeId
         }
       }
     }
+  }
+`;
+
+const CALENDAR_WORKSPACE_MEMBERS_QUERY = gql`
+  query DiexCalendarWorkspaceMembers {
     workspaceMembers(first: 200) {
       edges {
         node {
@@ -183,13 +182,7 @@ interface Task {
   title: string | null;
   dueAt: string | null;
   status: string | null;
-  assignee?: {
-    id: string;
-    name: {
-      firstName: string;
-      lastName: string;
-    };
-  } | null;
+  assigneeId?: string | null;
 }
 
 interface WorkspaceMember {
@@ -220,10 +213,26 @@ export const DiexCalendarPage = () => {
 
     return { rangeStart, rangeEnd };
   }, [currentDate]);
-  const { data, loading, error, refetch } = useQuery<{
+  const {
+    data,
+    loading,
+    error,
+    refetch: refetchTasks,
+  } = useQuery<{
     tasks: { edges: Array<{ node: Task }> };
-    workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
   }>(CALENDAR_TASKS_QUERY, {
+    fetchPolicy: 'network-only',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
+  });
+  const {
+    data: workspaceMembersData,
+    loading: workspaceMembersLoading,
+    error: workspaceMembersError,
+    refetch: refetchWorkspaceMembers,
+  } = useQuery<{
+    workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
+  }>(CALENDAR_WORKSPACE_MEMBERS_QUERY, {
     fetchPolicy: 'network-only',
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
@@ -236,8 +245,11 @@ export const DiexCalendarPage = () => {
   }, [data]);
 
   const workspaceMembers = useMemo(() => {
-    return data?.workspaceMembers?.edges?.map(({ node }) => node) ?? [];
-  }, [data]);
+    return (
+      workspaceMembersData?.workspaceMembers?.edges?.map(({ node }) => node) ??
+      []
+    );
+  }, [workspaceMembersData]);
   const dataLoadedAt = useMemo(
     () => (data ? new Date().toISOString() : null),
     [data],
@@ -251,8 +263,7 @@ export const DiexCalendarPage = () => {
       const isInVisibleRange =
         dueAt >= visibleRange.rangeStart && dueAt < visibleRange.rangeEnd;
       const matchesAssignee =
-        selectedAssigneeId === 'ALL' ||
-        task.assignee?.id === selectedAssigneeId;
+        selectedAssigneeId === 'ALL' || task.assigneeId === selectedAssigneeId;
 
       return isInVisibleRange && matchesAssignee;
     });
@@ -348,7 +359,7 @@ export const DiexCalendarPage = () => {
             title="Não foi possível carregar esta janela"
             message="Nenhuma conclusão foi gerada com dados incompletos. Tente novamente para recuperar tarefas, responsáveis e prazos reais."
             actionLabel="Tentar novamente"
-            onAction={() => void refetch()}
+            onAction={() => void refetchTasks()}
           />
           <Button
             title="Abrir tarefas"
@@ -366,17 +377,19 @@ export const DiexCalendarPage = () => {
       statusText={
         error
           ? 'Falha ao atualizar · dados anteriores preservados'
-          : loading
-            ? 'Atualizando dados reais'
-            : dataLoadedAt
-              ? `Dados atuais · ${new Date(dataLoadedAt).toLocaleTimeString(
-                  'pt-BR',
-                  {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  },
-                )}`
-              : 'Aguardando dados reais'
+          : workspaceMembersError
+            ? 'Agenda carregada · filtro de responsáveis indisponível'
+            : loading
+              ? 'Atualizando dados reais'
+              : dataLoadedAt
+                ? `Dados atuais · ${new Date(dataLoadedAt).toLocaleTimeString(
+                    'pt-BR',
+                    {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    },
+                  )}`
+                : 'Aguardando dados reais'
       }
     >
       {error && tasks.length > 0 ? (
@@ -385,7 +398,17 @@ export const DiexCalendarPage = () => {
             title="A atualização desta janela falhou"
             message="As tarefas exibidas pertencem à última consulta concluída. Atualize antes de decidir sobre prazos e responsáveis."
             actionLabel="Tentar novamente"
-            onAction={() => void refetch()}
+            onAction={() => void refetchTasks()}
+          />
+        </CommandCenterCard>
+      ) : null}
+      {workspaceMembersError ? (
+        <CommandCenterCard title="Filtro de responsáveis">
+          <CommandCenterStartState
+            title="A agenda continua disponível"
+            message="As tarefas e os prazos foram carregados. Apenas o filtro por responsável não pôde ser atualizado nesta leitura."
+            actionLabel="Atualizar responsáveis"
+            onAction={() => void refetchWorkspaceMembers()}
           />
         </CommandCenterCard>
       ) : null}
@@ -411,6 +434,7 @@ export const DiexCalendarPage = () => {
           <StyledSelect
             value={selectedAssigneeId}
             onChange={(e) => setSelectedAssigneeId(e.target.value)}
+            disabled={workspaceMembersLoading || workspaceMembers.length === 0}
           >
             <option value="ALL">Todos os Usuários</option>
             {workspaceMembers.map((member) => (
@@ -447,7 +471,9 @@ export const DiexCalendarPage = () => {
               size="small"
               variant="secondary"
               disabled={loading}
-              onClick={() => void refetch()}
+              onClick={() =>
+                void Promise.all([refetchTasks(), refetchWorkspaceMembers()])
+              }
             />
           </StyledHeaderNav>
         </StyledFilters>

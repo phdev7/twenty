@@ -21,8 +21,8 @@ import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { Button, Tag } from 'diex-ui';
 import { isDefined } from 'diex-shared/utils';
 
-const COMMERCIAL_INTELLIGENCE_QUERY = gql`
-  query DiexCommercialIntelligence {
+const COMMERCIAL_SIGNALS_QUERY = gql`
+  query DiexCommercialSignals {
     commercialSignals(first: 100, orderBy: [{ capturedAt: DescNullsLast }]) {
       edges {
         node {
@@ -38,24 +38,17 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
           recommendedAction {
             markdown
           }
-          opportunity {
-            id
-            name
-          }
-          company {
-            id
-            name
-          }
-          person {
-            id
-            name {
-              firstName
-              lastName
-            }
-          }
+          opportunityId
+          companyId
+          personId
         }
       }
     }
+  }
+`;
+
+const COMMERCIAL_OPPORTUNITIES_QUERY = gql`
+  query DiexCommercialOpportunities {
     opportunities(first: 100, orderBy: [{ commercialScore: DescNullsLast }]) {
       edges {
         node {
@@ -70,9 +63,35 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
             amountMicros
             currencyCode
           }
-          company {
-            id
-            name
+          companyId
+        }
+      }
+    }
+  }
+`;
+
+const COMMERCIAL_COMPANIES_QUERY = gql`
+  query DiexCommercialCompanies {
+    companies(first: 200) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+const COMMERCIAL_PEOPLE_QUERY = gql`
+  query DiexCommercialPeople {
+    people(first: 200) {
+      edges {
+        node {
+          id
+          name {
+            firstName
+            lastName
           }
         }
       }
@@ -108,6 +127,9 @@ type Signal = {
   validUntil?: string | null;
   updatedAt?: string | null;
   recommendedAction?: { markdown?: string | null } | null;
+  opportunityId?: string | null;
+  companyId?: string | null;
+  personId?: string | null;
   opportunity?: NamedRecord | null;
   company?: NamedRecord | null;
   person?: NamedRecord | null;
@@ -123,15 +145,24 @@ type Opportunity = NamedRecord & {
     amountMicros?: number | null;
     currencyCode?: string | null;
   } | null;
+  companyId?: string | null;
   company?: NamedRecord | null;
 };
-type QueryData = {
+type CommercialSignalsQueryData = {
   commercialSignals?: {
     edges?: Array<{ node: Signal }>;
   };
+};
+type CommercialOpportunitiesQueryData = {
   opportunities?: {
     edges?: Array<{ node: Opportunity }>;
   };
+};
+type CompaniesQueryData = {
+  companies?: { edges?: Array<{ node: NamedRecord }> };
+};
+type PeopleQueryData = {
+  people?: { edges?: Array<{ node: NamedRecord }> };
 };
 
 const strength = (value?: string | null) => {
@@ -194,22 +225,84 @@ export const CommercialIntelligencePage = () => {
       'Sinais dos canais, CRM, IA e relacionamento priorizados pelo impacto real no resultado.',
   });
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
-  const { data, loading, error, refetch } = useQuery<QueryData>(
-    COMMERCIAL_INTELLIGENCE_QUERY,
+  const {
+    data: signalsData,
+    loading: signalsLoading,
+    error: signalsError,
+    refetch: refetchSignals,
+  } = useQuery<CommercialSignalsQueryData>(COMMERCIAL_SIGNALS_QUERY, {
+    fetchPolicy: 'network-only',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
+  });
+  const {
+    data: opportunitiesData,
+    loading: opportunitiesLoading,
+    error: opportunitiesError,
+    refetch: refetchOpportunities,
+  } = useQuery<CommercialOpportunitiesQueryData>(
+    COMMERCIAL_OPPORTUNITIES_QUERY,
     {
       fetchPolicy: 'network-only',
       errorPolicy: 'all',
       notifyOnNetworkStatusChange: true,
     },
   );
+  const {
+    data: companiesData,
+    error: companiesError,
+    refetch: refetchCompanies,
+  } = useQuery<CompaniesQueryData>(COMMERCIAL_COMPANIES_QUERY, {
+    fetchPolicy: 'network-only',
+    errorPolicy: 'all',
+  });
+  const {
+    data: peopleData,
+    error: peopleError,
+    refetch: refetchPeople,
+  } = useQuery<PeopleQueryData>(COMMERCIAL_PEOPLE_QUERY, {
+    fetchPolicy: 'network-only',
+    errorPolicy: 'all',
+  });
   const [updateSignal, { loading: isUpdating }] = useMutation(
     UPDATE_COMMERCIAL_SIGNAL,
   );
   const { enqueueErrorSnackBar, enqueueSuccessSnackBar } = useSnackBar();
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
-  const signals = data?.commercialSignals?.edges?.map(({ node }) => node) ?? [];
-  const opportunities =
-    data?.opportunities?.edges?.map(({ node }) => node) ?? [];
+  const companiesById = new Map(
+    (companiesData?.companies?.edges ?? []).map(({ node }) => [node.id, node]),
+  );
+  const peopleById = new Map(
+    (peopleData?.people?.edges ?? []).map(({ node }) => [node.id, node]),
+  );
+  const opportunities = (
+    opportunitiesData?.opportunities?.edges?.map(({ node }) => node) ?? []
+  ).map((opportunity) => ({
+    ...opportunity,
+    company: opportunity.companyId
+      ? companiesById.get(opportunity.companyId)
+      : null,
+  }));
+  const opportunitiesById = new Map(
+    opportunities.map((opportunity) => [opportunity.id, opportunity]),
+  );
+  const signals = (
+    signalsData?.commercialSignals?.edges?.map(({ node }) => node) ?? []
+  ).map((signal) => ({
+    ...signal,
+    opportunity: signal.opportunityId
+      ? opportunitiesById.get(signal.opportunityId)
+      : null,
+    company: signal.companyId ? companiesById.get(signal.companyId) : null,
+    person: signal.personId ? peopleById.get(signal.personId) : null,
+  }));
+  const loading = signalsLoading || opportunitiesLoading;
+  const coreError = signalsError || opportunitiesError;
+  const relationshipError = companiesError || peopleError;
+  const hasCoreResponse = Boolean(signalsData || opportunitiesData);
+  const hasCompleteFailure = Boolean(
+    signalsError && opportunitiesError && !hasCoreResponse,
+  );
   const signalTotalCount = signals.length;
   const opportunityTotalCount = opportunities.length;
   const now = Date.now();
@@ -268,25 +361,35 @@ export const CommercialIntelligencePage = () => {
   const hasCommercialData = signals.length > 0 || opportunities.length > 0;
 
   useEffect(() => {
-    if (data) {
+    if (signalsData || opportunitiesData) {
       setLastRefreshedAt(new Date());
     }
-  }, [data]);
+  }, [opportunitiesData, signalsData]);
 
-  const dataStatus = error
-    ? hasCommercialData
-      ? 'Falha ao atualizar · dados anteriores preservados'
-      : 'Dados indisponíveis'
-    : loading
-      ? 'Atualizando dados reais'
-      : lastRefreshedAt
-        ? `Atualizado às ${lastRefreshedAt.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}`
-        : 'Aguardando dados reais';
+  const dataStatus = coreError
+    ? hasCompleteFailure
+      ? 'Dados indisponíveis'
+      : 'Dados parciais · operação preservada'
+    : relationshipError
+      ? 'Dados atuais · vínculos resumidos'
+      : loading
+        ? 'Atualizando dados reais'
+        : lastRefreshedAt
+          ? `Atualizado às ${lastRefreshedAt.toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}`
+          : 'Aguardando dados reais';
+  const refetchAll = async () => {
+    await Promise.all([
+      refetchSignals(),
+      refetchOpportunities(),
+      refetchCompanies(),
+      refetchPeople(),
+    ]);
+  };
   const transition = async (id: string, status: 'IN_REVIEW' | 'ACTIONED') => {
-    if (error) {
+    if (signalsError) {
       enqueueErrorSnackBar({
         message:
           'Atualize o radar antes de mudar um sinal; os dados atuais não foram confirmados.',
@@ -296,7 +399,7 @@ export const CommercialIntelligencePage = () => {
 
     try {
       await updateSignal({ variables: { id, data: { status } } });
-      await refetch();
+      await refetchSignals();
       enqueueSuccessSnackBar({
         message:
           status === 'IN_REVIEW'
@@ -316,10 +419,8 @@ export const CommercialIntelligencePage = () => {
       description={pagePresentation.description}
       statusText={dataStatus}
     >
-      {loading && signals.length === 0 && opportunities.length === 0 ? (
-        <CommandCenterLoadingState />
-      ) : null}
-      {error && signals.length === 0 && opportunities.length === 0 ? (
+      {loading && !hasCoreResponse ? <CommandCenterLoadingState /> : null}
+      {hasCompleteFailure && !hasCommercialData ? (
         <CommandCenterCard title="Inteligência Comercial">
           <CommandCenterEmptyState
             message="Não foi possível carregar o cockpit de inteligência comercial. As oportunidades continuam disponíveis no CRM."
@@ -330,27 +431,27 @@ export const CommercialIntelligencePage = () => {
             title="Tentar novamente"
             size="small"
             variant="secondary"
-            onClick={() => void refetch()}
+            onClick={() => void refetchAll()}
           />
         </CommandCenterCard>
       ) : null}
-      {error && hasCommercialData ? (
+      {coreError && !hasCompleteFailure ? (
         <CommandCenterCard title="Qualidade dos dados">
           <CommandCenterRow
-            title="A atualização do cockpit falhou"
-            detail="Os números abaixo pertencem à última consulta concluída. Atualize antes de tomar uma decisão comercial."
+            title="Uma fonte do cockpit não respondeu"
+            detail="As demais fontes continuam disponíveis. Atualize para recuperar o recorte completo antes de tomar uma decisão comercial."
             action={
               <Button
                 title="Tentar novamente"
                 size="small"
                 variant="secondary"
-                onClick={() => void refetch()}
+                onClick={() => void refetchAll()}
               />
             }
           />
         </CommandCenterCard>
       ) : null}
-      {!loading && !error && !hasCommercialData ? (
+      {!loading && !hasCompleteFailure && !hasCommercialData ? (
         <CommandCenterCard title="Seu cockpit comercial está pronto">
           <CommandCenterStartState
             title="O próximo ganho vem do primeiro lead registrado."
@@ -370,7 +471,7 @@ export const CommercialIntelligencePage = () => {
                   size="small"
                   variant="secondary"
                   disabled={loading}
-                  onClick={() => void refetch()}
+                  onClick={() => void refetchAll()}
                 />
               }
             />
@@ -414,7 +515,7 @@ export const CommercialIntelligencePage = () => {
                     return (
                       <CommandCenterRow
                         key={signal.id}
-                        title={signal.name}
+                        title={signal.name || signalLabel(signal.signalType)}
                         detail={`${signalLabel(signal.signalType)} · ${statusLabel(signal.status)} · ${context} · ${strength(signal.strength)}/5 força · ${signal.recommendedAction?.markdown || 'Abra o sinal para definir a próxima ação.'}`}
                         action={
                           <>
@@ -438,7 +539,7 @@ export const CommercialIntelligencePage = () => {
                                 }
                                 size="small"
                                 variant="secondary"
-                                disabled={isUpdating || Boolean(error)}
+                                disabled={isUpdating || Boolean(signalsError)}
                                 onClick={() =>
                                   void transition(signal.id, nextStatus)
                                 }

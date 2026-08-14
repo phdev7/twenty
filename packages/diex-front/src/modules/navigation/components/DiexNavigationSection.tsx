@@ -36,6 +36,45 @@ type DiexNavigationLink = {
 
 const DIEX_FORM_BUILDER_ROUTE = '/forms/builder';
 
+const CORE_OPERATION_LINKS: DiexNavigationLink[] = [
+  {
+    label: 'Ativação da Operação',
+    to: '/diex/first-steps',
+    Icon: IconRocket,
+    group: 'Ativação',
+  },
+  {
+    label: 'Inbox da Operação',
+    to: '/inbox',
+    Icon: IconInbox,
+    group: 'Receita',
+  },
+  {
+    label: 'Cockpit da Operação',
+    to: '/diex/commercial-intelligence',
+    Icon: IconChartLine,
+    group: 'Receita',
+  },
+  {
+    label: 'Agenda da Operação',
+    to: '/diex/calendar',
+    Icon: IconCalendar,
+    group: 'Execução',
+  },
+  {
+    label: 'Formulários',
+    to: DIEX_FORM_BUILDER_ROUTE,
+    Icon: IconFileText,
+    group: 'Comercial',
+  },
+  {
+    label: 'Páginas e menu',
+    to: '/diex/pages',
+    Icon: IconSettings,
+    group: 'Configuração',
+  },
+];
+
 const isPublicDiexFormRoute = (route: string): boolean =>
   /^https:\/\/(?:[^/]+\.)?diexforms\.com(?:\/|$)/i.test(route);
 
@@ -156,26 +195,9 @@ export const DiexNavigationSection = () => {
       return catalogLinks;
     }
 
-    return [
-      {
-        label: 'Configurar operação',
-        to: '/diex/first-steps',
-        Icon: IconRocket,
-        group: 'Ativação',
-      },
-      {
-        label: 'Formulários',
-        to: DIEX_FORM_BUILDER_ROUTE,
-        Icon: IconFileText,
-        group: 'Comercial',
-      },
-      {
-        label: 'Páginas e menu',
-        to: '/diex/pages',
-        Icon: IconSettings,
-        group: 'Configuração',
-      },
-    ];
+    // O catálogo é adaptativo, mas uma falha transitória nunca pode fazer um
+    // workspace já configurado perder os módulos centrais da operação.
+    return CORE_OPERATION_LINKS;
   }, [pageCatalog, readiness?.ready]);
 
   const groupedLinks = links.reduce<Record<string, DiexNavigationLink[]>>(
