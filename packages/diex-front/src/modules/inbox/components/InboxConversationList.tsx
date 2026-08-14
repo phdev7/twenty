@@ -1,6 +1,6 @@
 import { styled } from '@linaria/react';
 import { IconInbox, IconMail, IconRefresh } from 'diex-ui/icon';
-import { IconButton } from 'diex-ui/input';
+import { Button, IconButton } from 'diex-ui/input';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
 import { DiexOnboardingWhatsappStep } from '@/diex-onboarding/components/DiexOnboardingWhatsappStep';
@@ -76,6 +76,13 @@ const StyledEmptyState = styled.div`
   line-height: 1.5;
   padding: ${themeCssVariables.spacing[6]};
   text-align: center;
+`;
+
+const StyledEmptyActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${themeCssVariables.spacing[2]};
+  justify-content: center;
 `;
 
 const StyledErrorState = styled.div`
@@ -244,7 +251,7 @@ export const InboxConversationList = ({
     {errorMessage ? <StyledErrorState>{errorMessage}</StyledErrorState> : null}
 
     <StyledScrollArea>
-      {isLoading && conversations.length === 0 ? (
+      {isLoading && conversations.length === 0 && !isCountConfirmed ? (
         <>
           <StyledSkeleton />
           <StyledSkeleton />
@@ -257,14 +264,22 @@ export const InboxConversationList = ({
           concluir que não existem conversas.
         </StyledEmptyState>
       ) : conversations.length === 0 ? (
-        isWorkspaceStartState ? (
+        isWorkspaceStartState &&
+        primaryChannel !== null &&
+        primaryChannel !== 'EMAIL' &&
+        primaryChannel !== 'IMPORT' &&
+        primaryChannel !== 'MANUAL' &&
+        !(
+          primaryChannel === 'WHATSAPP' &&
+          whatsappConnection?.state === 'CONNECTED'
+        ) ? (
           <DiexOnboardingWhatsappStep
             index={1}
             connection={whatsappConnection}
             primaryChannel={primaryChannel}
             isSavingPreference={isSavingPrimaryChannel}
             isConnecting={isWhatsappConnecting}
-            isDone={primaryChannel === 'MANUAL' || primaryChannel === 'IMPORT'}
+            isDone={false}
             errorMessage={whatsappErrorMessage}
             onSelectChannel={onSelectPrimaryChannel}
             onOpenEmail={onOpenEmail}
@@ -277,7 +292,24 @@ export const InboxConversationList = ({
               size={themeCssVariables.icon.size.xl}
               stroke={themeCssVariables.icon.stroke.sm}
             />
-            Nenhuma conversa encontrada neste filtro.
+            {isWorkspaceStartState
+              ? 'A Inbox está pronta. Ainda não há conversas recebidas nesta operação.'
+              : 'Nenhuma conversa encontrada neste filtro.'}
+            {isWorkspaceStartState ? (
+              <StyledEmptyActions>
+                <Button
+                  title="Sincronizar e-mail"
+                  variant="secondary"
+                  disabled={isEmailSyncing}
+                  onClick={onSyncEmail}
+                />
+                <Button
+                  title="Abrir contatos"
+                  variant="secondary"
+                  onClick={onOpenRecords}
+                />
+              </StyledEmptyActions>
+            ) : null}
           </StyledEmptyState>
         )
       ) : (

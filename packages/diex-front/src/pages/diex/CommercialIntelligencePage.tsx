@@ -24,7 +24,6 @@ import { isDefined } from 'diex-shared/utils';
 const COMMERCIAL_INTELLIGENCE_QUERY = gql`
   query DiexCommercialIntelligence {
     commercialSignals(first: 100, orderBy: [{ capturedAt: DescNullsLast }]) {
-      totalCount
       edges {
         node {
           id
@@ -36,7 +35,6 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
           confidence
           capturedAt
           validUntil
-          updatedAt
           recommendedAction {
             markdown
           }
@@ -59,7 +57,6 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
       }
     }
     opportunities(first: 100, orderBy: [{ commercialScore: DescNullsLast }]) {
-      totalCount
       edges {
         node {
           id
@@ -69,7 +66,6 @@ const COMMERCIAL_INTELLIGENCE_QUERY = gql`
           dealRisk
           nextCommercialAction
           nextCommercialActionAt
-          updatedAt
           amount {
             amountMicros
             currencyCode
@@ -131,11 +127,9 @@ type Opportunity = NamedRecord & {
 };
 type QueryData = {
   commercialSignals?: {
-    totalCount?: number;
     edges?: Array<{ node: Signal }>;
   };
   opportunities?: {
-    totalCount?: number;
     edges?: Array<{ node: Opportunity }>;
   };
 };
@@ -204,6 +198,7 @@ export const CommercialIntelligencePage = () => {
     COMMERCIAL_INTELLIGENCE_QUERY,
     {
       fetchPolicy: 'network-only',
+      errorPolicy: 'all',
       notifyOnNetworkStatusChange: true,
     },
   );
@@ -215,13 +210,8 @@ export const CommercialIntelligencePage = () => {
   const signals = data?.commercialSignals?.edges?.map(({ node }) => node) ?? [];
   const opportunities =
     data?.opportunities?.edges?.map(({ node }) => node) ?? [];
-  const signalTotalCount =
-    data?.commercialSignals?.totalCount ?? signals.length;
-  const opportunityTotalCount =
-    data?.opportunities?.totalCount ?? opportunities.length;
-  const isSampled =
-    signalTotalCount > signals.length ||
-    opportunityTotalCount > opportunities.length;
+  const signalTotalCount = signals.length;
+  const opportunityTotalCount = opportunities.length;
   const now = Date.now();
   const activeSignals = signals.filter(
     ({ status, validUntil }) =>
@@ -331,7 +321,11 @@ export const CommercialIntelligencePage = () => {
       ) : null}
       {error && signals.length === 0 && opportunities.length === 0 ? (
         <CommandCenterCard title="Inteligência Comercial">
-          <CommandCenterEmptyState message="Não foi possível carregar o cockpit de inteligência comercial." />
+          <CommandCenterEmptyState
+            message="Não foi possível carregar o cockpit de inteligência comercial. As oportunidades continuam disponíveis no CRM."
+            actionLabel="Abrir oportunidades"
+            to="/objects/opportunities"
+          />
           <Button
             title="Tentar novamente"
             size="small"
@@ -369,7 +363,7 @@ export const CommercialIntelligencePage = () => {
           <CommandCenterCard title="Evidência comercial antes de opinião.">
             <CommandCenterRow
               title={`${activeSignals.length} sinais ativos no recorte`}
-              detail={`${signalTotalCount} sinais e ${opportunityTotalCount} oportunidades na base${isSampled ? '; métricas abaixo calculadas sobre os 100 registros mais prioritários de cada fonte' : ''}.${expiredActiveSignals > 0 ? ` ${expiredActiveSignals} sinais vencidos foram retirados da fila.` : ''}`}
+              detail={`${signalTotalCount} sinais e ${opportunityTotalCount} oportunidades no recorte operacional.${expiredActiveSignals > 0 ? ` ${expiredActiveSignals} sinais vencidos foram retirados da fila.` : ''}`}
               action={
                 <Button
                   title="Atualizar radar"
@@ -460,7 +454,11 @@ export const CommercialIntelligencePage = () => {
             </CommandCenterCard>
             <CommandCenterCard title="Ranking de oportunidades">
               {ranked.length === 0 ? (
-                <CommandCenterEmptyState message="Nenhuma oportunidade cadastrada." />
+                <CommandCenterEmptyState
+                  message="Nenhuma oportunidade cadastrada."
+                  actionLabel="Abrir oportunidades"
+                  to="/objects/opportunities"
+                />
               ) : (
                 <CommandCenterList>
                   {ranked.map((opportunity) => {
@@ -504,7 +502,11 @@ export const CommercialIntelligencePage = () => {
           </CommandCenterGrid>
           <CommandCenterCard title="Próximas ações comerciais">
             {nextActions.length === 0 ? (
-              <CommandCenterEmptyState message="Nenhuma próxima ação definida nas oportunidades." />
+              <CommandCenterEmptyState
+                message="Nenhuma próxima ação definida nas oportunidades."
+                actionLabel="Abrir oportunidades"
+                to="/objects/opportunities"
+              />
             ) : (
               <CommandCenterList>
                 {nextActions.map((opportunity) => (

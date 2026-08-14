@@ -17,13 +17,8 @@ import { Button } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
 const CALENDAR_TASKS_QUERY = gql`
-  query DiexCalendarTasks($rangeStart: DateTime!, $rangeEnd: DateTime!) {
-    tasks(
-      first: 500
-      filter: { dueAt: { gte: $rangeStart, lt: $rangeEnd } }
-      orderBy: [{ dueAt: AscNullsLast }]
-    ) {
-      totalCount
+  query DiexCalendarTasks {
+    tasks(first: 500) {
       edges {
         node {
           id
@@ -223,17 +218,14 @@ export const DiexCalendarPage = () => {
 
     rangeEnd.setDate(rangeStart.getDate() + 42);
 
-    return {
-      rangeStart: rangeStart.toISOString(),
-      rangeEnd: rangeEnd.toISOString(),
-    };
+    return { rangeStart, rangeEnd };
   }, [currentDate]);
   const { data, loading, error, refetch } = useQuery<{
-    tasks: { totalCount?: number; edges: Array<{ node: Task }> };
+    tasks: { edges: Array<{ node: Task }> };
     workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
   }>(CALENDAR_TASKS_QUERY, {
-    variables: visibleRange,
     fetchPolicy: 'network-only',
+    errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
   });
 
@@ -246,17 +238,25 @@ export const DiexCalendarPage = () => {
   const workspaceMembers = useMemo(() => {
     return data?.workspaceMembers?.edges?.map(({ node }) => node) ?? [];
   }, [data]);
-  const taskTotalCount = data?.tasks?.totalCount ?? tasks.length;
-  const isPartial = taskTotalCount > tasks.length;
   const dataLoadedAt = useMemo(
     () => (data ? new Date().toISOString() : null),
     [data],
   );
 
   const filteredTasks = useMemo(() => {
-    if (selectedAssigneeId === 'ALL') return tasks;
-    return tasks.filter((task) => task.assignee?.id === selectedAssigneeId);
-  }, [tasks, selectedAssigneeId]);
+    return tasks.filter((task) => {
+      if (!task.dueAt) return false;
+
+      const dueAt = new Date(task.dueAt);
+      const isInVisibleRange =
+        dueAt >= visibleRange.rangeStart && dueAt < visibleRange.rangeEnd;
+      const matchesAssignee =
+        selectedAssigneeId === 'ALL' ||
+        task.assignee?.id === selectedAssigneeId;
+
+      return isInVisibleRange && matchesAssignee;
+    });
+  }, [tasks, selectedAssigneeId, visibleRange]);
 
   const monthNames = [
     'Janeiro',
@@ -350,6 +350,11 @@ export const DiexCalendarPage = () => {
             actionLabel="Tentar novamente"
             onAction={() => void refetch()}
           />
+          <Button
+            title="Abrir tarefas"
+            variant="secondary"
+            to="/objects/tasks"
+          />
         </CommandCenterCard>
       </CommandCenterPage>
     );
@@ -364,12 +369,13 @@ export const DiexCalendarPage = () => {
           : loading
             ? 'Atualizando dados reais'
             : dataLoadedAt
-              ? `${isPartial ? 'Recorte atual' : 'Dados atuais'} · ${new Date(
-                  dataLoadedAt,
-                ).toLocaleTimeString('pt-BR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}`
+              ? `Dados atuais · ${new Date(dataLoadedAt).toLocaleTimeString(
+                  'pt-BR',
+                  {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  },
+                )}`
               : 'Aguardando dados reais'
       }
     >
@@ -384,10 +390,7 @@ export const DiexCalendarPage = () => {
         </CommandCenterCard>
       ) : null}
       <CommandCenterMetrics>
-        <CommandCenterMetric
-          label={isPartial ? 'Tarefas no recorte' : 'Tarefas na janela'}
-          value={metrics.total}
-        />
+        <CommandCenterMetric label="Tarefas na janela" value={metrics.total} />
         <CommandCenterMetric label="Concluídas" value={metrics.completed} />
         <CommandCenterMetric label="Pendentes" value={metrics.pending} />
       </CommandCenterMetrics>
@@ -448,17 +451,6 @@ export const DiexCalendarPage = () => {
             />
           </StyledHeaderNav>
         </StyledFilters>
-
-        {isPartial ? (
-          <CommandCenterCard title="Recorte da agenda">
-            <CommandCenterStartState
-              title={`${tasks.length} de ${taskTotalCount} tarefas carregadas`}
-              message="A visão mensal usa até 500 tarefas da janela de seis semanas exibida. Abra o módulo completo para decisões que dependam de todo o período."
-              actionLabel="Abrir tarefas"
-              to="/objects/tasks"
-            />
-          </CommandCenterCard>
-        ) : null}
 
         <StyledCalendarViewport>
           <StyledCalendarGrid>

@@ -225,8 +225,8 @@ export const CommandCenterCard = ({
 
 export const CommandCenterEmptyState = ({
   message,
-  actionLabel = 'Continuar ativação comercial',
-  to = '/diex/first-steps',
+  actionLabel,
+  to,
 }: {
   message: string;
   actionLabel?: string;
@@ -235,9 +235,11 @@ export const CommandCenterEmptyState = ({
   return (
     <StyledEmptyState>
       <span>{message}</span>
-      <div>
-        <Button title={actionLabel} variant="secondary" to={to} />
-      </div>
+      {actionLabel && to ? (
+        <div>
+          <Button title={actionLabel} variant="secondary" to={to} />
+        </div>
+      ) : null}
     </StyledEmptyState>
   );
 };

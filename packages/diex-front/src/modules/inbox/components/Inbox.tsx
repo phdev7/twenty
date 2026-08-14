@@ -137,7 +137,9 @@ export const Inbox = () => {
     requestConnection: requestWhatsappConnection,
   } = useDiexOnboardingWhatsappConnection({
     onConnected: handleWhatsappConnected,
-    enabled: primaryChannel === 'WHATSAPP',
+    // Existing workspaces can have an active WhatsApp account without the
+    // primary-channel field introduced later.
+    enabled: primaryChannel === null || primaryChannel === 'WHATSAPP',
   });
   const isWorkspaceStartState =
     !isLoadingPrimaryChannel &&

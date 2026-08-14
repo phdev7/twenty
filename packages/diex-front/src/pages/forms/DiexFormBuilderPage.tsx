@@ -146,6 +146,11 @@ const GET_DIEX_FORMS = gql`
         position
       }
     }
+  }
+`;
+
+const GET_FORM_WORKSPACE_MEMBERS = gql`
+  query GetDiexFormWorkspaceMembers {
     workspaceMembers(first: 200) {
       edges {
         node {
@@ -685,10 +690,15 @@ const formatDate = (value: string) =>
   }).format(new Date(value));
 
 export const DiexFormBuilderPage = () => {
-  const { data, loading, refetch } = useQuery<{
+  // Compatibility restoration: a secondary member selector must never hide
+  // forms already created by an existing workspace.
+  const { data, loading, error, refetch } = useQuery<{
     diexForms: DiexForm[];
-    workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
-  }>(GET_DIEX_FORMS);
+  }>(GET_DIEX_FORMS, { errorPolicy: 'all' });
+  const { data: workspaceMembersData, error: workspaceMembersError } =
+    useQuery<{
+      workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
+    }>(GET_FORM_WORKSPACE_MEMBERS, { errorPolicy: 'all' });
   const [createForm] = useMutation(CREATE_FORM);
   const [updateForm] = useMutation(UPDATE_FORM);
   const [publishForm] = useMutation(PUBLISH_FORM);
@@ -698,8 +708,11 @@ export const DiexFormBuilderPage = () => {
   const [updateField] = useMutation(UPDATE_FIELD);
   const [deleteField] = useMutation(DELETE_FIELD);
   const forms = data?.diexForms ?? [];
+  const isFormsReadUnavailable =
+    Boolean(error) && !Array.isArray(data?.diexForms);
   const workspaceMembers =
-    data?.workspaceMembers?.edges?.map(({ node }) => node) ?? [];
+    workspaceMembersData?.workspaceMembers?.edges?.map(({ node }) => node) ??
+    [];
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [tab, setTab] = useState<EditorTab>('CONTENT');
   const [isCreating, setIsCreating] = useState(false);
@@ -855,7 +868,7 @@ export const DiexFormBuilderPage = () => {
     await navigator.clipboard.writeText(selectedForm.publicUrl);
   };
 
-  if (loading) {
+  if (loading && !data) {
     return <Page>Carregando formulários…</Page>;
   }
 
@@ -925,15 +938,51 @@ export const DiexFormBuilderPage = () => {
         </CreateCard>
       )}
 
+      {error && !isFormsReadUnavailable ? (
+        <CreateCard role="alert">
+          <SectionTitle>Falha ao atualizar</SectionTitle>
+          <Subtitle>
+            Os formulários já carregados foram preservados. Atualize antes de
+            concluir que houve alguma alteração.
+          </Subtitle>
+          <SecondaryButton
+            style={{ marginTop: 14 }}
+            onClick={() => void refetch()}
+          >
+            Tentar novamente
+          </SecondaryButton>
+        </CreateCard>
+      ) : null}
+
       <Workspace>
         <Panel>
           <PanelHeader>
             <PanelTitle>Seus formulários</PanelTitle>
-            <Muted>{forms.length} no total</Muted>
+            <Muted>
+              {isFormsReadUnavailable
+                ? 'Contagem não confirmada'
+                : `${forms.length} no total`}
+            </Muted>
           </PanelHeader>
-          {forms.length === 0 ? (
+          {isFormsReadUnavailable ? (
             <EmptyState>
-              Crie seu primeiro formulário para captar leads.
+              <div>Não foi possível confirmar seus formulários.</div>
+              <SecondaryButton
+                style={{ marginTop: 14 }}
+                onClick={() => void refetch()}
+              >
+                Tentar novamente
+              </SecondaryButton>
+            </EmptyState>
+          ) : forms.length === 0 ? (
+            <EmptyState>
+              <div>Crie seu primeiro formulário para captar leads.</div>
+              <PrimaryButton
+                style={{ marginTop: 14 }}
+                onClick={() => setIsCreating(true)}
+              >
+                Criar primeiro formulário
+              </PrimaryButton>
             </EmptyState>
           ) : (
             <FormList>
@@ -965,8 +1014,16 @@ export const DiexFormBuilderPage = () => {
         </Panel>
 
         <Panel>
-          {!selectedForm || !formDraft ? (
-            <EmptyState>Selecione ou crie um formulário.</EmptyState>
+          {isFormsReadUnavailable ? (
+            <EmptyState>
+              A lista não foi substituída por um falso estado vazio. Atualize
+              para recuperar os formulários já existentes.
+            </EmptyState>
+          ) : !selectedForm || !formDraft ? (
+            <EmptyState>
+              Dê um nome, escolha o resultado no CRM e publique quando estiver
+              pronto. As respostas entram na operação sem configuração técnica.
+            </EmptyState>
           ) : (
             <>
               <EditorHeader>
@@ -1593,6 +1650,12 @@ export const DiexFormBuilderPage = () => {
                           </Field>
                           <Field>
                             Responsável pelo lead
+                            {workspaceMembersError ? (
+                              <Muted>
+                                Responsáveis indisponíveis nesta leitura. O
+                                formulário continua acessível.
+                              </Muted>
+                            ) : null}
                             <Select
                               value={formDraft.ownerId}
                               onChange={(event) =>

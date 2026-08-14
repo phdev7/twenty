@@ -285,6 +285,44 @@ export const DiexFirstStepsPage = () => {
   const journey = isReadinessReadConfirmed
     ? readiness?.onboardingJourney
     : undefined;
+  // This restores navigation for existing tenants and requires no new data,
+  // acknowledgement or product-update requirement from the workspace.
+  const journeyAction = journey
+    ? {
+        DISCOVERY_REVIEW: {
+          targetId: 'activation-discovery',
+          label: 'Continuar revisão',
+        },
+        ARCHITECTURE_APPROVAL: {
+          targetId: 'activation-architecture',
+          label: 'Revisar arquitetura',
+        },
+        CHANNEL_CONNECTION: {
+          targetId: 'activation-channel',
+          label: 'Configurar entrada',
+        },
+        FIRST_REVENUE_FLOW: {
+          targetId: 'activation-first-flow',
+          label: 'Executar primeiro fluxo',
+        },
+        TEAM_ENABLEMENT: {
+          targetId: 'activation-team',
+          label: 'Configurar equipe',
+        },
+        COCKPIT_OPERATIONAL: {
+          targetId: 'activation-cockpit',
+          label: 'Abrir operação',
+        },
+        READY: {
+          targetId: 'activation-cockpit',
+          label: 'Abrir operação',
+        },
+        SELLING_READY: {
+          targetId: 'activation-cockpit',
+          label: 'Abrir operação',
+        },
+      }[journey.phase]
+    : null;
   const primaryChannel = isReadinessReadConfirmed
     ? (readiness?.evidence.primaryChannel ?? null)
     : null;
@@ -346,138 +384,167 @@ export const DiexFirstStepsPage = () => {
                 {journeyBlockerLabels.join(' · ')}.
               </StyledSubtitle>
             ) : null}
+            {journeyAction ? (
+              <StyledActions>
+                <Button
+                  title={journeyAction.label}
+                  variant="primary"
+                  onClick={() =>
+                    document
+                      .getElementById(journeyAction.targetId)
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                />
+              </StyledActions>
+            ) : null}
           </StyledJourneyFocus>
         ) : null}
         {journey?.phase === 'DISCOVERY_REVIEW' && discoveryStep === 'GOAL' ? (
-          <DiexOnboardingGoalStep
-            selectedGoal={readiness?.goal ?? null}
-            isSaving={isSavingGoal}
-            onSelect={(goal) => void setCommercialGoal(goal)}
-          />
+          <div id="activation-discovery">
+            <DiexOnboardingGoalStep
+              selectedGoal={readiness?.goal ?? null}
+              isSaving={isSavingGoal}
+              onSelect={(goal) => void setCommercialGoal(goal)}
+            />
+          </div>
         ) : null}
         {journey?.phase === 'DISCOVERY_REVIEW' &&
         discoveryStep === 'CONTEXT' ? (
-          <DiexOnboardingContextStep
-            index={2}
-            title="Revise o contexto preparado pela IA"
-            description="A IA extraiu empresa, cliente ideal, tom, regras, objeções, provas e limites. Corrija qualquer item antes de ativar. Nenhuma mudança estrutural é publicada nesta etapa."
-            workspaceContext={workspaceContext}
-            readState={workspaceContextReadState}
-            isLoading={isLoading}
-            isCreatingContext={isCreatingContext}
-            isSavingContext={isSavingContext}
-            isActivatingContext={isActivatingContext}
-            onCreateContext={() => void createWorkspaceContext()}
-            onSaveContext={(draft) => void saveWorkspaceContext(draft)}
-            onActivateContext={() => void handleActivateContext()}
-            onRetry={() => void load()}
-          />
+          <div id="activation-discovery">
+            <DiexOnboardingContextStep
+              index={2}
+              title="Revise o contexto preparado pela IA"
+              description="A IA extraiu empresa, cliente ideal, tom, regras, objeções, provas e limites. Corrija qualquer item antes de ativar. Nenhuma mudança estrutural é publicada nesta etapa."
+              workspaceContext={workspaceContext}
+              readState={workspaceContextReadState}
+              isLoading={isLoading}
+              isCreatingContext={isCreatingContext}
+              isSavingContext={isSavingContext}
+              isActivatingContext={isActivatingContext}
+              onCreateContext={() => void createWorkspaceContext()}
+              onSaveContext={(draft) => void saveWorkspaceContext(draft)}
+              onActivateContext={() => void handleActivateContext()}
+              onRetry={() => void load()}
+            />
+          </div>
         ) : null}
         {journey?.phase === 'DISCOVERY_REVIEW' && discoveryStep === 'OFFER' ? (
-          <DiexOnboardingOfferStep
-            offers={dataFlow.offers}
-            activeOfferCount={
-              readiness?.counts.activeOffers ?? dataFlow.activeOfferCount
-            }
-            isReady={
-              readiness?.items.find(({ key }) => key === 'offer_registered')
-                ?.ready
-            }
-            isReadConfirmed={!dataFlow.unconfirmedSources.includes('offers')}
-            readError={dataFlow.errorMessage}
-            onChanged={() => void load()}
-          />
+          <div id="activation-discovery">
+            <DiexOnboardingOfferStep
+              offers={dataFlow.offers}
+              activeOfferCount={
+                readiness?.counts.activeOffers ?? dataFlow.activeOfferCount
+              }
+              isReady={
+                readiness?.items.find(({ key }) => key === 'offer_registered')
+                  ?.ready
+              }
+              isReadConfirmed={!dataFlow.unconfirmedSources.includes('offers')}
+              readError={dataFlow.errorMessage}
+              onChanged={() => void load()}
+            />
+          </div>
         ) : null}
         {isEditingArchitectureContext &&
         (journey?.phase === 'ARCHITECTURE_APPROVAL' ||
           journey?.phase === 'COCKPIT_OPERATIONAL' ||
           journey?.phase === 'READY') ? (
-          <DiexOnboardingContextStep
-            index={4}
-            title="Corrigir o entendimento antes da aprovação"
-            description="Revise cada informação que influencia objetos, pipeline, páginas, permissões, integrações e automações. Salve, volte à recomendação e peça o recálculo antes de aprovar."
-            workspaceContext={workspaceContext}
-            readState={workspaceContextReadState}
-            isLoading={isLoading}
-            isCreatingContext={isCreatingContext}
-            isSavingContext={isSavingContext}
-            isActivatingContext={isActivatingContext}
-            onCreateContext={() => void createWorkspaceContext()}
-            onSaveContext={(draft) => void saveWorkspaceContext(draft)}
-            onActivateContext={() => void handleActivateContext()}
-            onRetry={() => void load()}
-            onBack={() => setIsEditingArchitectureContext(false)}
-            onRegenerate={
-              isArchitectureReadConfirmed
-                ? () => void regenerateArchitecture()
-                : undefined
-            }
-            isRegenerating={isUpdatingArchitecture}
-          />
+          <div id="activation-architecture">
+            <DiexOnboardingContextStep
+              index={4}
+              title="Corrigir o entendimento antes da aprovação"
+              description="Revise cada informação que influencia objetos, pipeline, páginas, permissões, integrações e automações. Salve, volte à recomendação e peça o recálculo antes de aprovar."
+              workspaceContext={workspaceContext}
+              readState={workspaceContextReadState}
+              isLoading={isLoading}
+              isCreatingContext={isCreatingContext}
+              isSavingContext={isSavingContext}
+              isActivatingContext={isActivatingContext}
+              onCreateContext={() => void createWorkspaceContext()}
+              onSaveContext={(draft) => void saveWorkspaceContext(draft)}
+              onActivateContext={() => void handleActivateContext()}
+              onRetry={() => void load()}
+              onBack={() => setIsEditingArchitectureContext(false)}
+              onRegenerate={
+                isArchitectureReadConfirmed
+                  ? () => void regenerateArchitecture()
+                  : undefined
+              }
+              isRegenerating={isUpdatingArchitecture}
+            />
+          </div>
         ) : null}
         {journey?.phase === 'ARCHITECTURE_APPROVAL' &&
         !isEditingArchitectureContext ? (
-          <DiexOnboardingArchitectureStep
-            architecture={architecture}
-            isLoading={isLoadingCommercialData}
-            isReadConfirmed={isArchitectureReadConfirmed}
-            isUpdating={isUpdatingArchitecture}
-            canRegenerate={workspaceContext?.status === 'ACTIVE'}
-            onApprove={() => void approveArchitecture()}
-            onApply={() => void applyArchitecture()}
-            onRegenerate={() => void regenerateArchitecture()}
-            onEditContext={() => setIsEditingArchitectureContext(true)}
-          />
+          <div id="activation-architecture">
+            <DiexOnboardingArchitectureStep
+              architecture={architecture}
+              isLoading={isLoadingCommercialData}
+              isReadConfirmed={isArchitectureReadConfirmed}
+              isUpdating={isUpdatingArchitecture}
+              canRegenerate={workspaceContext?.status === 'ACTIVE'}
+              onApprove={() => void approveArchitecture()}
+              onApply={() => void applyArchitecture()}
+              onRegenerate={() => void regenerateArchitecture()}
+              onEditContext={() => setIsEditingArchitectureContext(true)}
+            />
+          </div>
         ) : null}
         {journey?.phase === 'CHANNEL_CONNECTION' ? (
-          <DiexOnboardingWhatsappStep
-            index={5}
-            connection={connection}
-            primaryChannel={primaryChannel}
-            isSavingPreference={isSavingPrimaryChannel}
-            isConnecting={isConnecting}
-            isDone={Boolean(
-              readiness?.items.find(({ key }) => key === 'channel_connected')
-                ?.ready,
-            )}
-            errorMessage={errorMessage}
-            onSelectChannel={(channel) => void setPrimaryChannel(channel)}
-            onOpenEmail={() => navigate('/settings/accounts/emails')}
-            onOpenRecords={() => navigate('/objects/people')}
-            onRequestConnection={() => void requestConnection()}
-          />
+          <div id="activation-channel">
+            <DiexOnboardingWhatsappStep
+              index={5}
+              connection={connection}
+              primaryChannel={primaryChannel}
+              isSavingPreference={isSavingPrimaryChannel}
+              isConnecting={isConnecting}
+              isDone={Boolean(
+                readiness?.items.find(({ key }) => key === 'channel_connected')
+                  ?.ready,
+              )}
+              errorMessage={errorMessage}
+              onSelectChannel={(channel) => void setPrimaryChannel(channel)}
+              onOpenEmail={() => navigate('/settings/accounts/emails')}
+              onOpenRecords={() => navigate('/objects/people')}
+              onRequestConnection={() => void requestConnection()}
+            />
+          </div>
         ) : null}
         {journey?.phase === 'FIRST_REVENUE_FLOW' &&
         (operatesWithRecords || !readiness?.evidence.firstConversationId) ? (
-          <DiexOnboardingDataFlowStep
-            index={6}
-            dataFlow={dataFlow}
-            inboxRoute={inboxRoute}
-            entryRoute="/objects/people"
-            primaryChannel={primaryChannel}
-            isReady={firstRevenueFlowReady}
-            onRefresh={() => void load()}
-          />
+          <div id="activation-first-flow">
+            <DiexOnboardingDataFlowStep
+              index={6}
+              dataFlow={dataFlow}
+              inboxRoute={inboxRoute}
+              entryRoute="/objects/people"
+              primaryChannel={primaryChannel}
+              isReady={firstRevenueFlowReady}
+              onRefresh={() => void load()}
+            />
+          </div>
         ) : null}
         {journey?.phase === 'FIRST_REVENUE_FLOW' &&
         !operatesWithRecords &&
         readiness?.evidence.firstConversationId ? (
-          <DiexOnboardingAiTriageStep
-            isDone={Boolean(
-              readiness?.firstValueRun?.status === 'COMPLETED' ||
-              (readiness.evidence.firstFollowUpCreated &&
-                readiness.evidence.firstAiTriageCompleted),
-            )}
-            canRun
-            isRunning={isExecutingFirstFlow}
-            triageResult={triageResult}
-            requiresOpportunity={hasOpportunityFlow}
-            readyLabel={readyLabel}
-            onStart={() => void handleFirstCommercialFlow()}
-          />
+          <div id="activation-first-flow">
+            <DiexOnboardingAiTriageStep
+              isDone={Boolean(
+                readiness?.firstValueRun?.status === 'COMPLETED' ||
+                (readiness.evidence.firstFollowUpCreated &&
+                  readiness.evidence.firstAiTriageCompleted),
+              )}
+              canRun
+              isRunning={isExecutingFirstFlow}
+              triageResult={triageResult}
+              requiresOpportunity={hasOpportunityFlow}
+              readyLabel={readyLabel}
+              onStart={() => void handleFirstCommercialFlow()}
+            />
+          </div>
         ) : null}
         {journey?.phase === 'TEAM_ENABLEMENT' ? (
-          <StyledCockpit>
+          <StyledCockpit id="activation-team">
             <StyledCockpitTitle>Configure quem vai operar</StyledCockpitTitle>
             <StyledSubtitle>
               Convide a equipe, defina responsáveis, distribuição, permissões e
@@ -515,7 +582,7 @@ export const DiexFirstStepsPage = () => {
         {(journey?.phase === 'COCKPIT_OPERATIONAL' ||
           journey?.phase === 'READY') &&
         !isEditingArchitectureContext ? (
-          <StyledCockpit>
+          <StyledCockpit id="activation-cockpit">
             <StyledCockpitTitle>
               Seu cockpit inicial de {operationLabel.toLowerCase()}
             </StyledCockpitTitle>

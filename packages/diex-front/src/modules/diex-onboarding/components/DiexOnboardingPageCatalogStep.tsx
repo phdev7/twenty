@@ -54,6 +54,31 @@ const StyledStatus = styled.span`
   text-transform: uppercase;
 `;
 
+const StyledPageActions = styled.div`
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledManage = styled.details`
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.sm};
+  padding: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledManageSummary = styled.summary`
+  color: ${themeCssVariables.font.color.secondary};
+  cursor: pointer;
+  font-size: ${themeCssVariables.font.size.xs};
+  font-weight: ${themeCssVariables.font.weight.medium};
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+`;
+
 const StyledForm = styled.div`
   display: grid;
   gap: ${themeCssVariables.spacing[2]};
@@ -247,9 +272,8 @@ export const DiexOnboardingPageCatalogStep = ({
       title="Páginas e menu adaptados à operação"
     >
       <StyledText>
-        O menu e as páginas seguem o perfil da empresa. O administrador pode
-        renomear, reorganizar, ocultar, arquivar ou criar páginas sem apagar os
-        dados. A configuração técnica fica disponível apenas quando necessária.
+        Abra uma página para operar. Use Gerenciar somente quando quiser mudar o
+        nome, a ordem ou a presença dela no menu.
       </StyledText>
       {errorMessage ? (
         <>
@@ -301,68 +325,85 @@ export const DiexOnboardingPageCatalogStep = ({
                           : 'recomendada'}
                 </StyledStatus>
               </StyledRowText>
-              <StyledActions>
-                {page.status === 'ARCHIVED' ? (
+              <StyledPageActions>
+                {page.status === 'ACTIVE' && page.route ? (
                   <Button
-                    title="Restaurar"
-                    variant="secondary"
-                    disabled={isMutationBlocked}
-                    onClick={() => onRestore(page.key)}
+                    title="Abrir página"
+                    variant="primary"
+                    to={page.route}
                   />
-                ) : page.status === 'HIDDEN' ? null : page.editable ? (
-                  <>
-                    <Button
-                      title="Mover para cima"
-                      variant="secondary"
-                      disabled={isMutationBlocked || page.position === 0}
-                      onClick={() =>
-                        void onUpdate({
-                          key: page.key,
-                          position: Math.max(0, page.position - 1),
-                        })
-                      }
-                    />
-                    <Button
-                      title="Mover para baixo"
-                      variant="secondary"
-                      disabled={
-                        isMutationBlocked || page.position >= pages.length - 1
-                      }
-                      onClick={() =>
-                        void onUpdate({
-                          key: page.key,
-                          position: Math.min(
-                            pages.length - 1,
-                            page.position + 1,
-                          ),
-                        })
-                      }
-                    />
-                    <Button
-                      title={
-                        page.showInNavigation ? 'Ocultar menu' : 'Mostrar menu'
-                      }
-                      variant="secondary"
-                      disabled={isMutationBlocked}
-                      onClick={() => onToggleNavigation(page)}
-                    />
-                    {page.key === 'first-steps' ? null : (
-                      <Button
-                        title="Arquivar"
-                        variant="secondary"
-                        disabled={isMutationBlocked}
-                        onClick={() => onArchive(page.key)}
-                      />
-                    )}
-                    <Button
-                      title="Editar página"
-                      variant="secondary"
-                      disabled={isMutationBlocked}
-                      onClick={() => startEditing(page)}
-                    />
-                  </>
                 ) : null}
-              </StyledActions>
+                {page.status === 'ARCHIVED' || page.editable ? (
+                  <StyledManage>
+                    <StyledManageSummary>Gerenciar</StyledManageSummary>
+                    <StyledActions>
+                      {page.status === 'ARCHIVED' ? (
+                        <Button
+                          title="Restaurar"
+                          variant="secondary"
+                          disabled={isMutationBlocked}
+                          onClick={() => onRestore(page.key)}
+                        />
+                      ) : page.status === 'HIDDEN' ? null : (
+                        <>
+                          <Button
+                            title="Mover para cima"
+                            variant="secondary"
+                            disabled={isMutationBlocked || page.position === 0}
+                            onClick={() =>
+                              void onUpdate({
+                                key: page.key,
+                                position: Math.max(0, page.position - 1),
+                              })
+                            }
+                          />
+                          <Button
+                            title="Mover para baixo"
+                            variant="secondary"
+                            disabled={
+                              isMutationBlocked ||
+                              page.position >= pages.length - 1
+                            }
+                            onClick={() =>
+                              void onUpdate({
+                                key: page.key,
+                                position: Math.min(
+                                  pages.length - 1,
+                                  page.position + 1,
+                                ),
+                              })
+                            }
+                          />
+                          <Button
+                            title={
+                              page.showInNavigation
+                                ? 'Ocultar do menu'
+                                : 'Mostrar no menu'
+                            }
+                            variant="secondary"
+                            disabled={isMutationBlocked}
+                            onClick={() => onToggleNavigation(page)}
+                          />
+                          {page.key === 'first-steps' ? null : (
+                            <Button
+                              title="Arquivar"
+                              variant="secondary"
+                              disabled={isMutationBlocked}
+                              onClick={() => onArchive(page.key)}
+                            />
+                          )}
+                          <Button
+                            title="Editar página"
+                            variant="secondary"
+                            disabled={isMutationBlocked}
+                            onClick={() => startEditing(page)}
+                          />
+                        </>
+                      )}
+                    </StyledActions>
+                  </StyledManage>
+                ) : null}
+              </StyledPageActions>
               {editDraft?.key === page.key ? (
                 <StyledEditor>
                   <StyledInput
@@ -601,35 +642,38 @@ export const DiexOnboardingPageCatalogStep = ({
           ))}
         </StyledList>
       )}
-      <StyledForm>
-        <StyledInput
-          aria-label="Nome da nova página"
-          placeholder="Nome da nova página"
-          value={label}
-          onChange={(event) => setLabel(event.target.value)}
-        />
-        <StyledTextarea
-          aria-label="Objetivo da nova página"
-          placeholder="Objetivo: que decisão ou ação da operação esta página deve apoiar?"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-        />
-      </StyledForm>
-      <StyledActions>
-        <Button
-          title="Criar página personalizada"
-          variant="primary"
-          disabled={isMutationBlocked || label.trim().length < 2}
-          onClick={() =>
-            void onCreate(label, description).then((created) => {
-              if (created) {
-                setLabel('');
-                setDescription('');
-              }
-            })
-          }
-        />
-      </StyledActions>
+      <StyledAdvanced>
+        <StyledAdvancedSummary>Criar uma nova página</StyledAdvancedSummary>
+        <StyledForm>
+          <StyledInput
+            aria-label="Nome da nova página"
+            placeholder="Nome da nova página"
+            value={label}
+            onChange={(event) => setLabel(event.target.value)}
+          />
+          <StyledTextarea
+            aria-label="Objetivo da nova página"
+            placeholder="Que decisão ou ação esta página deve apoiar?"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+        </StyledForm>
+        <StyledActions>
+          <Button
+            title="Criar página personalizada"
+            variant="primary"
+            disabled={isMutationBlocked || label.trim().length < 2}
+            onClick={() =>
+              void onCreate(label, description).then((created) => {
+                if (created) {
+                  setLabel('');
+                  setDescription('');
+                }
+              })
+            }
+          />
+        </StyledActions>
+      </StyledAdvanced>
     </DiexOnboardingStepCard>
   );
 };
