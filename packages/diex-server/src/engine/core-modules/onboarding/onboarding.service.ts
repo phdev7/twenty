@@ -838,302 +838,315 @@ export class OnboardingService {
       );
     }
 
+    const authContext = buildSystemAuthContext(workspaceId);
+
     return this.cacheLockService.withRenewableLock(
-      async () => {
-        const repositories = await this.getCommercialRepositories(workspaceId);
-        const evidencedConversation = readiness.evidence.firstConversationId
-          ? await repositories.conversationRepository.findOne({
-              where: { id: readiness.evidence.firstConversationId },
-            })
-          : null;
-        const conversation =
-          evidencedConversation ??
-          (await this.findFirstInboundCommercialConversation(
-            repositories,
-            readiness.evidence.primaryChannel,
-          ));
+      () =>
+        this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+          const repositories =
+            await this.getCommercialRepositories(workspaceId);
+          const evidencedConversation = readiness.evidence.firstConversationId
+            ? await repositories.conversationRepository.findOne({
+                where: { id: readiness.evidence.firstConversationId },
+              })
+            : null;
+          const conversation =
+            evidencedConversation ??
+            (await this.findFirstInboundCommercialConversation(
+              repositories,
+              readiness.evidence.primaryChannel,
+            ));
 
-        if (!conversation) {
-          throw new BadRequestException(
-            'A primeira conversa ainda não chegou. Conecte o canal principal e envie uma mensagem real de teste.',
-          );
-        }
-
-        const team = await repositories.teamRepository.findOne({
-          where: { status: 'ACTIVE', isDefault: true },
-          relations: { memberships: true },
-        });
-        const firstActiveMember = (team?.memberships ?? []).find(
-          (membership) =>
-            membership.isActive === true &&
-            typeof membership.workspaceMemberId === 'string',
-        );
-        const assigneeId =
-          conversation.assigneeId ??
-          firstActiveMember?.workspaceMemberId ??
-          resolvedWorkspaceMemberId;
-        const actor = {
-          source: FieldActorSource.WORKFLOW,
-          workspaceMemberId: null,
-          name: 'Onboarding operacional Diex',
-          context: {},
-        };
-        let personId = conversation.personId;
-
-        if (!personId) {
-          const personLegacyId = `DIEX_ONBOARDING_FIRST_PERSON:${conversation.id}`;
-          let person = await repositories.personRepository.findOne({
-            where: { legacyDiexId: personLegacyId },
-          });
-
-          if (!person) {
-            const contactHandle = conversation.contactHandle?.trim() ?? '';
-            const normalizedPhone = normalizePhone(contactHandle);
-            const normalizedEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-              contactHandle,
-            )
-              ? contactHandle.toLowerCase()
-              : null;
-            const displayName =
-              conversation.name?.trim() ||
-              normalizedEmail?.split('@')[0] ||
-              contactHandle ||
-              'Contato da operação';
-
-            await repositories.personRepository.upsert(
-              {
-                legacyDiexId: personLegacyId,
-                name: splitDisplayName(displayName),
-                ...(normalizedPhone
-                  ? {
-                      phones: buildPhonesValue(normalizedPhone),
-                      whatsappNormalizedPhone: normalizedPhone,
-                      whatsappConsentStatus: 'UNKNOWN',
-                    }
-                  : {}),
-                ...(normalizedEmail
-                  ? {
-                      emails: {
-                        primaryEmail: normalizedEmail,
-                        additionalEmails: null,
-                      },
-                    }
-                  : {}),
-                doNotContact: false,
-                position: 0,
-                createdBy: actor,
-                updatedBy: actor,
-              } as never,
-              ['legacyDiexId'],
+          if (!conversation) {
+            throw new BadRequestException(
+              'A primeira conversa ainda não chegou. Conecte o canal principal e envie uma mensagem real de teste.',
             );
-            person = await repositories.personRepository.findOne({
+          }
+
+          const team = await repositories.teamRepository.findOne({
+            where: { status: 'ACTIVE', isDefault: true },
+            relations: { memberships: true },
+          });
+          const firstActiveMember = (team?.memberships ?? []).find(
+            (membership) =>
+              membership.isActive === true &&
+              typeof membership.workspaceMemberId === 'string',
+          );
+          const assigneeId =
+            conversation.assigneeId ??
+            firstActiveMember?.workspaceMemberId ??
+            resolvedWorkspaceMemberId;
+          const actor = {
+            source: FieldActorSource.WORKFLOW,
+            workspaceMemberId: null,
+            name: 'Onboarding operacional Diex',
+            context: {},
+          };
+          let personId = conversation.personId;
+
+          if (!personId) {
+            const personLegacyId = `DIEX_ONBOARDING_FIRST_PERSON:${conversation.id}`;
+            let person = await repositories.personRepository.findOne({
               where: { legacyDiexId: personLegacyId },
             });
+
+            if (!person) {
+              const contactHandle = conversation.contactHandle?.trim() ?? '';
+              const normalizedPhone = normalizePhone(contactHandle);
+              const normalizedEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                contactHandle,
+              )
+                ? contactHandle.toLowerCase()
+                : null;
+              const displayName =
+                conversation.name?.trim() ||
+                normalizedEmail?.split('@')[0] ||
+                contactHandle ||
+                'Contato da operação';
+
+              await repositories.personRepository.upsert(
+                {
+                  legacyDiexId: personLegacyId,
+                  name: splitDisplayName(displayName),
+                  ...(normalizedPhone
+                    ? {
+                        phones: buildPhonesValue(normalizedPhone),
+                        whatsappNormalizedPhone: normalizedPhone,
+                        whatsappConsentStatus: 'UNKNOWN',
+                      }
+                    : {}),
+                  ...(normalizedEmail
+                    ? {
+                        emails: {
+                          primaryEmail: normalizedEmail,
+                          additionalEmails: null,
+                        },
+                      }
+                    : {}),
+                  doNotContact: false,
+                  position: 0,
+                  createdBy: actor,
+                  updatedBy: actor,
+                } as never,
+                ['legacyDiexId'],
+              );
+              person = await repositories.personRepository.findOne({
+                where: { legacyDiexId: personLegacyId },
+              });
+            }
+
+            personId = person?.id ?? null;
+
+            if (personId) {
+              await repositories.conversationRepository.update(
+                conversation.id,
+                {
+                  personId,
+                  companyId:
+                    conversation.companyId ?? person?.companyId ?? null,
+                },
+              );
+            }
           }
 
-          personId = person?.id ?? null;
-
-          if (personId) {
-            await repositories.conversationRepository.update(conversation.id, {
-              personId,
-              companyId: conversation.companyId ?? person?.companyId ?? null,
-            });
-          }
-        }
-
-        if (!personId) {
-          throw new Error('O contato da primeira entrada não pôde ser criado.');
-        }
-
-        let companyId = conversation.companyId;
-
-        if (requiresCompanyLink && !companyId) {
-          const companyLegacyId = `DIEX_ONBOARDING_FIRST_COMPANY:${conversation.id}`;
-          let company = await repositories.companyRepository.findOne({
-            where: { legacyDiexId: companyLegacyId },
-          });
-
-          if (!company) {
-            const companyName =
-              conversation.name?.trim() ||
-              conversation.contactHandle?.trim() ||
-              'Contato sem empresa identificada';
-            await repositories.companyRepository.upsert(
-              {
-                legacyDiexId: companyLegacyId,
-                name: `Empresa a identificar — ${companyName}`,
-                domainName: null,
-                address: null,
-                position: 0,
-                createdBy: actor,
-                updatedBy: actor,
-              } as never,
-              ['legacyDiexId'],
+          if (!personId) {
+            throw new Error(
+              'O contato da primeira entrada não pôde ser criado.',
             );
-            company = await repositories.companyRepository.findOne({
+          }
+
+          let companyId = conversation.companyId;
+
+          if (requiresCompanyLink && !companyId) {
+            const companyLegacyId = `DIEX_ONBOARDING_FIRST_COMPANY:${conversation.id}`;
+            let company = await repositories.companyRepository.findOne({
               where: { legacyDiexId: companyLegacyId },
             });
+
+            if (!company) {
+              const companyName =
+                conversation.name?.trim() ||
+                conversation.contactHandle?.trim() ||
+                'Contato sem empresa identificada';
+              await repositories.companyRepository.upsert(
+                {
+                  legacyDiexId: companyLegacyId,
+                  name: `Empresa a identificar — ${companyName}`,
+                  domainName: null,
+                  address: null,
+                  position: 0,
+                  createdBy: actor,
+                  updatedBy: actor,
+                } as never,
+                ['legacyDiexId'],
+              );
+              company = await repositories.companyRepository.findOne({
+                where: { legacyDiexId: companyLegacyId },
+              });
+            }
+
+            companyId = company?.id ?? null;
+            await repositories.conversationRepository.update(conversation.id, {
+              companyId,
+            });
           }
 
-          companyId = company?.id ?? null;
-          await repositories.conversationRepository.update(conversation.id, {
-            companyId,
-          });
-        }
-
-        if (requiresCompanyLink && !companyId) {
-          throw new Error('A empresa do primeiro lead não pôde ser vinculada.');
-        }
-
-        if (companyId) {
-          await repositories.personRepository.update(personId, {
-            companyId,
-          });
-        }
-
-        if (
-          team &&
-          (conversation.inboxTeamId !== team.id ||
-            conversation.assigneeId !== assigneeId)
-        ) {
-          await repositories.conversationRepository.update(conversation.id, {
-            inboxTeamId: team.id,
-            assigneeId,
-          });
-        }
-
-        let opportunity = conversation.opportunityId
-          ? await repositories.opportunityRepository.findOne({
-              where: { id: conversation.opportunityId },
-            })
-          : null;
-        const opportunityLegacyId = `DIEX_ONBOARDING_FIRST_OPPORTUNITY:${conversation.id}`;
-
-        if (requiresOpportunity && !opportunity) {
-          opportunity = await repositories.opportunityRepository.findOne({
-            where: { legacyDiexId: opportunityLegacyId },
-          });
-        }
-
-        if (requiresOpportunity && !opportunity) {
-          if (!initialOpportunityStage) {
-            throw new BadRequestException(
-              'O pipeline aprovado não possui uma etapa inicial configurada.',
+          if (requiresCompanyLink && !companyId) {
+            throw new Error(
+              'A empresa do primeiro lead não pôde ser vinculada.',
             );
           }
 
-          const inserted = await repositories.opportunityRepository.insert({
-            legacyDiexId: opportunityLegacyId,
-            name: conversation.name?.trim() || 'Nova oportunidade da operação',
-            stage: initialOpportunityStage,
-            position: 0,
-            pointOfContactId: personId,
-            companyId,
-            ownerId: assigneeId,
-            dealRisk: 'UNKNOWN',
-            nextCommercialAction: 'Responder e qualificar o primeiro lead',
-            nextCommercialActionAt: new Date(Date.now() + 60 * 60 * 1000),
-            createdBy: actor,
-            updatedBy: actor,
-          });
-          const opportunityId = inserted.identifiers[0]?.id as
-            | string
-            | undefined;
+          if (companyId) {
+            await repositories.personRepository.update(personId, {
+              companyId,
+            });
+          }
 
-          if (opportunityId) {
+          if (
+            team &&
+            (conversation.inboxTeamId !== team.id ||
+              conversation.assigneeId !== assigneeId)
+          ) {
+            await repositories.conversationRepository.update(conversation.id, {
+              inboxTeamId: team.id,
+              assigneeId,
+            });
+          }
+
+          let opportunity = conversation.opportunityId
+            ? await repositories.opportunityRepository.findOne({
+                where: { id: conversation.opportunityId },
+              })
+            : null;
+          const opportunityLegacyId = `DIEX_ONBOARDING_FIRST_OPPORTUNITY:${conversation.id}`;
+
+          if (requiresOpportunity && !opportunity) {
             opportunity = await repositories.opportunityRepository.findOne({
-              where: { id: opportunityId },
+              where: { legacyDiexId: opportunityLegacyId },
             });
           }
-        }
 
-        if (requiresOpportunity && !opportunity) {
-          throw new Error('A primeira oportunidade não pôde ser criada.');
-        }
+          if (requiresOpportunity && !opportunity) {
+            if (!initialOpportunityStage) {
+              throw new BadRequestException(
+                'O pipeline aprovado não possui uma etapa inicial configurada.',
+              );
+            }
 
-        const dueAt = new Date(Date.now() + 60 * 60 * 1000);
-        const nextActionTitle = requiresOpportunity
-          ? 'Responder e qualificar o primeiro lead'
-          : 'Atender a primeira entrada e executar a próxima ação';
-        const taskLegacyId = `DIEX_ONBOARDING_FIRST_FOLLOW_UP:${conversation.id}`;
-        await repositories.taskRepository.upsert(
-          {
-            legacyDiexId: taskLegacyId,
-            title: nextActionTitle,
-            status: 'TODO',
-            taskCategory: 'COMMERCIAL',
-            dueAt,
-            assigneeId,
-            diexInboxConversationId: conversation.id,
-            createdBy: actor,
-            updatedBy: actor,
-            bodyV2: {
-              markdown: requiresOpportunity
-                ? 'Próxima ação criada pelo onboarding. Responda, qualifique a intenção e avance a oportunidade no fluxo aprovado.'
-                : 'Próxima ação criada pelo onboarding. Atenda a entrada, classifique a intenção e execute o próximo passo da operação.',
-              blocknote: null,
-            },
-          } as never,
-          ['legacyDiexId'],
-        );
-        const task = await repositories.taskRepository.findOne({
-          where: { legacyDiexId: taskLegacyId },
-        });
-
-        if (!task) {
-          throw new Error('O primeiro follow-up não pôde ser criado.');
-        }
-
-        const targets = [
-          { targetPersonId: personId },
-          companyId ? { targetCompanyId: companyId } : null,
-          opportunity ? { targetOpportunityId: opportunity.id } : null,
-        ].filter(isDefined);
-
-        for (const target of targets) {
-          const existingTarget =
-            await repositories.taskTargetRepository.findOne({
-              where: { taskId: task.id, ...target },
+            const inserted = await repositories.opportunityRepository.insert({
+              legacyDiexId: opportunityLegacyId,
+              name:
+                conversation.name?.trim() || 'Nova oportunidade da operação',
+              stage: initialOpportunityStage,
+              position: 0,
+              pointOfContactId: personId,
+              companyId,
+              ownerId: assigneeId,
+              dealRisk: 'UNKNOWN',
+              nextCommercialAction: 'Responder e qualificar o primeiro lead',
+              nextCommercialActionAt: new Date(Date.now() + 60 * 60 * 1000),
+              createdBy: actor,
+              updatedBy: actor,
             });
+            const opportunityId = inserted.identifiers[0]?.id as
+              | string
+              | undefined;
 
-          if (!existingTarget) {
-            await repositories.taskTargetRepository.insert({
-              taskId: task.id,
-              ...target,
-            });
+            if (opportunityId) {
+              opportunity = await repositories.opportunityRepository.findOne({
+                where: { id: opportunityId },
+              });
+            }
           }
-        }
 
-        await repositories.conversationRepository.update(conversation.id, {
-          inboxTeamId: team?.id ?? conversation.inboxTeamId,
-          assigneeId: assigneeId ?? conversation.assigneeId,
-          personId,
-          opportunityId: opportunity?.id ?? conversation.opportunityId,
-          companyId:
-            companyId ?? opportunity?.companyId ?? conversation.companyId,
-          followUpDueAt: dueAt,
-        });
+          if (requiresOpportunity && !opportunity) {
+            throw new Error('A primeira oportunidade não pôde ser criada.');
+          }
 
-        if (opportunity) {
-          await repositories.opportunityRepository.update(opportunity.id, {
-            ownerId: opportunity.ownerId ?? assigneeId,
-            companyId: companyId ?? opportunity.companyId,
-            nextCommercialAction: nextActionTitle,
-            nextCommercialActionAt: dueAt,
+          const dueAt = new Date(Date.now() + 60 * 60 * 1000);
+          const nextActionTitle = requiresOpportunity
+            ? 'Responder e qualificar o primeiro lead'
+            : 'Atender a primeira entrada e executar a próxima ação';
+          const taskLegacyId = `DIEX_ONBOARDING_FIRST_FOLLOW_UP:${conversation.id}`;
+          await repositories.taskRepository.upsert(
+            {
+              legacyDiexId: taskLegacyId,
+              title: nextActionTitle,
+              status: 'TODO',
+              taskCategory: 'COMMERCIAL',
+              dueAt,
+              assigneeId,
+              diexInboxConversationId: conversation.id,
+              createdBy: actor,
+              updatedBy: actor,
+              bodyV2: {
+                markdown: requiresOpportunity
+                  ? 'Próxima ação criada pelo onboarding. Responda, qualifique a intenção e avance a oportunidade no fluxo aprovado.'
+                  : 'Próxima ação criada pelo onboarding. Atenda a entrada, classifique a intenção e execute o próximo passo da operação.',
+                blocknote: null,
+              },
+            } as never,
+            ['legacyDiexId'],
+          );
+          const task = await repositories.taskRepository.findOne({
+            where: { legacyDiexId: taskLegacyId },
           });
-        }
 
-        return {
-          success: true,
-          conversationId: conversation.id,
-          opportunityId: opportunity?.id ?? null,
-          taskId: task.id,
-          assigneeId: assigneeId ?? opportunity?.ownerId ?? null,
-          companyLinked: Boolean(companyId),
-          nextAction:
-            'Executar a triagem com IA e avançar a próxima ação da entrada.',
-        };
-      },
+          if (!task) {
+            throw new Error('O primeiro follow-up não pôde ser criado.');
+          }
+
+          const targets = [
+            { targetPersonId: personId },
+            companyId ? { targetCompanyId: companyId } : null,
+            opportunity ? { targetOpportunityId: opportunity.id } : null,
+          ].filter(isDefined);
+
+          for (const target of targets) {
+            const existingTarget =
+              await repositories.taskTargetRepository.findOne({
+                where: { taskId: task.id, ...target },
+              });
+
+            if (!existingTarget) {
+              await repositories.taskTargetRepository.insert({
+                taskId: task.id,
+                ...target,
+              });
+            }
+          }
+
+          await repositories.conversationRepository.update(conversation.id, {
+            inboxTeamId: team?.id ?? conversation.inboxTeamId,
+            assigneeId: assigneeId ?? conversation.assigneeId,
+            personId,
+            opportunityId: opportunity?.id ?? conversation.opportunityId,
+            companyId:
+              companyId ?? opportunity?.companyId ?? conversation.companyId,
+            followUpDueAt: dueAt,
+          });
+
+          if (opportunity) {
+            await repositories.opportunityRepository.update(opportunity.id, {
+              ownerId: opportunity.ownerId ?? assigneeId,
+              companyId: companyId ?? opportunity.companyId,
+              nextCommercialAction: nextActionTitle,
+              nextCommercialActionAt: dueAt,
+            });
+          }
+
+          return {
+            success: true,
+            conversationId: conversation.id,
+            opportunityId: opportunity?.id ?? null,
+            taskId: task.id,
+            assigneeId: assigneeId ?? opportunity?.ownerId ?? null,
+            companyLinked: Boolean(companyId),
+            nextAction:
+              'Executar a triagem com IA e avançar a próxima ação da entrada.',
+          };
+        }, authContext),
       `diex:onboarding:first-commercial-flow:${workspaceId}`,
       { ttl: 30_000, renewalIntervalMs: 8_000, maxRetries: 30 },
     );
@@ -1221,19 +1234,26 @@ export class OnboardingService {
   }
 
   private async getWorkspaceContext(workspaceId: string) {
-    const repository =
-      await this.globalWorkspaceOrmManager.getRepository<DiexWorkspaceContextWorkspaceEntity>(
-        workspaceId,
-        'diexWorkspaceContext',
-        { shouldBypassPermissionChecks: true },
-      );
+    const authContext = buildSystemAuthContext(workspaceId);
 
-    const contexts = await repository.find({
-      order: { createdAt: 'ASC' },
-      take: 1,
-    });
+    return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      async () => {
+        const repository =
+          await this.globalWorkspaceOrmManager.getRepository<DiexWorkspaceContextWorkspaceEntity>(
+            workspaceId,
+            'diexWorkspaceContext',
+            { shouldBypassPermissionChecks: true },
+          );
 
-    return contexts[0] ?? null;
+        const contexts = await repository.find({
+          order: { createdAt: 'ASC' },
+          take: 1,
+        });
+
+        return contexts[0] ?? null;
+      },
+      authContext,
+    );
   }
 
   private async findFirstInboundCommercialConversation(
@@ -1553,72 +1573,76 @@ export class OnboardingService {
     objectionPlaybook: string | null;
     commercialRules: string | null;
   }): Promise<void> {
-    const offerRepository =
-      await this.globalWorkspaceOrmManager.getRepository<OfferWorkspaceEntity>(
-        workspaceId,
-        OfferWorkspaceEntity,
-        { shouldBypassPermissionChecks: true },
-      );
-    const actor = {
-      source: FieldActorSource.WORKFLOW,
-      workspaceMemberId: null,
-      name: 'Onboarding comercial Diex',
-      context: {},
-    };
+    const authContext = buildSystemAuthContext(workspaceId);
 
-    for (const [index, product] of productsAndServices
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0)
-      .slice(0, 12)
-      .entries()) {
-      const name = product.slice(0, 160);
-      const legacyDiexId = `DIEX_ONBOARDING_OFFER:${workspaceId}:${index}`;
-      const existing = await offerRepository.findOne({
-        where: { legacyDiexId },
-      });
-      const generatedOffer = {
-        name,
-        pricingModel: OfferPricingModel.NEGOTIABLE,
-        basePrice: null,
-        valueProposition: {
-          markdown: `Oferta identificada no onboarding: ${name}`,
-        },
-        idealCustomerProfile: idealCustomerProfile
-          ? { markdown: idealCustomerProfile }
-          : null,
-        differentiators: null,
-        objectionPlaybook: objectionPlaybook
-          ? { markdown: objectionPlaybook }
-          : null,
-        qualificationCriteria: commercialRules
-          ? { markdown: commercialRules }
-          : null,
+    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+      const offerRepository =
+        await this.globalWorkspaceOrmManager.getRepository<OfferWorkspaceEntity>(
+          workspaceId,
+          OfferWorkspaceEntity,
+          { shouldBypassPermissionChecks: true },
+        );
+      const actor = {
+        source: FieldActorSource.WORKFLOW,
+        workspaceMemberId: null,
+        name: 'Onboarding comercial Diex',
+        context: {},
       };
 
-      if (existing) {
-        if (existing.status === OfferStatus.DRAFT) {
-          await offerRepository.save({
-            ...existing,
-            ...generatedOffer,
-            updatedBy: actor,
-          });
+      for (const [index, product] of productsAndServices
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0)
+        .slice(0, 12)
+        .entries()) {
+        const name = product.slice(0, 160);
+        const legacyDiexId = `DIEX_ONBOARDING_OFFER:${workspaceId}:${index}`;
+        const existing = await offerRepository.findOne({
+          where: { legacyDiexId },
+        });
+        const generatedOffer = {
+          name,
+          pricingModel: OfferPricingModel.NEGOTIABLE,
+          basePrice: null,
+          valueProposition: {
+            markdown: `Oferta identificada no onboarding: ${name}`,
+          },
+          idealCustomerProfile: idealCustomerProfile
+            ? { markdown: idealCustomerProfile }
+            : null,
+          differentiators: null,
+          objectionPlaybook: objectionPlaybook
+            ? { markdown: objectionPlaybook }
+            : null,
+          qualificationCriteria: commercialRules
+            ? { markdown: commercialRules }
+            : null,
+        };
+
+        if (existing) {
+          if (existing.status === OfferStatus.DRAFT) {
+            await offerRepository.save({
+              ...existing,
+              ...generatedOffer,
+              updatedBy: actor,
+            });
+          }
+
+          continue;
         }
 
-        continue;
+        await offerRepository.save(
+          offerRepository.create({
+            legacyDiexId,
+            ...generatedOffer,
+            // AI-extracted offers are recommendations. They only become usable by
+            // agents and readiness after the workspace owner reviews them.
+            status: OfferStatus.DRAFT,
+            createdBy: actor,
+            updatedBy: actor,
+          }),
+        );
       }
-
-      await offerRepository.save(
-        offerRepository.create({
-          legacyDiexId,
-          ...generatedOffer,
-          // AI-extracted offers are recommendations. They only become usable by
-          // agents and readiness after the workspace owner reviews them.
-          status: OfferStatus.DRAFT,
-          createdBy: actor,
-          updatedBy: actor,
-        }),
-      );
-    }
+    }, authContext);
   }
 
   private isWorkspaceActivationPending(workspace: WorkspaceEntity) {
