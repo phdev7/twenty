@@ -13,7 +13,6 @@ import { type FlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-m
 import { type FlatIndexMetadata } from 'src/engine/metadata-modules/flat-index-metadata/types/flat-index-metadata.type';
 import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object-metadata/types/flat-object-metadata.type';
 import { type FlatObjectPermission } from 'src/engine/metadata-modules/flat-object-permission/types/flat-object-permission.type';
-import { type FlatSearchFieldMetadata } from 'src/engine/metadata-modules/flat-search-field-metadata/types/flat-search-field-metadata.type';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import { STANDARD_ROLE } from 'src/engine/workspace-manager/diex-standard-application/constants/standard-role.constant';
 import { computeDiexStandardApplicationAllFlatEntityMaps } from 'src/engine/workspace-manager/diex-standard-application/utils/diex-standard-application-all-flat-entity-maps.constant';
@@ -61,14 +60,12 @@ export class SyncWorkspaceArchitectureArtifactCommand extends ProvisionedWorkspa
       flatObjectMetadataMaps,
       flatFieldMetadataMaps,
       flatIndexMaps,
-      flatSearchFieldMetadataMaps,
       flatObjectPermissionMaps,
       flatRoleMaps,
     } = await this.workspaceCacheService.getOrRecompute(workspaceId, [
       'flatObjectMetadataMaps',
       'flatFieldMetadataMaps',
       'flatIndexMaps',
-      'flatSearchFieldMetadataMaps',
       'flatObjectPermissionMaps',
       'flatRoleMaps',
     ]);
@@ -131,19 +128,6 @@ export class SyncWorkspaceArchitectureArtifactCommand extends ProvisionedWorkspa
             existingFlatEntityMaps: flatIndexMaps,
             universalIdentifiers: getObjectOwnedUniversalIdentifiers(
               standardAllFlatEntityMaps.flatIndexMaps,
-            ),
-          }),
-        flatEntityToDelete: [],
-        flatEntityToUpdate: [],
-      },
-      searchFieldMetadata: {
-        flatEntityToCreate:
-          getStandardFlatEntitiesToCreateOrThrow<FlatSearchFieldMetadata>({
-            standardFlatEntityMaps:
-              standardAllFlatEntityMaps.flatSearchFieldMetadataMaps,
-            existingFlatEntityMaps: flatSearchFieldMetadataMaps,
-            universalIdentifiers: getObjectOwnedUniversalIdentifiers(
-              standardAllFlatEntityMaps.flatSearchFieldMetadataMaps,
             ),
           }),
         flatEntityToDelete: [],
