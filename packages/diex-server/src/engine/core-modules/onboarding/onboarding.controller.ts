@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Param,
   Post,
   UseFilters,
@@ -41,6 +42,8 @@ const WORKSPACE_PAGE_RENDERERS: WorkspacePageRenderer[] = [
 @UseGuards(JwtAuthGuard, WorkspaceAuthGuard, NoPermissionGuard)
 @UseFilters(AiRestApiExceptionFilter, RestApiExceptionFilter)
 export class OnboardingController {
+  private readonly logger = new Logger(OnboardingController.name);
+
   constructor(private readonly onboardingService: OnboardingService) {}
 
   @Post('operation-context')
@@ -63,7 +66,16 @@ export class OnboardingController {
 
   @Get('readiness')
   async getCommercialReadiness(@AuthWorkspace() workspace: WorkspaceEntity) {
-    return this.onboardingService.getCommercialReadiness(workspace.id);
+    try {
+      return await this.onboardingService.getCommercialReadiness(workspace.id);
+    } catch (error) {
+      this.logger.error(
+        `Failed to load commercial readiness for workspace ${workspace.id}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+
+      throw error;
+    }
   }
 
   @Get('architecture')
