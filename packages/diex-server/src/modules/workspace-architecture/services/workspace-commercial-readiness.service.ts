@@ -7,6 +7,7 @@ import { In, IsNull, Not, type Repository } from 'typeorm';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { GlobalWorkspaceOrmManager } from 'src/engine/diex-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { type WorkspaceRepository } from 'src/engine/diex-orm/repository/workspace.repository';
+import { buildSystemAuthContext } from 'src/engine/diex-orm/utils/build-system-auth-context.util';
 import { WorkspaceArchitectureArtifactType } from 'src/modules/workspace-architecture/standard-objects/workspace-architecture-artifact.standard-object-definition';
 import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
 import { AiActionWorkspaceEntity } from 'src/modules/ai-governance/standard-objects/ai-action.workspace-entity';
@@ -740,6 +741,15 @@ export class WorkspaceCommercialReadinessService {
   }
 
   private async getCommercialRepositories(
+    workspaceId: string,
+  ): Promise<CommercialRepositories> {
+    return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      () => this.getCommercialRepositoriesInContext(workspaceId),
+      buildSystemAuthContext(workspaceId),
+    );
+  }
+
+  private async getCommercialRepositoriesInContext(
     workspaceId: string,
   ): Promise<CommercialRepositories> {
     const [
