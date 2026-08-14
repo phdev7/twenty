@@ -53,7 +53,7 @@ export class OnboardingController {
     @AuthUser() user: AuthContextUser,
     @AuthWorkspace() workspace: WorkspaceEntity,
     @AuthUserWorkspaceId() userWorkspaceId: string,
-    @AuthWorkspaceMemberId() workspaceMemberId: string,
+    @AuthWorkspaceMemberId() workspaceMemberId: string | undefined,
   ) {
     return this.onboardingService.completeDiexOnboarding({
       operationDescription: body.operationDescription,
@@ -314,7 +314,7 @@ export class OnboardingController {
   async executeFirstCommercialFlow(
     @AuthUser() user: AuthContextUser,
     @AuthWorkspace() workspace: WorkspaceEntity,
-    @AuthWorkspaceMemberId() workspaceMemberId: string,
+    @AuthWorkspaceMemberId() workspaceMemberId: string | undefined,
   ) {
     return this.onboardingService.executeFirstCommercialFlow({
       workspaceId: workspace.id,

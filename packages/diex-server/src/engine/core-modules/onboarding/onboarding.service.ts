@@ -53,6 +53,7 @@ import { PersonWorkspaceEntity } from 'src/modules/person/standard-objects/perso
 import { TaskTargetWorkspaceEntity } from 'src/modules/task/standard-objects/task-target.workspace-entity';
 import { TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
 import { type DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
+import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
 import {
   type WorkspaceCustomPageBlockInput,
@@ -142,7 +143,7 @@ export class OnboardingService {
     operationDescription: string;
     userId: string;
     userWorkspaceId: string;
-    workspaceMemberId: string;
+    workspaceMemberId?: string | null;
     workspace: WorkspaceEntity;
   }) {
     const [workspaceOwner] = await this.userWorkspaceRepository.find({
@@ -157,9 +158,15 @@ export class OnboardingService {
       );
     }
 
+    const resolvedWorkspaceMemberId = await this.resolveWorkspaceMemberId({
+      workspaceId: workspace.id,
+      userId,
+      workspaceMemberId,
+    });
+
     await this.ensureInitialOperatingTeam({
       workspaceId: workspace.id,
-      workspaceMemberId,
+      workspaceMemberId: resolvedWorkspaceMemberId,
     });
 
     const {
@@ -772,9 +779,14 @@ export class OnboardingService {
   }: {
     workspaceId: string;
     userId: string;
-    workspaceMemberId: string;
+    workspaceMemberId?: string | null;
   }) {
     await this.assertWorkspaceOwner(workspaceId, userId);
+    const resolvedWorkspaceMemberId = await this.resolveWorkspaceMemberId({
+      workspaceId,
+      userId,
+      workspaceMemberId,
+    });
     const readiness =
       await this.workspaceCommercialReadinessService.getReadiness(workspaceId);
     const prerequisitePhases = new Set([
@@ -859,7 +871,7 @@ export class OnboardingService {
         const assigneeId =
           conversation.assigneeId ??
           firstActiveMember?.workspaceMemberId ??
-          workspaceMemberId;
+          resolvedWorkspaceMemberId;
         const actor = {
           source: FieldActorSource.WORKFLOW,
           workspaceMemberId: null,
@@ -1488,6 +1500,44 @@ export class OnboardingService {
       `diex:onboarding-initial-team:${workspaceId}`,
       { ttl: 15_000, renewalIntervalMs: 4_000, maxRetries: 20 },
     );
+  }
+
+  private async resolveWorkspaceMemberId({
+    workspaceId,
+    userId,
+    workspaceMemberId,
+  }: {
+    workspaceId: string;
+    userId: string;
+    workspaceMemberId?: string | null;
+  }): Promise<string> {
+    if (isNonEmptyString(workspaceMemberId)) {
+      return workspaceMemberId;
+    }
+
+    const authContext = buildSystemAuthContext(workspaceId);
+    const workspaceMember =
+      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+        async () => {
+          const repository =
+            await this.globalWorkspaceOrmManager.getRepository<WorkspaceMemberWorkspaceEntity>(
+              workspaceId,
+              'workspaceMember',
+              { shouldBypassPermissionChecks: true },
+            );
+
+          return repository.findOne({ where: { userId } });
+        },
+        authContext,
+      );
+
+    if (!workspaceMember) {
+      throw new BadRequestException(
+        'Seu acesso ao workspace ainda está sendo preparado. Aguarde alguns instantes e tente novamente.',
+      );
+    }
+
+    return workspaceMember.id;
   }
 
   private async seedGeneratedOffers({
