@@ -639,11 +639,11 @@ export class WorkspaceCommercialReadinessService {
         .createQueryBuilder('opportunity')
         .select('COUNT(opportunity.id)', 'opportunities')
         .addSelect(
-          `COUNT(CASE WHEN COALESCE(opportunity.stage, '') NOT IN ('CUSTOMER', 'LOST') AND opportunity.ownerId IS NULL THEN 1 END)`,
+          `COUNT(CASE WHEN (opportunity.stage IS NULL OR opportunity.stage NOT IN ('CUSTOMER', 'LOST')) AND opportunity.ownerId IS NULL THEN 1 END)`,
           'unassignedOpportunities',
         )
         .addSelect(
-          `COUNT(CASE WHEN COALESCE(opportunity.stage, '') NOT IN ('CUSTOMER', 'LOST') AND opportunity.dealRisk IN ('HIGH', 'CRITICAL', 'AT_RISK') THEN 1 END)`,
+          `COUNT(CASE WHEN (opportunity.stage IS NULL OR opportunity.stage NOT IN ('CUSTOMER', 'LOST')) AND opportunity.dealRisk = 'HIGH' THEN 1 END)`,
           'commercialRisks',
         )
         .where('opportunity.deletedAt IS NULL')
@@ -655,22 +655,24 @@ export class WorkspaceCommercialReadinessService {
       repositories.opportunityRepository
         .createQueryBuilder('opportunity')
         .select(
-          `COALESCE(NULLIF(opportunity.amount->>'currencyCode', ''), 'BRL')`,
+          `COALESCE(NULLIF(opportunity."amountCurrencyCode", ''), 'BRL')`,
           'currencyCode',
         )
         .addSelect(
-          `COALESCE(SUM(COALESCE(NULLIF(opportunity.amount->>'amountMicros', '')::numeric, 0)), 0)`,
+          `COALESCE(SUM(COALESCE(opportunity."amountAmountMicros", 0)), 0)`,
           'pipelineValueMicros',
         )
         .addSelect('COUNT(opportunity.id)', 'opportunityCount')
         .where('opportunity.deletedAt IS NULL')
-        .andWhere("COALESCE(opportunity.stage, '') NOT IN ('CUSTOMER', 'LOST')")
+        .andWhere(
+          "(opportunity.stage IS NULL OR opportunity.stage NOT IN ('CUSTOMER', 'LOST'))",
+        )
         .groupBy(
-          `COALESCE(NULLIF(opportunity.amount->>'currencyCode', ''), 'BRL')`,
+          `COALESCE(NULLIF(opportunity."amountCurrencyCode", ''), 'BRL')`,
         )
         .orderBy('COUNT(opportunity.id)', 'DESC')
         .addOrderBy(
-          `COALESCE(NULLIF(opportunity.amount->>'currencyCode', ''), 'BRL')`,
+          `COALESCE(NULLIF(opportunity."amountCurrencyCode", ''), 'BRL')`,
           'ASC',
         )
         .getRawMany<{
@@ -699,11 +701,11 @@ export class WorkspaceCommercialReadinessService {
         .createQueryBuilder('task')
         .select('COUNT(task.id)', 'followUps')
         .addSelect(
-          `COUNT(CASE WHEN task.dueAt IS NOT NULL AND COALESCE(task.status, '') NOT IN ('DONE', 'COMPLETED', 'CANCELLED') AND task.dueAt < NOW() THEN 1 END)`,
+          `COUNT(CASE WHEN task.dueAt IS NOT NULL AND (task.status IS NULL OR task.status <> 'DONE') AND task.dueAt < NOW() THEN 1 END)`,
           'overdueFollowUps',
         )
         .addSelect(
-          `COUNT(CASE WHEN task.dueAt IS NOT NULL AND COALESCE(task.status, '') NOT IN ('DONE', 'COMPLETED', 'CANCELLED') THEN 1 END)`,
+          `COUNT(CASE WHEN task.dueAt IS NOT NULL AND (task.status IS NULL OR task.status <> 'DONE') THEN 1 END)`,
           'nextActions',
         )
         .where('task.deletedAt IS NULL')
