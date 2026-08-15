@@ -55,16 +55,32 @@ for package in $PACKAGES; do
   count=$(printf '%s\n' "$files" | wc -l | tr -d ' ')
   echo "==> ${package}: linting ${count} changed file(s)"
 
+  # oxfmt sai com erro quando todos os arquivos caem em ignorePatterns, o que
+  # acontece sempre que a mudança toca só upgrade-version-command. Isso não é
+  # falha de formatação: sem alvo, não há o que checar.
+  run_oxfmt() {
+    # O if evita que `set -e` aborte antes de inspecionarmos a saída.
+    if output=$(printf '%s\n' "$files" | (cd "packages/${package}" && xargs npx oxfmt "$@") 2>&1); then
+      printf '%s\n' "$output"
+
+      return 0
+    fi
+
+    printf '%s\n' "$output"
+
+    if ! printf '%s' "$output" | grep -q 'Expected at least one target file'; then
+      status=1
+    fi
+  }
+
   if [ "$FIX" -eq 1 ]; then
     printf '%s\n' "$files" \
       | (cd "packages/${package}" && xargs npx oxlint --type-aware -c .oxlintrc.json --fix) || status=1
-    printf '%s\n' "$files" \
-      | (cd "packages/${package}" && xargs npx oxfmt) || status=1
+    run_oxfmt
   else
     printf '%s\n' "$files" \
       | (cd "packages/${package}" && xargs npx oxlint --type-aware -c .oxlintrc.json) || status=1
-    printf '%s\n' "$files" \
-      | (cd "packages/${package}" && xargs npx oxfmt --check) || status=1
+    run_oxfmt --check
   fi
 done
 
