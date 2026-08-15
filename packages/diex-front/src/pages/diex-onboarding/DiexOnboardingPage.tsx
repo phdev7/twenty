@@ -3,7 +3,8 @@ import { AppPath } from 'diex-shared/types';
 
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { DiexOnboarding } from '@/diex-onboarding/components/DiexOnboarding';
-import { buildDescriptionFromSignupAnswers } from '@/diex-onboarding/utils/buildDescriptionFromSignupAnswers';
+import { useDiexPrimaryChannel } from '@/diex-onboarding/hooks/useDiexPrimaryChannel';
+import { buildOnboardingAnswersFromSignup } from '@/diex-onboarding/utils/buildOnboardingAnswersFromSignup';
 import { completeDiexOnboarding } from '@/diex-onboarding/utils/completeDiexOnboarding';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
@@ -12,9 +13,10 @@ export const DiexOnboardingPage = () => {
   const { enqueueErrorSnackBar } = useSnackBar();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currentWorkspace = useAtomStateValue(currentWorkspaceState);
-  const initialDescription = useMemo(
-    () => buildDescriptionFromSignupAnswers(currentWorkspace),
-    [currentWorkspace],
+  const { primaryChannel } = useDiexPrimaryChannel();
+  const initialAnswers = useMemo(
+    () => buildOnboardingAnswersFromSignup(currentWorkspace, primaryChannel),
+    [currentWorkspace, primaryChannel],
   );
 
   const submitOperation = async (
@@ -40,7 +42,7 @@ export const DiexOnboardingPage = () => {
   return (
     <DiexOnboarding
       isSubmitting={isSubmitting}
-      initialDescription={initialDescription}
+      initialAnswers={initialAnswers}
       onSubmit={(operationDescription) =>
         void submitOperation(operationDescription)
       }

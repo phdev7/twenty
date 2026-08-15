@@ -1,4 +1,5 @@
 import { styled } from '@linaria/react';
+import { isDefined } from 'diex-shared/utils';
 import { useEffect, useState } from 'react';
 
 import {
@@ -20,10 +21,12 @@ import {
   getRecordName,
 } from '@/diex-command-centers/customer-success/utils';
 import { postLogicFunction } from '@/diex-command-centers/utils/useLogicFunctionRequest';
+import { useHasPermissionFlag } from '@/settings/roles/hooks/useHasPermissionFlag';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { Button } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
+import { PermissionFlagType } from '~/generated-metadata/graphql';
 
 const StyledForm = styled.div`
   display: grid;
@@ -91,6 +94,7 @@ export const CustomerSuccessHandoff = ({
     enqueueSuccessSnackBar,
     enqueueWarningSnackBar,
   } = useSnackBar();
+  const canOperateHandoff = useHasPermissionFlag(PermissionFlagType.WORKSPACE);
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
   const [selectedOpportunityId, setSelectedOpportunityId] = useState<
     string | null
@@ -106,7 +110,7 @@ export const CustomerSuccessHandoff = ({
     null;
 
   useEffect(() => {
-    if (!selectedOpportunity) {
+    if (!isDefined(selectedOpportunity)) {
       setSelectedOpportunityId(null);
       setDraft(null);
       return;
@@ -120,6 +124,9 @@ export const CustomerSuccessHandoff = ({
       ),
     );
     setPreview(null);
+    // selectedOpportunity vem de um find() refeito a cada render, então
+    // depender do objeto reexecutaria o efeito em loop. O id basta.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWorkspaceMemberId, selectedOpportunity?.id, workspaceMembers]);
 
   const updateDraft = (patch: Partial<CustomerSuccessHandoffDraft>) => {
@@ -127,7 +134,7 @@ export const CustomerSuccessHandoff = ({
     setPreview(null);
   };
   const previewHandoff = async () => {
-    if (!selectedOpportunity || !draft) return;
+    if (!isDefined(selectedOpportunity) || !isDefined(draft)) return;
     setIsBusy(true);
     try {
       const result = await postLogicFunction<CustomerSuccessHandoffPreview>(
@@ -158,7 +165,12 @@ export const CustomerSuccessHandoff = ({
     }
   };
   const confirmHandoff = async () => {
-    if (!selectedOpportunity || !draft || !preview?.confirmationToken) return;
+    if (
+      !isDefined(selectedOpportunity) ||
+      !isDefined(draft) ||
+      !isDefined(preview?.confirmationToken)
+    )
+      return;
     setIsBusy(true);
     try {
       const result = await postLogicFunction<{
@@ -190,6 +202,14 @@ export const CustomerSuccessHandoff = ({
     }
   };
 
+  if (!canOperateHandoff) {
+    return (
+      <CommandCenterCard title="Entrada de novos clientes">
+        <CommandCenterEmptyState message="Entrada no CS é operada por quem administra o workspace." />
+      </CommandCenterCard>
+    );
+  }
+
   return (
     <CommandCenterCard title="Entrada de novos clientes">
       {opportunities.length === 0 ? (
@@ -217,7 +237,7 @@ export const CustomerSuccessHandoff = ({
               />
             ))}
           </CommandCenterList>
-          {selectedOpportunity && draft ? (
+          {isDefined(selectedOpportunity) && isDefined(draft) ? (
             <StyledForm>
               <StyledField>
                 Responsável de CS

@@ -435,7 +435,8 @@ export class DiexFormsService {
       { id: form.id },
       {
         status: FormStatus.PUBLISHED,
-        publishedSnapshot: snapshot,
+        publishedSnapshot:
+          snapshot as QueryDeepPartialEntity<DiexFormEntity>['publishedSnapshot'],
         publishedVersion: form.draftVersion,
         publishedAt: new Date(),
       },
@@ -572,7 +573,10 @@ export class DiexFormsService {
       );
     }
 
-    await this.fieldRepository.update({ id: field.id }, merged);
+    await this.fieldRepository.update(
+      { id: field.id },
+      merged as QueryDeepPartialEntity<DiexFormFieldEntity>,
+    );
     await this.touchDraftVersion(field.form);
 
     const updated = await this.fieldRepository.findOne({
@@ -878,7 +882,8 @@ export class DiexFormsService {
           'As configurações avançadas do formulário são inválidas.',
         );
       }
-      output.settings = input.settings;
+      output.settings =
+        input.settings as QueryDeepPartialEntity<DiexFormEntity>['settings'];
     }
 
     return output;
@@ -1000,7 +1005,9 @@ export class DiexFormsService {
       form.workspaceId,
       { id: form.id },
       {
-        publishedSnapshot: this.buildPublishedSnapshot(form),
+        publishedSnapshot: this.buildPublishedSnapshot(
+          form,
+        ) as QueryDeepPartialEntity<DiexFormEntity>['publishedSnapshot'],
         publishedVersion: Math.max(1, form.draftVersion),
         publishedAt: form.publishedAt ?? new Date(),
       },
@@ -1456,11 +1463,13 @@ export class DiexFormsService {
               { shouldBypassPermissionChecks: true },
             ),
           ]);
+        // O context do ator só aceita provider; o formulário de origem já fica
+        // registrado na própria submissão.
         const actor = {
           source: FieldActorSource.WEBHOOK,
           workspaceMemberId: null,
           name: 'Diex Forms',
-          context: { formId: form.id },
+          context: {},
         };
 
         const emailMatches = email
@@ -1524,7 +1533,7 @@ export class DiexFormsService {
             : undefined;
 
         if (person) {
-          const update: Partial<PersonWorkspaceEntity> = {};
+          const update: QueryDeepPartialEntity<PersonWorkspaceEntity> = {};
 
           if (fullName && !person.name?.firstName) {
             update.name = splitDisplayName(fullName);
@@ -1578,9 +1587,10 @@ export class DiexFormsService {
             | undefined;
 
           if (personId) {
-            person = await personRepository.findOne({
-              where: { id: personId },
-            });
+            person =
+              (await personRepository.findOne({
+                where: { id: personId },
+              })) ?? undefined;
           }
         }
 

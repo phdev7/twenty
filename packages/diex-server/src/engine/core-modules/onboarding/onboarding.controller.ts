@@ -26,7 +26,9 @@ import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { AiRestApiExceptionFilter } from 'src/engine/metadata-modules/ai/filters/ai-api-exception.filter';
+import { PermissionsService } from 'src/engine/metadata-modules/permissions/permissions.service';
 import { type WorkspaceCustomPageBlockInput } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
+import { redactCommercialReadinessForRestrictedMember } from 'src/modules/workspace-architecture/utils/redact-commercial-readiness.util';
 import { type WorkspacePageRenderer } from 'src/modules/workspace-architecture/types/workspace-page-catalog.schema';
 
 const WORKSPACE_PAGE_RENDERERS: WorkspacePageRenderer[] = [
@@ -44,7 +46,10 @@ const WORKSPACE_PAGE_RENDERERS: WorkspacePageRenderer[] = [
 export class OnboardingController {
   private readonly logger = new Logger(OnboardingController.name);
 
-  constructor(private readonly onboardingService: OnboardingService) {}
+  constructor(
+    private readonly onboardingService: OnboardingService,
+    private readonly permissionsService: PermissionsService,
+  ) {}
 
   @Post('operation-context')
   @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
@@ -65,9 +70,24 @@ export class OnboardingController {
   }
 
   @Get('readiness')
-  async getCommercialReadiness(@AuthWorkspace() workspace: WorkspaceEntity) {
+  async getCommercialReadiness(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUserWorkspaceId() userWorkspaceId: string,
+  ) {
     try {
-      return await this.onboardingService.getCommercialReadiness(workspace.id);
+      const readiness = await this.onboardingService.getCommercialReadiness(
+        workspace.id,
+      );
+      const canViewCommercialData =
+        await this.permissionsService.userHasWorkspaceSettingPermission({
+          userWorkspaceId,
+          workspaceId: workspace.id,
+          setting: PermissionFlagType.WORKSPACE,
+        });
+
+      return canViewCommercialData
+        ? readiness
+        : redactCommercialReadinessForRestrictedMember(readiness);
     } catch (error) {
       this.logger.error(
         `Failed to load commercial readiness for workspace ${workspace.id}`,
@@ -323,6 +343,20 @@ export class OnboardingController {
     });
   }
 
+  @Post('product-updates/:updateKey/acknowledge')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
+  async acknowledgeProductUpdate(
+    @Param('updateKey') updateKey: string,
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUserWorkspaceId() userWorkspaceId: string,
+  ) {
+    return this.onboardingService.acknowledgeDiexProductUpdate({
+      workspaceId: workspace.id,
+      userWorkspaceId,
+      updateKey,
+    });
+  }
+
   @Post('complete')
   @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async completeDiexCommercialOnboarding(
@@ -330,6 +364,18 @@ export class OnboardingController {
     @AuthWorkspace() workspace: WorkspaceEntity,
   ) {
     return this.onboardingService.completeDiexCommercialOnboarding({
+      workspaceId: workspace.id,
+      userId: user.id,
+    });
+  }
+
+  @Post('unlock')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
+  async unlockDiexWorkspaceSetup(
+    @AuthUser() user: AuthContextUser,
+    @AuthWorkspace() workspace: WorkspaceEntity,
+  ) {
+    return this.onboardingService.unlockDiexWorkspaceSetup({
       workspaceId: workspace.id,
       userId: user.id,
     });

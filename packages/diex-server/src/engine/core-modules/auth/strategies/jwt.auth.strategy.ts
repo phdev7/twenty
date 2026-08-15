@@ -203,6 +203,11 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     return {
       ...context,
+      // O token é assinado antes da ativação do workspace, então ele não carrega
+      // workspaceMemberId no primeiro acesso. O membro resolvido agora é a fonte
+      // correta: sem isso o contexto cai em "ativação pendente" e toda rota
+      // workspace-scoped falha com "Workspace context not set".
+      workspaceMemberId: workspaceMember.id,
       workspaceMember,
     };
   }

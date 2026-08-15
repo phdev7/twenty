@@ -24,6 +24,13 @@ export const workspaceOnboardingEvidenceMilestoneSchema = z.object({
   source: z.string().min(1),
 });
 
+export const workspaceProductUpdateAcknowledgementSchema = z.object({
+  key: z.string().min(1),
+  version: z.string().min(1),
+  acknowledgedAt: z.iso.datetime(),
+  acknowledgedByUserWorkspaceId: z.uuid().nullable(),
+});
+
 export const workspaceOnboardingJourneyPhaseSchema = z.enum([
   'DISCOVERY_REVIEW',
   'ARCHITECTURE_APPROVAL',
@@ -69,7 +76,7 @@ export const workspaceOnboardingJourneySchema = z
   });
 
 export const workspaceOnboardingEvidenceSchema = z.object({
-  schemaVersion: z.enum(['1.0.0', '1.1.0', '1.2.0', '1.3.0']),
+  schemaVersion: z.enum(['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0']),
   version: z.number().int().positive(),
   milestones: z.array(workspaceOnboardingEvidenceMilestoneSchema),
   events: z.array(workspaceOnboardingEvidenceEventSchema).max(500),
@@ -111,6 +118,17 @@ export const workspaceOnboardingEvidenceSchema = z.object({
       lastCheckedAt: null,
       validatedAt: null,
       lastError: null,
+    }),
+  productUpdates: z
+    .object({
+      registryVersion: z.string().min(1),
+      acknowledgements: z
+        .array(workspaceProductUpdateAcknowledgementSchema)
+        .max(200),
+    })
+    .default({
+      registryVersion: 'legacy',
+      acknowledgements: [],
     }),
   firstValueRun: z
     .object({

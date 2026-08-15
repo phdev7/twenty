@@ -127,3 +127,57 @@ export const normalizeGeneratedWorkspaceContext = (
   unconfirmedInformation: cleanList(generated.unconfirmedInformation),
   originalResponse: cleanText(originalResponse),
 });
+
+const listAsText = (values: string[]): string | null =>
+  values.length > 0 ? values.join('\n') : null;
+
+/**
+ * Rebuilds the UI context from the durable operation profile. This is what
+ * allows onboarding retries and later human revisions to reuse the first AI
+ * result instead of spending tokens to extract the same operation again.
+ */
+export const generatedWorkspaceContextFromOperationProfile = (
+  profile: WorkspaceOperationProfile,
+): GeneratedWorkspaceContext => ({
+  segment: profile.segment,
+  businessModels: profile.businessModels,
+  revenueModels: profile.revenueModels,
+  productsAndServices: profile.productsAndServices,
+  operationalCapabilities: profile.operationalCapabilities,
+  customerJourneyStages: profile.customerJourneyStages,
+  customerProblems: profile.customerProblems,
+  acquisitionChannels: profile.acquisitionChannels,
+  salesProcess: profile.salesProcess,
+  salesCycle: profile.salesCycle,
+  teamAndRoles: profile.teamAndRoles,
+  deliveryProcess: profile.deliveryProcess,
+  customerServiceProcess: profile.customerServiceProcess,
+  customerSuccessProcess: profile.customerSuccessProcess,
+  renewalProcess: profile.renewalProcess,
+  relevantMetrics: profile.relevantMetrics,
+  requiredIntegrations: profile.requiredIntegrations,
+  restrictions: profile.restrictions,
+  responsibilityRules: profile.responsibilityRules,
+  slaTargets: profile.slaTargets,
+  approvalRules: profile.approvalRules,
+  obligationsAndRisks: profile.obligationsAndRisks,
+  priorityObjectives: profile.priorityObjectives,
+  operationalMaturity: profile.operationalMaturity,
+  unitCount: profile.unitCount,
+  teamCount: profile.teamCount,
+  hypotheses: profile.hypotheses,
+  unconfirmedInformation: profile.unconfirmedInformation,
+  businessDescription:
+    profile.originalResponse ??
+    ([profile.segment, profile.businessModels.join('; ')]
+      .filter(Boolean)
+      .join('. ') ||
+      null),
+  idealCustomerProfile: profile.idealCustomerProfile,
+  toneOfVoice: profile.toneOfVoice,
+  commercialRules: listAsText(profile.commercialRules),
+  objectionPlaybook: listAsText(profile.objectionsAndResponses),
+  competitiveLandscape: listAsText(profile.proofsAndDifferentiators),
+  callsToAction: profile.callsToAction,
+  forbiddenClaims: listAsText(profile.restrictions),
+});

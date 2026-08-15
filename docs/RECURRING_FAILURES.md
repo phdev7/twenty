@@ -135,3 +135,27 @@ corretos de ref, e convertê-los em estado cria loop de render ou closure obsole
 Nesses casos use `// oxlint-disable-next-line diex/no-state-useref` com uma linha
 dizendo por quê. Há precedente no repositório. Só converta para estado quando o
 valor de fato deveria renderizar.
+
+## 10. Rota REST que morre sem deixar rastro
+
+`RestApiExceptionFilter` transforma qualquer exceção não-HTTP em **400**, e
+`shouldCaptureException` só captura a partir de 500. O resultado é que um
+`TypeError` de verdade volta para o cliente como
+`{"statusCode":400,"error":"TypeError","messages":["Cannot read properties of
+undefined (reading 'slice')"]}` e **não aparece em log nenhum** — nem stack, nem
+arquivo, nem linha.
+
+Para achar a origem, adicione um `console.error(exception)` temporário no filtro,
+reproduza, leia a stack e remova. Não confie no log do servidor para concluir que
+uma rota REST está sã: ausência de erro no log não é sinal de sucesso.
+
+Quatro defeitos ficaram escondidos assim na rota de prontidão do onboarding:
+serviço que lê objeto de workspace sem `executeInWorkspaceContext`, `findOne`
+sem `where` (o TypeORM recusa), `COALESCE(coluna_enum, '')` (o Postgres recusa o
+`''` como valor do enum, use `::text`) e campo composto lido como JSON quando ele
+é persistido em duas colunas (`amountAmountMicros`, `amountCurrencyCode`).
+
+Ao escrever serviço que usa `globalWorkspaceOrmManager.getRepository`, verifique
+quem estabelece o contexto de ORM. O pipeline REST **não** estabelece: quem lê
+objeto de workspace precisa envolver a própria leitura em
+`executeInWorkspaceContext(fn, buildSystemAuthContext(workspaceId))`.

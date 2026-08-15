@@ -1,8 +1,11 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 
+import { PermissionFlagType } from 'diex-shared/constants';
+
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { CustomerSuccessService } from 'src/modules/customer-success/services/customer-success.service';
 
@@ -45,7 +48,12 @@ export class CustomerSuccessController {
     private readonly customerSuccessService: CustomerSuccessService,
   ) {}
 
+  // As três rotas executam com privilégio de sistema (buildSystemAuthContext) e
+  // alteram receita recorrente, renovações e milestones. Operação que roda como
+  // sistema exige permissão administrativa: para liberá-la a um cargo restrito,
+  // o serviço precisa antes passar a operar com o authContext de quem chamou.
   @Post('review')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async review(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @Body() body: ReviewBody,
@@ -68,6 +76,7 @@ export class CustomerSuccessController {
   }
 
   @Post('handoff')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async handoff(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @Body() body: HandoffBody,
@@ -91,6 +100,7 @@ export class CustomerSuccessController {
   }
 
   @Post('milestone-action')
+  @UseGuards(SettingsPermissionGuard(PermissionFlagType.WORKSPACE))
   async milestoneAction(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @Body() body: MilestoneBody,

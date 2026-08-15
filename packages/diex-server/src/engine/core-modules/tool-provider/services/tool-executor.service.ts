@@ -232,6 +232,10 @@ export class ToolExecutorService {
       throw new Error('Expected static executionRef');
     }
 
+    // A narrowing do union não sobrevive dentro das closures abaixo, então o id
+    // sai daqui já resolvido.
+    const { toolId } = descriptor.executionRef;
+
     const candidateProviders = this.providers.filter(
       (candidate) => candidate.category === descriptor.category,
     );
@@ -252,14 +256,13 @@ export class ToolExecutorService {
           context,
           {
             includeSchemas: false,
-            toolNames: new Set([descriptor.executionRef.toolId]),
+            toolNames: new Set([toolId]),
           },
         );
         const ownsTool = candidateDescriptors.some(
           (candidateDescriptor) =>
             candidateDescriptor.executionRef.kind === 'static' &&
-            candidateDescriptor.executionRef.toolId ===
-              descriptor.executionRef.toolId,
+            candidateDescriptor.executionRef.toolId === toolId,
         );
 
         return ownsTool ? candidate : undefined;

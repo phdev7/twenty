@@ -8,6 +8,7 @@ import {
   type DiexArchitectureState,
   type DiexFirstCommercialFlowResult,
   type DiexPageUpdateInput,
+  type WorkspaceContextDraft,
 } from '@/diex-onboarding/types/diexOnboardingTypes';
 import {
   getDiexOnboardingRoute,
@@ -26,6 +27,8 @@ export const useDiexOnboarding = () => {
   const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [isSavingPrimaryChannel, setIsSavingPrimaryChannel] = useState(false);
   const [isExecutingFirstFlow, setIsExecutingFirstFlow] = useState(false);
+  const [isAcknowledgingProductUpdate, setIsAcknowledgingProductUpdate] =
+    useState(false);
   const [commercialError, setCommercialError] = useState<string | null>(null);
   const [isReadinessReadConfirmed, setIsReadinessReadConfirmed] =
     useState(false);
@@ -46,7 +49,7 @@ export const useDiexOnboarding = () => {
     isActivatingContext,
     refetchWorkspaceContext,
     createWorkspaceContext,
-    saveWorkspaceContext,
+    saveWorkspaceContext: saveWorkspaceContextRecord,
     activateWorkspaceContext,
   } = useDiexWorkspaceContext();
   const refreshCommercialData = useCallback(async (): Promise<void> => {
@@ -140,6 +143,14 @@ export const useDiexOnboarding = () => {
       }
     }
   }, []);
+
+  const saveWorkspaceContext = useCallback(
+    async (draft: WorkspaceContextDraft): Promise<void> => {
+      await saveWorkspaceContextRecord(draft);
+      await refreshCommercialData();
+    },
+    [refreshCommercialData, saveWorkspaceContextRecord],
+  );
 
   const handleWhatsappConnected = useCallback(() => {
     void Promise.all([refetchDataFlow(), refreshCommercialData()]);
@@ -488,15 +499,41 @@ export const useDiexOnboarding = () => {
       }
     }, [isReadinessReadConfirmed, refetchDataFlow, refreshCommercialData]);
 
+  const acknowledgeProductUpdate = useCallback(
+    async (updateKey: string): Promise<void> => {
+      setIsAcknowledgingProductUpdate(true);
+
+      try {
+        await postDiexOnboardingRoute(
+          `/rest/diex/onboarding/product-updates/${encodeURIComponent(updateKey)}/acknowledge`,
+        );
+        await refreshCommercialData();
+      } catch (error) {
+        setCommercialError(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível confirmar o aviso de atualização.',
+        );
+      } finally {
+        setIsAcknowledgingProductUpdate(false);
+      }
+    },
+    [refreshCommercialData],
+  );
+
   const completeCommercialOnboarding = useCallback(async (): Promise<void> => {
-    if (!isReadinessReadConfirmed || readiness?.ready !== true) {
+    if (!isReadinessReadConfirmed) {
       throw new Error(
-        'A prontidão final não foi confirmada. Atualize antes de concluir.',
+        'A configuração atual não foi confirmada. Atualize antes de concluir.',
       );
     }
 
     await postDiexOnboardingRoute('/rest/diex/onboarding/complete');
-  }, [isReadinessReadConfirmed, readiness?.ready]);
+  }, [isReadinessReadConfirmed]);
+
+  const unlockWorkspaceSetup = useCallback(async (): Promise<void> => {
+    await postDiexOnboardingRoute('/rest/diex/onboarding/unlock');
+  }, []);
 
   return {
     workspaceContext,
@@ -509,6 +546,7 @@ export const useDiexOnboarding = () => {
     isSavingGoal,
     isSavingPrimaryChannel,
     isExecutingFirstFlow,
+    isAcknowledgingProductUpdate,
     commercialError,
     isReadinessReadConfirmed,
     isArchitectureReadConfirmed,
@@ -533,7 +571,9 @@ export const useDiexOnboarding = () => {
     setCommercialGoal,
     setPrimaryChannel,
     executeFirstCommercialFlow,
+    acknowledgeProductUpdate,
     completeCommercialOnboarding,
+    unlockWorkspaceSetup,
     requestConnection,
     createWorkspaceContext,
     saveWorkspaceContext,

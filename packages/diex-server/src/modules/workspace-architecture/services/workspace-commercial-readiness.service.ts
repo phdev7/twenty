@@ -53,6 +53,10 @@ type CommercialCockpitAggregates = {
   commercialRisks: number;
 };
 
+export type WorkspaceCommercialReadiness = Awaited<
+  ReturnType<WorkspaceCommercialReadinessService['getReadiness']>
+>;
+
 @Injectable()
 export class WorkspaceCommercialReadinessService {
   constructor(
@@ -428,6 +432,7 @@ export class WorkspaceCommercialReadinessService {
             label: `Página de ${page.label} disponível`,
             ready: page.status === 'ACTIVE',
             required: true,
+            weight: 1,
           },
         ],
       })),
@@ -543,8 +548,28 @@ export class WorkspaceCommercialReadinessService {
           recordId: evidenceRecordIds[key] ?? null,
         })),
       });
+    const setupSteps = items
+      .filter(({ blocksActivation }) => blocksActivation)
+      .map(({ key, label, ready, nextAction }) => ({
+        key,
+        label,
+        ready,
+        nextAction,
+      }));
+    const setupBlockers = setupSteps.filter(({ ready }) => !ready);
+
     return {
       ready: onboardingEvidence.journey.phase === 'READY',
+      // A configuração inicial é o que libera o CRM. A prontidão continua
+      // medindo a operação inteira e pode ficar abaixo de 100% sem travar nada.
+      setup: {
+        complete: setupBlockers.length === 0,
+        steps: setupSteps,
+        blockers: setupBlockers,
+        nextAction:
+          setupBlockers[0]?.nextAction ??
+          'Abra o CRM configurado e siga com os próximos passos da operação.',
+      },
       score: totalWeight
         ? Math.round((completedWeight / totalWeight) * 100)
         : 100,
@@ -624,6 +649,41 @@ export class WorkspaceCommercialReadinessService {
         source: 'workspace_database',
       },
     };
+  }
+
+  // Versão barata do portão de ativação, para o caminho quente que decide se o
+  // usuário continua preso na tela de configuração. Duas leituras indexadas, e
+  // só enquanto a trava ainda estiver marcada.
+  async isWorkspaceSetupComplete(workspaceId: string): Promise<boolean> {
+    return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      () => this.isWorkspaceSetupCompleteInContext(workspaceId),
+      buildSystemAuthContext(workspaceId),
+    );
+  }
+
+  private async isWorkspaceSetupCompleteInContext(
+    workspaceId: string,
+  ): Promise<boolean> {
+    const [context, blueprint, changeSet] = await Promise.all([
+      this.getWorkspaceContext(workspaceId),
+      this.workspaceArchitectureService.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.BLUEPRINT,
+      ),
+      this.workspaceArchitectureService.getLatestArtifact(
+        workspaceId,
+        WorkspaceArchitectureArtifactType.CHANGE_SET,
+      ),
+    ]);
+    const publishedStatuses = ['ACTIVE', 'PARTIALLY_APPLIED'];
+
+    return (
+      context?.status === WorkspaceContextStatus.ACTIVE &&
+      isNonEmptyString(context.businessDescription?.markdown) &&
+      isNonEmptyString(context.idealCustomerProfile?.markdown) &&
+      publishedStatuses.includes(String(blueprint?.status)) &&
+      publishedStatuses.includes(String(changeSet?.status))
+    );
   }
 
   private async getCommercialCockpitAggregates(

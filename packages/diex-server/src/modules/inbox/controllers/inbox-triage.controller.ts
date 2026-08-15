@@ -4,6 +4,7 @@ import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-worksp
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import {
   InboxTriageService,
@@ -21,7 +22,10 @@ type InboxTriageBody = {
 export class InboxTriageController {
   constructor(private readonly inboxTriageService: InboxTriageService) {}
 
+  // Triar a conversa que chegou é rotina do atendente, aberta a qualquer membro
+  // do workspace.
   @Post('triage')
+  @UseGuards(NoPermissionGuard)
   async triage(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @AuthUserWorkspaceId() userWorkspaceId: string,

@@ -30,8 +30,7 @@ export type ContextField = {
   label: string;
   hint: string;
   // Agents read the context only once it is ACTIVE, and activating it with
-  // nothing written would be worse than leaving it off. These three are the
-  // ones that stop every generated line from sounding like a generic vendor.
+  // incomplete commercial rules would be worse than leaving it off.
   isRequiredForActivation: boolean;
   isFilled: boolean;
 };
@@ -71,6 +70,23 @@ export type DiexReadinessItem = {
   ready: boolean;
   required: boolean;
   weight?: number;
+  blocksActivation?: boolean;
+};
+
+export type DiexSetupStep = {
+  key: string;
+  label: string;
+  ready: boolean;
+  nextAction: string;
+};
+
+// A configuração inicial libera o CRM. A prontidão continua medindo a operação
+// inteira e pode ficar abaixo de 100% sem travar nada.
+export type DiexSetupGate = {
+  complete: boolean;
+  steps: DiexSetupStep[];
+  blockers: DiexSetupStep[];
+  nextAction: string;
 };
 
 export type DiexReadinessTrack = {
@@ -109,6 +125,7 @@ export type DiexOnboardingJourney = {
 
 export type DiexCommercialReadiness = {
   ready: boolean;
+  setup?: DiexSetupGate;
   score: number;
   items: DiexReadinessItem[];
   tracks?: DiexReadinessTrack[];
@@ -132,6 +149,36 @@ export type DiexCommercialReadiness = {
       }
     >;
   };
+  productUpdates?: {
+    registryVersion: string;
+    pendingCount: number;
+    blockingPendingCount: number;
+    adminNoticeCount: number;
+    items: Array<{
+      key: string;
+      version: string;
+      title: string;
+      summary: string;
+      revenueImpact: string;
+      releasedAt: string;
+      importance: 'REQUIRED' | 'RECOMMENDED' | 'INFORMATIONAL';
+      blocksReadiness: boolean;
+      readinessWeight: number;
+      actionLabel: string;
+      actionRoute: string;
+      status: 'PENDING' | 'ACKNOWLEDGED' | 'COMPLETED';
+      isUpdateForExistingWorkspace: boolean;
+      missingFields: Array<{
+        key: ContextFieldKey;
+        label: string;
+      }>;
+      acknowledgedAt: string | null;
+      completionKind: 'CONTEXT_FIELDS' | 'ACKNOWLEDGEMENT';
+      needsAdminConfirmation: boolean;
+      canAdminConfirm: boolean;
+      readinessCriterionKey: string;
+    }>;
+  };
   firstValueRun?: {
     id: string;
     correlationId: string;
@@ -148,13 +195,16 @@ export type DiexCommercialReadiness = {
       occurredAt: string | null;
     }>;
   };
+  // O servidor omite os blocos comerciais para quem não tem permissão de
+  // workspace, então counts e dashboard chegam nulos nesse caso.
+  visibility?: { canViewCommercialData: boolean };
   counts: {
     activeOffers: number;
     activeOwners: number;
     conversations: number;
     opportunities: number;
     followUps: number;
-  };
+  } | null;
   dashboard: {
     pipelineValueMicros: number;
     pipelineCurrencyCode: string;
@@ -168,11 +218,11 @@ export type DiexCommercialReadiness = {
     averageResponseMinutes: number | null;
     nextActions: number;
     commercialRisks: number;
-  };
+  } | null;
   evidence: {
-    firstConversationId: string | null;
+    firstConversationId?: string | null;
     firstCompanyLinked: boolean;
-    firstOpportunityId: string | null;
+    firstOpportunityId?: string | null;
     firstFollowUpCreated: boolean;
     firstAiTriageCompleted: boolean;
     whatsappValidatedByMessage: boolean;

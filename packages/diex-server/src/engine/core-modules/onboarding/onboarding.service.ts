@@ -563,6 +563,22 @@ export class OnboardingService {
     return this.workspaceCommercialReadinessService.getReadiness(workspaceId);
   }
 
+  async acknowledgeDiexProductUpdate({
+    workspaceId,
+    userWorkspaceId,
+    updateKey,
+  }: {
+    workspaceId: string;
+    userWorkspaceId: string;
+    updateKey: string;
+  }) {
+    return this.workspaceArchitectureService.acknowledgeWorkspaceProductUpdate({
+      workspaceId,
+      userWorkspaceId,
+      updateKey,
+    });
+  }
+
   async completeDiexCommercialOnboarding({
     workspaceId,
     userId,
@@ -574,11 +590,51 @@ export class OnboardingService {
     const readiness =
       await this.workspaceCommercialReadinessService.getReadiness(workspaceId);
 
-    if (!readiness.ready) {
+    if (!readiness.setup.complete) {
       throw new BadRequestException(
-        `O workspace ainda não atingiu “${readiness.readinessPack.readyLabel}”. Próxima ação: ${readiness.nextAction}.`,
+        `A configuração inicial ainda não terminou: ${readiness.setup.blockers
+          .map(({ label }) => label)
+          .join(', ')}. Próxima ação: ${readiness.setup.nextAction}`,
       );
     }
+
+    await this.setOnboardingDiexWorkspacePending({
+      userId,
+      workspaceId,
+      value: false,
+    });
+
+    // A página de primeiros passos só sai do menu quando não há mais nada
+    // pendente. Com a prontidão incompleta ela continua acessível, porque é de
+    // lá que o restante da operação é concluído.
+    if (readiness.ready) {
+      try {
+        await this.workspaceArchitectureService.updatePage({
+          workspaceId,
+          key: 'first-steps',
+          showInNavigation: false,
+        });
+      } catch (error) {
+        this.logger.warn(
+          `Commercial onboarding completed, but the activation page could not be hidden for workspace ${workspaceId}: ${error instanceof Error ? error.message : 'unknown error'}`,
+        );
+      }
+    }
+
+    return { success: true, readiness };
+  }
+
+  // Saída explícita para quem já opera e ficou preso na configuração. Não marca
+  // nenhum requisito como concluído: só devolve o acesso ao CRM e mantém os
+  // pendentes visíveis em Primeiros passos.
+  async unlockDiexWorkspaceSetup({
+    workspaceId,
+    userId,
+  }: {
+    workspaceId: string;
+    userId: string;
+  }) {
+    await this.assertWorkspaceOwner(workspaceId, userId);
 
     await this.setOnboardingDiexWorkspacePending({
       userId,
@@ -590,15 +646,15 @@ export class OnboardingService {
       await this.workspaceArchitectureService.updatePage({
         workspaceId,
         key: 'first-steps',
-        showInNavigation: false,
+        showInNavigation: true,
       });
     } catch (error) {
       this.logger.warn(
-        `Commercial onboarding completed, but the activation page could not be hidden for workspace ${workspaceId}: ${error instanceof Error ? error.message : 'unknown error'}`,
+        `Diex workspace unlocked, but the activation page could not be kept in the menu for workspace ${workspaceId}: ${error instanceof Error ? error.message : 'unknown error'}`,
       );
     }
 
-    return { success: true, readiness };
+    return { success: true };
   }
 
   async approveDiexArchitecture({
@@ -613,9 +669,12 @@ export class OnboardingService {
     await this.assertWorkspaceOwner(workspaceId, userId);
     const readiness =
       await this.workspaceCommercialReadinessService.getReadiness(workspaceId);
+    // Só o contexto revisado governa a recomendação. Exigir aqui itens como
+    // oferta ativa ou aviso lido trancava a aprovação num requisito que a
+    // arquitetura não usa.
     const discoveryBlocker = readiness.items.find(
-      ({ phase, ready, required }) =>
-        phase === 'DISCOVERY_REVIEW' && required && !ready,
+      ({ phase, ready, required, blocksActivation }) =>
+        phase === 'DISCOVERY_REVIEW' && required && blocksActivation && !ready,
     );
 
     if (discoveryBlocker) {
@@ -789,19 +848,13 @@ export class OnboardingService {
     });
     const readiness =
       await this.workspaceCommercialReadinessService.getReadiness(workspaceId);
-    const prerequisitePhases = new Set([
-      'DISCOVERY_REVIEW',
-      'ARCHITECTURE_APPROVAL',
-      'CHANNEL_CONNECTION',
-    ]);
-    const blockingPrerequisite = readiness.items.find(
-      ({ phase, ready, required }) =>
-        required && !ready && prerequisitePhases.has(phase),
-    );
+    // O fluxo precisa da estrutura publicada, não do canal validado: é ele que
+    // produz a primeira conversa que valida o canal.
+    const blockingPrerequisite = readiness.setup.blockers[0];
 
     if (blockingPrerequisite) {
       throw new BadRequestException(
-        `Conclua a ativação antes de executar o primeiro fluxo. Próxima ação: ${blockingPrerequisite.nextAction}`,
+        `Conclua a configuração antes de executar o primeiro fluxo. Próxima ação: ${blockingPrerequisite.nextAction}`,
       );
     }
 
@@ -1124,7 +1177,7 @@ export class OnboardingService {
             opportunityId: opportunity?.id ?? conversation.opportunityId,
             companyId:
               companyId ?? opportunity?.companyId ?? conversation.companyId,
-            followUpDueAt: dueAt,
+            followUpDueAt: dueAt.toISOString(),
           });
 
           if (opportunity) {
@@ -1582,13 +1635,6 @@ export class OnboardingService {
           OfferWorkspaceEntity,
           { shouldBypassPermissionChecks: true },
         );
-      const actor = {
-        source: FieldActorSource.WORKFLOW,
-        workspaceMemberId: null,
-        name: 'Onboarding comercial Diex',
-        context: {},
-      };
-
       for (const [index, product] of productsAndServices
         .map((value) => value.trim())
         .filter((value) => value.length > 0)
@@ -1623,7 +1669,6 @@ export class OnboardingService {
             await offerRepository.save({
               ...existing,
               ...generatedOffer,
-              updatedBy: actor,
             });
           }
 
@@ -1637,12 +1682,47 @@ export class OnboardingService {
             // AI-extracted offers are recommendations. They only become usable by
             // agents and readiness after the workspace owner reviews them.
             status: OfferStatus.DRAFT,
-            createdBy: actor,
-            updatedBy: actor,
           }),
         );
       }
     }, authContext);
+  }
+
+  // O marcador de configuração é intenção, não evidência. Quando o contexto já
+  // está ativo e a arquitetura já foi publicada, a configuração terminou de
+  // fato: manter a trava só prenderia o workspace numa tela que não tem mais o
+  // que pedir. Roda no máximo uma vez por usuário, porque limpa o marcador.
+  private async resolveStaleDiexWorkspaceSetup({
+    userId,
+    workspaceId,
+  }: {
+    userId: string;
+    workspaceId: string;
+  }): Promise<boolean> {
+    try {
+      const isSetupComplete =
+        await this.workspaceCommercialReadinessService.isWorkspaceSetupComplete(
+          workspaceId,
+        );
+
+      if (!isSetupComplete) {
+        return false;
+      }
+
+      await this.setOnboardingDiexWorkspacePending({
+        userId,
+        workspaceId,
+        value: false,
+      });
+
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `Could not confirm the Diex setup gate for workspace ${workspaceId}: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
+
+      return false;
+    }
   }
 
   private isWorkspaceActivationPending(workspace: WorkspaceEntity) {
@@ -1711,7 +1791,11 @@ export class OnboardingService {
 
     if (
       userVars.get(OnboardingStepKeys.ONBOARDING_DIEX_WORKSPACE_PENDING) ===
-      true
+        true &&
+      !(await this.resolveStaleDiexWorkspaceSetup({
+        userId: user.id,
+        workspaceId: workspace.id,
+      }))
     ) {
       return OnboardingStatus.DIEX_WORKSPACE_SETUP;
     }

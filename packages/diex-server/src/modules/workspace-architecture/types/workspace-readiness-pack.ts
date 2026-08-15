@@ -37,8 +37,23 @@ export type WorkspaceReadinessCriterion = {
   source: WorkspaceReadinessEvidenceSource;
   firstValue: boolean;
   nextAction: string;
+  // Um critério que bloqueia a ativação impede o uso do CRM enquanto não for
+  // cumprido. Só entram aqui as decisões que o administrador consegue tomar na
+  // própria tela de configuração; tudo que depende de dado real da operação
+  // (mensagem recebida, triagem, equipe) conta para a prontidão sem travar.
+  blocksActivation: boolean;
   sourceTemplateIds: string[];
 };
+
+// Portão de ativação: o contexto revisado e a arquitetura publicada. Ambos são
+// atos explícitos do administrador, com evidência persistida.
+export const WORKSPACE_ACTIVATION_CRITERION_KEYS = [
+  'context_active',
+  'architecture_approved',
+] as const;
+
+export const criterionBlocksActivation = (key: string): boolean =>
+  (WORKSPACE_ACTIVATION_CRITERION_KEYS as readonly string[]).includes(key);
 
 export type WorkspaceReadinessPack = {
   version: string;
@@ -67,9 +82,12 @@ const READY_LABELS_BY_GOAL: Record<string, string> = {
   CUSTOMER_SUCCESS_RENEWALS: 'CRM pronto para proteger receita',
 };
 
-const UNIVERSAL_CRITERIA: Array<
-  Omit<WorkspaceReadinessCriterion, 'sourceTemplateIds'>
-> = [
+type WorkspaceReadinessCriterionDraft = Omit<
+  WorkspaceReadinessCriterion,
+  'sourceTemplateIds' | 'blocksActivation'
+>;
+
+const UNIVERSAL_CRITERIA: WorkspaceReadinessCriterionDraft[] = [
   {
     key: 'context_active',
     label: 'Contexto da operação ativo',
@@ -303,11 +321,8 @@ const isFirstValueCriterion = (key: string): boolean =>
 
 const normalizeCriteria = (
   templates: WorkspaceTemplateDefinition[],
-): Array<Omit<WorkspaceReadinessCriterion, 'sourceTemplateIds'>> => {
-  const criteria = new Map<
-    string,
-    Omit<WorkspaceReadinessCriterion, 'sourceTemplateIds'>
-  >();
+): WorkspaceReadinessCriterionDraft[] => {
+  const criteria = new Map<string, WorkspaceReadinessCriterionDraft>();
 
   for (const criterion of UNIVERSAL_CRITERIA) {
     criteria.set(criterion.key, { ...criterion });
@@ -357,9 +372,7 @@ export const buildWorkspaceReadinessPack = ({
   let criteria = normalizeCriteria(templates);
   const selectedTemplateIds = templates.map(({ id }) => id);
   const sourceTemplateIds = selectedTemplateIds;
-  const addCriterion = (
-    criterion: Omit<WorkspaceReadinessCriterion, 'sourceTemplateIds'>,
-  ) => {
+  const addCriterion = (criterion: WorkspaceReadinessCriterionDraft) => {
     if (!criteria.some(({ key }) => key === criterion.key)) {
       criteria.push(criterion);
     }
@@ -503,6 +516,7 @@ export const buildWorkspaceReadinessPack = ({
   const orderedCriteria = criteria
     .map((criterion) => ({
       ...criterion,
+      blocksActivation: criterionBlocksActivation(criterion.key),
       sourceTemplateIds,
     }))
     .sort((left, right) => {

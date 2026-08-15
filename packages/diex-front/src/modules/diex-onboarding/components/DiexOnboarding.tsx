@@ -4,10 +4,16 @@ import { IconArrowRight, IconCheck, IconSparkles } from 'diex-ui/icon';
 import { Button } from 'diex-ui/input';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
+import {
+  DIEX_ONBOARDING_QUESTIONS,
+  type DiexOnboardingAnswers,
+  EMPTY_DIEX_ONBOARDING_ANSWERS,
+  buildOperationDescriptionFromAnswers,
+} from '@/diex-onboarding/types/diexOnboardingInterviewTypes';
 import { TextArea } from '@/ui/input/components/TextArea';
 
 const StyledRoot = styled.main`
-  align-items: center;
+  align-items: flex-start;
   box-sizing: border-box;
   display: flex;
   flex: 1;
@@ -20,13 +26,16 @@ const StyledRoot = styled.main`
 const StyledGrid = styled.div<{ hasSupplementaryContent: boolean }>`
   align-items: start;
   display: grid;
-  gap: ${themeCssVariables.spacing[5]};
+  gap: ${themeCssVariables.spacing[4]};
+  // Centraliza quando sobra espaço e para de centralizar quando o formulário
+  // fica mais alto que a viewport, senão o topo do cartão é cortado.
+  margin: auto;
   grid-template-columns: ${({ hasSupplementaryContent }) =>
     hasSupplementaryContent
-      ? 'minmax(0, 680px) minmax(300px, 380px)'
-      : 'minmax(0, 680px)'};
+      ? 'minmax(0, 560px) minmax(280px, 340px)'
+      : 'minmax(0, 560px)'};
   max-width: ${({ hasSupplementaryContent }) =>
-    hasSupplementaryContent ? '1100px' : '680px'};
+    hasSupplementaryContent ? '920px' : '560px'};
   width: 100%;
 
   @media (max-width: 900px) {
@@ -41,9 +50,8 @@ const StyledCard = styled.form`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: ${themeCssVariables.spacing[4]};
-  max-width: 680px;
-  padding: ${themeCssVariables.spacing[6]};
+  gap: ${themeCssVariables.spacing[3]};
+  padding: ${themeCssVariables.spacing[5]};
   width: 100%;
 `;
 
@@ -54,23 +62,46 @@ const StyledIcon = styled.div`
   border-radius: ${themeCssVariables.border.radius.md};
   color: ${themeCssVariables.color.blue};
   display: flex;
-  height: 40px;
+  height: 32px;
   justify-content: center;
-  width: 40px;
+  width: 32px;
 `;
 
 const StyledTitle = styled.h1`
   color: ${themeCssVariables.font.color.primary};
-  font-size: ${themeCssVariables.font.size.xl};
+  font-size: ${themeCssVariables.font.size.md};
   font-weight: ${themeCssVariables.font.weight.semiBold};
   margin: 0;
 `;
 
 const StyledDescription = styled.p`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
+  line-height: 1.4;
+  margin: 0;
+`;
+
+const StyledFields = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${themeCssVariables.spacing[3]};
+`;
+
+const StyledField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${themeCssVariables.spacing[1]};
+`;
+
+const StyledLabel = styled.label`
   color: ${themeCssVariables.font.color.secondary};
-  font-size: ${themeCssVariables.font.size.sm};
-  line-height: 1.5;
-  margin: -${themeCssVariables.spacing[2]} 0 0;
+  font-size: ${themeCssVariables.font.size.xs};
+  font-weight: ${themeCssVariables.font.weight.medium};
+`;
+
+const StyledOptional = styled.span`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-weight: ${themeCssVariables.font.weight.regular};
 `;
 
 const StyledFooter = styled.div`
@@ -82,7 +113,7 @@ const StyledFooter = styled.div`
 
 const StyledHint = styled.span`
   color: ${themeCssVariables.font.color.tertiary};
-  font-size: ${themeCssVariables.font.size.xs};
+  font-size: ${themeCssVariables.font.size.xxs};
 `;
 
 const StyledAiWorkState = styled.div`
@@ -91,15 +122,15 @@ const StyledAiWorkState = styled.div`
   border-radius: ${themeCssVariables.border.radius.md};
   display: flex;
   flex-direction: column;
-  gap: ${themeCssVariables.spacing[3]};
-  padding: ${themeCssVariables.spacing[5]};
+  gap: ${themeCssVariables.spacing[2]};
+  padding: ${themeCssVariables.spacing[4]};
 `;
 
 const StyledAiPulse = styled.div`
   align-items: center;
   color: ${themeCssVariables.color.blue};
   display: flex;
-  font-size: ${themeCssVariables.font.size.sm};
+  font-size: ${themeCssVariables.font.size.xs};
   font-weight: ${themeCssVariables.font.weight.semiBold};
   gap: ${themeCssVariables.spacing[2]};
 
@@ -108,8 +139,8 @@ const StyledAiPulse = styled.div`
     background: ${themeCssVariables.color.blue};
     border-radius: 50%;
     content: '';
-    height: 10px;
-    width: 10px;
+    height: 8px;
+    width: 8px;
   }
 
   @keyframes diexAiWorking {
@@ -135,42 +166,46 @@ const StyledAiStep = styled.div<{ active?: boolean }>`
   align-items: center;
   color: ${({ active }) =>
     active
-      ? themeCssVariables.font.color.primary
+      ? themeCssVariables.font.color.secondary
       : themeCssVariables.font.color.tertiary};
   display: flex;
-  font-size: ${themeCssVariables.font.size.xs};
+  font-size: ${themeCssVariables.font.size.xxs};
   gap: ${themeCssVariables.spacing[2]};
 `;
 
+const REQUIRED_ANSWER_MIN_LENGTH = 3;
+
 export const DiexOnboarding = ({
   isSubmitting,
-  initialDescription = '',
+  initialAnswers = EMPTY_DIEX_ONBOARDING_ANSWERS,
   supplementaryContent,
   onSubmit,
 }: {
   isSubmitting: boolean;
-  initialDescription?: string;
+  initialAnswers?: DiexOnboardingAnswers;
   supplementaryContent?: ReactNode;
   onSubmit: (operationDescription: string) => void;
 }) => {
-  const [operationDescription, setOperationDescription] =
-    useState(initialDescription);
-  const [hasEditedDescription, setHasEditedDescription] = useState(false);
+  const [answers, setAnswers] = useState(initialAnswers);
+  const [hasEditedAnswers, setHasEditedAnswers] = useState(false);
 
   useEffect(() => {
-    if (!hasEditedDescription && initialDescription) {
-      setOperationDescription(initialDescription);
+    if (!hasEditedAnswers) {
+      setAnswers(initialAnswers);
     }
-  }, [hasEditedDescription, initialDescription]);
+  }, [hasEditedAnswers, initialAnswers]);
 
-  const normalizedDescription = operationDescription.trim();
-  const canSubmit = normalizedDescription.length >= 20 && !isSubmitting;
+  const missingRequiredCount = DIEX_ONBOARDING_QUESTIONS.filter(
+    ({ key, isRequired }) =>
+      isRequired && answers[key].trim().length < REQUIRED_ANSWER_MIN_LENGTH,
+  ).length;
+  const canSubmit = missingRequiredCount === 0 && !isSubmitting;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (canSubmit) {
-      onSubmit(normalizedDescription);
+      onSubmit(buildOperationDescriptionFromAnswers(answers));
     }
   };
 
@@ -179,54 +214,68 @@ export const DiexOnboarding = ({
       <StyledGrid hasSupplementaryContent={Boolean(supplementaryContent)}>
         <StyledCard onSubmit={handleSubmit}>
           <StyledIcon>
-            <IconSparkles size={20} />
+            <IconSparkles size={16} />
           </StyledIcon>
-          <StyledTitle>
-            {initialDescription
-              ? 'Confirme a descrição da sua operação:'
-              : 'Descreva sua operação atualmente:'}
-          </StyledTitle>
+          <StyledTitle>Sua operação em 7 respostas</StyledTitle>
           <StyledDescription>
-            {initialDescription
-              ? 'Reunimos o que você respondeu no cadastro. Ajuste o que quiser e a IA organizará o contexto do CRM.'
-              : 'Responda como em uma entrevista curta: empresa e segmento, ofertas, cliente ideal, canais de aquisição, vendas, objeções, provas, tom de voz, regras comerciais e responsáveis. A IA organizará tudo para sua revisão antes de publicar a estrutura.'}
+            A IA usa isto para montar seu CRM com os nomes que você já usa.
+            Frases curtas bastam.
           </StyledDescription>
           {isSubmitting ? (
             <StyledAiWorkState aria-live="polite" aria-busy="true">
-              <StyledAiPulse>A IA está entendendo sua operação</StyledAiPulse>
+              <StyledAiPulse>Montando seu CRM</StyledAiPulse>
               <StyledAiStep active>
-                <IconCheck size={14} /> Contexto enviado com segurança
+                <IconCheck size={12} /> Respostas recebidas
               </StyledAiStep>
               <StyledAiStep active>
-                <IconSparkles size={14} /> Extraindo ofertas, público, processo,
-                regras e restrições
+                <IconSparkles size={12} /> Definindo objetos, etapas, páginas e
+                termos do seu nicho
               </StyledAiStep>
               <StyledAiStep>
-                A recomendação aparecerá para revisão antes de qualquer
-                publicação.
+                Você revisa e publica antes de qualquer mudança valer.
               </StyledAiStep>
             </StyledAiWorkState>
           ) : (
             <>
-              <TextArea
-                textAreaId="diex-operation-description"
-                minRows={8}
-                maxRows={14}
-                value={operationDescription}
-                placeholder="Ex.: Vendemos [produtos ou serviços] para [cliente ideal]. Os contatos chegam por [canais], o processo passa por [etapas], o ciclo leva [prazo] e as principais objeções são [objeções]. Nosso diferencial é [prova], falamos em tom [tom] e estas decisões exigem aprovação: [regras]..."
-                onChange={(value) => {
-                  setHasEditedDescription(true);
-                  setOperationDescription(value);
-                }}
-              />
+              <StyledFields>
+                {DIEX_ONBOARDING_QUESTIONS.map(
+                  ({ key, label, placeholder, isRequired }) => (
+                    <StyledField key={key}>
+                      <StyledLabel htmlFor={`diex-onboarding-${key}`}>
+                        {label}
+                        {isRequired ? null : (
+                          <StyledOptional> · opcional</StyledOptional>
+                        )}
+                      </StyledLabel>
+                      <TextArea
+                        textAreaId={`diex-onboarding-${key}`}
+                        minRows={2}
+                        maxRows={5}
+                        value={answers[key]}
+                        placeholder={placeholder}
+                        onChange={(value) => {
+                          setHasEditedAnswers(true);
+                          setAnswers((current) => ({
+                            ...current,
+                            [key]: value,
+                          }));
+                        }}
+                      />
+                    </StyledField>
+                  ),
+                )}
+              </StyledFields>
               <StyledFooter>
                 <StyledHint>
-                  Quanto mais fatos, melhor a recomendação. Mínimo de 20
-                  caracteres.
+                  {missingRequiredCount === 0
+                    ? 'Dá para ajustar tudo depois'
+                    : missingRequiredCount === 1
+                      ? 'Falta 1 resposta'
+                      : `Faltam ${missingRequiredCount} respostas`}
                 </StyledHint>
                 <Button
                   type="submit"
-                  title="Preparar meu CRM"
+                  title="Montar meu CRM"
                   Icon={IconArrowRight}
                   disabled={!canSubmit}
                 />

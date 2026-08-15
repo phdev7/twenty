@@ -13,6 +13,7 @@ import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorat
 import { JwtTokenTypeEnum } from 'src/engine/core-modules/auth/types/jwt-token-type.enum';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { DiexConfigService } from 'src/engine/core-modules/diex-config/diex-config.service';
+import { CustomPermissionGuard } from 'src/engine/guards/custom-permission.guard';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { MigrationService } from 'src/modules/migration/services/migration.service';
@@ -25,7 +26,10 @@ export class MigrationController {
     private readonly diexConfigService: DiexConfigService,
   ) {}
 
+  // A autorização está no corpo do método: exige a feature ligada e uma API key
+  // de workspace, recusando qualquer sessão de usuário.
   @Post('import')
+  @UseGuards(CustomPermissionGuard)
   async importBatch(
     @Req() request: Request,
     @AuthWorkspace() workspace: WorkspaceEntity,

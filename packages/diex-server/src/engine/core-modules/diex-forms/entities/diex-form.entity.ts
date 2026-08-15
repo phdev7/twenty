@@ -13,7 +13,7 @@ import {
 } from 'typeorm';
 
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
-import { ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-27/add-diex-forms-platform-upgrade-command-name.constant';
+import { ADD_DIEX_FORMS_PLATFORM_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-28/add-diex-forms-platform-upgrade-command-name.constant';
 import { DiexFormFieldEntity } from 'src/engine/core-modules/diex-forms/entities/diex-form-field.entity';
 import { DiexFormSubmissionEntity } from 'src/engine/core-modules/diex-forms/entities/diex-form-submission.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';

@@ -212,9 +212,9 @@ export const DiexOnboardingArchitectureStep = ({
 
   return (
     <DiexOnboardingStepCard
-      index={4}
+      index={2}
       isDone={isPublished}
-      title="Revisar e aprovar a arquitetura recomendada"
+      title="Publicar a estrutura recomendada"
       badges={
         <DiexOnboardingBadge tone={isPublished ? 'green' : 'orange'}>
           {isPublished
@@ -231,7 +231,7 @@ export const DiexOnboardingArchitectureStep = ({
         <StyledText>Carregando recomendação...</StyledText>
       ) : !hasRecommendation ? (
         <StyledText>
-          Gere o contexto da operação para a IA montar a recomendação adaptada.
+          Ainda não há recomendação. Gere a partir do contexto revisado.
         </StyledText>
       ) : (
         <>
@@ -372,6 +372,14 @@ export const DiexOnboardingArchitectureStep = ({
         </StyledText>
       ) : null}
       <StyledActions>
+        {!hasRecommendation && canRegenerate ? (
+          <Button
+            title={isUpdating ? 'Gerando...' : 'Gerar recomendação'}
+            variant="primary"
+            disabled={isUpdating || !isReadConfirmed}
+            onClick={onRegenerate}
+          />
+        ) : null}
         {hasRecommendation && !isPublished ? (
           <Button
             title="Corrigir entendimento"

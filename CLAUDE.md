@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Mandatory repository-wide instructions
+
+Read and follow `AGENTS.md` before changing this repository. In particular,
+important features must preserve existing workspace usage and declare their
+versioned adoption requirement in the workspace product-update registry. A
+missing new answer must never be silently accepted as completed onboarding.
+Do not create or run tests unless Pedro explicitly requests them.
+
 ## Project Overview
 
 Diex is an open-source CRM built with modern technologies in a monorepo structure. The codebase is organized as an Nx workspace with multiple packages.

@@ -26,6 +26,7 @@ export const fromWorkspaceEntityToFlat = (
   metadataVersion: entity.metadataVersion,
   databaseSchema: entity.databaseSchema,
   subdomain: entity.subdomain,
+  formsSubdomain: entity.formsSubdomain,
   customDomain: entity.customDomain,
   isGoogleAuthEnabled: entity.isGoogleAuthEnabled,
   isGoogleAuthBypassEnabled: entity.isGoogleAuthBypassEnabled,

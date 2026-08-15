@@ -49,25 +49,25 @@ const CONTEXT_FIELDS: Array<{
     key: 'commercialRules',
     label: 'Regras comerciais',
     hint: 'Descontos, prazos e o que exige aprovação.',
-    isRequiredForActivation: false,
+    isRequiredForActivation: true,
   },
   {
     key: 'objectionPlaybook',
     label: 'Objeções e respostas',
     hint: 'O que ouvem muito e a resposta certa.',
-    isRequiredForActivation: false,
+    isRequiredForActivation: true,
   },
   {
     key: 'competitiveLandscape',
     label: 'Provas e diferenciais',
     hint: 'Cases, provas, diferenciais e concorrentes reais.',
-    isRequiredForActivation: false,
+    isRequiredForActivation: true,
   },
   {
     key: 'forbiddenClaims',
     label: 'O que nunca afirmar',
     hint: 'Promessas que a IA não pode fazer.',
-    isRequiredForActivation: false,
+    isRequiredForActivation: true,
   },
 ];
 
@@ -150,7 +150,7 @@ type DiexOnboardingContextStepProps = {
 export const DiexOnboardingContextStep = ({
   index = 2,
   title = 'Descrever a empresa para a IA',
-  description = 'Sem isto a IA escreve genérico e não sabe o que sua empresa não pode prometer. Preencha os três campos marcados, ative, e o contexto passa a valer em toda triagem, rascunho e análise.',
+  description = 'Sem isto a IA escreve genérico e não sabe o que sua empresa não pode prometer. Preencha os campos marcados, ative, e o contexto passa a valer em toda triagem, rascunho e análise.',
   workspaceContext,
   readState,
   isLoading,
@@ -276,7 +276,7 @@ export const DiexOnboardingContextStep = ({
           </StyledActions>
           {isContextDone || canActivateContext ? null : (
             <StyledHint>
-              Preencha os três campos marcados com * para poder ativar.
+              Preencha os campos marcados com * para poder ativar.
             </StyledHint>
           )}
           {hasReconciliationError ? (

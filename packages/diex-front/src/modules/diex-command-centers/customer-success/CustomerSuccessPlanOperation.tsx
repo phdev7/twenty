@@ -1,4 +1,5 @@
 import { styled } from '@linaria/react';
+import { isDefined } from 'diex-shared/utils';
 import { useEffect, useState } from 'react';
 
 import {
@@ -25,10 +26,12 @@ import {
   lifecycleLabel,
 } from '@/diex-command-centers/customer-success/utils';
 import { postLogicFunction } from '@/diex-command-centers/utils/useLogicFunctionRequest';
+import { useHasPermissionFlag } from '@/settings/roles/hooks/useHasPermissionFlag';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { Button, ProgressBar, Tag } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
+import { PermissionFlagType } from '~/generated-metadata/graphql';
 
 const StyledText = styled.p`
   color: ${themeCssVariables.font.color.secondary};
@@ -83,6 +86,7 @@ export const CustomerSuccessPlanOperation = ({
     enqueueSuccessSnackBar,
     enqueueWarningSnackBar,
   } = useSnackBar();
+  const canOperatePlan = useHasPermissionFlag(PermissionFlagType.WORKSPACE);
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
   const [review, setReview] = useState<CustomerSuccessReviewResult | null>(
     null,
@@ -122,7 +126,7 @@ export const CustomerSuccessPlanOperation = ({
     setSelectedMilestoneId(null);
   }, [plan?.id]);
   useEffect(() => {
-    if (!milestone) return;
+    if (!isDefined(milestone)) return;
     setMilestoneDraft({
       action: milestone.status === 'IN_PROGRESS' ? 'COMPLETE' : 'START',
       outcome: milestone.outcome?.markdown ?? '',
@@ -130,6 +134,9 @@ export const CustomerSuccessPlanOperation = ({
       impact: milestone.impact ?? 'RATING_3',
     });
     setMilestonePreview(null);
+    // O rascunho é semeado uma vez por marco: depender dos campos editáveis
+    // sobrescreveria o que o operador acabou de digitar.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [milestone?.id, milestone?.status]);
 
   if (!plan)
@@ -163,7 +170,7 @@ export const CustomerSuccessPlanOperation = ({
     }
   };
   const previewMilestone = async () => {
-    if (!milestone) return;
+    if (!isDefined(milestone)) return;
     setIsBusy(true);
     try {
       const result = await postLogicFunction<CustomerSuccessMilestonePreview>(
@@ -194,7 +201,11 @@ export const CustomerSuccessPlanOperation = ({
     }
   };
   const confirmMilestone = async () => {
-    if (!milestone || !milestonePreview?.confirmationToken) return;
+    if (
+      !isDefined(milestone) ||
+      !isDefined(milestonePreview?.confirmationToken)
+    )
+      return;
     setIsBusy(true);
     try {
       const result = await postLogicFunction<{
@@ -279,54 +290,57 @@ export const CustomerSuccessPlanOperation = ({
           <StyledText>Riscos registrados: {plan.risks.markdown}</StyledText>
         ) : null}
       </CommandCenterCard>
-      <CommandCenterCard title="Revisão inteligente de CS">
-        {review ? (
-          <>
-            <Tag
-              color={healthColor(review.health.health)}
-              text={`${healthLabel(review.health.health)} · ${review.health.score}/100`}
-            />
-            <StyledText>{review.summary}</StyledText>
-            <StyledFactLabel>Intervenção recomendada</StyledFactLabel>
-            <StyledText>{review.intervention}</StyledText>
-            {review.gaps ? (
-              <StyledText>Lacunas: {review.gaps}</StyledText>
-            ) : null}
-            {review.mode === 'APPLY' && review.aiActionId ? (
-              <Button
-                title="Abrir proposta governada"
-                size="small"
-                variant="tertiary"
-                onClick={() =>
-                  openRecordInSidePanel({
-                    recordId: review.aiActionId as string,
-                    objectNameSingular: 'aiAction',
-                  })
-                }
+      {canOperatePlan ? (
+        <CommandCenterCard title="Revisão inteligente de CS">
+          {review ? (
+            <>
+              <Tag
+                color={healthColor(review.health.health)}
+                text={`${healthLabel(review.health.health)} · ${review.health.score}/100`}
               />
-            ) : null}
-          </>
-        ) : (
-          <StyledText>
-            A prévia é somente leitura; não altera saúde, tarefas ou mensagens.
-          </StyledText>
-        )}
-        <Button
-          title="Gerar prévia"
-          size="small"
-          variant="secondary"
-          isLoading={isBusy}
-          onClick={() => void runReview('PREVIEW')}
-        />
-        {review && (review.mode !== 'APPLY' || !review.successPlanUpdated) ? (
+              <StyledText>{review.summary}</StyledText>
+              <StyledFactLabel>Intervenção recomendada</StyledFactLabel>
+              <StyledText>{review.intervention}</StyledText>
+              {review.gaps ? (
+                <StyledText>Lacunas: {review.gaps}</StyledText>
+              ) : null}
+              {review.mode === 'APPLY' && review.aiActionId ? (
+                <Button
+                  title="Abrir proposta governada"
+                  size="small"
+                  variant="tertiary"
+                  onClick={() =>
+                    openRecordInSidePanel({
+                      recordId: review.aiActionId as string,
+                      objectNameSingular: 'aiAction',
+                    })
+                  }
+                />
+              ) : null}
+            </>
+          ) : (
+            <StyledText>
+              A prévia é somente leitura; não altera saúde, tarefas ou
+              mensagens.
+            </StyledText>
+          )}
           <Button
-            title="Aplicar revisão e governar ação"
+            title="Gerar prévia"
             size="small"
+            variant="secondary"
             isLoading={isBusy}
-            onClick={() => void runReview('APPLY')}
+            onClick={() => void runReview('PREVIEW')}
           />
-        ) : null}
-      </CommandCenterCard>
+          {review && (review.mode !== 'APPLY' || !review.successPlanUpdated) ? (
+            <Button
+              title="Aplicar revisão e governar ação"
+              size="small"
+              isLoading={isBusy}
+              onClick={() => void runReview('APPLY')}
+            />
+          ) : null}
+        </CommandCenterCard>
+      ) : null}
       <CommandCenterCard title="Marcos da jornada">
         {milestones.length === 0 ? (
           <CommandCenterEmptyState message="Nenhum marco foi cadastrado para este plano." />
@@ -351,7 +365,7 @@ export const CustomerSuccessPlanOperation = ({
             ))}
           </CommandCenterList>
         )}
-        {milestone ? (
+        {isDefined(milestone) && canOperatePlan ? (
           <StyledForm>
             <StyledFactLabel>Execução: {milestone.name}</StyledFactLabel>
             <StyledSelect

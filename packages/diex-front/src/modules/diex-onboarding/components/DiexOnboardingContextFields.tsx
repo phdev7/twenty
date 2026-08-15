@@ -32,22 +32,22 @@ const FIELD_DEFINITIONS: Array<{
   },
   {
     key: 'commercialRules',
-    label: 'Regras comerciais',
+    label: 'Regras comerciais *',
     placeholder: 'Descontos, prazos e o que exige aprovação.',
   },
   {
     key: 'objectionPlaybook',
-    label: 'Objeções e respostas',
+    label: 'Objeções e respostas *',
     placeholder: 'O que ouvem muito e a resposta certa.',
   },
   {
     key: 'competitiveLandscape',
-    label: 'Provas e diferenciais',
+    label: 'Provas e diferenciais *',
     placeholder: 'Cases, provas, diferenciais e concorrentes reais.',
   },
   {
     key: 'forbiddenClaims',
-    label: 'O que nunca afirmar',
+    label: 'O que nunca afirmar *',
     placeholder: 'Promessas que a IA não pode fazer.',
   },
 ];

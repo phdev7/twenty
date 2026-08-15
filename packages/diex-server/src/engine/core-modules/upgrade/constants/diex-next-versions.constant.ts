@@ -8,5 +8,5 @@
  */
 
 export const DIEX_NEXT_VERSIONS = [
-  '2.28.0',
+  '2.29.0',
 ] as const;

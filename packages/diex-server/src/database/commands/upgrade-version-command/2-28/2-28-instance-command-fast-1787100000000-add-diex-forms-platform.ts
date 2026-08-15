@@ -13,7 +13,7 @@ const addEnumValue = async (
   );
 };
 
-@RegisteredInstanceCommand('2.27.0', 1787100000000)
+@RegisteredInstanceCommand('2.28.0', 1787100000000)
 export class AddDiexFormsPlatformFastInstanceCommand
   implements FastInstanceCommand
 {
