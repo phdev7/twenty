@@ -10,10 +10,6 @@ versioned adoption requirement in the workspace product-update registry. A
 missing new answer must never be silently accepted as completed onboarding.
 Do not create or run tests unless Pedro explicitly requests them.
 
-## Project Overview
-
-Diex is an open-source CRM built with modern technologies in a monorepo structure. The codebase is organized as an Nx workspace with multiple packages.
-
 ## Key Commands
 
 ### Development
@@ -85,62 +81,18 @@ npx nx build diex-front
 npx nx build diex-server
 ```
 
-### Database Operations
-```bash
-# Database management
-npx nx database:reset diex-server         # Reset database
-npx nx run diex-server:database:init:prod # Initialize database
-npx nx run diex-server:database:migrate:prod # Run instance commands (fast only)
+### Database, migrations and GraphQL
 
-# Generate an instance command (fast or slow)
-npx nx run diex-server:database:migrate:generate --name <name> --type <fast|slow>
-```
-
-### Database Inspection (Postgres MCP)
-
-A read-only Postgres MCP server is configured in `.mcp.json`. Use it to:
-- Inspect workspace data, metadata, and object definitions while developing
-- Verify migration results (columns, types, constraints) after running migrations
-- Explore the multi-tenant schema structure (core, metadata, workspace-specific schemas)
-- Debug issues by querying raw data to confirm whether a bug is frontend, backend, or data-level
-- Inspect metadata tables to debug GraphQL schema generation issues
-
-This server is read-only — for write operations (reset, migrations, sync), use the CLI commands above.
-
-### GraphQL
-```bash
-# Generate GraphQL types (run after schema changes)
-npx nx run diex-front:graphql:generate
-npx nx run diex-front:graphql:generate --configuration=metadata
-```
+See the `database-and-graphql` skill for the reset/init/migrate commands, the
+read-only Postgres MCP server, and `graphql:generate`.
 
 ## Architecture Overview
-
-### Tech Stack
-- **Frontend**: React 18, TypeScript, Jotai (state management), Linaria (styling), Vite
-- **Backend**: NestJS, TypeORM, PostgreSQL, Redis, GraphQL (with GraphQL Yoga)
-- **Monorepo**: Nx workspace managed with Yarn 4
-
-### Package Structure
-```
-packages/
-├── diex-front/          # React frontend application
-├── diex-server/         # NestJS backend API
-├── diex-ui/             # Shared UI components library
-├── diex-shared/         # Common types and utilities
-├── diex-emails/         # Email templates with React Email
-├── diex-website/    # Next.js marketing website
-├── diex-docs/           # Documentation website
-├── diex-zapier/         # Zapier integration
-└── diex-e2e-testing/    # Playwright E2E tests
-```
 
 ### Key Development Principles
 - **Functional components only** (no class components)
 - **Named exports only** (no default exports)
 - **Types over interfaces** (except when extending third-party interfaces)
 - **String literals over enums** (except for GraphQL enums)
-- **No 'any' type allowed** — strict TypeScript enforced
 - **Event handlers preferred over useEffect** for state updates
 - **Props down, events up** — unidirectional data flow
 - **Composition over inheritance**
@@ -171,17 +123,7 @@ packages/
 - GraphQL cache managed by Apollo Client
 - Use functional state updates: `setState(prev => prev + 1)`
 
-### Backend Architecture
-- **NestJS modules** for feature organization
-- **TypeORM** for database ORM with PostgreSQL
-- **GraphQL** API with code-first approach
-- **Redis** for caching and session management
-- **BullMQ** for background job processing
-
 ### Database & Upgrade Commands
-- **PostgreSQL** as primary database
-- **Redis** for caching and sessions
-- **ClickHouse** for analytics (when enabled)
 - When changing entity files, generate an **instance command** (`database:migrate:generate --name <name> --type <fast|slow>`)
 - **Fast** instance commands handle schema changes; **slow** ones add a `runDataMigration` step for data backfills
 - **Workspace commands** iterate over all active/suspended workspaces for per-workspace upgrades
@@ -232,33 +174,10 @@ for a hook and remain your responsibility.
 - Use **Lingui** for internationalization
 - Apply security first, then formatting (sanitize before format)
 
-### Testing Strategy
-- **Test behavior, not implementation** — focus on user perspective
-- **Test pyramid**: 70% unit, 20% integration, 10% E2E
-- Query by user-visible elements (text, roles, labels) over test IDs
-- Use `@testing-library/user-event` for realistic interactions
-- Descriptive test names: "should [behavior] when [condition]"
-- Clear mocks between tests with `jest.clearAllMocks()`
-
 ## Dev Environment Setup
 
-All dev environments (Claude Code web, Cursor, local) use one script:
-
-```bash
-bash packages/diex-utils/setup-dev-env.sh
-```
-
-This handles everything: starts Postgres + Redis (auto-detects local services vs Docker), creates databases, copies `.env` files, and initializes the database schema (runs migrations) on a fresh database. Idempotent — safe to run multiple times.
-
-- `--docker` — force Docker mode (uses `packages/diex-docker/docker-compose.dev.yml`)
-- `--down` — stop services
-- `--reset` — wipe data and restart fresh
-- **Skip the setup script** for tasks that only read code — architecture questions, code review, documentation, etc.
-
-**Note:** CI workflows (GitHub Actions) manage services via Actions service containers and run setup steps individually — they don't use this script.
+See the `dev-environment` skill for `packages/diex-utils/setup-dev-env.sh` and
+its flags. Skip setup entirely for tasks that only read code.
 
 ## Important Files
-- `nx.json` - Nx workspace configuration with task definitions
-- `tsconfig.base.json` - Base TypeScript configuration
-- `package.json` - Root package with workspace definitions
 - `.cursor/rules/` - Detailed development guidelines and best practices
