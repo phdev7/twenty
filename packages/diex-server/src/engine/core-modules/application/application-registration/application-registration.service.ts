@@ -349,6 +349,19 @@ export class ApplicationRegistrationService {
     });
   }
 
+  async findVisibleByUniversalIdentifier(
+    universalIdentifier: string,
+    workspaceId: string,
+  ): Promise<ApplicationRegistrationEntity | null> {
+    return this.applicationRegistrationRepository.findOne({
+      where: [
+        { universalIdentifier, ownerWorkspaceId: workspaceId },
+        { universalIdentifier, ownerWorkspaceId: IsNull() },
+        { universalIdentifier, isListed: true },
+      ],
+    });
+  }
+
   async create(
     input: CreateApplicationRegistrationInput,
     ownerWorkspaceId: string,

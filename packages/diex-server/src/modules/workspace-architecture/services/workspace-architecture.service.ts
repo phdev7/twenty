@@ -2513,6 +2513,7 @@ export class WorkspaceArchitectureService {
             update.updatedBy === undefined
               ? current.updatedBy
               : update.updatedBy,
+          source: 'WORKSPACE',
         });
 
         if (artifact) {

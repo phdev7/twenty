@@ -22,6 +22,7 @@ import {
   type InboxMacroPreview,
 } from '@/inbox/types/inboxMacroTypes';
 import { getRecordName } from '@/inbox/utils/getRecordName';
+import { getInboxChannelLabel } from '@/inbox/utils/getInboxChannelLabel';
 import { readDiexEmailConversationMetadata } from '@/inbox/utils/readDiexEmailConversationMetadata';
 
 const StyledFooter = styled.footer`
@@ -76,20 +77,17 @@ const getInitialComposerMode = (
     conversation.channel === 'WHATSAPP' &&
     conversation.provider === 'EVOLUTION';
   const isDiexEmail =
-    conversation.channel === 'EMAIL' &&
-    conversation.provider === 'DIEX_EMAIL';
+    conversation.channel === 'EMAIL' && conversation.provider === 'DIEX_EMAIL';
 
   return isEvolution || isDiexEmail ? 'EXTERNAL' : 'INTERNAL';
 };
 
 const getInitialExternalSubject = (conversation: InboxConversation): string => {
   const isDiexEmail =
-    conversation.channel === 'EMAIL' &&
-    conversation.provider === 'DIEX_EMAIL';
+    conversation.channel === 'EMAIL' && conversation.provider === 'DIEX_EMAIL';
   const sourceSubject =
-    readDiexEmailConversationMetadata(
-      conversation.metadata,
-    )?.subject?.trim() ?? '';
+    readDiexEmailConversationMetadata(conversation.metadata)?.subject?.trim() ??
+    '';
 
   if (!isDiexEmail || sourceSubject.length === 0) {
     return '';
@@ -163,8 +161,7 @@ export const InboxConversationComposer = ({
     conversation.channel === 'WHATSAPP' &&
     conversation.provider === 'EVOLUTION';
   const isEmailConversation =
-    conversation.channel === 'EMAIL' &&
-    conversation.provider === 'DIEX_EMAIL';
+    conversation.channel === 'EMAIL' && conversation.provider === 'DIEX_EMAIL';
   const canSendExternal = isEvolutionConversation || isEmailConversation;
   const activeTriageResult =
     triageResult?.conversationId === conversation.id ? triageResult : null;
@@ -440,7 +437,9 @@ export const InboxConversationComposer = ({
             size={themeCssVariables.icon.size.sm}
             stroke={themeCssVariables.icon.stroke.md}
           />{' '}
-          Esta conversa não está vinculada a um canal externo compatível.
+          O envio externo por {getInboxChannelLabel(conversation.channel)} ainda
+          não está disponível nesta instalação. Registre o atendimento por nota
+          interna.
         </StyledHint>
       ) : null}
     </StyledFooter>

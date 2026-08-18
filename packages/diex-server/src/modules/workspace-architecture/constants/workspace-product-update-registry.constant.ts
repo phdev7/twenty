@@ -1,6 +1,6 @@
 import { type WorkspaceProductUpdateDefinition } from 'src/modules/workspace-architecture/types/workspace-product-update.type';
 
-export const WORKSPACE_PRODUCT_UPDATE_REGISTRY_VERSION = '2026-08-14';
+export const WORKSPACE_PRODUCT_UPDATE_REGISTRY_VERSION = '2026-08-18';
 
 // O portão de ativação em duas confirmações (contexto revisado e estrutura
 // publicada) não tem entrada aqui de propósito: ele só remove exigências. Para
@@ -51,6 +51,40 @@ export const WORKSPACE_PRODUCT_UPDATE_REGISTRY: WorkspaceProductUpdateDefinition
       actionLabel: 'Revisar cargos e permissões',
       actionRoute: '/settings/roles',
       completion: { kind: 'ACKNOWLEDGEMENT' },
+    },
+    {
+      key: 'onboarding-primary-channel-2026-08',
+      version: '1.0.0',
+      title: 'Defina a forma principal de entrada',
+      summary:
+        'O Diex passou a exigir um canal primário explícito. Workspaces antigos com o campo vazio precisam escolher WhatsApp, e-mail, importação ou cadastro manual.',
+      revenueImpact:
+        'Sem canal definido a operação não valida a primeira entrada e a prontidão comercial fica incompleta.',
+      releasedAt: '2026-08-17T00:00:00.000Z',
+      importance: 'REQUIRED',
+      blocksReadiness: true,
+      readinessWeight: 2,
+      actionLabel: 'Escolher canal principal',
+      actionRoute:
+        '/diex/first-steps?update=onboarding-primary-channel-2026-08',
+      completion: { kind: 'PRIMARY_CHANNEL' },
+    },
+    {
+      key: 'crm-multi-operation-foundation-2026-08',
+      version: '1.0.0',
+      title: 'Configure a operação compartilhada do CRM',
+      summary:
+        'O Diex agora modela agências, agendas individuais, canais comerciais, contas e resultados de Meta Ads e Google Ads e acessos restritos de clientes.',
+      revenueImpact:
+        'A configuração separa operações, consolida aquisição paga e permite colaboração do cliente sem expor toda a carteira.',
+      releasedAt: '2026-08-18T00:00:00.000Z',
+      importance: 'REQUIRED',
+      blocksReadiness: true,
+      readinessWeight: 3,
+      actionLabel: 'Configurar operação compartilhada',
+      actionRoute:
+        '/diex/first-steps?update=crm-multi-operation-foundation-2026-08',
+      completion: { kind: 'MULTI_OPERATION_CONFIGURATION' },
     },
   ];
 

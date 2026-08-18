@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { JwtModule } from 'src/engine/core-modules/jwt/jwt.module';
 import { ToolModule } from 'src/engine/core-modules/tool/tool.module';
 import { WorkflowTriggerController } from 'src/engine/core-modules/workflow/controllers/workflow-trigger.controller';
 import { WorkflowBuilderResolver } from 'src/engine/core-modules/workflow/resolvers/workflow-builder.resolver';
@@ -14,6 +15,7 @@ import { ConnectedAccountMetadataModule } from 'src/engine/metadata-modules/conn
 import { WorkspaceManyOrAllFlatEntityMapsCacheModule } from 'src/engine/metadata-modules/flat-entity/services/workspace-many-or-all-flat-entity-maps-cache.module';
 import { LogicFunctionModule } from 'src/engine/metadata-modules/logic-function/logic-function.module';
 import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
+import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
 import { WorkflowCommonModule } from 'src/modules/workflow/common/workflow-common.module';
 import { WorkflowBuilderModule } from 'src/modules/workflow/workflow-builder/workflow-builder.module';
 import { CodeStepBuildModule } from 'src/modules/workflow/workflow-builder/workflow-version-step/code-step/code-step-build.module';
@@ -38,6 +40,8 @@ import { WorkflowTriggerModule } from 'src/modules/workflow/workflow-trigger/wor
     WorkspaceManyOrAllFlatEntityMapsCacheModule,
     ConnectedAccountMetadataModule,
     WorkflowVersionCoreModule,
+    JwtModule,
+    WorkspaceCacheModule,
   ],
   controllers: [WorkflowTriggerController],
   providers: [

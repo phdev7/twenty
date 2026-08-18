@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { styled } from '@linaria/react';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 import { isDefined } from 'diex-shared/utils';
+import { isNonEmptyString } from '@sniptt/guards';
 
+import { AgencyMetricEntryForm } from '@/agency/components/AgencyMetricEntryForm';
 import { useAgencyClientReport } from '@/agency/hooks/useAgencyClientReport';
+import { useAgencyMetricDefinitions } from '@/agency/hooks/useAgencyMetricDefinitions';
 import { useAgencyPortal } from '@/agency/hooks/useAgencyPortal';
 import { type AgencyMetricEntry } from '@/agency/types/AgencyTypes';
 import {
@@ -12,6 +15,7 @@ import {
   formatRatio,
 } from '@/agency/utils/formatAgencyMetricValue';
 import { Select } from '@/ui/input/components/Select';
+import { Button } from 'diex-ui/input';
 import { MetricUnitType } from '~/generated-metadata/graphql';
 
 const StyledContainer = styled.div`
@@ -60,6 +64,20 @@ const StyledEmptyState = styled.p`
   margin: 0;
 `;
 
+const StyledEntrySection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${themeCssVariables.spacing[3]};
+`;
+
+const StyledErrorState = styled.p`
+  background: ${themeCssVariables.tag.background.orange};
+  border-radius: ${themeCssVariables.border.radius.md};
+  color: ${themeCssVariables.tag.text.orange};
+  margin: 0;
+  padding: ${themeCssVariables.spacing[4]};
+`;
+
 const formatEntryValue = (entry: AgencyMetricEntry): string => {
   const value = Number(entry.value);
 
@@ -84,10 +102,18 @@ const formatPeriod = (entry: AgencyMetricEntry) =>
   ).toLocaleDateString('pt-BR')}`;
 
 export const AgencyClientReport = () => {
-  const { clientWorkspaces, loading: isLoadingClients } = useAgencyPortal();
+  const {
+    clientWorkspaces,
+    loading: isLoadingClients,
+    errorMessage: clientsErrorMessage,
+  } = useAgencyPortal();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
-  const { entries, loading } = useAgencyClientReport(selectedClientId);
+  const [isEntryFormOpen, setIsEntryFormOpen] = useState(false);
+
+  const { entries, loading, errorMessage, refetch } =
+    useAgencyClientReport(selectedClientId);
+  const { metricDefinitions } = useAgencyMetricDefinitions();
 
   const clientOptions = clientWorkspaces.map((clientWorkspace) => ({
     value: clientWorkspace.id,
@@ -96,6 +122,18 @@ export const AgencyClientReport = () => {
 
   if (isLoadingClients) {
     return <StyledContainer>Carregando clientes...</StyledContainer>;
+  }
+
+  // A failed client list is not an agency without clients, and telling an
+  // agency manager to go register one would send them to create a duplicate.
+  if (isNonEmptyString(clientsErrorMessage)) {
+    return (
+      <StyledContainer>
+        <StyledErrorState>
+          Não foi possível carregar a lista de clientes: {clientsErrorMessage}
+        </StyledErrorState>
+      </StyledContainer>
+    );
   }
 
   if (clientOptions.length === 0) {
@@ -118,12 +156,32 @@ export const AgencyClientReport = () => {
         onChange={setSelectedClientId}
       />
 
+      {isDefined(selectedClientId) ? (
+        <StyledEntrySection>
+          <Button
+            title={isEntryFormOpen ? 'Cancelar lançamento' : 'Lançar métrica'}
+            onClick={() => setIsEntryFormOpen(!isEntryFormOpen)}
+          />
+          {isEntryFormOpen ? (
+            <AgencyMetricEntryForm
+              clientWorkspaceId={selectedClientId}
+              metricDefinitions={metricDefinitions}
+              onCreated={() => void refetch()}
+            />
+          ) : null}
+        </StyledEntrySection>
+      ) : null}
+
       {!isDefined(selectedClientId) ? (
         <StyledEmptyState>
           Escolha um cliente para ver as métricas visíveis a ele.
         </StyledEmptyState>
       ) : loading ? (
         <StyledEmptyState>Carregando relatório...</StyledEmptyState>
+      ) : isNonEmptyString(errorMessage) ? (
+        <StyledErrorState>
+          Não foi possível carregar as métricas deste cliente: {errorMessage}
+        </StyledErrorState>
       ) : entries.length === 0 ? (
         // Reported as empty. The previous version filled this screen with four
         // invented figures whenever the query returned nothing, which is what

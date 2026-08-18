@@ -19,7 +19,7 @@ import { EvolutionProvisioningService } from 'src/modules/inbox/services/evoluti
 import { InboxConversationWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-conversation.workspace-entity';
 import { InboxMessageWorkspaceEntity } from 'src/modules/inbox/standard-objects/inbox-message.workspace-entity';
 import { type SendEvolutionTextResult } from 'src/modules/inbox/types/inbox-evolution.types';
-import { normalizePhone } from 'src/modules/inbox/utils/evolution-payload.util';
+import { resolveWhatsappSendDestination } from 'src/modules/inbox/utils/evolution-payload.util';
 
 type ConfirmationPayload = {
   conversationId: string;
@@ -243,11 +243,15 @@ export class EvolutionSendTextService {
     aiActionId: string;
   }): Promise<Extract<SendEvolutionTextResult, { previewOnly: false }>> {
     if (!workspaceMemberId) {
-      throw new Error('A resposta externa exige um membro autenticado do workspace.');
+      throw new Error(
+        'A resposta externa exige um membro autenticado do workspace.',
+      );
     }
 
     if (!conversationId || !text.trim()) {
-      throw new Error('A resposta externa exige uma conversa e um texto válido.');
+      throw new Error(
+        'A resposta externa exige uma conversa e um texto válido.',
+      );
     }
 
     if (text.length > EVOLUTION_SEND_TEXT_MAX_LENGTH) {
@@ -304,15 +308,16 @@ export class EvolutionSendTextService {
       await this.evolutionProvisioningService.resolveProvisioning(workspaceId);
     const providerMessageKey = `${configuration.instanceName}:pending:diex-ai-action:${aiActionId}`;
     const authContext = buildSystemAuthContext(workspaceId);
-    const message = await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
-      () =>
-        this.findInboxMessageByProviderKey(
-          workspaceId,
-          providerMessageKey,
-          `diex-ai-action:${aiActionId}`,
-        ),
-      authContext,
-    );
+    const message =
+      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+        () =>
+          this.findInboxMessageByProviderKey(
+            workspaceId,
+            providerMessageKey,
+            `diex-ai-action:${aiActionId}`,
+          ),
+        authContext,
+      );
 
     if (!message) {
       return {
@@ -393,7 +398,9 @@ export class EvolutionSendTextService {
       );
     }
 
-    const destination = normalizePhone(conversation.contactHandle ?? undefined);
+    const destination = resolveWhatsappSendDestination(
+      conversation.contactHandle ?? undefined,
+    );
 
     if (!destination) {
       throw new Error('A conversa não possui um número de WhatsApp válido.');

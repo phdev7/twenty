@@ -9,16 +9,16 @@ type ClientMetricEntriesQueryResult = {
 };
 
 export const useAgencyClientReport = (clientWorkspaceId: string | null) => {
-  const { data, loading } = useQuery<ClientMetricEntriesQueryResult>(
-    GET_AGENCY_CLIENT_METRIC_ENTRIES,
-    {
+  const { data, loading, error, refetch } =
+    useQuery<ClientMetricEntriesQueryResult>(GET_AGENCY_CLIENT_METRIC_ENTRIES, {
       variables: { clientWorkspaceId, onlyClientVisible: true },
       skip: !isNonEmptyString(clientWorkspaceId),
-    },
-  );
+    });
 
   return {
     entries: data?.diexClientMetricEntries ?? [],
     loading,
+    errorMessage: error?.message ?? null,
+    refetch,
   };
 };

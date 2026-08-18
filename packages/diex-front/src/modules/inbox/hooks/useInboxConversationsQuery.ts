@@ -7,6 +7,7 @@ import { INBOX_SEARCH_DEBOUNCE_MS } from '@/inbox/constants/INBOX_SEARCH_DEBOUNC
 import { INBOX_SEARCH_PAGE_SIZE } from '@/inbox/constants/INBOX_SEARCH_PAGE_SIZE';
 import {
   type InboxAttentionFilter,
+  type InboxChannelFilter,
   type InboxConversation,
   type InboxConversationFilter,
 } from '@/inbox/types/inboxEntityTypes';
@@ -26,6 +27,7 @@ export const useInboxConversationsQuery = () => {
   const [teamFilterId, setTeamFilterId] = useState('ALL');
   const [attentionFilter, setAttentionFilter] =
     useState<InboxAttentionFilter>('ALL');
+  const [channelFilter, setChannelFilter] = useState<InboxChannelFilter>('ALL');
   const [conversationLimit, setConversationLimit] = useState(
     INBOX_CONVERSATION_PAGE_SIZE,
   );
@@ -53,7 +55,14 @@ export const useInboxConversationsQuery = () => {
   // A new search or status starts from the first page again.
   useEffect(() => {
     setConversationLimit(INBOX_CONVERSATION_PAGE_SIZE);
-  }, [assigneeFilterId, attentionFilter, debouncedQuery, filter, teamFilterId]);
+  }, [
+    assigneeFilterId,
+    attentionFilter,
+    channelFilter,
+    debouncedQuery,
+    filter,
+    teamFilterId,
+  ]);
 
   const searchTerm = debouncedQuery.trim();
   const serverFilter = useMemo(
@@ -64,8 +73,16 @@ export const useInboxConversationsQuery = () => {
         assigneeFilterId,
         teamFilterId,
         attentionFilter,
+        channelFilter,
       }),
-    [assigneeFilterId, attentionFilter, filter, searchTerm, teamFilterId],
+    [
+      assigneeFilterId,
+      attentionFilter,
+      channelFilter,
+      filter,
+      searchTerm,
+      teamFilterId,
+    ],
   );
 
   const {
@@ -256,6 +273,8 @@ export const useInboxConversationsQuery = () => {
     setTeamFilterId,
     attentionFilter,
     setAttentionFilter,
+    channelFilter,
+    setChannelFilter,
     selectedConversationId,
     setSelectedConversationId,
     selectedConversation,

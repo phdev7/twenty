@@ -133,6 +133,7 @@ import { AddMetaAdsTokenExpirationFastInstanceCommand } from './2-26/2-26-instan
 import { AddDiexOnboardingPrimaryChannelFastInstanceCommand } from './2-27/2-27-instance-command-fast-1787000000000-add-diex-onboarding-primary-channel';
 import { BackfillDiexOnboardingPrimaryChannelSlowInstanceCommand } from './2-27/2-27-instance-command-slow-1787050000000-backfill-diex-onboarding-primary-channel';
 import { RepairKeyValuePairApplicationId2_28FastInstanceCommand } from './2-28/2-28-instance-command-fast-1787000000000-repair-key-value-pair-application-id';
+import { UniqueDiexFormsHostSlowInstanceCommand } from './2-28/2-28-instance-command-slow-1787300000001-unique-forms-host';
 import { AddDiexFormsPlatformFastInstanceCommand } from './2-27/2-27-instance-command-fast-1787100000000-add-diex-forms-platform';
 import { BackfillDiexFormsSubdomainSlowInstanceCommand } from './2-27/2-27-instance-command-slow-1787100000001-backfill-diex-forms-subdomain';
 
@@ -272,4 +273,5 @@ export const INSTANCE_COMMANDS = [
   RepairKeyValuePairApplicationId2_28FastInstanceCommand,
   AddDiexFormsPlatformFastInstanceCommand,
   BackfillDiexFormsSubdomainSlowInstanceCommand,
+  UniqueDiexFormsHostSlowInstanceCommand,
 ];

@@ -3,8 +3,10 @@ import { styled } from '@linaria/react';
 import { IconFilter, IconSearch } from 'diex-ui/icon';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
+import { INBOX_CHANNEL_OPTIONS } from '@/inbox/constants/INBOX_CHANNEL_OPTIONS';
 import {
   type InboxAttentionFilter,
+  type InboxChannelFilter,
   type InboxConversationFilter,
   type InboxLabel,
   type InboxTeam,
@@ -116,6 +118,8 @@ type InboxConversationListFiltersProps = {
   onTeamFilterChange: (teamId: string) => void;
   attentionFilter: InboxAttentionFilter;
   onAttentionFilterChange: (filter: InboxAttentionFilter) => void;
+  channelFilter: InboxChannelFilter;
+  onChannelFilterChange: (channelFilter: InboxChannelFilter) => void;
 };
 
 export const InboxConversationListFilters = ({
@@ -134,6 +138,8 @@ export const InboxConversationListFilters = ({
   onTeamFilterChange,
   attentionFilter,
   onAttentionFilterChange,
+  channelFilter,
+  onChannelFilterChange,
 }: InboxConversationListFiltersProps) => {
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
   const activeFilterCount = [
@@ -141,6 +147,7 @@ export const InboxConversationListFilters = ({
     teamFilterId !== 'ALL',
     assigneeFilterId !== 'ALL',
     attentionFilter !== 'ALL',
+    channelFilter !== 'ALL',
   ].filter(Boolean).length;
 
   return (
@@ -205,6 +212,20 @@ export const InboxConversationListFilters = ({
             <option value="FOLLOW_UP_DUE">Follow-up vencido</option>
           </StyledSelect>
           <StyledSelect
+            aria-label="Filtrar conversas por canal"
+            value={channelFilter}
+            onChange={(event) =>
+              onChannelFilterChange(event.target.value as InboxChannelFilter)
+            }
+          >
+            <option value="ALL">Todos os canais</option>
+            {INBOX_CHANNEL_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </StyledSelect>
+          <StyledSelect
             aria-label="Filtrar conversas por responsável"
             value={assigneeFilterId}
             onChange={(event) => onAssigneeFilterChange(event.target.value)}
@@ -247,6 +268,7 @@ export const InboxConversationListFilters = ({
               type="button"
               onClick={() => {
                 onAttentionFilterChange('ALL');
+                onChannelFilterChange('ALL');
                 onAssigneeFilterChange('ALL');
                 onTeamFilterChange('ALL');
                 onLabelFilterChange('ALL');

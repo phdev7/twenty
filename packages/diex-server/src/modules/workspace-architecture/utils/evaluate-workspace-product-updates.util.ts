@@ -7,6 +7,7 @@ import {
   type WorkspaceProductUpdateContextField,
   type WorkspaceProductUpdateEvaluation,
 } from 'src/modules/workspace-architecture/types/workspace-product-update.type';
+import { workspaceMultiOperationSchema } from 'src/modules/workspace-architecture/types/workspace-multi-operation.schema';
 
 export const workspaceProductUpdateReadinessCriterionKey = (
   updateKey: string,
@@ -37,16 +38,33 @@ export const getWorkspaceProductUpdateReadinessCriteria = () =>
     ],
   }));
 
+const CONFIGURED_PRIMARY_CHANNELS = new Set([
+  'WHATSAPP',
+  'EMAIL',
+  'IMPORT',
+  'MANUAL',
+]);
+
+const isConfiguredPrimaryChannel = (
+  primaryChannel: string | null | undefined,
+): boolean =>
+  typeof primaryChannel === 'string' &&
+  CONFIGURED_PRIMARY_CHANNELS.has(primaryChannel.trim().toUpperCase());
+
 export const evaluateWorkspaceProductUpdates = ({
   workspaceCreatedAt,
   context,
   contextIsActive,
   acknowledgements,
+  primaryChannel,
+  multiOperation,
 }: {
   workspaceCreatedAt: Date | string | null;
   context: Partial<Record<WorkspaceProductUpdateContextField, string | null>>;
   contextIsActive: boolean;
   acknowledgements: WorkspaceProductUpdateAcknowledgement[];
+  primaryChannel?: string | null;
+  multiOperation?: unknown;
 }): WorkspaceProductUpdateEvaluation => {
   const workspaceCreatedAtTimestamp = workspaceCreatedAt
     ? new Date(workspaceCreatedAt).getTime()
@@ -74,7 +92,11 @@ export const evaluateWorkspaceProductUpdates = ({
     const completed =
       definition.completion.kind === 'ACKNOWLEDGEMENT'
         ? Boolean(acknowledgement)
-        : missingFields.length === 0 && !needsAdminConfirmation;
+        : definition.completion.kind === 'PRIMARY_CHANNEL'
+          ? isConfiguredPrimaryChannel(primaryChannel)
+          : definition.completion.kind === 'MULTI_OPERATION_CONFIGURATION'
+            ? workspaceMultiOperationSchema.safeParse(multiOperation).success
+            : missingFields.length === 0 && !needsAdminConfirmation;
 
     return {
       key: definition.key,
@@ -100,8 +122,13 @@ export const evaluateWorkspaceProductUpdates = ({
       completionKind: definition.completion.kind,
       needsAdminConfirmation,
       canAdminConfirm:
-        definition.completion.kind !== 'CONTEXT_FIELDS' ||
-        (missingFields.length === 0 && contextIsActive),
+        definition.completion.kind === 'ACKNOWLEDGEMENT'
+          ? true
+          : definition.completion.kind === 'PRIMARY_CHANNEL'
+            ? isConfiguredPrimaryChannel(primaryChannel)
+            : definition.completion.kind === 'MULTI_OPERATION_CONFIGURATION'
+              ? false
+              : missingFields.length === 0 && contextIsActive,
       readinessCriterionKey: workspaceProductUpdateReadinessCriterionKey(
         definition.key,
       ),

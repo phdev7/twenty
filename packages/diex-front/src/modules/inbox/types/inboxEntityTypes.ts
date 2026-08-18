@@ -158,6 +158,17 @@ export type InboxConversationFilter =
   | 'SNOOZED'
   | 'RESOLVED';
 
+export type InboxChannel =
+  | 'WHATSAPP'
+  | 'EMAIL'
+  | 'INSTAGRAM'
+  | 'MESSENGER'
+  | 'WEBCHAT'
+  | 'SMS'
+  | 'TIKTOK';
+
+export type InboxChannelFilter = 'ALL' | InboxChannel;
+
 export type InboxAttentionFilter =
   | 'ALL'
   | 'UNREAD'

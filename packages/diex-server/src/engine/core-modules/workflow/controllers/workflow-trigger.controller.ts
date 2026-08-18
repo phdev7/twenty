@@ -16,6 +16,8 @@ import { Repository } from 'typeorm';
 
 import { WorkflowTriggerRestApiExceptionFilter } from 'src/engine/core-modules/workflow/filters/workflow-trigger-rest-api-exception.filter';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+import { JwtTokenTypeEnum } from 'src/engine/core-modules/auth/types/jwt-token-type.enum';
+import { JwtWrapperService } from 'src/engine/core-modules/jwt/services/jwt-wrapper.service';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
 import { PermissionsGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/permissions/utils/permissions-graphql-api-exception.filter';
@@ -25,6 +27,7 @@ import {
   DiexORMExceptionCode,
 } from 'src/engine/diex-orm/exceptions/diex-orm.exception';
 import { buildSystemAuthContext } from 'src/engine/diex-orm/utils/build-system-auth-context.util';
+import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import {
   WorkflowVersionStatus,
   type WorkflowVersionWorkspaceEntity,
@@ -46,6 +49,8 @@ export class WorkflowTriggerController {
   constructor(
     private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     private readonly workflowTriggerWorkspaceService: WorkflowTriggerWorkspaceService,
+    private readonly jwtWrapperService: JwtWrapperService,
+    private readonly workspaceCacheService: WorkspaceCacheService,
     @InjectRepository(WorkspaceEntity)
     protected readonly workspaceRepository: Repository<WorkspaceEntity>,
   ) {}
@@ -61,6 +66,7 @@ export class WorkflowTriggerController {
       workflowId,
       payload: request.body || {},
       workspaceId,
+      request,
     });
   }
 
@@ -69,18 +75,21 @@ export class WorkflowTriggerController {
   async runWorkflowByGetRequest(
     @Param('workspaceId') workspaceId: string,
     @Param('workflowId') workflowId: string,
+    @Req() request: Request,
   ) {
-    return await this.runWorkflow({ workflowId, workspaceId });
+    return await this.runWorkflow({ workflowId, workspaceId, request });
   }
 
   private async runWorkflow({
     workflowId,
     payload,
     workspaceId,
+    request,
   }: {
     workflowId: string;
     payload?: object;
     workspaceId: string;
+    request: Request;
   }) {
     const workspaceExists = await this.workspaceRepository.existsBy({
       id: workspaceId,
@@ -96,7 +105,7 @@ export class WorkflowTriggerController {
     const authContext = buildSystemAuthContext(workspaceId);
 
     try {
-      const { workflow } =
+      const { workflow, workflowVersion } =
         await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
           async () => {
             const workflowRepository =
@@ -163,6 +172,13 @@ export class WorkflowTriggerController {
           authContext,
         );
 
+      if (
+        workflowVersion.trigger?.type === WorkflowTriggerType.WEBHOOK &&
+        workflowVersion.trigger.settings.authentication === 'API_KEY'
+      ) {
+        await this.assertWorkspaceApiKey(request, workspaceId);
+      }
+
       const { workflowRunId } =
         await this.workflowTriggerWorkspaceService.runWorkflowVersion({
           workflowVersionId: workflow.lastPublishedVersionId!,
@@ -183,6 +199,78 @@ export class WorkflowTriggerController {
       };
     } catch (error) {
       this.rethrowWorkspaceNotFoundAsTriggerException(error, workspaceId);
+    }
+  }
+
+  private async assertWorkspaceApiKey(
+    request: Request,
+    workspaceId: string,
+  ): Promise<void> {
+    const authorizationHeader = request.headers.authorization;
+    const token =
+      typeof authorizationHeader === 'string' &&
+      authorizationHeader.startsWith('Bearer ')
+        ? authorizationHeader.slice('Bearer '.length).trim()
+        : '';
+
+    if (!token) {
+      throw new WorkflowTriggerException(
+        `[Webhook trigger] API key is required for workflow webhook in workspace ${workspaceId}`,
+        WorkflowTriggerExceptionCode.FORBIDDEN,
+      );
+    }
+
+    try {
+      const payload = await this.jwtWrapperService.verifyJwtToken(token);
+      const tokenType = payload?.type as string | undefined;
+      const tokenWorkspaceId =
+        typeof payload?.workspaceId === 'string'
+          ? payload.workspaceId
+          : typeof payload?.sub === 'string'
+            ? payload.sub
+            : null;
+
+      if (isDefined(tokenType) && tokenType !== JwtTokenTypeEnum.API_KEY) {
+        throw new WorkflowTriggerException(
+          `[Webhook trigger] API key is required for workflow webhook in workspace ${workspaceId}`,
+          WorkflowTriggerExceptionCode.FORBIDDEN,
+        );
+      }
+
+      if (tokenWorkspaceId !== workspaceId) {
+        throw new WorkflowTriggerException(
+          `[Webhook trigger] API key workspace does not match webhook workspace ${workspaceId}`,
+          WorkflowTriggerExceptionCode.FORBIDDEN,
+        );
+      }
+
+      const { apiKeyMap } = await this.workspaceCacheService.getOrRecompute(
+        workspaceId,
+        ['apiKeyMap'],
+      );
+      const apiKeyId =
+        typeof payload?.jti === 'string' ? payload.jti : undefined;
+      const apiKey = apiKeyId ? apiKeyMap[apiKeyId] : undefined;
+
+      if (
+        !apiKey ||
+        apiKey.revokedAt ||
+        new Date(apiKey.expiresAt) < new Date()
+      ) {
+        throw new WorkflowTriggerException(
+          `[Webhook trigger] API key is invalid for workspace ${workspaceId}`,
+          WorkflowTriggerExceptionCode.FORBIDDEN,
+        );
+      }
+    } catch (error) {
+      if (error instanceof WorkflowTriggerException) {
+        throw error;
+      }
+
+      throw new WorkflowTriggerException(
+        `[Webhook trigger] API key is invalid for workspace ${workspaceId}`,
+        WorkflowTriggerExceptionCode.FORBIDDEN,
+      );
     }
   }
 

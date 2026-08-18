@@ -173,7 +173,7 @@ export const WorkflowEditTriggerWebhookForm = ({
           dropdownId="workflow-edit-webhook-trigger-auth"
           label={t`Auth`}
           fullWidth
-          disabled
+          disabled={triggerOptions.readonly === true}
           value={trigger.settings.authentication}
           options={WEBHOOK_TRIGGER_AUTHENTICATION_OPTIONS}
           onChange={(newAuthenticationType) => {

@@ -9,6 +9,7 @@ import {
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
 import { type InboxConversation } from '@/inbox/types/inboxEntityTypes';
+import { getInboxChannelLabel } from '@/inbox/utils/getInboxChannelLabel';
 import {
   formatRelativeTime,
   getConversationStatusLabel,
@@ -207,6 +208,42 @@ const labelChipPalette: Record<string, { background: string; color: string }> =
     },
   };
 
+// Every channel the inboxConversation field accepts gets its own colour so the
+// list reads as multi-channel instead of "e-mail and everything else".
+const channelChipPalette: Record<
+  string,
+  { background: string; color: string }
+> = {
+  WHATSAPP: {
+    background: themeCssVariables.tag.background.green,
+    color: themeCssVariables.tag.text.green,
+  },
+  EMAIL: {
+    background: themeCssVariables.tag.background.blue,
+    color: themeCssVariables.tag.text.blue,
+  },
+  INSTAGRAM: {
+    background: themeCssVariables.tag.background.purple,
+    color: themeCssVariables.tag.text.purple,
+  },
+  MESSENGER: {
+    background: themeCssVariables.tag.background.blue,
+    color: themeCssVariables.tag.text.blue,
+  },
+  WEBCHAT: {
+    background: themeCssVariables.tag.background.turquoise,
+    color: themeCssVariables.tag.text.turquoise,
+  },
+  SMS: {
+    background: themeCssVariables.tag.background.orange,
+    color: themeCssVariables.tag.text.orange,
+  },
+  TIKTOK: {
+    background: themeCssVariables.tag.background.gray,
+    color: themeCssVariables.tag.text.gray,
+  },
+};
+
 const getPalette = (
   palette: Record<string, { background: string; color: string }>,
   key: string,
@@ -283,6 +320,14 @@ export const InboxConversationListItem = ({
               stroke={themeCssVariables.icon.stroke.sm}
             />
           )}
+          <StyledChip
+            background={
+              getPalette(channelChipPalette, conversation.channel).background
+            }
+            color={getPalette(channelChipPalette, conversation.channel).color}
+          >
+            {getInboxChannelLabel(conversation.channel)}
+          </StyledChip>
           <StyledChip
             background={statusPalette.background}
             color={statusPalette.color}

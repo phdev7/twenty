@@ -9,6 +9,7 @@ import { InboxConversationListFilters } from '@/inbox/components/InboxConversati
 import { InboxConversationListItem } from '@/inbox/components/InboxConversationListItem';
 import {
   type InboxAttentionFilter,
+  type InboxChannelFilter,
   type InboxConversation,
   type InboxConversationFilter,
   type InboxLabel,
@@ -128,6 +129,7 @@ type InboxConversationListProps = {
   teams: InboxTeam[];
   teamFilterId: string;
   attentionFilter: InboxAttentionFilter;
+  channelFilter: InboxChannelFilter;
   pendingMentionCounts: Record<string, number>;
   isLoading: boolean;
   isEmailSyncing: boolean;
@@ -139,6 +141,7 @@ type InboxConversationListProps = {
   onAssigneeFilterChange: (workspaceMemberId: string) => void;
   onTeamFilterChange: (teamId: string) => void;
   onAttentionFilterChange: (filter: InboxAttentionFilter) => void;
+  onChannelFilterChange: (channelFilter: InboxChannelFilter) => void;
   onSelect: (conversationId: string) => void;
   onRefresh: () => void;
   onSyncEmail: () => void;
@@ -183,6 +186,7 @@ export const InboxConversationList = ({
   teams,
   teamFilterId,
   attentionFilter,
+  channelFilter,
   pendingMentionCounts,
   isLoading,
   isEmailSyncing,
@@ -194,6 +198,7 @@ export const InboxConversationList = ({
   onAssigneeFilterChange,
   onTeamFilterChange,
   onAttentionFilterChange,
+  onChannelFilterChange,
   onSelect,
   onRefresh,
   onSyncEmail,
@@ -245,6 +250,8 @@ export const InboxConversationList = ({
         onTeamFilterChange={onTeamFilterChange}
         attentionFilter={attentionFilter}
         onAttentionFilterChange={onAttentionFilterChange}
+        channelFilter={channelFilter}
+        onChannelFilterChange={onChannelFilterChange}
       />
     </StyledHeader>
 

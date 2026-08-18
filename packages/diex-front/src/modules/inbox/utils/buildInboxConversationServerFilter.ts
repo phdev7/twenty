@@ -2,6 +2,7 @@ import { type RecordGqlOperationFilter } from 'diex-shared/types';
 
 import {
   type InboxAttentionFilter,
+  type InboxChannelFilter,
   type InboxConversationFilter,
 } from '@/inbox/types/inboxEntityTypes';
 
@@ -11,12 +12,14 @@ export const buildInboxConversationServerFilter = ({
   assigneeFilterId,
   teamFilterId,
   attentionFilter,
+  channelFilter,
 }: {
   filter: InboxConversationFilter;
   searchTerm: string;
   assigneeFilterId: string;
   teamFilterId: string;
   attentionFilter: InboxAttentionFilter;
+  channelFilter: InboxChannelFilter;
 }): RecordGqlOperationFilter => {
   const serverFilters: RecordGqlOperationFilter[] = [
     filter === 'ACTIVE'
@@ -48,6 +51,10 @@ export const buildInboxConversationServerFilter = ({
         ? { inboxTeamId: { is: 'NULL' } }
         : { inboxTeamId: { eq: teamFilterId } },
     );
+  }
+
+  if (channelFilter !== 'ALL') {
+    serverFilters.push({ channel: { eq: channelFilter } });
   }
 
   if (attentionFilter === 'UNREAD') {

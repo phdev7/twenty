@@ -8,7 +8,7 @@ import {
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 
 import { FieldActorSource } from 'diex-shared/types';
-import { DataSource, ILike, Repository } from 'typeorm';
+import { DataSource, Raw, Repository } from 'typeorm';
 import { type QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 import { DiexConfigService } from 'src/engine/core-modules/diex-config/diex-config.service';
@@ -1474,7 +1474,14 @@ export class DiexFormsService {
 
         const emailMatches = email
           ? await personRepository.find({
-              where: { emails: { primaryEmail: ILike(email) } },
+              where: {
+                emails: {
+                  primaryEmail: Raw(
+                    (alias) => `LOWER(${alias}) = LOWER(:submittedEmail)`,
+                    { submittedEmail: email },
+                  ),
+                },
+              },
               take: 2,
             })
           : [];
@@ -1501,7 +1508,12 @@ export class DiexFormsService {
 
         if (companyName) {
           const companies = await companyRepository.find({
-            where: { name: ILike(companyName) },
+            where: {
+              name: Raw(
+                (alias) => `LOWER(${alias}) = LOWER(:submittedCompanyName)`,
+                { submittedCompanyName: companyName.trim() },
+              ),
+            },
             take: 2,
           });
 

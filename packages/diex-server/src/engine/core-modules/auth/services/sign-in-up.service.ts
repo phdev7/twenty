@@ -635,13 +635,15 @@ export class SignInUpService {
         async (entityManager) => {
           const queryRunner = entityManager.queryRunner as QueryRunner;
 
+          const subdomain = isDefined(requestedSubdomain)
+            ? requestedSubdomain
+            : await this.subdomainManagerService.generateSubdomain(
+                isWorkEmailFound ? { userEmail: email } : {},
+              );
           const workspaceToCreate = this.workspaceRepository.create({
             id: workspaceId,
-            subdomain: isDefined(requestedSubdomain)
-              ? requestedSubdomain
-              : await this.subdomainManagerService.generateSubdomain(
-                  isWorkEmailFound ? { userEmail: email } : {},
-                ),
+            subdomain,
+            formsSubdomain: subdomain,
             workspaceCustomApplicationId,
             displayName,
             inviteHash: v4(),

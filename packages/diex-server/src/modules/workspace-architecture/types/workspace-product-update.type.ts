@@ -33,7 +33,9 @@ export type WorkspaceProductUpdateDefinition = {
           label: string;
         }>;
       }
-    | { kind: 'ACKNOWLEDGEMENT' };
+    | { kind: 'ACKNOWLEDGEMENT' }
+    | { kind: 'PRIMARY_CHANNEL' }
+    | { kind: 'MULTI_OPERATION_CONFIGURATION' };
 };
 
 export type WorkspaceProductUpdateAcknowledgement = {

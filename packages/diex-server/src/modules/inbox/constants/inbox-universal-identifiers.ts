@@ -51,11 +51,19 @@ export const INBOX_OPTION_IDS = {
   conversationChannel: {
     whatsapp: 'bb11d44f-1eae-4a89-9e20-c870f2b01d18',
     email: 'c3aa967f-9705-43bc-811c-e4a851d2d881',
+    instagram: '5bd36e56-5bb4-455d-9128-e3391084818d',
+    messenger: 'bf2abefa-897c-489c-af2b-48421db27a43',
+    webchat: 'bd386b77-48b2-419b-9b39-849444842f6a',
+    sms: 'e9705708-a1f1-4ccb-90ed-2f6e3304813a',
+    tiktok: '9c42dbf9-6d35-4fd0-af26-dd3691456ba4',
   },
   conversationProvider: {
     evolution: 'f0f895a0-ac03-420d-b44b-8486718e04c5',
     diexEmail: 'ce6f82c4-d75c-4ef3-8d50-0b5ef6285791',
     manual: '2a710f8d-7513-4703-a8a0-9d7bdb7d5024',
+    meta: 'b90d51cb-3438-401b-87f5-f61347c8a1b7',
+    twilio: 'c486435a-e550-41b4-8804-169a5cf7ee82',
+    custom: '3d6a0700-5d48-486f-9387-d62dd9d5a378',
   },
   conversationStatus: {
     open: '4410f3ab-04df-4237-86ee-26fb57014dcc',

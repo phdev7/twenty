@@ -21,9 +21,8 @@ export const useAgencyMetaAdsAccounts = () => {
 
   const [generateTransientToken] = useMutation(GenerateTransientTokenDocument);
 
-  const { data, loading, refetch } = useQuery<MetaAdsAccountsQueryResult>(
-    GET_AGENCY_META_ADS_ACCOUNTS,
-  );
+  const { data, loading, error, refetch } =
+    useQuery<MetaAdsAccountsQueryResult>(GET_AGENCY_META_ADS_ACCOUNTS);
 
   const connectedCount = searchParams.get('metaAdsConnected');
   const connectionError = searchParams.get('metaAdsError');
@@ -93,6 +92,7 @@ export const useAgencyMetaAdsAccounts = () => {
   return {
     metaAdsAccounts: data?.diexMetaAdsAccounts ?? [],
     loading,
+    errorMessage: error?.message ?? null,
     refetch,
     startMetaAdsConnection,
   };

@@ -173,7 +173,7 @@ export type DiexCommercialReadiness = {
         label: string;
       }>;
       acknowledgedAt: string | null;
-      completionKind: 'CONTEXT_FIELDS' | 'ACKNOWLEDGEMENT';
+      completionKind: 'CONTEXT_FIELDS' | 'ACKNOWLEDGEMENT' | 'PRIMARY_CHANNEL';
       needsAdminConfirmation: boolean;
       canAdminConfirm: boolean;
       readinessCriterionKey: string;

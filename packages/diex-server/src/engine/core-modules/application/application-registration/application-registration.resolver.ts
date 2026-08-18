@@ -91,9 +91,11 @@ export class ApplicationRegistrationResolver {
   @Query(() => ApplicationRegistrationEntity, { nullable: true })
   async findApplicationRegistrationByUniversalIdentifier(
     @Args('universalIdentifier') universalIdentifier: string,
+    @AuthWorkspace() { id: workspaceId }: WorkspaceEntity,
   ): Promise<ApplicationRegistrationEntity | null> {
-    return this.applicationRegistrationService.findOneByUniversalIdentifier(
+    return this.applicationRegistrationService.findVisibleByUniversalIdentifier(
       universalIdentifier,
+      workspaceId,
     );
   }
 
@@ -263,9 +265,7 @@ export class ApplicationRegistrationResolver {
     universalIdentifier: string | undefined,
     @AuthWorkspace() { id: workspaceId }: WorkspaceEntity,
   ): Promise<ApplicationRegistrationEntity> {
-    const maxSize = this.diexConfigService.get(
-      'MAX_TARBALL_UPLOAD_SIZE_BYTES',
-    );
+    const maxSize = this.diexConfigService.get('MAX_TARBALL_UPLOAD_SIZE_BYTES');
 
     const stream = createReadStream();
 

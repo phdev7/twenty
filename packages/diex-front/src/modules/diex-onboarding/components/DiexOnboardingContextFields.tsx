@@ -52,10 +52,6 @@ const FIELD_DEFINITIONS: Array<{
   },
 ];
 
-const EMPTY_DRAFT = Object.fromEntries(
-  FIELD_DEFINITIONS.map(({ key }) => [key, '']),
-) as WorkspaceContextDraft;
-
 const StyledFields = styled.div`
   display: grid;
   gap: ${themeCssVariables.spacing[3]};
@@ -101,11 +97,14 @@ export const DiexOnboardingContextFields = ({
   isSaving: boolean;
   onSave: (draft: WorkspaceContextDraft) => void;
 }) => {
-  const [draft, setDraft] = useState<WorkspaceContextDraft>(EMPTY_DRAFT);
+  const [draft, setDraft] = useState(() => toDraft(workspaceContext));
+  const [hasEditedDraft, setHasEditedDraft] = useState(false);
 
   useEffect(() => {
-    setDraft(toDraft(workspaceContext));
-  }, [workspaceContext]);
+    if (!hasEditedDraft) {
+      setDraft(toDraft(workspaceContext));
+    }
+  }, [hasEditedDraft, workspaceContext]);
 
   return (
     <>
@@ -117,12 +116,13 @@ export const DiexOnboardingContextFields = ({
               value={draft[key]}
               placeholder={placeholder}
               maxLength={4_000}
-              onChange={(event) =>
+              onChange={(event) => {
+                setHasEditedDraft(true);
                 setDraft((current) => ({
                   ...current,
                   [key]: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
           </StyledField>
         ))}

@@ -125,6 +125,11 @@ export class EmailVerificationService {
           }`,
         );
       }
+
+      throw new EmailVerificationException(
+        'Verification email rendered empty or errored and was not sent',
+        EmailVerificationExceptionCode.EMAIL_RENDER_FAILED,
+      );
     }
 
     const text = await render(emailTemplate, {

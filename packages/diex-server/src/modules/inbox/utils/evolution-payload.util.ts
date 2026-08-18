@@ -110,6 +110,20 @@ export const normalizePhone = (value: string | undefined): string | null => {
   return digits.length >= 8 ? digits : null;
 };
 
+export const resolveWhatsappSendDestination = (
+  contactHandle: string | undefined,
+): string | null => {
+  if (!contactHandle) {
+    return null;
+  }
+
+  if (isLidJid(contactHandle)) {
+    return contactHandle;
+  }
+
+  return normalizePhone(contactHandle);
+};
+
 const timestampToIso = (value: unknown): string => {
   const numeric =
     typeof value === 'number'

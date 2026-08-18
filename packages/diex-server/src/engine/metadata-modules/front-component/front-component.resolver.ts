@@ -8,6 +8,7 @@ import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorato
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
 import { ApplicationTokenService } from 'src/engine/core-modules/auth/token/services/application-token.service';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
+import { ThrottlerService } from 'src/engine/core-modules/throttler/throttler.service';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-workspace-id.decorator';
 import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
@@ -26,6 +27,9 @@ import { stripSecretFromApplicationVariables } from 'src/engine/metadata-modules
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import { WorkspaceMigrationGraphqlApiExceptionInterceptor } from 'src/engine/workspace-manager/workspace-migration/interceptors/workspace-migration-graphql-api-exception.interceptor';
 
+const APP_TOKEN_RATE_LIMIT_MAX = 30;
+const APP_TOKEN_RATE_LIMIT_WINDOW_MS = 30_000;
+
 @UseGuards(WorkspaceAuthGuard)
 @UseInterceptors(
   WorkspaceMigrationGraphqlApiExceptionInterceptor,
@@ -39,6 +43,7 @@ export class FrontComponentResolver {
     @Inject(ApplicationTokenService)
     private readonly applicationTokenService: ApplicationTokenService,
     private readonly workspaceCacheService: WorkspaceCacheService,
+    private readonly throttlerService: ThrottlerService,
   ) {}
 
   @Query(() => [FrontComponentDTO])
@@ -62,6 +67,17 @@ export class FrontComponentResolver {
     if (!dto) {
       return null;
     }
+
+    if (!dto.usesSdkClient) {
+      return dto;
+    }
+
+    await this.throttlerService.tokenBucketThrottleOrThrow(
+      `app-front:${workspace.id}:${dto.applicationId}`,
+      1,
+      APP_TOKEN_RATE_LIMIT_MAX,
+      APP_TOKEN_RATE_LIMIT_WINDOW_MS,
+    );
 
     const tokenPair =
       await this.applicationTokenService.generateApplicationTokenPair({

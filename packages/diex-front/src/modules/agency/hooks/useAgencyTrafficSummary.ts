@@ -8,13 +8,16 @@ type TrafficSummaryQueryResult = {
 };
 
 export const useAgencyTrafficSummary = () => {
-  const { data, loading, refetch } = useQuery<TrafficSummaryQueryResult>(
+  const { data, loading, error, refetch } = useQuery<TrafficSummaryQueryResult>(
     GET_AGENCY_TRAFFIC_SUMMARY,
   );
 
   return {
     summary: data?.diexTrafficSummary ?? null,
     loading,
+    // A failed read is not an agency without traffic, and the dashboard has to
+    // be able to tell the two apart before it claims either.
+    errorMessage: error?.message ?? null,
     refetch,
   };
 };

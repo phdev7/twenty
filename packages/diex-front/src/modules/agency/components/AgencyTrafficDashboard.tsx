@@ -1,4 +1,5 @@
 import { styled } from '@linaria/react';
+import { isNonEmptyString } from '@sniptt/guards';
 import { Button } from 'diex-ui/input';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
@@ -50,17 +51,25 @@ const StyledBanner = styled.div<{ tone: 'warning' | 'neutral' }>`
 `;
 
 export const AgencyTrafficDashboard = () => {
-  const { summary, loading, refetch } = useAgencyTrafficSummary();
+  const { summary, loading, errorMessage, refetch } = useAgencyTrafficSummary();
 
   if (loading) {
     return <StyledContainer>Carregando painel de tráfego...</StyledContainer>;
   }
 
+  // A failed read is reported as a failure. Falling through to the empty state
+  // would tell the agency it has no traffic when nothing was ever measured.
   if (summary === null) {
     return (
       <StyledContainer>
-        <StyledBanner tone="neutral">
-          Não foi possível carregar o resumo de tráfego.
+        <StyledHeader>
+          <StyledSubtitle>Painel de tráfego</StyledSubtitle>
+          <Button title="Tentar novamente" onClick={() => void refetch()} />
+        </StyledHeader>
+        <StyledBanner tone="warning">
+          {isNonEmptyString(errorMessage)
+            ? `Não foi possível carregar o resumo de tráfego: ${errorMessage}`
+            : 'Não foi possível carregar o resumo de tráfego.'}
         </StyledBanner>
       </StyledContainer>
     );

@@ -1,52 +1,49 @@
-import { gql } from '@apollo/client';
-import { useQuery } from '@apollo/client/react';
-import { styled } from '@linaria/react';
 import { useMemo, useState } from 'react';
-
-import {
-  CommandCenterCard,
-  CommandCenterPage,
-  CommandCenterLoadingState,
-  CommandCenterMetric,
-  CommandCenterMetrics,
-  CommandCenterStartState,
-} from '@/diex-command-centers/components/CommandCenterLayout';
-import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
-import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
+import { styled } from '@linaria/react';
 import { Button } from 'diex-ui';
 import { themeCssVariables } from 'diex-ui/theme-constants';
 
-const CALENDAR_TASKS_QUERY = gql`
-  query DiexCalendarTasks {
-    tasks(first: 500) {
-      edges {
-        node {
-          id
-          title
-          dueAt
-          status
-          assigneeId
-        }
-      }
-    }
-  }
-`;
+import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
+import {
+  buildDiexCalendarDays,
+  getDiexCalendarRange,
+  groupDiexCalendarTasksByDay,
+} from '@/diex-command-centers/calendar/buildDiexCalendarMonth';
+import { DiexCalendarMonthGrid } from '@/diex-command-centers/calendar/DiexCalendarMonthGrid';
+import { type DiexCalendarTask } from '@/diex-command-centers/calendar/diexCalendarTypes';
+import {
+  CommandCenterCard,
+  CommandCenterLoadingState,
+  CommandCenterMetric,
+  CommandCenterMetrics,
+  CommandCenterPage,
+  CommandCenterStartState,
+} from '@/diex-command-centers/components/CommandCenterLayout';
+import { useDiexPagePresentation } from '@/diex-onboarding/hooks/useDiexPagePresentation';
+import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
+import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 
-const CALENDAR_WORKSPACE_MEMBERS_QUERY = gql`
-  query DiexCalendarWorkspaceMembers {
-    workspaceMembers(first: 200) {
-      edges {
-        node {
-          id
-          name {
-            firstName
-            lastName
-          }
-        }
-      }
-    }
-  }
-`;
+// A month never holds more than six weeks of cells, and the query is already
+// bounded to those weeks, so this only guards against a workspace that piles
+// everything onto a single window.
+const CALENDAR_TASK_LIMIT = 500;
+const ALL_ASSIGNEES = 'ALL';
+
+const MONTH_NAMES = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+];
 
 const StyledFilters = styled.div`
   align-items: center;
@@ -81,117 +78,15 @@ const StyledMonthTitle = styled.h2`
   text-align: center;
 `;
 
-const StyledCalendarViewport = styled.div`
-  overflow-x: auto;
-`;
-
-const StyledCalendarGrid = styled.div`
-  background-color: ${themeCssVariables.border.color.light};
-  border: 1px solid ${themeCssVariables.border.color.light};
-  border-radius: ${themeCssVariables.border.radius.md};
-  display: grid;
-  gap: 1px;
-  grid-template-columns: repeat(7, minmax(140px, 1fr));
-  margin-top: ${themeCssVariables.spacing[2]};
-  min-width: 980px;
-  overflow: hidden;
-`;
-
-const StyledCalendarHeaderCell = styled.div`
-  background-color: ${themeCssVariables.background.secondary};
-  color: ${themeCssVariables.font.color.secondary};
-  font-size: ${themeCssVariables.font.size.xs};
-  font-weight: ${themeCssVariables.font.weight.medium};
-  padding: ${themeCssVariables.spacing[2]};
-  text-align: center;
-`;
-
-const StyledCalendarCell = styled.div<{
-  isCurrentMonth: boolean;
-  isToday: boolean;
-}>`
-  background-color: ${({ isToday }) =>
-    isToday
-      ? themeCssVariables.background.transparent.blue
-      : themeCssVariables.background.primary};
-  border: 1px solid transparent;
-  display: flex;
-  flex-direction: column;
-  min-height: 120px;
-  opacity: ${({ isCurrentMonth }) => (isCurrentMonth ? 1 : 0.4)};
-  padding: ${themeCssVariables.spacing[2]};
-
-  &:hover {
-    border-color: ${themeCssVariables.border.color.medium};
-  }
-`;
-
-const StyledCellHeader = styled.div`
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: ${themeCssVariables.spacing[1]};
-`;
-
-const StyledDayNumber = styled.span<{ isToday: boolean }>`
-  color: ${({ isToday }) =>
-    isToday
-      ? themeCssVariables.color.blue
-      : themeCssVariables.font.color.secondary};
-  font-size: ${themeCssVariables.font.size.xs};
-  font-weight: ${({ isToday }) =>
-    isToday
-      ? themeCssVariables.font.weight.semiBold
-      : themeCssVariables.font.weight.regular};
-`;
-
-const StyledTaskList = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  overflow-y: auto;
-`;
-
-const StyledTaskItem = styled.div<{ status: string | null }>`
-  background-color: ${({ status }) =>
-    status === 'DONE'
-      ? themeCssVariables.background.transparent.success
-      : themeCssVariables.background.transparent.orange};
-  border-left: 3px solid
-    ${({ status }) =>
-      status === 'DONE'
-        ? themeCssVariables.color.green
-        : themeCssVariables.color.orange};
-  border-radius: 4px;
-  color: ${themeCssVariables.font.color.primary};
-  cursor: pointer;
-  font-size: ${themeCssVariables.font.size.xxs};
-  overflow: hidden;
-  padding: 4px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &:hover {
-    filter: brightness(0.95);
-  }
-`;
-
-interface Task {
+type CalendarWorkspaceMember = {
   id: string;
-  title: string | null;
-  dueAt: string | null;
-  status: string | null;
-  assigneeId?: string | null;
-}
+  name: { firstName: string | null; lastName: string | null };
+};
 
-interface WorkspaceMember {
-  id: string;
-  name: {
-    firstName: string;
-    lastName: string;
-  };
-}
+const getWorkspaceMemberLabel = (member: CalendarWorkspaceMember) =>
+  [member.name?.firstName, member.name?.lastName]
+    .filter((namePart) => Boolean(namePart))
+    .join(' ') || 'Usuário sem nome';
 
 export const DiexCalendarPage = () => {
   const pagePresentation = useDiexPagePresentation({
@@ -200,154 +95,97 @@ export const DiexCalendarPage = () => {
     fallbackDescription:
       'Organize tarefas com data e hora por responsável em uma visão mensal.',
   });
+  const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>('ALL');
-  const visibleRange = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDayIndex = new Date(year, month, 1).getDay();
-    const rangeStart = new Date(year, month, 1 - firstDayIndex);
-    const rangeEnd = new Date(rangeStart);
+  // Left unset until the operator chooses, so the agenda opens on the signed-in
+  // user without waiting for the workspace member to resolve.
+  const [chosenAssigneeId, setChosenAssigneeId] = useState<string | null>(null);
 
-    rangeEnd.setDate(rangeStart.getDate() + 42);
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
 
-    return { rangeStart, rangeEnd };
-  }, [currentDate]);
+  const selectedAssigneeId =
+    chosenAssigneeId ?? currentWorkspaceMember?.id ?? ALL_ASSIGNEES;
+
+  const visibleRange = useMemo(
+    () => getDiexCalendarRange(currentDate),
+    [currentDate],
+  );
+  const calendarDays = useMemo(
+    () => buildDiexCalendarDays(currentDate),
+    [currentDate],
+  );
+
+  // The window is filtered on the server. Reading a fixed head of the task
+  // table and discarding what fell outside the month silently hid tasks as
+  // soon as a workspace passed that many records.
+  const taskFilter = useMemo(
+    () => ({
+      and: [
+        {
+          dueAt: {
+            gte: visibleRange.rangeStart.toISOString(),
+            lt: visibleRange.rangeEnd.toISOString(),
+          },
+        },
+        ...(selectedAssigneeId === ALL_ASSIGNEES
+          ? []
+          : [{ assigneeId: { eq: selectedAssigneeId } }]),
+      ],
+    }),
+    [selectedAssigneeId, visibleRange],
+  );
+
   const {
-    data,
+    records: tasks,
     loading,
     error,
     refetch: refetchTasks,
-  } = useQuery<{
-    tasks: { edges: Array<{ node: Task }> };
-  }>(CALENDAR_TASKS_QUERY, {
+  } = useFindManyRecords<DiexCalendarTask & { __typename: string }>({
+    objectNameSingular: 'task',
+    filter: taskFilter,
+    orderBy: [{ dueAt: 'AscNullsLast' }],
+    limit: CALENDAR_TASK_LIMIT,
+    recordGqlFields: {
+      id: true,
+      title: true,
+      dueAt: true,
+      status: true,
+      assigneeId: true,
+    },
     fetchPolicy: 'network-only',
-    errorPolicy: 'all',
-    notifyOnNetworkStatusChange: true,
   });
+
   const {
-    data: workspaceMembersData,
-    loading: workspaceMembersLoading,
+    records: workspaceMembers,
+    loading: isLoadingWorkspaceMembers,
     error: workspaceMembersError,
     refetch: refetchWorkspaceMembers,
-  } = useQuery<{
-    workspaceMembers: { edges: Array<{ node: WorkspaceMember }> };
-  }>(CALENDAR_WORKSPACE_MEMBERS_QUERY, {
-    fetchPolicy: 'network-only',
-    errorPolicy: 'all',
-    notifyOnNetworkStatusChange: true,
+  } = useFindManyRecords<CalendarWorkspaceMember & { __typename: string }>({
+    objectNameSingular: 'workspaceMember',
+    limit: 200,
+    recordGqlFields: { id: true, name: { firstName: true, lastName: true } },
   });
 
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
 
-  const tasks = useMemo(() => {
-    return data?.tasks?.edges?.map(({ node }) => node) ?? [];
-  }, [data]);
-
-  const workspaceMembers = useMemo(() => {
-    return (
-      workspaceMembersData?.workspaceMembers?.edges?.map(({ node }) => node) ??
-      []
-    );
-  }, [workspaceMembersData]);
-  const dataLoadedAt = useMemo(
-    () => (data ? new Date().toISOString() : null),
-    [data],
-  );
-
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      if (!task.dueAt) return false;
-
-      const dueAt = new Date(task.dueAt);
-      const isInVisibleRange =
-        dueAt >= visibleRange.rangeStart && dueAt < visibleRange.rangeEnd;
-      const matchesAssignee =
-        selectedAssigneeId === 'ALL' || task.assigneeId === selectedAssigneeId;
-
-      return isInVisibleRange && matchesAssignee;
-    });
-  }, [tasks, selectedAssigneeId, visibleRange]);
-
-  const monthNames = [
-    'Janeiro',
-    'Fevereiro',
-    'Março',
-    'Abril',
-    'Maio',
-    'Junho',
-    'Julho',
-    'Agosto',
-    'Setembro',
-    'Outubro',
-    'Novembro',
-    'Dezembro',
-  ];
-
-  const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-  const getDaysInMonth = (year: number, month: number) => {
-    const date = new Date(year, month, 1);
-    const days = [];
-    // Prev month days to fill week start
-    const firstDayIndex = date.getDay();
-    const prevMonthLastDate = new Date(year, month, 0).getDate();
-    for (let i = firstDayIndex; i > 0; i--) {
-      days.push({
-        date: new Date(year, month - 1, prevMonthLastDate - i + 1),
-        isCurrentMonth: false,
-      });
-    }
-    // Current month days
-    const lastDate = new Date(year, month + 1, 0).getDate();
-    for (let i = 1; i <= lastDate; i++) {
-      days.push({
-        date: new Date(year, month, i),
-        isCurrentMonth: true,
-      });
-    }
-    // Next month days to fill week end
-    const totalCells = 42; // 6 rows of 7 days
-    const nextMonthDays = totalCells - days.length;
-    for (let i = 1; i <= nextMonthDays; i++) {
-      days.push({
-        date: new Date(year, month + 1, i),
-        isCurrentMonth: false,
-      });
-    }
-    return days;
-  };
-
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const calendarDays = getDaysInMonth(currentYear, currentMonth);
-
-  const prevMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
-  };
-
-  const handleTaskClick = (taskId: string) => {
-    openRecordInSidePanel({
-      recordId: taskId,
-      objectNameSingular: 'task',
-    });
-  };
+  const tasksByDay = useMemo(() => groupDiexCalendarTasksByDay(tasks), [tasks]);
 
   const metrics = useMemo(() => {
-    const total = filteredTasks.length;
-    const completed = filteredTasks.filter(
-      (task) => task.status === 'DONE',
-    ).length;
-    const pending = total - completed;
-    return { total, completed, pending };
-  }, [filteredTasks]);
+    const completed = tasks.filter((task) => task.status === 'DONE').length;
 
-  if (loading && tasks.length === 0) return <CommandCenterLoadingState />;
-  if (error && tasks.length === 0)
+    return {
+      total: tasks.length,
+      completed,
+      pending: tasks.length - completed,
+    };
+  }, [tasks]);
+
+  if (loading && tasks.length === 0) {
+    return <CommandCenterLoadingState />;
+  }
+
+  if (error && tasks.length === 0) {
     return (
       <CommandCenterPage
         title={pagePresentation.label}
@@ -369,6 +207,7 @@ export const DiexCalendarPage = () => {
         </CommandCenterCard>
       </CommandCenterPage>
     );
+  }
 
   return (
     <CommandCenterPage
@@ -381,15 +220,11 @@ export const DiexCalendarPage = () => {
             ? 'Agenda carregada · filtro de responsáveis indisponível'
             : loading
               ? 'Atualizando dados reais'
-              : dataLoadedAt
-                ? `Dados atuais · ${new Date(dataLoadedAt).toLocaleTimeString(
-                    'pt-BR',
-                    {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    },
-                  )}`
-                : 'Aguardando dados reais'
+              : `${MONTH_NAMES[currentMonth]} de ${currentYear} · ${
+                  selectedAssigneeId === ALL_ASSIGNEES
+                    ? 'todos os responsáveis'
+                    : 'agenda individual'
+                }`
       }
     >
       {error && tasks.length > 0 ? (
@@ -418,7 +253,7 @@ export const DiexCalendarPage = () => {
         <CommandCenterMetric label="Pendentes" value={metrics.pending} />
       </CommandCenterMetrics>
 
-      {tasks.length === 0 ? (
+      {!loading && !error && tasks.length === 0 ? (
         <CommandCenterCard title="A agenda acompanha cada próxima ação">
           <CommandCenterStartState
             title="Nenhuma tarefa com prazo nesta janela."
@@ -432,14 +267,16 @@ export const DiexCalendarPage = () => {
       <CommandCenterCard title="Visualização Mensal">
         <StyledFilters>
           <StyledSelect
+            aria-label="Filtrar agenda por responsável"
             value={selectedAssigneeId}
-            onChange={(e) => setSelectedAssigneeId(e.target.value)}
-            disabled={workspaceMembersLoading || workspaceMembers.length === 0}
+            onChange={(event) => setChosenAssigneeId(event.target.value)}
+            disabled={isLoadingWorkspaceMembers}
           >
-            <option value="ALL">Todos os Usuários</option>
+            <option value={ALL_ASSIGNEES}>Todos os usuários</option>
             {workspaceMembers.map((member) => (
               <option key={member.id} value={member.id}>
-                {member.name.firstName} {member.name.lastName}
+                {getWorkspaceMemberLabel(member)}
+                {member.id === currentWorkspaceMember?.id ? ' (você)' : ''}
               </option>
             ))}
           </StyledSelect>
@@ -449,16 +286,20 @@ export const DiexCalendarPage = () => {
               title="Anterior"
               size="small"
               variant="secondary"
-              onClick={prevMonth}
+              onClick={() =>
+                setCurrentDate(new Date(currentYear, currentMonth - 1, 1))
+              }
             />
             <StyledMonthTitle>
-              {monthNames[currentMonth]} {currentYear}
+              {MONTH_NAMES[currentMonth]} {currentYear}
             </StyledMonthTitle>
             <Button
               title="Próximo"
               size="small"
               variant="secondary"
-              onClick={nextMonth}
+              onClick={() =>
+                setCurrentDate(new Date(currentYear, currentMonth + 1, 1))
+              }
             />
             <Button
               title="Hoje"
@@ -478,59 +319,16 @@ export const DiexCalendarPage = () => {
           </StyledHeaderNav>
         </StyledFilters>
 
-        <StyledCalendarViewport>
-          <StyledCalendarGrid>
-            {daysOfWeek.map((day) => (
-              <StyledCalendarHeaderCell key={day}>
-                {day}
-              </StyledCalendarHeaderCell>
-            ))}
-            {calendarDays.map(({ date, isCurrentMonth }) => {
-              const dateStr = date.toDateString();
-              const todayStr = new Date().toDateString();
-              const isToday = dateStr === todayStr;
-
-              const dayTasks = filteredTasks.filter((task) => {
-                if (!task.dueAt) return false;
-                const taskDate = new Date(task.dueAt);
-                return taskDate.toDateString() === dateStr;
-              });
-
-              return (
-                <StyledCalendarCell
-                  key={date.toISOString()}
-                  isCurrentMonth={isCurrentMonth}
-                  isToday={isToday}
-                >
-                  <StyledCellHeader>
-                    <StyledDayNumber isToday={isToday}>
-                      {date.getDate()}
-                    </StyledDayNumber>
-                  </StyledCellHeader>
-                  <StyledTaskList>
-                    {dayTasks.map((task) => (
-                      <StyledTaskItem
-                        key={task.id}
-                        status={task.status}
-                        onClick={() => handleTaskClick(task.id)}
-                        title={task.title ?? 'Tarefa sem título'}
-                      >
-                        {new Date(task.dueAt ?? '').toLocaleTimeString(
-                          'pt-BR',
-                          {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          },
-                        )}{' '}
-                        · {task.title ?? 'Tarefa sem título'}
-                      </StyledTaskItem>
-                    ))}
-                  </StyledTaskList>
-                </StyledCalendarCell>
-              );
-            })}
-          </StyledCalendarGrid>
-        </StyledCalendarViewport>
+        <DiexCalendarMonthGrid
+          days={calendarDays}
+          tasksByDay={tasksByDay}
+          onSelectTask={(taskId) =>
+            openRecordInSidePanel({
+              recordId: taskId,
+              objectNameSingular: 'task',
+            })
+          }
+        />
       </CommandCenterCard>
     </CommandCenterPage>
   );

@@ -196,9 +196,15 @@ export class BillingSubscriptionService {
   }
 
   async handleUnpaidInvoices(data: Stripe.SetupIntentSucceededEvent.Data) {
-    const billingSubscription = await this.getCurrentBillingSubscriptionOrThrow(
-      { stripeCustomerId: data.object.customer as string },
-    );
+    const billingSubscription = await this.getCurrentBillingSubscription({
+      stripeCustomerId: data.object.customer as string,
+    });
+
+    if (!isDefined(billingSubscription)) {
+      return {
+        handleUnpaidInvoiceStripeSubscriptionId: null,
+      };
+    }
 
     if (billingSubscription.status === SubscriptionStatus.Unpaid) {
       await this.stripeSubscriptionService.collectLastInvoice(

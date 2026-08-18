@@ -73,6 +73,8 @@ export const Inbox = () => {
     setTeamFilterId,
     attentionFilter,
     setAttentionFilter,
+    channelFilter,
+    setChannelFilter,
     hasMoreConversations,
     conversationTotalCount,
     workspaceConversationTotalCount,
@@ -153,7 +155,8 @@ export const Inbox = () => {
     labelFilterId === 'ALL' &&
     assigneeFilterId === 'ALL' &&
     teamFilterId === 'ALL' &&
-    attentionFilter === 'ALL';
+    attentionFilter === 'ALL' &&
+    channelFilter === 'ALL';
 
   const visibleConversations = useMemo(() => {
     const normalizedQuery = normalizeSearchTerm(query);
@@ -226,6 +229,7 @@ export const Inbox = () => {
         teams={teams}
         teamFilterId={teamFilterId}
         attentionFilter={attentionFilter}
+        channelFilter={channelFilter}
         pendingMentionCounts={pendingMentionCounts}
         isLoading={isLoadingConversations || isSearching}
         isEmailSyncing={busyAction === 'email-sync'}
@@ -243,6 +247,7 @@ export const Inbox = () => {
         onAssigneeFilterChange={setAssigneeFilterId}
         onTeamFilterChange={setTeamFilterId}
         onAttentionFilterChange={setAttentionFilter}
+        onChannelFilterChange={setChannelFilter}
         onSelect={(conversationId) => void selectConversation(conversationId)}
         onRefresh={() => void refreshInbox()}
         onSyncEmail={() => void syncDiexEmail()}

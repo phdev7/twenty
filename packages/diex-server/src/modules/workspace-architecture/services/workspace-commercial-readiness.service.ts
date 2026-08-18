@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { isNonEmptyString } from '@sniptt/guards';
+import { isDefined } from 'diex-shared/utils';
 import { In, IsNull, Not, type Repository } from 'typeorm';
 
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
@@ -22,6 +23,7 @@ import { TaskTargetWorkspaceEntity } from 'src/modules/task/standard-objects/tas
 import { DiexWorkspaceContextWorkspaceEntity } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.workspace-entity';
 import { WorkspaceContextStatus } from 'src/modules/workspace-context/standard-objects/diex-workspace-context.standard-object-definition';
 import { type WorkspaceReadinessCriterion } from 'src/modules/workspace-architecture/types/workspace-readiness-pack';
+import { evaluateWorkspaceProductUpdates } from 'src/modules/workspace-architecture/utils/evaluate-workspace-product-updates.util';
 
 type CommercialRepositories = {
   aiActionRepository: WorkspaceRepository<AiActionWorkspaceEntity>;
@@ -181,6 +183,7 @@ export class WorkspaceCommercialReadinessService {
       | {
           selectedTemplates?: unknown;
           publishedOperations?: Array<{ resourceType?: string }>;
+          operationManifest?: { multiOperation?: unknown } | null;
         }
       | undefined;
     const changeSetPayload = changeSet?.payload as
@@ -276,21 +279,6 @@ export class WorkspaceCommercialReadinessService {
               typeof value === 'string' && value.trim().length > 0,
           )
         : [];
-    const profileSignals = [
-      ...readTextList('responsibilityRules'),
-      ...readTextList('commercialRules'),
-      ...readTextList('restrictions'),
-      ...readTextList('approvalRules'),
-    ]
-      .join(' ')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
-    const teamSignals = readTextList('teamAndRoles')
-      .join(' ')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
     const activeCapabilityIds = new Set(
       pageCatalog.items
         .filter(({ status }) => status === 'ACTIVE')
@@ -299,8 +287,34 @@ export class WorkspaceCommercialReadinessService {
     const architectureApproved =
       ['ACTIVE', 'PARTIALLY_APPLIED'].includes(String(blueprint?.status)) &&
       ['ACTIVE', 'PARTIALLY_APPLIED'].includes(String(changeSet?.status));
+    const productUpdateEvaluation = evaluateWorkspaceProductUpdates({
+      workspaceCreatedAt: workspace?.createdAt ?? null,
+      context: {
+        toneOfVoice: context?.toneOfVoice?.markdown ?? null,
+        commercialRules: context?.commercialRules?.markdown ?? null,
+        objectionPlaybook: context?.objectionPlaybook?.markdown ?? null,
+        competitiveLandscape: context?.competitiveLandscape?.markdown ?? null,
+        forbiddenClaims: context?.forbiddenClaims?.markdown ?? null,
+      },
+      contextIsActive: contextActive,
+      acknowledgements:
+        currentOnboardingEvidence?.productUpdates.acknowledgements ?? [],
+      primaryChannel,
+      // A recomendação gerada pela IA permanece rascunho até a publicação
+      // explícita da arquitetura. Sem esse portão, apenas abrir um blueprint
+      // sugerido poderia concluir silenciosamente o requisito multioperação.
+      multiOperation: architectureApproved
+        ? blueprintPayload?.operationManifest?.multiOperation
+        : undefined,
+    });
     const genericCriterionReady = (criterion: WorkspaceReadinessCriterion) => {
       const { key } = criterion;
+      const productUpdateReady =
+        productUpdateEvaluation.readinessByCriterionKey.get(key);
+
+      if (isDefined(productUpdateReady)) {
+        return productUpdateReady;
+      }
 
       if (key === 'context_active') return contextActive;
       if (key === 'goal_defined') return isNonEmptyString(goal);
@@ -312,7 +326,9 @@ export class WorkspaceCommercialReadinessService {
       if (key === 'pipeline_approved') return pipelineApproved;
       if (key === 'owners_defined') return activeOwnerCount > 0;
       if (key === 'channel_connected') {
-        if (usesRecordBasedEntry) return true;
+        if (usesRecordBasedEntry) {
+          return firstPerson !== null;
+        }
         if (primaryChannel === 'WHATSAPP') {
           return (
             currentOnboardingEvidence?.channel.state === 'CONNECTED' &&
@@ -363,19 +379,21 @@ export class WorkspaceCommercialReadinessService {
       if (key === 'approval_matrix_defined') {
         return architectureApproved && readTextList('approvalRules').length > 0;
       }
-      if (key === 'required_fields_validated') return architectureApproved;
+      if (key === 'required_fields_validated') {
+        return (
+          contextActive &&
+          isNonEmptyString(context?.commercialRules?.markdown) &&
+          isNonEmptyString(context?.forbiddenClaims?.markdown)
+        );
+      }
       if (key === 'scheduling_configured') {
         return activeCapabilityIds.has('scheduling');
       }
       if (key === 'responsavel_tecnica_definida') {
-        return /(responsavel|tecnica|profissional|diretor|gestor)/.test(
-          teamSignals,
-        );
+        return readTextList('teamAndRoles').length > 0;
       }
       if (key === 'base_legal_de_contato_registrada') {
-        return /(base legal|consent|opt.?in|contrato|legitimo interesse|tutela da saude|obrigacao legal|autoriz)/.test(
-          profileSignals,
-        );
+        return readTextList('restrictions').length > 0;
       }
       if (key.endsWith('_configured')) {
         return activeCapabilityIds.has(key.replace(/_configured$/, ''));
@@ -383,9 +401,17 @@ export class WorkspaceCommercialReadinessService {
 
       return false;
     };
+    const productUpdateNextActionByKey = new Map(
+      productUpdateEvaluation.readinessCriteria.map((criterion) => [
+        criterion.key,
+        criterion.nextAction,
+      ]),
+    );
     const items = readinessPack.criteria.map((criterion) => ({
       ...criterion,
       ready: genericCriterionReady(criterion),
+      nextAction:
+        productUpdateNextActionByKey.get(criterion.key) ?? criterion.nextAction,
     }));
     const totalWeight = items.reduce((total, item) => total + item.weight, 0);
     const completedWeight = items.reduce(
@@ -471,7 +497,7 @@ export class WorkspaceCommercialReadinessService {
           ? (defaultTeam?.id ?? [...activeOwnerIds][0] ?? null)
           : null,
       channel_connected: usesRecordBasedEntry
-        ? `entry:${primaryChannel?.toLowerCase()}`
+        ? (firstPerson?.id ?? null)
         : (currentOnboardingEvidence?.channel.instanceName ??
           firstConversation?.id ??
           null),
@@ -492,6 +518,12 @@ export class WorkspaceCommercialReadinessService {
         ? `setup-state:${pageCatalog.version}`
         : null,
     };
+    for (const [
+      criterionKey,
+      recordId,
+    ] of productUpdateEvaluation.evidenceRecordIdByCriterionKey) {
+      knownEvidenceRecordIds[criterionKey] = recordId;
+    }
     const evidenceRecordIds = Object.fromEntries(
       items.map(({ key }) => [key, knownEvidenceRecordIds[key] ?? null]),
     );
@@ -648,6 +680,7 @@ export class WorkspaceCommercialReadinessService {
         queriedAt: new Date().toISOString(),
         source: 'workspace_database',
       },
+      productUpdates: productUpdateEvaluation.state,
     };
   }
 

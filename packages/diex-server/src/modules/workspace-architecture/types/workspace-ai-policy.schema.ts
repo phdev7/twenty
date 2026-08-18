@@ -31,6 +31,7 @@ export const workspaceAiPolicySchema = z.object({
   minimumApprovalRisk: aiActionRiskSchema,
   updatedAt: z.iso.datetime(),
   updatedBy: z.string().nullable(),
+  source: z.enum(['DEFAULT', 'WORKSPACE']).default('WORKSPACE'),
 });
 
 export const workspaceAiPolicyUpdateSchema = z.object({
@@ -98,4 +99,5 @@ export const DEFAULT_WORKSPACE_AI_POLICY: WorkspaceAiPolicy = {
   minimumApprovalRisk: 'LOW',
   updatedAt: new Date(0).toISOString(),
   updatedBy: null,
+  source: 'DEFAULT',
 };

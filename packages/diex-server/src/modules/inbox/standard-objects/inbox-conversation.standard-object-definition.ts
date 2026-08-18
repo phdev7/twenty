@@ -10,12 +10,20 @@ import {
 export enum InboxConversationChannel {
   WHATSAPP = 'WHATSAPP',
   EMAIL = 'EMAIL',
+  INSTAGRAM = 'INSTAGRAM',
+  MESSENGER = 'MESSENGER',
+  WEBCHAT = 'WEBCHAT',
+  SMS = 'SMS',
+  TIKTOK = 'TIKTOK',
 }
 
 export enum InboxConversationProvider {
   EVOLUTION = 'EVOLUTION',
   DIEX_EMAIL = 'DIEX_EMAIL',
   MANUAL = 'MANUAL',
+  META = 'META',
+  TWILIO = 'TWILIO',
+  CUSTOM = 'CUSTOM',
 }
 
 export enum InboxConversationStatus {
@@ -121,6 +129,41 @@ export const InboxConversationStandardObjectDefinition = {
           position: 1,
           color: 'blue',
         },
+        {
+          id: INBOX_OPTION_IDS.conversationChannel.instagram,
+          value: InboxConversationChannel.INSTAGRAM,
+          label: 'Instagram',
+          position: 2,
+          color: 'purple',
+        },
+        {
+          id: INBOX_OPTION_IDS.conversationChannel.messenger,
+          value: InboxConversationChannel.MESSENGER,
+          label: 'Messenger',
+          position: 3,
+          color: 'blue',
+        },
+        {
+          id: INBOX_OPTION_IDS.conversationChannel.webchat,
+          value: InboxConversationChannel.WEBCHAT,
+          label: 'Chat do site',
+          position: 4,
+          color: 'cyan',
+        },
+        {
+          id: INBOX_OPTION_IDS.conversationChannel.sms,
+          value: InboxConversationChannel.SMS,
+          label: 'SMS',
+          position: 5,
+          color: 'orange',
+        },
+        {
+          id: INBOX_OPTION_IDS.conversationChannel.tiktok,
+          value: InboxConversationChannel.TIKTOK,
+          label: 'TikTok',
+          position: 6,
+          color: 'gray',
+        },
       ],
     },
     {
@@ -150,6 +193,27 @@ export const InboxConversationStandardObjectDefinition = {
           value: InboxConversationProvider.MANUAL,
           label: 'Manual',
           position: 2,
+          color: 'gray',
+        },
+        {
+          id: INBOX_OPTION_IDS.conversationProvider.meta,
+          value: InboxConversationProvider.META,
+          label: 'Meta',
+          position: 3,
+          color: 'blue',
+        },
+        {
+          id: INBOX_OPTION_IDS.conversationProvider.twilio,
+          value: InboxConversationProvider.TWILIO,
+          label: 'Twilio',
+          position: 4,
+          color: 'red',
+        },
+        {
+          id: INBOX_OPTION_IDS.conversationProvider.custom,
+          value: InboxConversationProvider.CUSTOM,
+          label: 'Integração personalizada',
+          position: 5,
           color: 'gray',
         },
       ],

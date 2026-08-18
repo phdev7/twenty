@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { workspaceMultiOperationSchema } from 'src/modules/workspace-architecture/types/workspace-multi-operation.schema';
+
 const manifestSourceSchema = z.enum(['CORE', 'AI', 'USER']);
 
 export const workspaceOperationManifestItemSchema = z.object({
@@ -34,6 +36,9 @@ export const workspaceOperationManifestSchema = z.object({
   policies: z.array(z.string().min(1)),
   glossary: z.record(z.string(), z.string()),
   unresolved: z.array(z.string().min(1)),
+  // Optional and nullable keeps every legacy manifest readable. Completion of
+  // the multi-operation update requires an explicitly persisted value.
+  multiOperation: workspaceMultiOperationSchema.nullable().optional(),
   generatedAt: z.iso.datetime(),
 });
 

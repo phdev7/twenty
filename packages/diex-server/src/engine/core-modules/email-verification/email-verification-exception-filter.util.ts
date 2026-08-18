@@ -9,6 +9,7 @@ import {
 } from 'src/engine/core-modules/email-verification/email-verification.exception';
 import {
   ForbiddenError,
+  InternalServerError,
   UserInputError,
 } from 'src/engine/core-modules/graphql/utils/graphql-errors.util';
 
@@ -39,6 +40,8 @@ export class EmailVerificationExceptionFilter implements ExceptionFilter {
         });
       case EmailVerificationExceptionCode.INVALID_EMAIL:
         throw new UserInputError(exception);
+      case EmailVerificationExceptionCode.EMAIL_RENDER_FAILED:
+        throw new InternalServerError(exception);
       default: {
         assertUnreachable(exception.code);
       }
