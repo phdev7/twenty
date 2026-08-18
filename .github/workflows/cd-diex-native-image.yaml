@@ -5,6 +5,9 @@ permissions:
   packages: write
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       image_tag:
@@ -41,8 +44,8 @@ jobs:
           file: packages/diex-docker/diex/Dockerfile
           target: diex
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/twenty-diex:${{ inputs.image_tag }}
+          tags: ghcr.io/${{ github.repository_owner }}/twenty-diex:${{ inputs.image_tag || format('diex-main-{0}', github.sha) }}
           build-args: |
-            APP_VERSION=${{ inputs.app_version }}
+            APP_VERSION=${{ inputs.app_version || format('0.0.0+{0}', github.sha) }}
           cache-from: type=gha,scope=diex-native-image
           cache-to: type=gha,mode=max,scope=diex-native-image
