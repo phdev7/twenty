@@ -9,6 +9,7 @@ import { ObjectMetadataModule } from 'src/engine/metadata-modules/object-metadat
 import { DiexORMModule } from 'src/engine/diex-orm/diex-orm.module';
 import { AiModelsModule } from 'src/engine/metadata-modules/ai/ai-models/ai-models.module';
 import { AiBillingModule } from 'src/engine/metadata-modules/ai/ai-billing/ai-billing.module';
+import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { FieldMetadataModule } from 'src/engine/metadata-modules/field-metadata/field-metadata.module';
 import { WorkspaceArchitectureService } from 'src/modules/workspace-architecture/services/workspace-architecture.service';
@@ -26,7 +27,7 @@ import { WorkspaceArchitectureToolWorkspaceService } from 'src/modules/workspace
     AiModelsModule,
     AiBillingModule,
     BillingModule,
-    TypeOrmModule.forFeature([WorkspaceEntity]),
+    TypeOrmModule.forFeature([WorkspaceEntity, UserWorkspaceEntity]),
     FieldMetadataModule,
     RecordCrudModule,
   ],

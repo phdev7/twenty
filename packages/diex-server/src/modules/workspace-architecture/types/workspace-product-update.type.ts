@@ -24,6 +24,10 @@ export type WorkspaceProductUpdateDefinition = {
   readinessWeight: number;
   actionLabel: string;
   actionRoute: string;
+  // Entrada publicada nunca muda de critério. Quando um lançamento posterior
+  // corrige o alcance de uma exigência, a entrada antiga aponta para a nova e
+  // sai da avaliação, preservando o histórico do registro.
+  supersededByKey?: string;
   completion:
     | {
         kind: 'CONTEXT_FIELDS';
@@ -35,7 +39,11 @@ export type WorkspaceProductUpdateDefinition = {
       }
     | { kind: 'ACKNOWLEDGEMENT' }
     | { kind: 'PRIMARY_CHANNEL' }
-    | { kind: 'MULTI_OPERATION_CONFIGURATION' };
+    | { kind: 'MULTI_OPERATION_CONFIGURATION' }
+    | {
+        kind: 'AGENCY_OPERATION_CONFIGURATION';
+        requiresAdminConfirmation: boolean;
+      };
 };
 
 export type WorkspaceProductUpdateAcknowledgement = {
@@ -49,7 +57,10 @@ export type WorkspaceProductUpdateItem = Omit<
   WorkspaceProductUpdateDefinition,
   'completion'
 > & {
-  status: 'PENDING' | 'ACKNOWLEDGED' | 'COMPLETED';
+  status: 'PENDING' | 'ACKNOWLEDGED' | 'COMPLETED' | 'NOT_APPLICABLE';
+  // Exigência fora do alcance do workspace não vira pendência nem entra na
+  // prontidão; ela some do painel em vez de travar a operação para sempre.
+  appliesToWorkspace: boolean;
   isUpdateForExistingWorkspace: boolean;
   missingFields: Array<{
     key: WorkspaceProductUpdateContextField;

@@ -5,6 +5,7 @@ import { isNonEmptyString } from '@sniptt/guards';
 import { isDefined } from 'diex-shared/utils';
 import { In, IsNull, Not, type Repository } from 'typeorm';
 
+import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { GlobalWorkspaceOrmManager } from 'src/engine/diex-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { type WorkspaceRepository } from 'src/engine/diex-orm/repository/workspace.repository';
@@ -66,6 +67,8 @@ export class WorkspaceCommercialReadinessService {
     private readonly workspaceArchitectureService: WorkspaceArchitectureService,
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
+    @InjectRepository(UserWorkspaceEntity)
+    private readonly userWorkspaceRepository: Repository<UserWorkspaceEntity>,
   ) {}
 
   async getReadiness(workspaceId: string) {
@@ -84,6 +87,7 @@ export class WorkspaceCommercialReadinessService {
       workspace,
       currentOnboardingEvidence,
       readinessPack,
+      agencyManagerCount,
     ] = await Promise.all([
       this.getWorkspaceContext(workspaceId),
       repositories.offerRepository.count({ where: { status: 'ACTIVE' } }),
@@ -94,6 +98,9 @@ export class WorkspaceCommercialReadinessService {
       this.workspaceRepository.findOne({ where: { id: workspaceId } }),
       this.workspaceArchitectureService.getOnboardingEvidence(workspaceId),
       this.workspaceArchitectureService.getWorkspaceReadinessPack(workspaceId),
+      this.userWorkspaceRepository.count({
+        where: { workspaceId, user: { agencyId: Not(IsNull()) } },
+      }),
     ]);
     const primaryChannel = workspace?.onboardingPrimaryChannel
       ?.trim()
@@ -306,6 +313,11 @@ export class WorkspaceCommercialReadinessService {
       multiOperation: architectureApproved
         ? blueprintPayload?.operationManifest?.multiOperation
         : undefined,
+      // Participa do ecossistema de agência quem é cliente de uma agência ou
+      // quem tem um dono de agência entre os próprios membros. Fora disso a
+      // exigência de operação compartilhada não se aplica.
+      agencyLinked:
+        isDefined(workspace?.managedByAgencyId) || agencyManagerCount > 0,
     });
     const genericCriterionReady = (criterion: WorkspaceReadinessCriterion) => {
       const { key } = criterion;

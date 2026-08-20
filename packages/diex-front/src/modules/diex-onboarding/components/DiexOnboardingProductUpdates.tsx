@@ -80,7 +80,7 @@ export const DiexOnboardingProductUpdates = ({
   onAcknowledge: (updateKey: string) => void;
 }) => {
   const pendingUpdates = productUpdates.items.filter(
-    ({ status }) => status !== 'COMPLETED',
+    ({ status }) => status !== 'COMPLETED' && status !== 'NOT_APPLICABLE',
   );
 
   if (pendingUpdates.length === 0) {
@@ -126,10 +126,10 @@ export const DiexOnboardingProductUpdates = ({
           ) : update.needsAdminConfirmation ? (
             <StyledMissingFields>
               {!canManageUpdates
-                ? 'Dados preenchidos. Um administrador do workspace precisa confirmar esta atualização.'
+                ? 'Um administrador do workspace precisa confirmar esta atualização.'
                 : update.canAdminConfirm
-                  ? 'Dados preenchidos. Revise e confirme a atualização como administrador.'
-                  : 'Dados preenchidos. Ative o contexto para liberar a confirmação administrativa.'}
+                  ? 'Revise a configuração e confirme a atualização como administrador.'
+                  : 'Ative o contexto para liberar a confirmação administrativa.'}
             </StyledMissingFields>
           ) : null}
           <StyledActions>
@@ -146,9 +146,9 @@ export const DiexOnboardingProductUpdates = ({
                 title={
                   isAcknowledging
                     ? 'Confirmando...'
-                    : update.completionKind === 'CONTEXT_FIELDS'
-                      ? 'Confirmar atualização'
-                      : 'Marcar aviso como lido'
+                    : update.completionKind === 'ACKNOWLEDGEMENT'
+                      ? 'Marcar aviso como lido'
+                      : 'Confirmar atualização'
                 }
                 variant="secondary"
                 disabled={isAcknowledging}

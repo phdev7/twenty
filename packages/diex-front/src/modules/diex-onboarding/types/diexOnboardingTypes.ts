@@ -166,14 +166,20 @@ export type DiexCommercialReadiness = {
       readinessWeight: number;
       actionLabel: string;
       actionRoute: string;
-      status: 'PENDING' | 'ACKNOWLEDGED' | 'COMPLETED';
+      status: 'PENDING' | 'ACKNOWLEDGED' | 'COMPLETED' | 'NOT_APPLICABLE';
+      appliesToWorkspace: boolean;
       isUpdateForExistingWorkspace: boolean;
       missingFields: Array<{
         key: ContextFieldKey;
         label: string;
       }>;
       acknowledgedAt: string | null;
-      completionKind: 'CONTEXT_FIELDS' | 'ACKNOWLEDGEMENT' | 'PRIMARY_CHANNEL';
+      completionKind:
+        | 'CONTEXT_FIELDS'
+        | 'ACKNOWLEDGEMENT'
+        | 'PRIMARY_CHANNEL'
+        | 'MULTI_OPERATION_CONFIGURATION'
+        | 'AGENCY_OPERATION_CONFIGURATION';
       needsAdminConfirmation: boolean;
       canAdminConfirm: boolean;
       readinessCriterionKey: string;

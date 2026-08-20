@@ -13,8 +13,15 @@ export const workspaceProductUpdateReadinessCriterionKey = (
   updateKey: string,
 ): string => `product_update_${updateKey.replace(/[^a-zA-Z0-9]+/g, '_')}`;
 
-export const getWorkspaceProductUpdateReadinessCriteria = () =>
+// Entrada substituída sai da avaliação inteira: ela permanece no registro como
+// histórico do que foi publicado, mas quem cobra o workspace é a sucessora.
+export const ACTIVE_WORKSPACE_PRODUCT_UPDATES =
   WORKSPACE_PRODUCT_UPDATE_REGISTRY.filter(
+    ({ supersededByKey }) => supersededByKey === undefined,
+  );
+
+export const getWorkspaceProductUpdateReadinessCriteria = () =>
+  ACTIVE_WORKSPACE_PRODUCT_UPDATES.filter(
     ({ blocksReadiness }) => blocksReadiness,
   ).map((definition) => ({
     key: workspaceProductUpdateReadinessCriterionKey(definition.key),
@@ -58,6 +65,7 @@ export const evaluateWorkspaceProductUpdates = ({
   acknowledgements,
   primaryChannel,
   multiOperation,
+  agencyLinked = false,
 }: {
   workspaceCreatedAt: Date | string | null;
   context: Partial<Record<WorkspaceProductUpdateContextField, string | null>>;
@@ -65,6 +73,9 @@ export const evaluateWorkspaceProductUpdates = ({
   acknowledgements: WorkspaceProductUpdateAcknowledgement[];
   primaryChannel?: string | null;
   multiOperation?: unknown;
+  // Vínculo de agência persistido: workspace gerido por agência ou workspace
+  // cujo administrador é dono de uma agência.
+  agencyLinked?: boolean;
 }): WorkspaceProductUpdateEvaluation => {
   const workspaceCreatedAtTimestamp = workspaceCreatedAt
     ? new Date(workspaceCreatedAt).getTime()
@@ -75,7 +86,7 @@ export const evaluateWorkspaceProductUpdates = ({
       acknowledgement,
     ]),
   );
-  const items = WORKSPACE_PRODUCT_UPDATE_REGISTRY.map((definition) => {
+  const items = ACTIVE_WORKSPACE_PRODUCT_UPDATES.map((definition) => {
     const acknowledgement = acknowledgementByUpdate.get(
       `${definition.key}@${definition.version}`,
     );
@@ -85,9 +96,18 @@ export const evaluateWorkspaceProductUpdates = ({
             ({ key }) => (context[key] ?? '').trim().length === 0,
           )
         : [];
+    // Operação de agência só é exigida de quem participa do ecossistema de
+    // agência. Para os demais a exigência não se aplica, e não se aplica é
+    // diferente de concluída: nada é dado como respondido por padrão.
+    const appliesToWorkspace =
+      definition.completion.kind === 'AGENCY_OPERATION_CONFIGURATION'
+        ? agencyLinked
+        : true;
     const needsAdminConfirmation =
-      definition.completion.kind === 'CONTEXT_FIELDS' &&
+      (definition.completion.kind === 'CONTEXT_FIELDS' ||
+        definition.completion.kind === 'AGENCY_OPERATION_CONFIGURATION') &&
       definition.completion.requiresAdminConfirmation &&
+      appliesToWorkspace &&
       !acknowledgement;
     const completed =
       definition.completion.kind === 'ACKNOWLEDGEMENT'
@@ -96,7 +116,9 @@ export const evaluateWorkspaceProductUpdates = ({
           ? isConfiguredPrimaryChannel(primaryChannel)
           : definition.completion.kind === 'MULTI_OPERATION_CONFIGURATION'
             ? workspaceMultiOperationSchema.safeParse(multiOperation).success
-            : missingFields.length === 0 && !needsAdminConfirmation;
+            : definition.completion.kind === 'AGENCY_OPERATION_CONFIGURATION'
+              ? appliesToWorkspace && Boolean(acknowledgement)
+              : missingFields.length === 0 && !needsAdminConfirmation;
 
     return {
       key: definition.key,
@@ -110,11 +132,14 @@ export const evaluateWorkspaceProductUpdates = ({
       readinessWeight: definition.readinessWeight,
       actionLabel: definition.actionLabel,
       actionRoute: definition.actionRoute,
-      status: completed
-        ? ('COMPLETED' as const)
-        : acknowledgement
-          ? ('ACKNOWLEDGED' as const)
-          : ('PENDING' as const),
+      appliesToWorkspace,
+      status: !appliesToWorkspace
+        ? ('NOT_APPLICABLE' as const)
+        : completed
+          ? ('COMPLETED' as const)
+          : acknowledgement
+            ? ('ACKNOWLEDGED' as const)
+            : ('PENDING' as const),
       isUpdateForExistingWorkspace:
         workspaceCreatedAtTimestamp < Date.parse(definition.releasedAt),
       missingFields,
@@ -128,7 +153,9 @@ export const evaluateWorkspaceProductUpdates = ({
             ? isConfiguredPrimaryChannel(primaryChannel)
             : definition.completion.kind === 'MULTI_OPERATION_CONFIGURATION'
               ? false
-              : missingFields.length === 0 && contextIsActive,
+              : definition.completion.kind === 'AGENCY_OPERATION_CONFIGURATION'
+                ? appliesToWorkspace
+                : missingFields.length === 0 && contextIsActive,
       readinessCriterionKey: workspaceProductUpdateReadinessCriterionKey(
         definition.key,
       ),
@@ -160,14 +187,20 @@ export const evaluateWorkspaceProductUpdates = ({
   return {
     state: {
       registryVersion: WORKSPACE_PRODUCT_UPDATE_REGISTRY_VERSION,
-      pendingCount: items.filter(({ status }) => status !== 'COMPLETED').length,
+      pendingCount: items.filter(
+        ({ status }) => status !== 'COMPLETED' && status !== 'NOT_APPLICABLE',
+      ).length,
       blockingPendingCount: items.filter(
         ({ blocksReadiness, status }) =>
-          blocksReadiness && status !== 'COMPLETED',
+          blocksReadiness &&
+          status !== 'COMPLETED' &&
+          status !== 'NOT_APPLICABLE',
       ).length,
       adminNoticeCount: items.filter(
         ({ isUpdateForExistingWorkspace, status }) =>
-          isUpdateForExistingWorkspace && status !== 'COMPLETED',
+          isUpdateForExistingWorkspace &&
+          status !== 'COMPLETED' &&
+          status !== 'NOT_APPLICABLE',
       ).length,
       items,
     },
@@ -175,7 +208,10 @@ export const evaluateWorkspaceProductUpdates = ({
     readinessByCriterionKey: new Map(
       items.map((item) => [
         item.readinessCriterionKey,
-        item.status === 'COMPLETED',
+        // Exigência fora do alcance do workspace não pode segurar a prontidão.
+        // Ela conta como satisfeita no cálculo e continua marcada como
+        // NOT_APPLICABLE no painel, para nunca ser lida como concluída.
+        item.status === 'COMPLETED' || item.status === 'NOT_APPLICABLE',
       ]),
     ),
     evidenceRecordIdByCriterionKey: new Map(

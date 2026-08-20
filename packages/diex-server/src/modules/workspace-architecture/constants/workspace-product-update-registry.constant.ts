@@ -1,6 +1,6 @@
 import { type WorkspaceProductUpdateDefinition } from 'src/modules/workspace-architecture/types/workspace-product-update.type';
 
-export const WORKSPACE_PRODUCT_UPDATE_REGISTRY_VERSION = '2026-08-18';
+export const WORKSPACE_PRODUCT_UPDATE_REGISTRY_VERSION = '2026-08-20';
 
 // O portão de ativação em duas confirmações (contexto revisado e estrutura
 // publicada) não tem entrada aqui de propósito: ele só remove exigências. Para
@@ -84,7 +84,31 @@ export const WORKSPACE_PRODUCT_UPDATE_REGISTRY: WorkspaceProductUpdateDefinition
       actionLabel: 'Configurar operação compartilhada',
       actionRoute:
         '/diex/first-steps?update=crm-multi-operation-foundation-2026-08',
+      // Publicada exigindo um manifesto multioperação que nenhuma tela grava,
+      // e sem confirmação administrativa, o que travava a prontidão de todo
+      // workspace. O critério fica intacto como histórico; quem avalia é a
+      // entrada que a substitui.
+      supersededByKey: 'crm-agency-operation-2026-08',
       completion: { kind: 'MULTI_OPERATION_CONFIGURATION' },
+    },
+    {
+      key: 'crm-agency-operation-2026-08',
+      version: '1.0.0',
+      title: 'Confirme a operação compartilhada da agência',
+      summary:
+        'Agência e workspace gerido por agência passam a declarar agenda, canal comercial e contas de anúncio sob um vínculo explícito. Workspace sem agência não precisa desta configuração.',
+      revenueImpact:
+        'Separa a carteira de cada agência e evita que dado comercial de um cliente apareça para outro.',
+      releasedAt: '2026-08-20T00:00:00.000Z',
+      importance: 'REQUIRED',
+      blocksReadiness: true,
+      readinessWeight: 3,
+      actionLabel: 'Revisar operação da agência',
+      actionRoute: '/agency-portal',
+      completion: {
+        kind: 'AGENCY_OPERATION_CONFIGURATION',
+        requiresAdminConfirmation: true,
+      },
     },
   ];
 
