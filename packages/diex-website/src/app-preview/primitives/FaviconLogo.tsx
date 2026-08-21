@@ -51,7 +51,7 @@ function getLogoUrlFromDomainName(domainName?: string): string | undefined {
   }
   const sanitizedDomain = sanitizeUrl(domainName);
   return sanitizedDomain
-    ? `https://diex-icons.com/${sanitizedDomain}`
+    ? `https://twenty-icons.com/${sanitizedDomain}`
     : undefined;
 }
 

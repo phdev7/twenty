@@ -39,7 +39,7 @@ const nextConfig: LinariaConfig = {
         protocol: 'https',
       },
       {
-        hostname: 'diex-icons.com',
+        hostname: 'twenty-icons.com',
         pathname: '/**',
         protocol: 'https',
       },

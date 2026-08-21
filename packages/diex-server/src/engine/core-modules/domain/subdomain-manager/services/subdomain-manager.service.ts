@@ -121,14 +121,24 @@ export class SubdomainManagerService {
       return [];
     }
 
+    // O banco tem índice único em subdomain e em formsSubdomain. Workspace
+    // renomeado mantém o formsSubdomain antigo, então olhar só subdomain
+    // sugere um nome que o INSERT vai recusar depois.
     const existingWorkspaces = await this.workspaceRepository.find({
-      where: { subdomain: In(validCandidates) },
+      where: [
+        { subdomain: In(validCandidates) },
+        { formsSubdomain: In(validCandidates) },
+      ],
       withDeleted: true,
-      select: { subdomain: true },
+      select: { subdomain: true, formsSubdomain: true },
     });
 
     const takenSubdomains = new Set(
-      existingWorkspaces.map((workspace) => workspace.subdomain),
+      existingWorkspaces.flatMap((workspace) =>
+        [workspace.subdomain, workspace.formsSubdomain].filter(
+          (value): value is string => isDefined(value),
+        ),
+      ),
     );
 
     return validCandidates.filter(
@@ -160,8 +170,10 @@ export class SubdomainManagerService {
   }
 
   async isSubdomainAvailable(subdomain: string) {
+    // Precisa cobrir as duas colunas com índice único, senão o passo de
+    // subdomínio aprova o nome e o erro só aparece ao finalizar o cadastro.
     const existingWorkspace = await this.workspaceRepository.findOne({
-      where: { subdomain: subdomain },
+      where: [{ subdomain }, { formsSubdomain: subdomain }],
       withDeleted: true,
     });
 
